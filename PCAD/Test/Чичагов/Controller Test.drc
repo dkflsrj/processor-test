@@ -1,0 +1,132 @@
+P-CAD Design Rule Check Report
+
+======================================================================
+
+D:\PCAD2006\Чичагов\Controller Test.drc:
+
+
+Design Clearances (in   mm):
+-------------------------------
+Board Edge Clearance:   Not Defined
+Silk Screen Clearance:  Not Defined
+Hole-Hole Clearance:    Not Defined
+
+
+Layer Clearances (in   mm):
+-------------------------------
+
+Layer Name          Pad-Pad  Pad-Line Line-Line   Pad-Via  Via-Line   Via-Via
+
+Top                   0.250     0.250     0.250     0.250     0.250     0.250
+Bottom                0.250     0.250     0.250     0.250     0.250     0.250
+
+
+Net Class Clearances (in   mm):
+-------------------------------
+Net Class Name      Pad-Pad  Pad-Line Line-Line   Pad-Via  Via-Line   Via-Via
+
+
+
+Net Clearances (In   mm):
+-------------------------
+Net Name            Pad-Pad  Pad-Line Line-Line   Pad-Via  Via-Line   Via-Via
+
+
+Net Class To Net Class Clearances (in   mm):
+--------------------------------------------
+Net Class Names     Pad-Pad  Pad-Line Line-Line   Pad-Via  Via-Line   Via-Via
+
+POWER To SIGNAL                           0.400                              
+
+
+Area Checked:
+-------------
+
+DRC Extents:            Entire Workspace
+
+
+DRC Report Options:
+-------------------
+
+Net List Compare:                       Off
+Clearance Violations:                   On
+Text Violations:                        Off
+Same-Parent-Component Pad Violations:   On
+Net List Violations:                    Off
+Unrouted Nets:                          On
+Unconnected Pins:                       Off
+Net Length Violations:                  Off
+Silk Violations:                        Off
+Copper Pour Violations:                 On
+Plane Violations:                       Off
+Component Violations:                   Off
+
+----------------------------------------------------------------------
+
+03-Jul-13  17:05                                            Page    1
+
+P-CAD Design Rule Check Report
+
+======================================================================
+
+Drill Violations:                       Off
+Test Point Violations:                  Off
+
+DRC Errors:
+-----------
+
+
+CLEARANCE VIOLATIONS:
+
+
+0 warning(s) detected.
+0 error(s) detected.
+
+UNROUTED NETS:
+
+
+0 warning(s) detected.
+0 error(s) detected.
+
+WIDTH VIOLATIONS:
+
+Warning: Width violation tests were not performed because
+         of missing Width rule.
+
+0 warning(s) detected.
+0 error(s) detected.
+
+COPPER POUR VIOLATIONS:
+
+
+0 warning(s) detected.
+0 error(s) detected.
+
+DRC Summary:
+------------
+
+Clearance:
+	Errors:         0
+	Warnings:       0
+	Ignored Errors: 0
+Unrouted Nets:
+	Errors:         0
+	Warnings:       0
+	Ignored Errors: 0
+Width:
+	Errors:         0
+	Warnings:       0
+	Ignored Errors: 0
+Copper Pour:
+	Errors:         0
+	Warnings:       0
+	Ignored Errors: 0
+
+
+
+
+
+----------------------------------------------------------------------
+
+03-Jul-13  17:05                                            Page    2
+
