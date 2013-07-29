@@ -1,0 +1,615 @@
+<!-- saved from url=(0022)http://internet.e-mail -->
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1251">
+<meta name=Generator content="Microsoft Word 10 (filtered)">
+<title>Команды масспектрометра</title>
+
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:2.0cm 42.5pt 2.0cm 3.0cm;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+</head>
+
+<body lang=RU>
+
+<div class=Section1>
+
+<p class=MsoNormal align=center style='text-align:center'><b><span
+style='font-size:14.0pt'>Команды масспектрометра</span></b></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd_GetState (0x01)</span></b></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal>Возвращает текущее состояние масспектрометра:</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Командв: 0<span lang=EN-US>x</span>01 </p>
+
+<p class=MsoNormal>Ответ<span lang=EN-US>: 0x01 &lt;SystemState&gt; </span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>enum SystemStates</span></p>
+
+<p class=MsoNormal><span lang=EN-US>{</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemStart = 0,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemInit   = 1,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemVacuumInit = 2,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemVacuumCrash = 3,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemReady = 4,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemBringingProbe = 5,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemMeasuring = 6,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemMeasured = 7,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemMeasuredReady = 8,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemPreShutdown</span> = 9<span
+lang=EN-US>,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemShutdown</span> = 10</p>
+
+<p class=MsoNormal><span lang=EN-US>};</span></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>GetStatus</span>
+(0</b><b><span lang=EN-US>x</span>02)</b></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Возвращает статусную информацию о системе</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Команда: <span lang=EN-US>0x02 </span></p>
+
+<p class=MsoNormal>Ответ<span lang=EN-US>: 0x02 &lt;SystemState&gt; &lt;VacuumState&gt;
+&lt;Forvacuum&gt; &lt;HighVacuum&gt; &lt;HeatCurrent&gt; &lt;EmissionCurent&gt;
+&lt;IonizationVoltage&gt; &lt;FocusVoltage1&gt; &lt;FocusVoltage2&gt; &lt;ScanVoltage&gt;
+&lt;CondenserVoltagePositive&gt; &lt;CondenserVoltageNegative&gt; &lt;DetectorVoltage&gt;
+&lt;RelaysValvesState&gt;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal>Где:</p>
+
+<p class=MsoNormal><span lang=EN-US>&lt;SystemState&gt;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>enum SystemStates</span></p>
+
+<p class=MsoNormal><span lang=EN-US>{</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemStart = 0,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemInit   = 1,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemVacuumInit = 2,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemVacuumCrash = 3,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemReady = 4,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemBringingProbe = 5,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemMeasuring = 6,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemMeasured = 7,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemMeasuredReady = 8,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemPreShutdown = 9,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            SystemShutdown = 10</span></p>
+
+<p class=MsoNormal><span lang=EN-US>};</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&lt;VacuumState&gt;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>enum VacuumStates</span></p>
+
+<p class=MsoNormal><span lang=EN-US>{</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumIdle = 0,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumInit = 1,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumWaitForvacuum = 2,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumCheckForvacHvac = 3,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumWaitOpenHValve = 4,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumWaitForvacuum2 = 5,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumWaitHighvacuum = 6,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumReady = 7,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumBringProbe = 8,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumBringProbeWaitHvacuum = 9,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumForvacuumCrash = 10,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumForvacuumCrashTime = 11,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumForvacuumCrashTime2 = 12,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumHighvacuumCrash = 13,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumHighvacuumCrashTime = 14,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            VacuumShutdown = 15</span></p>
+
+<p class=MsoNormal><span lang=EN-US>};</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&lt;Forvacuum&gt; &lt;HighVacuum&gt; &lt;HeatCurrent&gt;
+&lt;EmissionCurent&gt; &lt;IonizationVoltage&gt; &lt;FocusVoltage1&gt;
+&lt;FocusVoltage2&gt; &lt;ScanVoltage&gt; &lt;CondenserVoltagePositive&gt; &lt;CondenserVoltageNegative&gt;
+&lt;DetectorVoltage&gt;</span></p>
+
+<p class=MsoNormal>Соответствующие значения АЦП. Каждое значение представлено
+16-битным числом (младший бай первый в пакете), действительных бит – 12 (т.е.
+старшие 4 бита не используются).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&lt;<span lang=EN-US>RelaysValvesState</span>&gt;</p>
+
+<p class=MsoNormal>Текущее состояние всех реле и клапанов. Каждый би отвечает
+за соответствующее реле или клапан:</p>
+
+<p class=MsoNormal>0 – <span lang=EN-US>ForvacuumPumpState</span> : 0 – форвакуумный
+насос выключен, 1 – включен</p>
+
+<p class=MsoNormal>1 – <span lang=EN-US>AtmLapValve</span>: 0 – клапан выхода в
+атмосферу закрыт, 1 – открыт</p>
+
+<p class=MsoNormal>2 – <span lang=EN-US>HighVacuumValve</span>: 0 - клапан
+между высоковакуумным насосом и форвакуумом закрыт, 1 – открыт</p>
+
+<p class=MsoNormal>3 – <span lang=EN-US>HeatValve</span>: 0 – тепловой вентиль
+закрыт, 1 – открыт</p>
+
+<p class=MsoNormal>4 – <span lang=EN-US>PackRelay</span>: 0 – отжимное реле
+экстрактора (карамысла) выключено, 1 – включено</p>
+
+<p class=MsoNormal>5 – <span lang=EN-US>BringProbeRelay</span>: 0 – реле
+введения пробы выключено, 1 – включено</p>
+
+<p class=MsoNormal>6 – <span lang=EN-US>RotationRelay</span>: 0 – реле вращения
+карамысла выключено, 1 – включено</p>
+
+<p class=MsoNormal>7 – <span lang=EN-US>HVHardwEnabled</span>: 0 – высокое
+напряжение запрещено аналоговой частью, 1 – разрешено (не обязательно включено,
+это просто превышение минимального порога; высокое напряжение включается только
+при переходе системы в состояние <span lang=EN-US>SystemReady</span> при
+условии, что бит <span lang=EN-US>HVHardwEnabled</span> находится в состоянии
+1).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>В эту команду так же будет добавлена информация о
+высоковакуумном насосе (температура, <span lang=EN-US>RPM</span> и состояние –
+включен или выключен).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>Shutdown</span>
+(0</b><b><span lang=EN-US>x</span>03)</b></p>
+
+<p class=MsoNormal>Переводит систему в состояние <span lang=EN-US>Shutdown</span>.
+При этом все узлы приводятся в первоначальное состояние. Выход из этого
+состояние возможен только по команде <span lang=EN-US>Cmd</span>_<span
+lang=EN-US>Init</span>.</p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>Init</span>
+(0</b><b><span lang=EN-US>x</span>04)</b></p>
+
+<p class=MsoNormal>Запускает инициализацию системы (в том числе откачку
+вакуума). Команда может быть исполнена только при нахождении системы в
+состояниях <span lang=EN-US>SystemVacuumCrash</span>,  <span lang=EN-US>SystemShutdown</span>.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>SetHeatCurrent</span>
+(0</b><b><span lang=EN-US>x</span>05)</b></p>
+
+<p class=MsoNormal>Устанавливает значение тока нагрева.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>05 &lt;<span lang=EN-US>dataL</span>&gt;
+&lt;<span lang=EN-US>dataH</span>&gt;</p>
+
+<p class=MsoNormal>Передаются в качестве значения тока два байта (т.е.
+16-битное число), но действующими битами являются только младшие 12. При
+непопадании данных в заданный диапазон (12-бит), генерируется ошибочный ответ (<span
+lang=EN-US>Error</span>_<span lang=EN-US>InvalidData</span>).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>SetEmissionCurrent</span>
+(0</b><b><span lang=EN-US>x</span>06)</b></p>
+
+<p class=MsoNormal>Устанавливает значение тока эмиссии.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>06 &lt;<span lang=EN-US>dataL</span>&gt;
+&lt;<span lang=EN-US>dataH</span>&gt;</p>
+
+<p class=MsoNormal>Передаются в качестве значения тока два байта (т.е.
+16-битное число), но действующими битами являются только младшие 12. При
+непопадании данных в заданный диапазон (12-бит), генерируется ошибочный ответ (<span
+lang=EN-US>Error</span>_<span lang=EN-US>InvalidData</span>).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>SetIonizationVoltage</span>
+(0</b><b><span lang=EN-US>x</span>07)</b></p>
+
+<p class=MsoNormal>Устанавливает значение напряжения ионизации.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>07 &lt;<span lang=EN-US>dataL</span>&gt;
+&lt;<span lang=EN-US>dataH</span>&gt;</p>
+
+<p class=MsoNormal>Передаются в качестве значения напряжения два байта (т.е.
+16-битное число), но действующими битами являются только младшие 12. При
+непопадании данных в заданный диапазон (12-бит), генерируется ошибочный ответ (<span
+lang=EN-US>Error</span>_<span lang=EN-US>InvalidData</span>).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>SetFocusVoltage</span>1
+(0</b><b><span lang=EN-US>x</span>08)</b></p>
+
+<p class=MsoNormal>Устанавливает значение первого фокусирующего напряжения.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>08 &lt;<span lang=EN-US>dataL</span>&gt;
+&lt;<span lang=EN-US>dataH</span>&gt;</p>
+
+<p class=MsoNormal>Передаются в качестве значения напряжения два байта (т.е.
+16-битное число), но действующими битами являются только младшие 12. При непопадании
+данных в заданный диапазон (12-бит), генерируется ошибочный ответ (<span
+lang=EN-US>Error</span>_<span lang=EN-US>InvalidData</span>).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>SetFocusVoltage</span>2
+(0</b><b><span lang=EN-US>x</span>09)</b></p>
+
+<p class=MsoNormal>Устанавливает значение первого фокусирующего напряжения.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>09 &lt;<span lang=EN-US>dataL</span>&gt;
+&lt;<span lang=EN-US>dataH</span>&gt;</p>
+
+<p class=MsoNormal>Передаются в качестве значения напряжения два байта (т.е.
+16-битное число), но действующими битами являются только младшие 12. При
+непопадании данных в заданный диапазон (12-бит), генерируется ошибочный ответ (<span
+lang=EN-US>Error</span>_<span lang=EN-US>InvalidData</span>).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>SetScanVoltage</span>
+(0</b><b><span lang=EN-US>x</span>0</b><b><span lang=EN-US>a</span>)</b></p>
+
+<p class=MsoNormal>Устанавливает значение сканирующего напряжения.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>0<span lang=EN-US>a</span>
+&lt;<span lang=EN-US>dataL</span>&gt; &lt;<span lang=EN-US>dataH</span>&gt;</p>
+
+<p class=MsoNormal>Передаются в качестве значения напряжения два байта (т.е.
+16-битное число), но действующими битами являются только младшие 12. При
+непопадании данных в заданный диапазон (12-бит), генерируется ошибочный ответ (<span
+lang=EN-US>Error</span>_<span lang=EN-US>InvalidData</span>).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd_SetCondenserVoltage (0x0b)</span></b></p>
+
+<p class=MsoNormal>Устанавливает значении напряжения конденсатора.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>0<span lang=EN-US>b</span>
+&lt;<span lang=EN-US>dataL</span>&gt; &lt;<span lang=EN-US>dataH</span>&gt;</p>
+
+<p class=MsoNormal>Передаются в качестве значения напряжения два байта (т.е.
+16-битное число), но действующими битами являются только младшие 12. При непопадании
+данных в заданный диапазон (12-бит), генерируется ошибочный ответ (<span
+lang=EN-US>Error</span>_<span lang=EN-US>InvalidData</span>).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>Measure</span>
+(0</b><b><span lang=EN-US>x</span>0</b><b><span lang=EN-US>c</span>)</b></p>
+
+<p class=MsoNormal>Запускает измерение одной точки. В качестве данных
+передается время ожидания до начала измерения (время установления <span
+lang=EN-US>ScanVoltage</span>) и время измерения. Ответ на команду – что
+команда исполнена. После чего система переходит в состояние <span lang=EN-US>SystemMeasuring</span>.
+По окончании измерения (истечении времени ожидания и вемени измерения) система
+переходит в состояние <span lang=EN-US>SystemMesaured</span> и генерируется
+асинхронное сообщение <span lang=EN-US>Async</span>_<span lang=EN-US>Measured</span>.
+После чего может быть послана команда <span lang=EN-US>Cmd_GetCounts</span>.</p>
+
+<p class=MsoNormal>Формат<span lang=EN-US>: 0x0c &lt;WaitTimeL&gt; &lt;WaitTimeH&gt;
+&lt;MeasureTimeL&gt; &lt;MeasureTimeH&gt;</span></p>
+
+<p class=MsoNormal>Время задается в 5-миллисекундных интервалах.</p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>GetCounts</span>
+(0</b><b><span lang=EN-US>x</span>0</b><b><span lang=EN-US>d</span>)</b></p>
+
+<p class=MsoNormal>Читает значение счетчиков и переводит систему из состояние <span
+lang=EN-US>SystemMeasured</span><span lang=EN-US> </span>в состояние <span
+lang=EN-US>SystemReady</span>.</p>
+
+<p class=MsoNormal>Формат<span lang=EN-US>: 0x0d</span></p>
+
+<p class=MsoNormal>Ответ<span lang=EN-US>: 0x0d &lt;Detector0L&gt;
+&lt;Detector0M&gt; &lt;Detector0H&gt; &lt;Detector1L&gt; &lt;Detector1M&gt;
+&lt;Detector1H&gt;</span></p>
+
+<p class=MsoNormal>Ответом является пакет, в котором содержатся 24-битные
+значения счетчиков двух детекторов. Каждое значение идет младшим байтом вперед.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>RotateExtractor</span>
+(0</b><b><span lang=EN-US>x</span>0</b><b><span lang=EN-US>e</span>)</b></p>
+
+<p class=MsoNormal>Запускает процедуру вращения экстрактора (коромысла). Т.е.
+отжимает экстрактор, переворачивает, прижимает.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>RotateExtractorGetState</span>
+(0</b><b><span lang=EN-US>x</span>0</b><b><span lang=EN-US>f</span>)</b></p>
+
+<p class=MsoNormal>Возвращает текущее состояние вращения экстрактора.(0 – <span
+lang=EN-US>Stopped</span>, 1 – <span lang=EN-US>Rotating</span>). Позволяет узнать
+когда экстрактор закончил вращение.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>0<span lang=EN-US>f</span></p>
+
+<p class=MsoNormal>Ответ: 0<span lang=EN-US>x</span>0<span lang=EN-US>f</span>
+&lt;<span lang=EN-US>State</span>&gt;</p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>BringProbe</span>
+(0</b><b><span lang=EN-US>x</span>10)</b></p>
+
+<p class=MsoNormal>Вводит пробу в экстрактор. В качестве данных передается
+количество впрысков.</p>
+
+<p class=MsoNormal>Формат: 0<span lang=EN-US>x</span>10 &lt;<span lang=EN-US>Num</span>&gt;</p>
+
+<p class=MsoNormal>Где <span lang=EN-US>Num</span> – количество впрысков.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cmd</span>_</b><b><span lang=EN-US>EnableHeatCurrent</span>
+(0</b><b><span lang=EN-US>x</span>11)</b></p>
+
+<p class=MsoNormal>Включает или выключает ток нагрева. Если данные равны 0 – то
+выключает, если не равны нулю – то включает.</p>
+
+<p class=MsoNormal>Формат: <span lang=EN-US>0x11 &lt;Enable:bool&gt;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span lang=EN-US>Cms</span>_</b><b><span lang=EN-US>EnableEmissionCurrent</span>
+(0</b><b><span lang=EN-US>x</span>12)</b></p>
+
+<p class=MsoNormal>Включает или выключает ток эмиссии. Если данные равны 0 – то
+выключает, иначе – включает.</p>
+
+<p class=MsoNormal>Формат: <span lang=EN-US>0x12 &lt;Enable:bool&gt;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><b>Так же возможны ответы на команды в случае каких-либо
+ошибок:</b></p>
+
+<p class=MsoNormal><span lang=EN-US>enum ErrorReplyes</span></p>
+
+<p class=MsoNormal><span lang=EN-US>{</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Error_InvalidCommand=64,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Error_InvalidChecksum=128,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Error_InvalidPacket = 129,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Error_InvalidLength = 130,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Error_InvalidData = 131,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            </span>Error_InvalidState = 132</p>
+
+<p class=MsoNormal>};</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><span lang=EN-US>Error</span>_<span lang=EN-US>InvalidCommand</span><span
+lang=EN-US> </span>– неверный код команды (команды с таки кодом нет)</p>
+
+<p class=MsoNormal><span lang=EN-US>Error</span>_<span lang=EN-US>InvalidChecksum</span>
+– неверная контрольная сумма пакета</p>
+
+<p class=MsoNormal><span lang=EN-US>Error</span>_<span lang=EN-US>InvalidPacket</span>
+– ошибки при принятии пакета (типа <span lang=EN-US>overrun</span> или что-то
+подобное)</p>
+
+<p class=MsoNormal><span lang=EN-US>Error</span>_<span lang=EN-US>InvalidLength</span><span
+lang=EN-US> </span>– неверная длинна пакета/данных</p>
+
+<p class=MsoNormal><span lang=EN-US>Error</span>_<span lang=EN-US>InvalidData</span><span
+lang=EN-US> </span>– неверные данные (например выходят за допустимый диапазон)</p>
+
+<p class=MsoNormal><span lang=EN-US>Error</span>_<span lang=EN-US>InvalidState</span><span
+lang=EN-US> </span>– команда не может быть исполнена в текущем состоянии
+системы</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><b>Возможны асинхронные пакеты, которые сообщают о каком-то
+событии в системе:</b></p>
+
+<p class=MsoNormal><span lang=EN-US>enum AsyncReplyes</span></p>
+
+<p class=MsoNormal><span lang=EN-US>{</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            InternalError = 192,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            InternalError_InvalidSystemState
+= 193,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            AsyncError_VacuumCrash = 194,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Async_Measured=224,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Async_VacuumReady = 225,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Async_SystemShutdowned = 226,</span></p>
+
+<p class=MsoNormal><span lang=EN-US>            Async_Init = 227</span></p>
+
+<p class=MsoNormal><span lang=EN-US>};</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>InternalError</span><span lang=EN-US> </span>–
+полный трынцец. Случилось что-то страшное. Срочно все выключаем. Никогда не
+должно возникнуть. Данные, пересланные в этом пакете необходимо сохранить и
+показать мне.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><span lang=EN-US>InternalError_InvalidSystemState – </span>почти
+полный трындец<span lang=EN-US>. </span>Почему-то возникло неизвестное
+системное состояние. Срочно выключаем. Никогда не должно возникнуть. Аналогично
+– все данные отсюда надо сохранить и показать мне.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><span lang=EN-US>AsyncError</span>_<span lang=EN-US>VacuumCrash</span>
+– что-то страшное случилось с вакуумом. Т.е. либо форвакуум, либо высокий
+вакуум стал хуже заданного порога. В качестве данных передается состояние
+вакуума. Более подробную информацию можно получить по команде <span lang=EN-US>Cmd</span>_<span
+lang=EN-US>GetStatus</span>.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><span lang=EN-US>Async</span>_<span lang=EN-US>Measured</span>
+– измерение закончено.</p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>Async</span>_<span lang=EN-US>VacuumReady</span>
+– вакуум перешел в состояние <span lang=EN-US>VacuumReady</span>, следовательно
+система перешла в состояние <span lang=EN-US>SystemReady</span> и готова к
+измерению.</p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal><span lang=EN-US>Async_SystemShutdowned – </span>система перешла
+в состояние <span lang=EN-US>SystemShutdown (</span>по команде <span
+lang=EN-US>Cms_Shutdown).</span></p>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal>Async_Init – запущена циклограмма инициализации
+системы/вакуума (либо при включении питания, либо по команде <span lang=EN-US>Cmd</span>_<span
+lang=EN-US>Init</span>).</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+</div>
+
+</body>
+
+</html>
