@@ -1,0 +1,124 @@
+P-CAD Bill of Materials           D:\...\Controller Test(07.07.13).sch
+
+                       Переченьэлементов MSV_08
+
+======================================================================
+
+File Design Information:
+
+Title:    PSInl_12
+Author:   Тубольцев Ю. В.
+
+RefDes          ComponentName   Value           PatternName     Count  OriginalName    ModifyDate      PackageReferenc Code_IPC        DatasheetDocume Code_JEDEC     
+--------------- --------------- --------------- --------------- ------ --------------- --------------- --------------- --------------- --------------- ---------------
+
+BQ1             QUARTS_DT-38T   32768           QUARTS-DT-38T        1                                                                                                
+C1              C0805           0.10            C0805                1                                                                                                
+C2              C0805           10.0            C0805                1                                                                                                
+C3              C0805           0.10            C0805                3                                                                                                
+C4                                                                                                                                                                    
+C5                                                                                                                                                                    
+C6              C0805           10.0            C0805                1                                                                                                
+C7              C0805           0.10            C0805                1                                                                                                
+C8              C0805           10.0            C0805                2                                                                                                
+C9                                                                                                                                                                    
+C26             C0805           0,10            C0805                1                                                                                                
+C29             C0805           20              C0805                1                                                                                                
+C30             C0805           16V*0,1         C0805                1                                                                                                
+C31             C0805           20              C0805                1                                                                                                
+C32             C0805           0,10            C0805                5                                                                                                
+C33                                                                                                                                                                   
+C35                                                                                                                                                                   
+C36                                                                                                                                                                   
+C47                                                                                                                                                                   
+DA1             IRU1117-33                      SOT-223              1 SN5400J                                                                                        
+DA2             AD5328BR                        MSOIC16              1                                                                                                
+DA3             AD7927                          TSSOP20TUB           1                                                                                                
+DA4             REF192ES                        SO8M                 1                                                                                                
+DD1             ADM202EARN                      SO16_NARROW          1                                                                                                
+DD4             ATXMEGA32A4U-AU                 TQFP-44A             1                                                                                                
+                _44A                                                                                                                                                  
+R1              NR-1-4-9                        NR-1-4-9             2                                                                                                
+R2                                                                                                                                                                    
+R27             RV0805          24              RV0805               2                                                                                                
+R28                                                                                                                                                                   
+R29             RV0805          1K              RV0805               1                                                                                                
+S1              VDM-8                           DIP-16               1 SN5400J                                                                                        
+SJ1             JMP2                            JMP2                 1                                                                                                
+SX1             B170                            B170                 1 SN5400J                                                                                        
+VD1             L_934LSRD                       LED_2,5              8                                                                                                
+VD2                                                                                                                                                                   
+VD3                                                                                                                                                                   
+VD4                                                                                                                                                                   
+VD5                                                                                                                                                                   
+VD6                                                                                                                                                                   
+VD7                                                                                                                                                                   
+VD8                                                                                                                                                                   
+
+----------------------------------------------------------------------
+
+                            Чичагов Ю. В.
+
+08-Jul-13  17:19                                            Page    1
+
+P-CAD Bill of Materials           D:\...\Controller Test(07.07.13).sch
+
+                       Переченьэлементов MSV_08
+
+======================================================================
+
+X1              USBA-1J-L                       USBA-1J              1                                                                                                
+X2              BH-6                            BH-6                 1                                                                                                
+X3              JMP3M                           JMP3                 1                                                                                                
+X4              DB9F                            DB9F                 1                                                                                                
+X5              BH-10                           BH-10                2                                                                                                
+X6                                                                                                                                                                    
+X7              BH-26                           BH-26                1                                                                                                
+X8              LEMO_R                          LEMO_R               2 SN5400J                                                                                        
+X9                                                                                                                                                                    
+XC1             WF-3                            WF-3                 1                                                                                                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+                            Чичагов Ю. В.
+
+08-Jul-13  17:19                                            Page    2
+

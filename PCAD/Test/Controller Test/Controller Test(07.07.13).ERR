@@ -1,0 +1,66 @@
+P-CAD Net List Compare Errors
+
+======================================================================
+
+Netlist filename: E:\PCAD2006_user\Controller Test\Controller Test(07.07.net
+Warning: line 4436
+   * Component XC1 pattern mismatch between board (WF 3) and netlist file (WF-3)
+Error: Net:Node GND:X1-5 found on the board but not in the netlist.
+Error: Net:Node GND:X1-6 found on the board but not in the netlist.
+
+1 warning(s) detected.
+2 error(s) detected.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+07-Jul-13  14:13                                            Page    1
+

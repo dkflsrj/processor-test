@@ -1,0 +1,66 @@
+P-CAD Net List Compare Errors
+
+======================================================================
+
+Netlist filename: E:\PCAD2006_user\Чичагов\Controller Test\Controller Test(07.07.net
+Warning: line 4360
+   * Component XC1 pattern mismatch between board (WF 3) and netlist file (WF-3)
+Warning: line 4507
+   * Component C30 value mismatch between board (0,10) and netlist file (16V*0,1)
+Error: Component C8 found on the board but not in the netlist.
+Error: Component C9 found on the board but not in the netlist.
+Error: Component X8 found on the board but not in the netlist.
+Error: Component X9 found on the board but not in the netlist.
+Error: Net:Node D1:VD6-1 found in the netlist but not on the board.
+Error: Net:Node D2:VD7-1 found in the netlist but not on the board.
+Error: Net:Node D3:VD8-1 found in the netlist but not on the board.
+Error: Net:Node E0:X7-19 found in the netlist but not on the board.
+Error: Net:Node E0:DD4-28 found in the netlist but not on the board.
+Error: Net:Node E1:X7-20 found in the netlist but not on the board.
+Error: Net:Node E1:DD4-29 found in the netlist but not on the board.
+Error: Net:Node B1:R2-3 found in the netlist but not on the board.
+Error: Net:Node B1:VD2-1 found in the netlist but not on the board.
+Error: Net:Node B2:VD3-1 found in the netlist but not on the board.
+Error: Net:Node B3:VD4-1 found in the netlist but not on the board.
+Error: Net:Node D0:VD5-1 found in the netlist but not on the board.
+Error: Net:Node B0:R2-2 found in the netlist but not on the board.
+Error: Net:Node GND:X8-4 found on the board but not in the netlist.
+Error: Net:Node GND:X8-3 found on the board but not in the netlist.
+Error: Net:Node GND:X8-5 found on the board but not in the netlist.
+Error: Net:Node GND:X8-2 found on the board but not in the netlist.
+Error: Net:Node GND:X1-5 found on the board but not in the netlist.
+Error: Net:Node GND:X1-6 found on the board but not in the netlist.
+Error: Net:Node GND:C9-2 found on the board but not in the netlist.
+Error: Net:Node GND:X9-4 found on the board but not in the netlist.
+Error: Net:Node GND:X9-3 found on the board but not in the netlist.
+Error: Net:Node GND:X9-5 found on the board but not in the netlist.
+Error: Net:Node GND:X9-2 found on the board but not in the netlist.
+Error: Net:Node GND:C8-2 found on the board but not in the netlist.
+Error: Net:Node +3,3V:C9-1 found on the board but not in the netlist.
+Error: Net:Node +3,3V:C8-1 found on the board but not in the netlist.
+Error: Net:Node D1:VD5-1 found on the board but not in the netlist.
+Error: Net:Node D2:VD6-1 found on the board but not in the netlist.
+Error: Net:Node D3:VD7-1 found on the board but not in the netlist.
+Error: Net:Node D4:R2-10 found on the board but not in the netlist.
+Error: Net:Node D4:VD8-1 found on the board but not in the netlist.
+Error: Net:Node B1:X9-1 found on the board but not in the netlist.
+Error: Net:Node B2:VD2-1 found on the board but not in the netlist.
+Error: Net:Node B3:VD3-1 found on the board but not in the netlist.
+Error: Net:Node D0:VD4-1 found on the board but not in the netlist.
+Error: Net:Node B0:R2-3 found on the board but not in the netlist.
+Error: Net:Node A0:X8-1 found on the board but not in the netlist.
+
+2 warning(s) detected.
+42 error(s) detected.
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+07-Jul-13  13:24                                            Page    1
+

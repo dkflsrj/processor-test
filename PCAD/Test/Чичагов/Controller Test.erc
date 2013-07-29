@@ -1,0 +1,66 @@
+P-CAD Electrical Rules Check Report
+
+======================================================================
+
+D:\PCAD2006\Чичагов\Controller Test.erc:
+
+ERC Report Options:
+-------------------
+
+Single Node Nets:   Off
+No Node Nets:       On
+Electrical Rules:        Off
+Unconnected Pins:        Off
+Unconnected Wires:       On
+Bus/Net Rules:           On
+Component Rules:         Off
+Net Connectivity Rules:  Off
+Hierarchy Rules:         Off
+
+ERC Errors:
+-----------
+
+
+NO NODE NETS:
+
+
+0 warning(s) detected.
+0 error(s) detected.
+
+UNCONNECTED WIRES:
+
+
+0 warning(s) detected.
+0 error(s) detected.
+
+BUS/NET RULES:
+
+
+0 warning(s) detected.
+0 error(s) detected.
+
+ERC Summary:
+------------
+
+No Node:
+	Errors:         0
+	Warnings:       0
+	Ignored Errors: 0
+Unconnected Wire:
+	Errors:         0
+	Warnings:       0
+	Ignored Errors: 0
+Bus/Net:
+	Errors:         0
+	Warnings:       0
+	Ignored Errors: 0
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+02-Jul-13  14:54                                            Page    1
+

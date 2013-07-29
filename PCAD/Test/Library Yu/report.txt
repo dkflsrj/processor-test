@@ -1,0 +1,201 @@
+Verify Source: D:\Files PCAD2004\Library Yu\DC-DC_new.lib  Against Target Library: D:\Files PCAD2004\Library Yu\DC-DC_snew.lib.
+
+ Component                         Property                Source                           Target                        
+
+
+======================================================================
+
+AM1P-2405D
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+AM6TW-2403SH35
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+AM15E2403SI
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+                                  NumberOfPads            5                                6                             
+                                  NumberOfPins            5                                6                             
+                                  PatternName             AM15E_S                          AM15E                         
+C30
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+CA05N
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+G02
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+G05
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+G40
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+REF192ES
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+REF193GS
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+AM1D-1205SH30
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+AM2D-2405SN
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+AM15E2412SI <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            5                                
+                                  NumberOfPins            5                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             AM15E_S                          
+REF192FS
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib                      
+           
+AM15E2403SIM <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            5                                
+                                  NumberOfPins            5                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             AM15E_M                          
+
+----------------------------------------------------------------------
+
+09-Jul-09  12:37                                            Page    1
+
+Verify Source: D:\Files PCAD2004\Library Yu\DC-DC_new.lib  Against Target Library: D:\Files PCAD2004\Library Yu\DC-DC_snew.lib.
+
+ Component                         Property                Source                           Target                        
+
+
+======================================================================
+
+AM15E2412SIM <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            5                                
+                                  NumberOfPins            5                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             AM15E_M                          
+CA05NM <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            8                                
+                                  NumberOfPins            8                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             CAXXM                            
+C30M <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            5                                
+                                  NumberOfPins            5                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             C25-40M                          
+G40M <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            4                                
+                                  NumberOfPins            4                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             G01-40M                          
+G05M <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            4                                
+                                  NumberOfPins            4                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             G01-40M                          
+G10M <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            4                                
+                                  NumberOfPins            4                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             G01-40M                          
+G30M <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            4                                
+                                  NumberOfPins            4                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             G01-40M                          
+G02M <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            4                                
+                                  NumberOfPins            4                                
+                                  RefDesPrefix            DA                               
+
+----------------------------------------------------------------------
+
+09-Jul-09  12:37                                            Page    2
+
+Verify Source: D:\Files PCAD2004\Library Yu\DC-DC_new.lib  Against Target Library: D:\Files PCAD2004\Library Yu\DC-DC_snew.lib.
+
+ Component                         Property                Source                           Target                        
+
+
+======================================================================
+
+                                  PatternName             G01-40M                          
+AM2D-0509D <not found>
+                                  ComponentLibrary        D:\Files PCAD2004\Library Yu\DC-DC_new.lib   
+                                  ComponentType           Normal                           
+                                  NumberOfPads            5                                
+                                  NumberOfPins            5                                
+                                  RefDesPrefix            DA                               
+                                  PatternName             AM2D_DUAL                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+09-Jul-09  12:37                                            Page    3
+
