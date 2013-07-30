@@ -21,8 +21,8 @@
 //
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version 7
-#define birthday 20130729
+#define version 10
+#define birthday 20130730
 #define usart_delay 1
 //Commands
 #define COMMAND_MC_get_Version			1	//Команда: Запросить версию прошивки
@@ -41,6 +41,7 @@
 #define COMMAND_COA_start				31	//Команда: Начать счёт импульсов
 #define COMMAND_COA_get_count			32	//Команда: Запросить у счётчика результат
 #define COMMAND_COA_stop				33	//Команда: Остановить счётчик
+#define COMMAND_RTC_set_prescaler		34	//Команда: Задать делитель RTC
 
 #define COMMAND_DAC_set_voltage			40	//Команда: Задать DAC'у напряжение
 #define COMMAND_ADC_get_voltage			41	//Команда: Запросить у ADC напряжение
@@ -104,7 +105,9 @@ uint16_t Intervals_count = 100;			//Количество интервалов (интервал + задержка)
 uint16_t COA_measurment = 0;			//Последнее измерение счётчика
 uint16_t COA_measurment_2 = 0;
 uint8_t COA_ovf = 0;					//Количество переполнений счётчика
-uint8_t COA_state = 1;					//Состояния счётчика 1 - готов, 2 - считает, 3 - остановлен
+uint8_t COA_state = 0;					//Состояния счётчика 7 - готов, 8 - считает, 9 - остановлен
+
+uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 static usart_rs232_options_t USART_COMP_OPTIONS = {
 	.baudrate = USART_COMP_BAUDRATE,
@@ -173,6 +176,8 @@ ISR(USARTE0_RXC_vect)
 				break;
 			case COMMAND_MC_wait: MC_status = 1;
 				break;
+			case COMMAND_RTC_set_prescaler: USART_nextByteIsData_count = 1;
+				break;
 			default: USART_COMP_transmit_report(2);//Контроллер не понял команду
 		}
 		MC_lastCommand = USART_rDATA;				//Запопинаем нашу команду
@@ -191,9 +196,11 @@ ISR(USARTE0_RXC_vect)
 				break;
 			case COMMAND_COA_set_timeInterval: COA_set_timeInterval(MC_MEM[1],USART_rDATA);
 				break;
+			case COMMAND_RTC_set_prescaler: RTC_prescaler = USART_rDATA;
+				break;
 			default: USART_COMP_transmit_report(3); //Несоответствие команд
 		}
-		USART_nextByteIsData_count = 0;		//Сбрасываем счётчик байтов
+		USART_nextByteIsData_count = 0;			//Сбрасываем счётчик байтов
 		MC_MEM[0] = 0;							//И счётчик массива
 	}
 	else
@@ -208,14 +215,15 @@ ISR(RTC_OVF_vect)
 {
 	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
 	//ФУНКЦИЯ: Остановка счётчиков импульсов
-	gpio_set_pin_low(A2);	// жёлтый луч
+	//gpio_set_pin_low(A2);	// жёлтый луч
 	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
 	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
-	gpio_set_pin_low(A3);	//Зелёный луч
+	//gpio_set_pin_low(A3);	//Зелёный луч
+	showMeByte(255);
 	COA_measurment = TCD0.CNT;
 	COA_measurment_2 = TCD1.CNT;
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
-	RTC.CNT = 0;
+	//RTC.CNT = 0;
 	COA_setStatus_ready;
 	MC_status = 4;
 }
@@ -400,7 +408,11 @@ void USART_COMP_transmit_COA_count(void)
 {
 	//ФУНКЦИЯ: Вернуть ПК результат измерения
 	delay_us(usart_delay);
-	usart_putchar(USART_COMP,COA_state);
+	usart_putchar(USART_COMP, COA_state);
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP, (COA_measurment_2 >> 8));
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP, COA_measurment_2);
 	delay_us(usart_delay);
 	usart_putchar(USART_COMP, (COA_measurment >> 8));
 	delay_us(usart_delay);
@@ -464,11 +476,9 @@ void COA_start(void)
 	RTC.CNT = 0;
 	COA_ovf = 0;
 	COA_setStatus_busy;
-	gpio_set_pin_high(A2);	//жёлтый луч
 	tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
 	tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);
-	RTC.CTRL = RTC_PRESCALER_DIV1_gc;
-	gpio_set_pin_high(A3);	//зелёный луч
+	RTC.CTRL = RTC_prescaler;
 }
 void COA_stop(void)
 {
@@ -497,16 +507,32 @@ int main (void)
 	EVSYS_SetEventChannelFilter( 0, EVSYS_DIGFILT_8SAMPLES_gc );
 	//Инициировать двойные счётчики
 	EVSYS_SetEventSource(1, EVSYS_CHMUX_TCD0_OVF_gc);
-	EVSYS_SetEventChannelFilter( 1, EVSYS_DIGFILT_8SAMPLES_gc );
+	EVSYS_SetEventChannelFilter( 1, EVSYS_DIGFILT_1SAMPLE_gc );
+	
+	for (uint16_t i = 1; i <129 ; i += i)
+	{
+		delay_ms(50);
+		showMeByte(i);
+	}
+	for (uint16_t i = 128; i >1 ; i -= i/2)
+	{
+		delay_ms(50);
+		showMeByte(i);
+	}
+	delay_ms(50);
+	showMeByte(2);
+	delay_ms(50);
+	showMeByte(1);
+	delay_ms(50);
+	showMeByte(0);
 	
 	MC_status = 1;						//Режим ожидания
 	MC_error = 1;						//Ошибок нет
 	cpu_irq_enable();					//Разрешаем прерывания	
 	
-	gpio_set_pin_low(A2);
-	gpio_set_pin_low(A3);
+
 	//Инициализация завершена
-	//uint16_t duoByte;
+
 	while (1) 
 	{
 		switch (MC_status)
@@ -518,7 +544,8 @@ int main (void)
 				break;
 			case 3: //showMeByte(duoByte >> 8);
 				break;
-			case 4:	for (Byte i = 0; i < 20; i++)
+			case 4:	showMeByte(0);
+					for (Byte i = 0; i < 20; i++)
 					{
 						gpio_toggle_pin(LED_VD1);
 						delay_ms(50);

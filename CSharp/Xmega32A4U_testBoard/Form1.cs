@@ -6,7 +6,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Windows;
 using System.IO.Ports;
 using System.Threading;
 
@@ -16,8 +15,7 @@ namespace Xmega32A4U_testBoard
     {
         SerialPort COM_Port;
         XMEGA32A4U MC;
-        int time = 0;
-        int timer = 50;
+
         public Form1()
         {
             InitializeComponent();
@@ -379,9 +377,11 @@ namespace Xmega32A4U_testBoard
             }
         }
 
-
-
-
-
+        private void TXB_interval_TextChanged(object sender, EventArgs e)
+        {
+            LBL_COA_ticks.Text = MC.RTC.getTicks(TXB_interval.Text).ToString();
+            LBL_COA_frequency.Text = MC.RTC.getFreqency().ToString();
+            LBL_COA_prescaler.Text = MC.RTC.getPrescaler().ToString();
+        }
     }
 }
