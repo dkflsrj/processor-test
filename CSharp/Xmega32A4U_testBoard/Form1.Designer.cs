@@ -47,13 +47,27 @@
             this.lable_COM = new System.Windows.Forms.Label();
             this.BTN_COM_setParams = new System.Windows.Forms.Button();
             this.TABpanel_2 = new System.Windows.Forms.TabPage();
-            this.BTN_reqCount = new System.Windows.Forms.Button();
+            this.GRB_Counter = new System.Windows.Forms.GroupBox();
             this.BTN_setInterval = new System.Windows.Forms.Button();
-            this.BTN_stopCounter = new System.Windows.Forms.Button();
+            this.TXB_interval = new System.Windows.Forms.TextBox();
             this.BTN_startCounter = new System.Windows.Forms.Button();
-            this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
-            this.BTN_SPI_ADC_request = new System.Windows.Forms.Button();
+            this.BTN_reqCount = new System.Windows.Forms.Button();
+            this.BTN_stopCounter = new System.Windows.Forms.Button();
+            this.GRB_SPI = new System.Windows.Forms.GroupBox();
+            this.BTN_DAC_reset = new System.Windows.Forms.Button();
+            this.TXB_ADC_channel = new System.Windows.Forms.TextBox();
+            this.TXB_DAC_channel = new System.Windows.Forms.TextBox();
+            this.CHB_ADC_DoubleRange = new System.Windows.Forms.CheckBox();
+            this.TXB_DAC_voltage = new System.Windows.Forms.TextBox();
             this.BTN_SPI_DAC_send = new System.Windows.Forms.Button();
+            this.BTN_SPI_ADC_request = new System.Windows.Forms.Button();
+            this.GRB_MC = new System.Windows.Forms.GroupBox();
+            this.BTN_COM_getMCversion = new System.Windows.Forms.Button();
+            this.BTN_MCstatus = new System.Windows.Forms.Button();
+            this.BTN_COM_MC_CPUfreq = new System.Windows.Forms.Button();
+            this.BTN_LEDbyte = new System.Windows.Forms.Button();
+            this.TXB_LEDbyte = new System.Windows.Forms.TextBox();
+            this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.CHB_COM_DC_recieveDATA = new System.Windows.Forms.CheckBox();
             this.CHB_COM_DC_sendDATA = new System.Windows.Forms.CheckBox();
@@ -63,28 +77,20 @@
             this.TXB_COM_DC_recieveDATA_count = new System.Windows.Forms.TextBox();
             this.TXB_COM_DC_sendDATA = new System.Windows.Forms.TextBox();
             this.TXB_COM_DC_command = new System.Windows.Forms.TextBox();
-            this.TXB_interval = new System.Windows.Forms.TextBox();
-            this.TXB_DAC_voltage = new System.Windows.Forms.TextBox();
-            this.TXB_DAC_channel = new System.Windows.Forms.TextBox();
-            this.TXB_ADC_channel = new System.Windows.Forms.TextBox();
-            this.TXB_LEDbyte = new System.Windows.Forms.TextBox();
-            this.BTN_LEDbyte = new System.Windows.Forms.Button();
-            this.BTN_COM_getMCversion = new System.Windows.Forms.Button();
-            this.BTN_COM_MC_CPUfreq = new System.Windows.Forms.Button();
-            this.BTN_MCstatus = new System.Windows.Forms.Button();
             this.Hinter = new System.Windows.Forms.ToolTip(this.components);
-            this.CHB_ADC_DoubleRange = new System.Windows.Forms.CheckBox();
-            this.BTN_DAC_reset = new System.Windows.Forms.Button();
-            this.GRB_MC = new System.Windows.Forms.GroupBox();
-            this.GRB_SPI = new System.Windows.Forms.GroupBox();
-            this.GRB_Counter = new System.Windows.Forms.GroupBox();
+            this.CHB_TotalControl = new System.Windows.Forms.CheckBox();
+            this.CLK_timer = new System.Windows.Forms.Timer(this.components);
+            this.GRB_TotalControl = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.LBL_TotalC_Status = new System.Windows.Forms.Label();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
-            this.groupBox1.SuspendLayout();
-            this.GRB_MC.SuspendLayout();
-            this.GRB_SPI.SuspendLayout();
             this.GRB_Counter.SuspendLayout();
+            this.GRB_SPI.SuspendLayout();
+            this.GRB_MC.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            this.GRB_TotalControl.SuspendLayout();
             this.SuspendLayout();
             // 
             // Log
@@ -301,6 +307,7 @@
             // TABpanel_2
             // 
             this.TABpanel_2.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel_2.Controls.Add(this.GRB_TotalControl);
             this.TABpanel_2.Controls.Add(this.GRB_Counter);
             this.TABpanel_2.Controls.Add(this.GRB_SPI);
             this.TABpanel_2.Controls.Add(this.GRB_MC);
@@ -312,15 +319,19 @@
             this.TABpanel_2.TabIndex = 1;
             this.TABpanel_2.Text = "XMega32A4U_testBoard";
             // 
-            // BTN_reqCount
+            // GRB_Counter
             // 
-            this.BTN_reqCount.Location = new System.Drawing.Point(6, 77);
-            this.BTN_reqCount.Name = "BTN_reqCount";
-            this.BTN_reqCount.Size = new System.Drawing.Size(103, 23);
-            this.BTN_reqCount.TabIndex = 7;
-            this.BTN_reqCount.Text = "Проверить счёт";
-            this.BTN_reqCount.UseVisualStyleBackColor = true;
-            this.BTN_reqCount.Click += new System.EventHandler(this.BTN_reqCount_Click);
+            this.GRB_Counter.Controls.Add(this.BTN_setInterval);
+            this.GRB_Counter.Controls.Add(this.TXB_interval);
+            this.GRB_Counter.Controls.Add(this.BTN_startCounter);
+            this.GRB_Counter.Controls.Add(this.BTN_reqCount);
+            this.GRB_Counter.Controls.Add(this.BTN_stopCounter);
+            this.GRB_Counter.Location = new System.Drawing.Point(322, 206);
+            this.GRB_Counter.Name = "GRB_Counter";
+            this.GRB_Counter.Size = new System.Drawing.Size(224, 108);
+            this.GRB_Counter.TabIndex = 12;
+            this.GRB_Counter.TabStop = false;
+            this.GRB_Counter.Text = "Счётчик";
             // 
             // BTN_setInterval
             // 
@@ -332,15 +343,13 @@
             this.BTN_setInterval.UseVisualStyleBackColor = true;
             this.BTN_setInterval.Click += new System.EventHandler(this.BTN_setInterval_Click);
             // 
-            // BTN_stopCounter
+            // TXB_interval
             // 
-            this.BTN_stopCounter.Location = new System.Drawing.Point(115, 48);
-            this.BTN_stopCounter.Name = "BTN_stopCounter";
-            this.BTN_stopCounter.Size = new System.Drawing.Size(103, 23);
-            this.BTN_stopCounter.TabIndex = 7;
-            this.BTN_stopCounter.Text = "Остановить счёт";
-            this.BTN_stopCounter.UseVisualStyleBackColor = true;
-            this.BTN_stopCounter.Click += new System.EventHandler(this.BTN_stopCounter_Click);
+            this.TXB_interval.Location = new System.Drawing.Point(115, 21);
+            this.TXB_interval.Name = "TXB_interval";
+            this.TXB_interval.Size = new System.Drawing.Size(73, 20);
+            this.TXB_interval.TabIndex = 2;
+            this.TXB_interval.Text = "1";
             // 
             // BTN_startCounter
             // 
@@ -352,15 +361,96 @@
             this.BTN_startCounter.UseVisualStyleBackColor = true;
             this.BTN_startCounter.Click += new System.EventHandler(this.BTN_startCounter_Click);
             // 
-            // BTN_COM_setMCwait
+            // BTN_reqCount
             // 
-            this.BTN_COM_setMCwait.Location = new System.Drawing.Point(6, 48);
-            this.BTN_COM_setMCwait.Name = "BTN_COM_setMCwait";
-            this.BTN_COM_setMCwait.Size = new System.Drawing.Size(103, 23);
-            this.BTN_COM_setMCwait.TabIndex = 7;
-            this.BTN_COM_setMCwait.Text = "Ожидание";
-            this.BTN_COM_setMCwait.UseVisualStyleBackColor = true;
-            this.BTN_COM_setMCwait.Click += new System.EventHandler(this.BTN_COM_setMCwait_Click);
+            this.BTN_reqCount.Location = new System.Drawing.Point(6, 77);
+            this.BTN_reqCount.Name = "BTN_reqCount";
+            this.BTN_reqCount.Size = new System.Drawing.Size(103, 23);
+            this.BTN_reqCount.TabIndex = 7;
+            this.BTN_reqCount.Text = "Проверить счёт";
+            this.BTN_reqCount.UseVisualStyleBackColor = true;
+            this.BTN_reqCount.Click += new System.EventHandler(this.BTN_reqCount_Click);
+            // 
+            // BTN_stopCounter
+            // 
+            this.BTN_stopCounter.Location = new System.Drawing.Point(115, 48);
+            this.BTN_stopCounter.Name = "BTN_stopCounter";
+            this.BTN_stopCounter.Size = new System.Drawing.Size(103, 23);
+            this.BTN_stopCounter.TabIndex = 7;
+            this.BTN_stopCounter.Text = "Остановить счёт";
+            this.BTN_stopCounter.UseVisualStyleBackColor = true;
+            this.BTN_stopCounter.Click += new System.EventHandler(this.BTN_stopCounter_Click);
+            // 
+            // GRB_SPI
+            // 
+            this.GRB_SPI.Controls.Add(this.BTN_DAC_reset);
+            this.GRB_SPI.Controls.Add(this.TXB_ADC_channel);
+            this.GRB_SPI.Controls.Add(this.TXB_DAC_channel);
+            this.GRB_SPI.Controls.Add(this.CHB_ADC_DoubleRange);
+            this.GRB_SPI.Controls.Add(this.TXB_DAC_voltage);
+            this.GRB_SPI.Controls.Add(this.BTN_SPI_DAC_send);
+            this.GRB_SPI.Controls.Add(this.BTN_SPI_ADC_request);
+            this.GRB_SPI.Location = new System.Drawing.Point(6, 233);
+            this.GRB_SPI.Name = "GRB_SPI";
+            this.GRB_SPI.Size = new System.Drawing.Size(223, 81);
+            this.GRB_SPI.TabIndex = 11;
+            this.GRB_SPI.TabStop = false;
+            this.GRB_SPI.Text = "SPI";
+            // 
+            // BTN_DAC_reset
+            // 
+            this.BTN_DAC_reset.Location = new System.Drawing.Point(6, 19);
+            this.BTN_DAC_reset.Name = "BTN_DAC_reset";
+            this.BTN_DAC_reset.Size = new System.Drawing.Size(55, 24);
+            this.BTN_DAC_reset.TabIndex = 9;
+            this.BTN_DAC_reset.Text = "Сброс";
+            this.BTN_DAC_reset.UseVisualStyleBackColor = true;
+            this.BTN_DAC_reset.Click += new System.EventHandler(this.BTN_DAC_reset_Click);
+            // 
+            // TXB_ADC_channel
+            // 
+            this.TXB_ADC_channel.Location = new System.Drawing.Point(115, 51);
+            this.TXB_ADC_channel.Name = "TXB_ADC_channel";
+            this.TXB_ADC_channel.Size = new System.Drawing.Size(31, 20);
+            this.TXB_ADC_channel.TabIndex = 2;
+            this.TXB_ADC_channel.Text = "1";
+            // 
+            // TXB_DAC_channel
+            // 
+            this.TXB_DAC_channel.Location = new System.Drawing.Point(115, 22);
+            this.TXB_DAC_channel.Name = "TXB_DAC_channel";
+            this.TXB_DAC_channel.Size = new System.Drawing.Size(31, 20);
+            this.TXB_DAC_channel.TabIndex = 2;
+            this.TXB_DAC_channel.Text = "1";
+            // 
+            // CHB_ADC_DoubleRange
+            // 
+            this.CHB_ADC_DoubleRange.AutoSize = true;
+            this.CHB_ADC_DoubleRange.Location = new System.Drawing.Point(153, 53);
+            this.CHB_ADC_DoubleRange.Name = "CHB_ADC_DoubleRange";
+            this.CHB_ADC_DoubleRange.Size = new System.Drawing.Size(37, 17);
+            this.CHB_ADC_DoubleRange.TabIndex = 8;
+            this.CHB_ADC_DoubleRange.Text = "х2";
+            this.Hinter.SetToolTip(this.CHB_ADC_DoubleRange, "Двойной диапазон напряжений");
+            this.CHB_ADC_DoubleRange.UseVisualStyleBackColor = true;
+            // 
+            // TXB_DAC_voltage
+            // 
+            this.TXB_DAC_voltage.Location = new System.Drawing.Point(152, 22);
+            this.TXB_DAC_voltage.Name = "TXB_DAC_voltage";
+            this.TXB_DAC_voltage.Size = new System.Drawing.Size(63, 20);
+            this.TXB_DAC_voltage.TabIndex = 2;
+            this.TXB_DAC_voltage.Text = "4000";
+            // 
+            // BTN_SPI_DAC_send
+            // 
+            this.BTN_SPI_DAC_send.Location = new System.Drawing.Point(67, 19);
+            this.BTN_SPI_DAC_send.Name = "BTN_SPI_DAC_send";
+            this.BTN_SPI_DAC_send.Size = new System.Drawing.Size(42, 24);
+            this.BTN_SPI_DAC_send.TabIndex = 5;
+            this.BTN_SPI_DAC_send.Text = "DAC";
+            this.BTN_SPI_DAC_send.UseVisualStyleBackColor = true;
+            this.BTN_SPI_DAC_send.Click += new System.EventHandler(this.BTN_SPI_DAC_send_Click);
             // 
             // BTN_SPI_ADC_request
             // 
@@ -372,15 +462,78 @@
             this.BTN_SPI_ADC_request.UseVisualStyleBackColor = true;
             this.BTN_SPI_ADC_request.Click += new System.EventHandler(this.BTN_SPI_ADC_request_Click);
             // 
-            // BTN_SPI_DAC_send
+            // GRB_MC
             // 
-            this.BTN_SPI_DAC_send.Location = new System.Drawing.Point(67, 19);
-            this.BTN_SPI_DAC_send.Name = "BTN_SPI_DAC_send";
-            this.BTN_SPI_DAC_send.Size = new System.Drawing.Size(42, 24);
-            this.BTN_SPI_DAC_send.TabIndex = 5;
-            this.BTN_SPI_DAC_send.Text = "DAC";
-            this.BTN_SPI_DAC_send.UseVisualStyleBackColor = true;
-            this.BTN_SPI_DAC_send.Click += new System.EventHandler(this.BTN_SPI_DAC_send_Click);
+            this.GRB_MC.Controls.Add(this.BTN_COM_getMCversion);
+            this.GRB_MC.Controls.Add(this.BTN_MCstatus);
+            this.GRB_MC.Controls.Add(this.BTN_COM_MC_CPUfreq);
+            this.GRB_MC.Controls.Add(this.BTN_LEDbyte);
+            this.GRB_MC.Controls.Add(this.TXB_LEDbyte);
+            this.GRB_MC.Controls.Add(this.BTN_COM_setMCwait);
+            this.GRB_MC.Location = new System.Drawing.Point(6, 10);
+            this.GRB_MC.Name = "GRB_MC";
+            this.GRB_MC.Size = new System.Drawing.Size(223, 108);
+            this.GRB_MC.TabIndex = 10;
+            this.GRB_MC.TabStop = false;
+            this.GRB_MC.Text = "Процессор";
+            // 
+            // BTN_COM_getMCversion
+            // 
+            this.BTN_COM_getMCversion.Location = new System.Drawing.Point(6, 19);
+            this.BTN_COM_getMCversion.Name = "BTN_COM_getMCversion";
+            this.BTN_COM_getMCversion.Size = new System.Drawing.Size(103, 23);
+            this.BTN_COM_getMCversion.TabIndex = 0;
+            this.BTN_COM_getMCversion.Text = "Версия";
+            this.BTN_COM_getMCversion.UseVisualStyleBackColor = true;
+            this.BTN_COM_getMCversion.Click += new System.EventHandler(this.BTN_COM_getMCversion_Click);
+            // 
+            // BTN_MCstatus
+            // 
+            this.BTN_MCstatus.Location = new System.Drawing.Point(115, 19);
+            this.BTN_MCstatus.Name = "BTN_MCstatus";
+            this.BTN_MCstatus.Size = new System.Drawing.Size(103, 23);
+            this.BTN_MCstatus.TabIndex = 0;
+            this.BTN_MCstatus.Text = "Статус";
+            this.BTN_MCstatus.UseVisualStyleBackColor = true;
+            this.BTN_MCstatus.Click += new System.EventHandler(this.BTN_MCstatus_Click);
+            // 
+            // BTN_COM_MC_CPUfreq
+            // 
+            this.BTN_COM_MC_CPUfreq.Location = new System.Drawing.Point(115, 48);
+            this.BTN_COM_MC_CPUfreq.Name = "BTN_COM_MC_CPUfreq";
+            this.BTN_COM_MC_CPUfreq.Size = new System.Drawing.Size(103, 23);
+            this.BTN_COM_MC_CPUfreq.TabIndex = 0;
+            this.BTN_COM_MC_CPUfreq.Text = "Частота CPU";
+            this.BTN_COM_MC_CPUfreq.UseVisualStyleBackColor = true;
+            this.BTN_COM_MC_CPUfreq.Click += new System.EventHandler(this.BTN_COM_getCPUfreq_Click);
+            // 
+            // BTN_LEDbyte
+            // 
+            this.BTN_LEDbyte.Location = new System.Drawing.Point(6, 77);
+            this.BTN_LEDbyte.Name = "BTN_LEDbyte";
+            this.BTN_LEDbyte.Size = new System.Drawing.Size(103, 23);
+            this.BTN_LEDbyte.TabIndex = 1;
+            this.BTN_LEDbyte.Text = "Высветить байт";
+            this.BTN_LEDbyte.UseVisualStyleBackColor = true;
+            this.BTN_LEDbyte.Click += new System.EventHandler(this.BTN_LEDbyte_Click);
+            // 
+            // TXB_LEDbyte
+            // 
+            this.TXB_LEDbyte.Location = new System.Drawing.Point(115, 79);
+            this.TXB_LEDbyte.Name = "TXB_LEDbyte";
+            this.TXB_LEDbyte.Size = new System.Drawing.Size(100, 20);
+            this.TXB_LEDbyte.TabIndex = 2;
+            this.TXB_LEDbyte.Text = "0";
+            // 
+            // BTN_COM_setMCwait
+            // 
+            this.BTN_COM_setMCwait.Location = new System.Drawing.Point(6, 48);
+            this.BTN_COM_setMCwait.Name = "BTN_COM_setMCwait";
+            this.BTN_COM_setMCwait.Size = new System.Drawing.Size(103, 23);
+            this.BTN_COM_setMCwait.TabIndex = 7;
+            this.BTN_COM_setMCwait.Text = "Ожидание";
+            this.BTN_COM_setMCwait.UseVisualStyleBackColor = true;
+            this.BTN_COM_setMCwait.Click += new System.EventHandler(this.BTN_COM_setMCwait_Click);
             // 
             // groupBox1
             // 
@@ -476,151 +629,54 @@
             this.TXB_COM_DC_command.Size = new System.Drawing.Size(73, 20);
             this.TXB_COM_DC_command.TabIndex = 2;
             // 
-            // TXB_interval
+            // CHB_TotalControl
             // 
-            this.TXB_interval.Location = new System.Drawing.Point(115, 21);
-            this.TXB_interval.Name = "TXB_interval";
-            this.TXB_interval.Size = new System.Drawing.Size(73, 20);
-            this.TXB_interval.TabIndex = 2;
-            this.TXB_interval.Text = "1";
+            this.CHB_TotalControl.AutoSize = true;
+            this.CHB_TotalControl.ForeColor = System.Drawing.Color.Red;
+            this.CHB_TotalControl.Location = new System.Drawing.Point(6, 19);
+            this.CHB_TotalControl.Name = "CHB_TotalControl";
+            this.CHB_TotalControl.Size = new System.Drawing.Size(78, 17);
+            this.CHB_TotalControl.TabIndex = 13;
+            this.CHB_TotalControl.Text = "Выключен";
+            this.Hinter.SetToolTip(this.CHB_TotalControl, "Постоянный опрос состояния контроллера");
+            this.CHB_TotalControl.UseVisualStyleBackColor = true;
+            this.CHB_TotalControl.CheckedChanged += new System.EventHandler(this.CHB_TotalControl_CheckedChanged);
             // 
-            // TXB_DAC_voltage
+            // CLK_timer
             // 
-            this.TXB_DAC_voltage.Location = new System.Drawing.Point(152, 22);
-            this.TXB_DAC_voltage.Name = "TXB_DAC_voltage";
-            this.TXB_DAC_voltage.Size = new System.Drawing.Size(63, 20);
-            this.TXB_DAC_voltage.TabIndex = 2;
-            this.TXB_DAC_voltage.Text = "4000";
+            this.CLK_timer.Interval = 2000;
+            this.CLK_timer.Tick += new System.EventHandler(this.CLK_timer_Tick);
             // 
-            // TXB_DAC_channel
+            // GRB_TotalControl
             // 
-            this.TXB_DAC_channel.Location = new System.Drawing.Point(115, 22);
-            this.TXB_DAC_channel.Name = "TXB_DAC_channel";
-            this.TXB_DAC_channel.Size = new System.Drawing.Size(31, 20);
-            this.TXB_DAC_channel.TabIndex = 2;
-            this.TXB_DAC_channel.Text = "1";
+            this.GRB_TotalControl.Controls.Add(this.LBL_TotalC_Status);
+            this.GRB_TotalControl.Controls.Add(this.label1);
+            this.GRB_TotalControl.Controls.Add(this.CHB_TotalControl);
+            this.GRB_TotalControl.Location = new System.Drawing.Point(6, 124);
+            this.GRB_TotalControl.Name = "GRB_TotalControl";
+            this.GRB_TotalControl.Size = new System.Drawing.Size(223, 103);
+            this.GRB_TotalControl.TabIndex = 14;
+            this.GRB_TotalControl.TabStop = false;
+            this.GRB_TotalControl.Text = "Контроль";
             // 
-            // TXB_ADC_channel
+            // label1
             // 
-            this.TXB_ADC_channel.Location = new System.Drawing.Point(115, 51);
-            this.TXB_ADC_channel.Name = "TXB_ADC_channel";
-            this.TXB_ADC_channel.Size = new System.Drawing.Size(31, 20);
-            this.TXB_ADC_channel.TabIndex = 2;
-            this.TXB_ADC_channel.Text = "1";
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 39);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(47, 13);
+            this.label1.TabIndex = 14;
+            this.label1.Text = "Статус: ";
             // 
-            // TXB_LEDbyte
+            // LBL_TotalC_Status
             // 
-            this.TXB_LEDbyte.Location = new System.Drawing.Point(115, 79);
-            this.TXB_LEDbyte.Name = "TXB_LEDbyte";
-            this.TXB_LEDbyte.Size = new System.Drawing.Size(100, 20);
-            this.TXB_LEDbyte.TabIndex = 2;
-            this.TXB_LEDbyte.Text = "0";
-            // 
-            // BTN_LEDbyte
-            // 
-            this.BTN_LEDbyte.Location = new System.Drawing.Point(6, 77);
-            this.BTN_LEDbyte.Name = "BTN_LEDbyte";
-            this.BTN_LEDbyte.Size = new System.Drawing.Size(103, 23);
-            this.BTN_LEDbyte.TabIndex = 1;
-            this.BTN_LEDbyte.Text = "Высветить байт";
-            this.BTN_LEDbyte.UseVisualStyleBackColor = true;
-            this.BTN_LEDbyte.Click += new System.EventHandler(this.BTN_LEDbyte_Click);
-            // 
-            // BTN_COM_getMCversion
-            // 
-            this.BTN_COM_getMCversion.Location = new System.Drawing.Point(6, 19);
-            this.BTN_COM_getMCversion.Name = "BTN_COM_getMCversion";
-            this.BTN_COM_getMCversion.Size = new System.Drawing.Size(103, 23);
-            this.BTN_COM_getMCversion.TabIndex = 0;
-            this.BTN_COM_getMCversion.Text = "Версия";
-            this.BTN_COM_getMCversion.UseVisualStyleBackColor = true;
-            this.BTN_COM_getMCversion.Click += new System.EventHandler(this.BTN_COM_getMCversion_Click);
-            // 
-            // BTN_COM_MC_CPUfreq
-            // 
-            this.BTN_COM_MC_CPUfreq.Location = new System.Drawing.Point(115, 48);
-            this.BTN_COM_MC_CPUfreq.Name = "BTN_COM_MC_CPUfreq";
-            this.BTN_COM_MC_CPUfreq.Size = new System.Drawing.Size(103, 23);
-            this.BTN_COM_MC_CPUfreq.TabIndex = 0;
-            this.BTN_COM_MC_CPUfreq.Text = "Частота CPU";
-            this.BTN_COM_MC_CPUfreq.UseVisualStyleBackColor = true;
-            this.BTN_COM_MC_CPUfreq.Click += new System.EventHandler(this.BTN_COM_getCPUfreq_Click);
-            // 
-            // BTN_MCstatus
-            // 
-            this.BTN_MCstatus.Location = new System.Drawing.Point(115, 19);
-            this.BTN_MCstatus.Name = "BTN_MCstatus";
-            this.BTN_MCstatus.Size = new System.Drawing.Size(103, 23);
-            this.BTN_MCstatus.TabIndex = 0;
-            this.BTN_MCstatus.Text = "Статус";
-            this.BTN_MCstatus.UseVisualStyleBackColor = true;
-            this.BTN_MCstatus.Click += new System.EventHandler(this.BTN_MCstatus_Click);
-            // 
-            // CHB_ADC_DoubleRange
-            // 
-            this.CHB_ADC_DoubleRange.AutoSize = true;
-            this.CHB_ADC_DoubleRange.Location = new System.Drawing.Point(153, 53);
-            this.CHB_ADC_DoubleRange.Name = "CHB_ADC_DoubleRange";
-            this.CHB_ADC_DoubleRange.Size = new System.Drawing.Size(37, 17);
-            this.CHB_ADC_DoubleRange.TabIndex = 8;
-            this.CHB_ADC_DoubleRange.Text = "х2";
-            this.Hinter.SetToolTip(this.CHB_ADC_DoubleRange, "Двойной диапазон напряжений");
-            this.CHB_ADC_DoubleRange.UseVisualStyleBackColor = true;
-            // 
-            // BTN_DAC_reset
-            // 
-            this.BTN_DAC_reset.Location = new System.Drawing.Point(6, 19);
-            this.BTN_DAC_reset.Name = "BTN_DAC_reset";
-            this.BTN_DAC_reset.Size = new System.Drawing.Size(55, 24);
-            this.BTN_DAC_reset.TabIndex = 9;
-            this.BTN_DAC_reset.Text = "Сброс";
-            this.BTN_DAC_reset.UseVisualStyleBackColor = true;
-            this.BTN_DAC_reset.Click += new System.EventHandler(this.BTN_DAC_reset_Click);
-            // 
-            // GRB_MC
-            // 
-            this.GRB_MC.Controls.Add(this.BTN_COM_getMCversion);
-            this.GRB_MC.Controls.Add(this.BTN_MCstatus);
-            this.GRB_MC.Controls.Add(this.BTN_COM_MC_CPUfreq);
-            this.GRB_MC.Controls.Add(this.BTN_LEDbyte);
-            this.GRB_MC.Controls.Add(this.TXB_LEDbyte);
-            this.GRB_MC.Controls.Add(this.BTN_COM_setMCwait);
-            this.GRB_MC.Location = new System.Drawing.Point(6, 10);
-            this.GRB_MC.Name = "GRB_MC";
-            this.GRB_MC.Size = new System.Drawing.Size(223, 108);
-            this.GRB_MC.TabIndex = 10;
-            this.GRB_MC.TabStop = false;
-            this.GRB_MC.Text = "Процессор";
-            // 
-            // GRB_SPI
-            // 
-            this.GRB_SPI.Controls.Add(this.BTN_DAC_reset);
-            this.GRB_SPI.Controls.Add(this.TXB_ADC_channel);
-            this.GRB_SPI.Controls.Add(this.TXB_DAC_channel);
-            this.GRB_SPI.Controls.Add(this.CHB_ADC_DoubleRange);
-            this.GRB_SPI.Controls.Add(this.TXB_DAC_voltage);
-            this.GRB_SPI.Controls.Add(this.BTN_SPI_DAC_send);
-            this.GRB_SPI.Controls.Add(this.BTN_SPI_ADC_request);
-            this.GRB_SPI.Location = new System.Drawing.Point(6, 233);
-            this.GRB_SPI.Name = "GRB_SPI";
-            this.GRB_SPI.Size = new System.Drawing.Size(223, 81);
-            this.GRB_SPI.TabIndex = 11;
-            this.GRB_SPI.TabStop = false;
-            this.GRB_SPI.Text = "SPI";
-            // 
-            // GRB_Counter
-            // 
-            this.GRB_Counter.Controls.Add(this.BTN_setInterval);
-            this.GRB_Counter.Controls.Add(this.TXB_interval);
-            this.GRB_Counter.Controls.Add(this.BTN_startCounter);
-            this.GRB_Counter.Controls.Add(this.BTN_reqCount);
-            this.GRB_Counter.Controls.Add(this.BTN_stopCounter);
-            this.GRB_Counter.Location = new System.Drawing.Point(322, 206);
-            this.GRB_Counter.Name = "GRB_Counter";
-            this.GRB_Counter.Size = new System.Drawing.Size(224, 108);
-            this.GRB_Counter.TabIndex = 12;
-            this.GRB_Counter.TabStop = false;
-            this.GRB_Counter.Text = "Счётчик";
+            this.LBL_TotalC_Status.AutoSize = true;
+            this.LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
+            this.LBL_TotalC_Status.Location = new System.Drawing.Point(50, 39);
+            this.LBL_TotalC_Status.Name = "LBL_TotalC_Status";
+            this.LBL_TotalC_Status.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TotalC_Status.TabIndex = 14;
+            this.LBL_TotalC_Status.Text = "Неизвестно";
             // 
             // Form1
             // 
@@ -637,14 +693,16 @@
             this.TABpanel_1.ResumeLayout(false);
             this.TABpanel_1.PerformLayout();
             this.TABpanel_2.ResumeLayout(false);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.GRB_MC.ResumeLayout(false);
-            this.GRB_MC.PerformLayout();
-            this.GRB_SPI.ResumeLayout(false);
-            this.GRB_SPI.PerformLayout();
             this.GRB_Counter.ResumeLayout(false);
             this.GRB_Counter.PerformLayout();
+            this.GRB_SPI.ResumeLayout(false);
+            this.GRB_SPI.PerformLayout();
+            this.GRB_MC.ResumeLayout(false);
+            this.GRB_MC.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            this.GRB_TotalControl.ResumeLayout(false);
+            this.GRB_TotalControl.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -700,6 +758,11 @@
         private System.Windows.Forms.GroupBox GRB_SPI;
         private System.Windows.Forms.Button BTN_DAC_reset;
         private System.Windows.Forms.GroupBox GRB_MC;
+        private System.Windows.Forms.CheckBox CHB_TotalControl;
+        private System.Windows.Forms.Timer CLK_timer;
+        private System.Windows.Forms.GroupBox GRB_TotalControl;
+        private System.Windows.Forms.Label LBL_TotalC_Status;
+        private System.Windows.Forms.Label label1;
     }
 }
 

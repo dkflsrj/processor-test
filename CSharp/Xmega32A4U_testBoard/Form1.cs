@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows;
 using System.IO.Ports;
 using System.Threading;
 
@@ -15,11 +16,12 @@ namespace Xmega32A4U_testBoard
     {
         SerialPort COM_Port;
         XMEGA32A4U MC;
-
+        int time = 0;
+        int timer = 50;
         public Form1()
         {
             InitializeComponent();
-            
+
             CMB_COM_BaudRate.Enabled = false;
             CMB_COM_DataBits.Enabled = false;
             CMB_COM_Handshake.Enabled = false;
@@ -31,13 +33,14 @@ namespace Xmega32A4U_testBoard
 
             trace(false, "Программа инициирована!");
 
-            findCOM(); 
+            findCOM();
             setCOMparams();
             TABpanel.SelectedIndex = 1;
 
             MC.setUSART(COM_Port);
             MC.setTracer(Log);
-           
+
+            CLK_timer.Enabled = true;
         }
         //Функции интерфейса
         void trace(bool newLine, string text)
@@ -241,7 +244,7 @@ namespace Xmega32A4U_testBoard
                 if (CHB_COM_DC_sendDATA.Checked && CHB_COM_DC_recieveDATA.Checked && CHB_COM_DC_recieveResponse.Checked)
                 {
                     trace(true, "Прямая команда с данными, откликом и ответом");
-                   //MC.directCommand(TXB_COM_DC_command, DataSet, TXB_COM_DC_recieveDATA_count, true);
+                    //MC.directCommand(TXB_COM_DC_command, DataSet, TXB_COM_DC_recieveDATA_count, true);
                 }
                 else if (CHB_COM_DC_sendDATA.Checked && CHB_COM_DC_recieveDATA.Checked)
                 {
@@ -259,7 +262,7 @@ namespace Xmega32A4U_testBoard
                 {
                     trace(true, "Прямая команда с данными");
                     string wDATAs = TXB_COM_DC_sendDATA.Text;
-                    
+
                     string wdata = "";
                     byte i = 0;
                     foreach (char ch in wDATAs)
@@ -293,14 +296,14 @@ namespace Xmega32A4U_testBoard
                 else if (CHB_COM_DC_recieveDATA.Checked)
                 {
                     trace(true, "Запрос");
-                    trace(true,MC.directCommand(10, 4).ToString());
+                    trace(true, MC.directCommand(10, 4).ToString());
                 }
                 else
                 {
                     MC.directCommand(Convert.ToByte(TXB_COM_DC_command.Text));
                     trace(true, "Директива");
                 }
-                
+
             }
             else
             {
@@ -333,8 +336,52 @@ namespace Xmega32A4U_testBoard
             MC.DAC.reset();
         }
 
+        private void CLK_timer_Tick(object sender, EventArgs e)
+        {
+            if (CHB_TotalControl.Checked)
+            {
+                switch (MC.getStatus())
+                {
+                    case 0: LBL_TotalC_Status.Text = "Неинициализирован!";
+                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
+                        break;
+                    case 1: LBL_TotalC_Status.Text = "Ожидание";
+                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Green;
+                        break;
+                    case 2: LBL_TotalC_Status.Text = "Состояние 2";
+                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Yellow;
+                        break;
+                    case 3: LBL_TotalC_Status.Text = "Состояние 3";
+                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Yellow;
+                        break;
+                    case 4: LBL_TotalC_Status.Text = "Отображение байтов";
+                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Green;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void CHB_TotalControl_CheckedChanged(object sender, EventArgs e)
+        {
+            if (CHB_TotalControl.Checked)
+            {
+                CHB_TotalControl.ForeColor = System.Drawing.Color.Green;
+                CHB_TotalControl.Text = "Включен";
+            }
+            else
+            {
+                CHB_TotalControl.ForeColor = System.Drawing.Color.Red;
+                CHB_TotalControl.Text = "Выключен";
+                LBL_TotalC_Status.Text = "Неизвестно!";
+                LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
+            }
+        }
+
+
+
 
 
     }
-    
 }
