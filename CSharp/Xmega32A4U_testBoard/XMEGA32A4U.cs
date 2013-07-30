@@ -54,15 +54,115 @@ namespace Xmega32A4U_testBoard
             public const byte COA_start =               31;
             public const byte COA_get_count =           32;
             public const byte COA_stop =                33;
+            public const byte RTC_set_prescaler =       34;
 
             public const byte DAC_set_voltage =         40;
             public const byte ADC_get_voltage =         41;
         };
-        struct RTC
+        public struct _RTC
         {
             //СТРУКТУРА: Счётчик реального времени - хранилище констант
-            public const double sourceFrequency = 32.768;//кГц
-            //public const byte prescaler = 64;
+            const double sourceFrequency     = 32.768;//кГц - опорная частота таймера
+            const ushort maxCount = 65535;
+            //интервалы для делителей
+            const int    min_ms_div1         = 0;
+            const int    min_ms_div2         = 2000;
+            const int    min_ms_div8         = 4000;
+            const int    min_ms_div16        = 16000;
+            const int    min_ms_div64        = 32000;
+            const int    min_ms_div256       = 127996;
+            const int    min_ms_div1024      = 511981;
+            const int    max_ms_div1024      = 2047925;
+            //предделители частоты
+            ushort prescaler;
+
+            public void   setPrescaler(ushort DIV_1_2_8_16_64_256_1024)
+            {
+                prescaler = DIV_1_2_8_16_64_256_1024;
+                byte[] wDATA = { Command.RTC_set_prescaler, 0};
+                switch (DIV_1_2_8_16_64_256_1024)
+                {
+
+                    case 1:     wDATA[1] = 1;
+                        break;
+                    case 2:     wDATA[1] = 2;
+                        break;
+                    case 8:     wDATA[1] = 3;
+                        break;
+                    case 16:    wDATA[1] = 4;
+                        break;
+                    case 64:    wDATA[1] = 5;
+                        break;
+                    case 256:   wDATA[1] = 6;
+                        break;
+                    case 1024:  wDATA[1] = 7;
+                        break;
+                    default: trace("ОШИБКА! Неверный предделитель!");
+                        prescaler = 0;
+                        return;
+                }
+                USART.Open();
+                USART.Write(wDATA, 0, 2);
+                USART.Close();
+            }
+            public ushort getPrescaler()
+            {
+                return prescaler;
+            }
+            public double getFreqency()
+            {
+                return (sourceFrequency / prescaler);
+            }
+            public ushort getTicks(int MILLISECONDS)
+            {
+                if ((MILLISECONDS >= _RTC.min_ms_div1) && (MILLISECONDS < _RTC.min_ms_div2))
+                {
+                    prescaler = 1;
+                }
+                else if ((MILLISECONDS >= _RTC.min_ms_div2) && (MILLISECONDS < _RTC.min_ms_div8))
+                {
+                    prescaler = 2;
+                }
+                else if ((MILLISECONDS >= _RTC.min_ms_div8) && (MILLISECONDS < _RTC.min_ms_div16))
+                {
+                    prescaler = 8;
+                }
+                else if ((MILLISECONDS >= _RTC.min_ms_div16) && (MILLISECONDS < _RTC.min_ms_div64))
+                {
+                    prescaler = 16;
+                }
+                else if ((MILLISECONDS >= _RTC.min_ms_div64) && (MILLISECONDS < _RTC.min_ms_div256))
+                {
+                    prescaler = 64;
+                }
+                else if ((MILLISECONDS >= _RTC.min_ms_div256) && (MILLISECONDS < _RTC.min_ms_div1024))
+                {
+                    prescaler = 256;
+                }
+                else if ((MILLISECONDS >= _RTC.min_ms_div1024) && (MILLISECONDS < _RTC.max_ms_div1024))
+                {
+                    prescaler = 1024;
+                }
+                else
+                {
+                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MILLISECONDS < 2047967; Получено: " + MILLISECONDS);
+                    prescaler = 0;
+                    return 0;
+                }
+                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * getFreqency()));
+                return tiks;
+            }
+            public ushort getTicks(string MILLISECONDS)
+            {
+                if (MILLISECONDS != "")
+                {
+                    return getTicks(Convert.ToInt32(MILLISECONDS));
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
         public struct SPI_ADC
         {
@@ -258,6 +358,12 @@ namespace Xmega32A4U_testBoard
         public struct Counter
         {
             //СТРУКТУРА: Счётчики, их три СОА, СОВ и СОС.
+            _RTC RTC_;
+            public Counter(_RTC RealTimeCounter)
+                : this()
+            {
+                RTC_ = RealTimeCounter;
+            }
             public void     start()
             {
                 //ФУНКЦИЯ: Запускаем счётчик
@@ -276,12 +382,12 @@ namespace Xmega32A4U_testBoard
                 USART.Write(wDATA, 0, 1);
                 USART.Close();
             }
-            public ushort   getResult()
+            public UInt32   getResult()
             {
                 //ФУНКЦИЯ: Запрашиваем результат счёта у МК
                 byte[] wDATA = { Command.COA_get_count };
-                byte[] rDATA = { 0, 0, 0 };
-                ushort count = 0;
+                byte[] rDATA = { 0, 0, 0, 0, 0 };
+                UInt32 count = 0;
                 USART.Open();
                 USART.Write(wDATA, 0, 1);
                 try
@@ -289,6 +395,8 @@ namespace Xmega32A4U_testBoard
                     rDATA[0] = Convert.ToByte(USART.ReadByte());
                     rDATA[1] = Convert.ToByte(USART.ReadByte());
                     rDATA[2] = Convert.ToByte(USART.ReadByte());
+                    rDATA[3] = Convert.ToByte(USART.ReadByte());
+                    rDATA[4] = Convert.ToByte(USART.ReadByte());
                 }
                 catch (Exception)
                 {
@@ -309,47 +417,49 @@ namespace Xmega32A4U_testBoard
                 }
                 else
                 {
-                    trace("ОШИБКА ОТКЛИКА! Ожидалось: " + Response.COX_done + "|" + Response.COX_busy + "|" + Response.COX_stoped + ", получено: " + rDATA[0]);
+                    trace("ОШИБКА ОТКЛИКА! Ожидалось: " + Response.COX_done + "|" + Response.COX_busy + "|" + Response.COX_stoped + ", получено: " + rDATA[0] + " " + rDATA[1] + " " + rDATA[2]);
                 }
-                count = Convert.ToUInt16(rDATA[1] * 256 + rDATA[2]);
+                count = Convert.ToUInt32(rDATA[1] * 16777216 + rDATA[2]*65536 + rDATA[3]*256 + rDATA[4]);
                 return count;
             }
-            public void     setTimeInterval(ushort INTERVAL)
+            public void     setTimeInterval(int MILLISECONDS)
             {
                 //ФУНКЦИЯ: Задаёт количество тиков для RTC через интервал в миллисекундах
-                if ((INTERVAL < 64000) && (INTERVAL >= 0))
-                {
-                    ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(INTERVAL) * RTC.sourceFrequency));
-                    byte[] bytes = BitConverter.GetBytes(tiks);
-                    byte[] wDATA = { Command.COA_set_timeInterval, bytes[1], bytes[0] };
-                    USART.Open();
-                    USART.Write(wDATA, 0, 3);
-                    USART.Close();
-                    trace("Задан временной интервал счёта: " + INTERVAL + "мс (" + tiks + " тиков)");
-                }
-                else
-                {
-                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < INTERVAL < 64000; Получено: " + INTERVAL);
-                }
+                ushort ticks = RTC_.getTicks(MILLISECONDS);
+                RTC_.setPrescaler(RTC_.getPrescaler());
+                byte[] bytes_ticks = BitConverter.GetBytes(ticks);
+                byte[] wDATA = { Command.COA_set_timeInterval, bytes_ticks[1], bytes_ticks[0] };
+                USART.Open();
+                USART.Write(wDATA, 0, 3);
+                USART.Close();
+                trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
             }
-            public void     setTimeInterval(string INTERVAL)
+            public void     setTimeInterval(string MILLISECONDS)
             {
-                setTimeInterval(Convert.ToUInt16(INTERVAL));
+                if (MILLISECONDS != "")
+                {
+                    setTimeInterval(Convert.ToInt32(MILLISECONDS));
+                }
             }
 
+
+            public DateTime MILLISECONDS { get; set; }
         }
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
-        public Counter COA = new Counter();
+        public _RTC RTC = new _RTC();
+        public Counter COA;
         //public Counter COB = new Counter();
         //public Counter COC = new Counter();
         public SPI_ADC ADC = new SPI_ADC();
         public SPI_DAC DAC = new SPI_DAC();
+        
         //--------------------------------------ФУНКЦИИ-------------------------------------------
         //ИНИЦИАЛИЗАЦИОННЫЕ
         public void     setUSART(SerialPort COM_PORT)
         {
             //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
             USART = COM_PORT;
+            COA = new Counter(RTC);
         }
         public void     setTracer(RichTextBox TRACER)
         {
