@@ -21,8 +21,8 @@
 //
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version 10
-#define birthday 20130730
+#define version 12
+#define birthday 20130731
 #define usart_delay 1
 //Commands
 #define COMMAND_MC_get_Version			1	//Команда: Запросить версию прошивки
@@ -63,7 +63,7 @@
 //RTC
 #define RTC_init						rtc_init();												 \
 										CLK.RTCCTRL = 13//5 // RTC 1.024кГц								
-#define RTC_reset						RTC.CNT = 0
+//#define RTC_reset						RTC.CNT = 0
 //SYSCLK
 #define SYSCLK_init						osc_enable(OSC_ID_RC32MHZ);								 \
 										osc_wait_ready(OSC_ID_RC32MHZ);							 \
@@ -71,8 +71,11 @@
 										Assert(CLK.CTRL == CONFIG_SYSCLK_SOURCE);				 \
 										osc_disable(OSC_ID_RC2MHZ)
 //COUNTERS
-#define Counters_init					tc_set_overflow_interrupt_level(&TCD0,TC_INT_LVL_LO);	 \
-										//tc_set_overflow_interrupt_level(&TCD1,TC_INT_LVL_LO);
+#define Counters_init					tc_enable(&TCD1);										 \
+										tc_set_overflow_interrupt_callback(&TCD1, ISR_TCD1);  \
+										tc_set_wgm(&TCD1, TC_WG_NORMAL);						 \
+										tc_set_overflow_interrupt_level(&TCD1,TC_INT_LVL_LO);	 \
+										//tc_set_overflow_interrupt_level(&TCD0,TC_INT_LVL_LO);
 										//tc_set_overflow_interrupt_level(&TCC0,TC_INT_LVL_LO)			 
 
 //----------------------------------------ПЕРЕМЕННЫЕ----------------------------------------------
@@ -223,14 +226,15 @@ ISR(RTC_OVF_vect)
 	COA_measurment = TCD0.CNT;
 	COA_measurment_2 = TCD1.CNT;
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
-	//RTC.CNT = 0;
+	RTC.CNT = 0;
 	COA_setStatus_ready;
 	MC_status = 4;
 }
-ISR(TCD1_OVF_vect)
-{
-	COA_ovf++;
-}
+ static void ISR_TCD1(void)
+ {
+	 COA_ovf++;
+ }
+
 //
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
 void showMeByte(uint8_t LED_BYTE)
@@ -487,6 +491,8 @@ void COA_stop(void)
 	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
 	RTC.CNT = 0;
+	TCD0.CNT = 0;
+	TCD1.CNT = 0;
 	COA_setStatus_stunned;
 }
 
@@ -508,7 +514,7 @@ int main (void)
 	//Инициировать двойные счётчики
 	EVSYS_SetEventSource(1, EVSYS_CHMUX_TCD0_OVF_gc);
 	EVSYS_SetEventChannelFilter( 1, EVSYS_DIGFILT_1SAMPLE_gc );
-	
+	//Светопредставление для определения перезагрузки
 	for (uint16_t i = 1; i <129 ; i += i)
 	{
 		delay_ms(50);
@@ -525,7 +531,7 @@ int main (void)
 	showMeByte(1);
 	delay_ms(50);
 	showMeByte(0);
-	
+	//Конечная инициализация
 	MC_status = 1;						//Режим ожидания
 	MC_error = 1;						//Ошибок нет
 	cpu_irq_enable();					//Разрешаем прерывания	
