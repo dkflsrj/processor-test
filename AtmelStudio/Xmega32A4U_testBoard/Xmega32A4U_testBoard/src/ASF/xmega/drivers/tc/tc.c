@@ -229,12 +229,12 @@ static tc_callback_t tc_tcd0_ccd_callback;
  * This function will handle interrupt on Timer Counter D0 overflow and
  * call the callback function.
  */
-// ISR(TCD0_OVF_vect)
-// {
-// 	if (tc_tcd0_ovf_callback) {
-// 		tc_tcd0_ovf_callback();
-// 	}
-// }
+ISR(TCD0_OVF_vect)
+{
+	if (tc_tcd0_ovf_callback) {
+		tc_tcd0_ovf_callback();
+	}
+}
 
 /**
  * \internal
@@ -322,12 +322,12 @@ static tc_callback_t tc_tcd1_ccb_callback;
  * This function will handle interrupt on Timer Counter D1 overflow and
  * call the callback function.
  */
-// ISR(TCD1_OVF_vect)
-// {
-// 	if (tc_tcd1_ovf_callback) {
-// 		tc_tcd1_ovf_callback();
-// 	}
-// }
+ISR(TCD1_OVF_vect)
+{
+	if (tc_tcd1_ovf_callback) {
+		tc_tcd1_ovf_callback();
+	}
+}
 
 /**
  * \internal

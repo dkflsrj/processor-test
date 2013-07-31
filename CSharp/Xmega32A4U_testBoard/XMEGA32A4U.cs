@@ -15,7 +15,7 @@ namespace Xmega32A4U_testBoard
         //
         //-------------------------------------ПОЯСНЕНИЯ------------------------------------------
         //
-        public const byte classVersion = 6;
+        public const byte classVersion = 9;
         //-------------------------------------ПЕРЕМЕННЫЕ-----------------------------------------
         static SerialPort   USART;
         static RichTextBox  tracer;
