@@ -330,6 +330,7 @@
             this.GRB_TotalControl.Controls.Add(this.LBL_TotalC_Status);
             this.GRB_TotalControl.Controls.Add(this.label1);
             this.GRB_TotalControl.Controls.Add(this.CHB_TotalControl);
+            this.GRB_TotalControl.Enabled = false;
             this.GRB_TotalControl.Location = new System.Drawing.Point(6, 124);
             this.GRB_TotalControl.Name = "GRB_TotalControl";
             this.GRB_TotalControl.Size = new System.Drawing.Size(223, 103);
@@ -382,6 +383,7 @@
             this.GRB_Counter.Controls.Add(this.BTN_startCounter);
             this.GRB_Counter.Controls.Add(this.BTN_reqCount);
             this.GRB_Counter.Controls.Add(this.BTN_stopCounter);
+            this.GRB_Counter.Enabled = false;
             this.GRB_Counter.Location = new System.Drawing.Point(235, 205);
             this.GRB_Counter.Name = "GRB_Counter";
             this.GRB_Counter.Size = new System.Drawing.Size(311, 109);
@@ -500,6 +502,7 @@
             this.GRB_SPI.Controls.Add(this.TXB_DAC_voltage);
             this.GRB_SPI.Controls.Add(this.BTN_SPI_DAC_send);
             this.GRB_SPI.Controls.Add(this.BTN_SPI_ADC_request);
+            this.GRB_SPI.Enabled = false;
             this.GRB_SPI.Location = new System.Drawing.Point(6, 233);
             this.GRB_SPI.Name = "GRB_SPI";
             this.GRB_SPI.Size = new System.Drawing.Size(223, 81);
@@ -637,6 +640,7 @@
             // 
             // BTN_COM_setMCwait
             // 
+            this.BTN_COM_setMCwait.Enabled = false;
             this.BTN_COM_setMCwait.Location = new System.Drawing.Point(6, 48);
             this.BTN_COM_setMCwait.Name = "BTN_COM_setMCwait";
             this.BTN_COM_setMCwait.Size = new System.Drawing.Size(103, 23);
@@ -655,6 +659,7 @@
             this.groupBox1.Controls.Add(this.TXB_COM_DC_recieveDATA_count);
             this.groupBox1.Controls.Add(this.TXB_COM_DC_sendDATA);
             this.groupBox1.Controls.Add(this.TXB_COM_DC_command);
+            this.groupBox1.Enabled = false;
             this.groupBox1.Location = new System.Drawing.Point(340, 6);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(206, 140);

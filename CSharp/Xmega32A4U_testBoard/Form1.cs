@@ -38,7 +38,7 @@ namespace Xmega32A4U_testBoard
             MC.setUSART(COM_Port);
             MC.setTracer(Log);
 
-            CLK_timer.Enabled = true;
+            CLK_timer.Enabled = false;
         }
         //Функции интерфейса
         void trace(bool newLine, string text)
@@ -46,6 +46,8 @@ namespace Xmega32A4U_testBoard
             if (newLine)
             {
                 Log.AppendText(Environment.NewLine + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text);
+                //Log.AppendText(Environment.NewLine + text);
+            
             }
             else
             {
@@ -212,6 +214,10 @@ namespace Xmega32A4U_testBoard
             MC.ADC.DoubleRange = CHB_ADC_DoubleRange.Checked;
             MC.ADC.getVoltage(TXB_ADC_channel.Text);
         }
+        private void BTN_DAC_reset_Click(object sender, EventArgs e)
+        {
+            MC.DAC.reset();
+        }
 
         private void CHB_COM_DC_sendDATA_CheckedChanged(object sender, EventArgs e)
         {
@@ -329,10 +335,6 @@ namespace Xmega32A4U_testBoard
             MC.COA.stop();
         }
 
-        private void BTN_DAC_reset_Click(object sender, EventArgs e)
-        {
-            MC.DAC.reset();
-        }
 
         private void CLK_timer_Tick(object sender, EventArgs e)
         {
@@ -360,13 +362,13 @@ namespace Xmega32A4U_testBoard
                 }
             }
         }
-
         private void CHB_TotalControl_CheckedChanged(object sender, EventArgs e)
         {
             if (CHB_TotalControl.Checked)
             {
                 CHB_TotalControl.ForeColor = System.Drawing.Color.Green;
                 CHB_TotalControl.Text = "Включен";
+                CLK_timer.Enabled = true;
             }
             else
             {
@@ -374,9 +376,9 @@ namespace Xmega32A4U_testBoard
                 CHB_TotalControl.Text = "Выключен";
                 LBL_TotalC_Status.Text = "Неизвестно!";
                 LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
+                CLK_timer.Enabled = false;
             }
         }
-
         private void TXB_interval_TextChanged(object sender, EventArgs e)
         {
             LBL_COA_ticks.Text = MC.RTC.getTicks(TXB_interval.Text).ToString();

@@ -18,33 +18,16 @@
 //								//необходимых функций.
 //#include <avr/pgmspace.h>		//Включаем управление flash-памятью контроллера
 #include <spi_master.h>			//Включаем модуль SPI
+#include <Decoder.h>
 //
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
+#define FATAL_ERROR						while(1){showMeByte(255);								\
+											delay_ms(50);}
+
 //МК
-#define version 12
+#define version 15
 #define birthday 20130731
 #define usart_delay 1
-//Commands
-#define COMMAND_MC_get_Version			1	//Команда: Запросить версию прошивки
-#define COMMAND_MC_get_Birthday			2	//Команда: Запросить дату создания прошивки
-#define COMMAND_MC_get_CPUfreq			3	//Команда: Запросить частоту МК
-
-#define COMMAND_MC_wait					5	//Команда: Перевести МК в ожидание
-#define COMMAND_showTCD2_CNTh			6	//Команда: Показать младший байт TCD2
-#define COMMAND_showTCD2_CNTl			7	//Команда: Показать старший байт TCD2
-
-#define COMMAND_showByte				10	//Команда: Показать байт на светодиодах
-
-#define COMMAND_MC_get_status			20  //Команда: Запросить состояние МК
-
-#define COMMAND_COA_set_timeInterval	30	//Команда: Задать интервал счёта времени
-#define COMMAND_COA_start				31	//Команда: Начать счёт импульсов
-#define COMMAND_COA_get_count			32	//Команда: Запросить у счётчика результат
-#define COMMAND_COA_stop				33	//Команда: Остановить счётчик
-#define COMMAND_RTC_set_prescaler		34	//Команда: Задать делитель RTC
-
-#define COMMAND_DAC_set_voltage			40	//Команда: Задать DAC'у напряжение
-#define COMMAND_ADC_get_voltage			41	//Команда: Запросить у ADC напряжение
 //Счётчики
 #define COA_setStatus_ready		COA_state =		7;
 #define COA_setStatus_busy		COA_state =		8;
@@ -99,6 +82,9 @@ uint8_t MC_MEM[] = {0,0,0,0,0,0,0,0,0}; //Восемь байт для всяких операций (включ
 //		USART
 uint8_t USART_rDATA = 0;				//Последний принятый байт по USART
 uint8_t USART_nextByteIsData_count = 0;
+bool USART_recieving = false;			//Можно пристыковать для экономии памяти к USART_MEM_length
+uint8_t USART_MEM[] = {0,0,0,0,0,0,0,0,0,0};
+uint8_t USART_MEM_length = 0;
 //		SPI
 uint8_t SPI_rDATA[] = {0,0};			//Память SPI для приёма данных (два байта)
 //		Измерения
@@ -111,6 +97,7 @@ uint8_t COA_ovf = 0;					//Количество переполнений счётчика
 uint8_t COA_state = 0;					//Состояния счётчика 7 - готов, 8 - считает, 9 - остановлен
 
 uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
+
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 static usart_rs232_options_t USART_COMP_OPTIONS = {
 	.baudrate = USART_COMP_BAUDRATE,
@@ -126,6 +113,9 @@ struct spi_device ADC = {
 };
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 void showMeByte(uint8_t LED_BYTE);
+bool checkCommand(uint8_t data[], uint8_t data_length);
+uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
+void USART_COMP_transmit(uint8_t DATA[],uint8_t DATA_length);
 void USART_COMP_transmit_MCversion(void);
 void USART_COMP_transmit_MCbirthday(void);
 void USART_COMP_transmit_MCstatus(void);
@@ -146,72 +136,41 @@ ISR(USARTE0_RXC_vect)
 	//ПРЕРЫВАНИЕ: Пришёл байт данных по порту USART от компьютера
 	//ФУНКЦИЯ: Дешифрирование байта как команду или данные, выполнение предписанных действий
 	USART_rDATA = usart_getchar(USART_COMP);		//Получаем наш байт
-	if(USART_nextByteIsData_count == 0)
+	if (USART_recieving)
 	{
-		//Если мы не ждали байт данных, то значит, наш байт - команда, её нужно интерпретировать
-		switch (USART_rDATA)
+		//если мы уже получаем байты, то проверяем байт на закрытие передачи
+		if (USART_rDATA != COMMAND_LOCK)
 		{
-			case COMMAND_MC_get_status: USART_COMP_transmit_MCstatus();
-				break;
-			case COMMAND_showByte:	USART_nextByteIsData_count = 1;	
-				break;
-			case COMMAND_DAC_set_voltage: USART_nextByteIsData_count = 2;	
-				break;
-			case COMMAND_ADC_get_voltage: USART_nextByteIsData_count = 2;	
-				break;
-			case COMMAND_COA_get_count: USART_COMP_transmit_COA_count();	
-				break;
-			case COMMAND_showTCD2_CNTl: MC_status = 2;
-				break;
-			case COMMAND_showTCD2_CNTh: MC_status = 3;
-				break;
-			case COMMAND_COA_set_timeInterval: USART_nextByteIsData_count = 2;
-				break;
-			case COMMAND_COA_start: COA_start();
-				break;
-			case COMMAND_COA_stop: COA_stop();
-				break;
-			case COMMAND_MC_get_CPUfreq: USART_COMP_transmit_CPUfreq();
-			break;	
-			case COMMAND_MC_get_Version: USART_COMP_transmit_MCversion();
-				break;
-			case COMMAND_MC_get_Birthday: USART_COMP_transmit_MCbirthday();
-				break;
-			case COMMAND_MC_wait: MC_status = 1;
-				break;
-			case COMMAND_RTC_set_prescaler: USART_nextByteIsData_count = 1;
-				break;
-			default: USART_COMP_transmit_report(2);//Контроллер не понял команду
-		}
-		MC_lastCommand = USART_rDATA;				//Запопинаем нашу команду
-	}
-	else if (USART_nextByteIsData_count == 1)
-	{
-		//Наш байт - данные, с ними нужно что-то сделать в соответствии с предыдущей командой
-		//Причём это последний байт, то есть делаем задуманное
-		switch (MC_lastCommand)
+			//Передача не закрыта, продолжаем получать байты
+			USART_MEM[USART_MEM_length] = USART_rDATA;
+			USART_MEM_length++;
+		} 
+		else
 		{
-			case COMMAND_showByte: showMeByte(USART_rDATA);
-				break;
-			case COMMAND_DAC_set_voltage: SPI_send(1,MC_MEM[1],USART_rDATA);
-				break;
-			case COMMAND_ADC_get_voltage: SPI_send(2,MC_MEM[1],USART_rDATA);
-				break;
-			case COMMAND_COA_set_timeInterval: COA_set_timeInterval(MC_MEM[1],USART_rDATA);
-				break;
-			case COMMAND_RTC_set_prescaler: RTC_prescaler = USART_rDATA;
-				break;
-			default: USART_COMP_transmit_report(3); //Несоответствие команд
+			
+			//Пришёл затвор! Закрываем получение байтов, дешифрируем команду
+			if (checkCommand(USART_MEM,USART_MEM_length))
+			{
+				Decode(USART_MEM);
+			}
+			else
+			{
+				//Надо послать ошибку
+				FATAL_ERROR;
+			}
+			
+			USART_recieving = false;
+			USART_MEM_length = 0;
 		}
-		USART_nextByteIsData_count = 0;			//Сбрасываем счётчик байтов
-		MC_MEM[0] = 0;							//И счётчик массива
 	}
 	else
 	{
-		//Наших байт данных больше одного - сохраняем в массив MEM
-		MC_MEM[MC_MEM[0]+1] = USART_rDATA;
-		MC_MEM[0]++;
-		USART_nextByteIsData_count--;
+		//если мы не получали байты, то проверяем регистр на ключ
+		if (USART_rDATA == COMMAND_KEY)
+		{
+			//Пришёл ключ! Отпираем получение данных
+			USART_recieving = true;
+		}
 	}
 }
 ISR(RTC_OVF_vect)
@@ -241,7 +200,7 @@ void showMeByte(uint8_t LED_BYTE)
 {
 	//ФУНКЦИЯ: Показвает на светодиодах байт LED_BYTE. Вводит МК в режим отображения байта
 	//ПРИМЕЧАНИЕ: Если срабатывает по прерыванию, возможно некорректное отображение
-	//MC_status = 2;									//Меняем статус на "отображение байта"
+	//MC_status = LED_BYTE;									//Меняем статус на "отображение байта"
 	bool bits[8] = {0,0,0,0,0,0,0,0};				//Массив битов - лампочек
 	for (int i = 0; i < 8; i++)
 	{
@@ -358,6 +317,26 @@ void SPI_send(uint8_t DeviceN, uint8_t DATA_1, uint8_t DATA_2)
 	USART_COMP_transmit_report(MC_error);		//Посылаем отчёт ПК-теру (1 - всё путём)
 }
 //USART
+void USART_COMP_transmit(uint8_t DATA[],uint8_t DATA_length)
+{
+	//ФУНКЦИЯ: Посылаем заданное количество данных, оформив их по протоколу и с контрольной суммой
+	//ПОЯСНЕНИЯ: Протокол: ':<data><CS>\r' 
+	//					   ':' - Начало данных
+	//					   '<data>' - байты данных
+	//					   '<CS>' - контрольная сумма
+	//					   '\r' - конец передачи
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
+	delay_us(usart_delay);
+	for (uint8_t i = 0; i < DATA_length; i++)
+	{
+		usart_putchar(USART_COMP,DATA[i]);							//<data>
+		delay_us(usart_delay);
+	}
+	usart_putchar(USART_COMP,calcCheckSum(DATA,DATA_length + 1));	//<CS>
+	delay_us(usart_delay);
+	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
+}
 void USART_COMP_transmit_report(uint8_t ERROR)
 {
 	//ФУНКЦИЯ: Передача по USART компьютеру данных об ошибке
@@ -369,44 +348,24 @@ void USART_COMP_transmit_report(uint8_t ERROR)
 void USART_COMP_transmit_MCstatus(void)
 {
 	//ФУНКЦИЯ: Передача по USART компьютеру данных о статусе МК
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,1);		//Посылаем отклик - "статус"
-	delay_us(usart_delay);
-	usart_put(USART_COMP,MC_status);	//Посылаем код статуса
+	uint8_t data[] = {MC_status};
+	USART_COMP_transmit(data,1);
 }
 void USART_COMP_transmit_CPUfreq(void)
 {
 	uint32_t freq = sysclk_get_cpu_hz();
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,6);
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,(uint8_t)freq);
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,(uint8_t)(freq >> 8));
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP ,(uint8_t)(freq >> 16));
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,(uint8_t)(freq >> 24));
+	uint8_t data[] = {(uint8_t)freq,(uint8_t)(freq >> 8),(uint8_t)(freq >> 16),(uint8_t)(freq >> 24)};
+	USART_COMP_transmit(data,4);
 }
 void USART_COMP_transmit_MCversion(void)
 {
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,4);
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,MC_version);
+	uint8_t data[] = {MC_version};
+	USART_COMP_transmit(data,1);
 }
 void USART_COMP_transmit_MCbirthday(void)
 {
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,5);
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,(uint8_t)MC_birthday);
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,(uint8_t)(MC_birthday >> 8));
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,(uint8_t)(MC_birthday>>16));
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP,(uint8_t)(MC_birthday>>24));
+	uint8_t data[] = {(uint8_t)MC_birthday,(uint8_t)(MC_birthday >> 8),(uint8_t)(MC_birthday>>16),(uint8_t)(MC_birthday>>24)};
+	USART_COMP_transmit(data,4);
 }
 void USART_COMP_transmit_COA_count(void)
 {
@@ -421,6 +380,30 @@ void USART_COMP_transmit_COA_count(void)
 	usart_putchar(USART_COMP, (COA_measurment >> 8));
 	delay_us(usart_delay);
 	usart_putchar(USART_COMP, COA_measurment);
+}
+bool checkCommand(uint8_t data[], uint8_t data_length)
+{
+	//ФУНКЦИЯ: Сверяет контрольную сумму принятых данных
+	uint8_t CheckSum = 0;
+	for (uint8_t i = 0; i < data_length - 1; i++)
+	{
+		CheckSum -= data[i];
+	}
+	if (CheckSum == data[data_length - 1])
+	{
+		return true;
+	}
+	return false;
+}
+uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
+{
+	//ФУНКЦИЯ: Вычисляет контрольную сумму принятых данных
+	uint8_t CheckSum = 0;
+	for (uint8_t i = 0; i < data_length - 1; i++)
+	{
+		CheckSum -= data[i];
+	}
+	return CheckSum;
 }
 
 bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource )
@@ -535,9 +518,10 @@ int main (void)
 	MC_status = 1;						//Режим ожидания
 	MC_error = 1;						//Ошибок нет
 	cpu_irq_enable();					//Разрешаем прерывания	
-	
 
 	//Инициализация завершена
+	//Decode(129,1);
+	//Decode(66,1);
 
 	while (1) 
 	{
