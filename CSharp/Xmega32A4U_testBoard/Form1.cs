@@ -207,113 +207,34 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_SPI_DAC_send_Click(object sender, EventArgs e)
         {
-            MC.DAC.setVoltage(TXB_DAC_channel.Text, TXB_DAC_voltage.Text);
+            if(MC.DAC.setVoltage(TXB_DAC_channel.Text, TXB_DAC_voltage.Text))
+            {
+            trace(true, "На канал "+ TXB_DAC_channel.Text+" выставлено напряжение: " + TXB_DAC_voltage.Text);
+            }
+            else
+            {
+                trace(true, "ОШИБКА ОТКЛИКА! DAC возможно не выставил напряжение!");
+            }
         }
         private void BTN_SPI_ADC_request_Click(object sender, EventArgs e)
         {
             MC.ADC.DoubleRange = CHB_ADC_DoubleRange.Checked;
-            MC.ADC.getVoltage(TXB_ADC_channel.Text);
+            trace(true, "Напряжение на канале "+TXB_ADC_channel.Text+" : " + MC.ADC.getVoltage(TXB_ADC_channel.Text));
         }
         private void BTN_DAC_reset_Click(object sender, EventArgs e)
         {
-            MC.DAC.reset();
-        }
-
-        private void CHB_COM_DC_sendDATA_CheckedChanged(object sender, EventArgs e)
-        {
-            if (CHB_COM_DC_sendDATA.Checked)
+            if (MC.DAC.reset())
             {
-                TXB_COM_DC_sendDATA.Enabled = true;
+                trace(true, "DAC сброшен!");
             }
             else
             {
-                TXB_COM_DC_sendDATA.Enabled = false;
+                trace(true, "ОШИБКА ОТКЛИКА! DAC возможно НЕ сброшен!");
             }
         }
-        private void CHB_COM_DC_recieveDATA_CheckedChanged(object sender, EventArgs e)
-        {
-            if (CHB_COM_DC_recieveDATA.Checked)
-            {
-                TXB_COM_DC_recieveDATA_count.Enabled = true;
-            }
-            else
-            {
-                TXB_COM_DC_recieveDATA_count.Enabled = false;
-            }
-        }
-        private void BTN_DirectCommand_Click(object sender, EventArgs e)
-        {
-            if (TXB_COM_DC_command.Text != "")
-            {
-                if (CHB_COM_DC_sendDATA.Checked && CHB_COM_DC_recieveDATA.Checked && CHB_COM_DC_recieveResponse.Checked)
-                {
-                    trace(true, "Прямая команда с данными, откликом и ответом");
-                    //MC.directCommand(TXB_COM_DC_command, DataSet, TXB_COM_DC_recieveDATA_count, true);
-                }
-                else if (CHB_COM_DC_sendDATA.Checked && CHB_COM_DC_recieveDATA.Checked)
-                {
-                    trace(true, "Прямая команда с данными и ответом");
-                }
-                else if (CHB_COM_DC_recieveDATA.Checked && CHB_COM_DC_recieveResponse.Checked)
-                {
-                    trace(true, "Прямая команда с откликом и ответом");
-                }
-                else if (CHB_COM_DC_sendDATA.Checked && CHB_COM_DC_recieveResponse.Checked)
-                {
-                    trace(true, "Прямая команда с данными и откликом");
-                }
-                else if (CHB_COM_DC_sendDATA.Checked)
-                {
-                    trace(true, "Прямая команда с данными");
-                    string wDATAs = TXB_COM_DC_sendDATA.Text;
 
-                    string wdata = "";
-                    byte i = 0;
-                    foreach (char ch in wDATAs)
-                    {
-                        if (ch == ' ')
-                        {
-                            i++;
-                        }
-                    }
-                    byte[] wDATA = new byte[i];
-                    i = 0;
-                    foreach (char ch in wDATAs)
-                    {
-                        if (ch != ' ')
-                        {
-                            wdata += ch;
-                        }
-                        else
-                        {
-                            wDATA[i] = Convert.ToByte(wdata);
-                            i++;
-                            wdata = "";
-                        }
-                    }
-                    MC.directCommand(Convert.ToByte(TXB_COM_DC_command.Text), wDATA);
-                }
-                else if (CHB_COM_DC_recieveResponse.Checked)
-                {
-                    trace(true, "Приказ");
-                }
-                else if (CHB_COM_DC_recieveDATA.Checked)
-                {
-                    trace(true, "Запрос");
-                    trace(true, MC.directCommand(10, 4).ToString());
-                }
-                else
-                {
-                    MC.directCommand(Convert.ToByte(TXB_COM_DC_command.Text));
-                    trace(true, "Директива");
-                }
 
-            }
-            else
-            {
-                trace(true, "Прямая команда не выполнена! Введите номер команды!");
-            }
-        }
+
 
         private void BTN_startCounter_Click(object sender, EventArgs e)
         {
@@ -384,6 +305,18 @@ namespace Xmega32A4U_testBoard
             LBL_COA_ticks.Text = MC.RTC.getTicks(TXB_interval.Text).ToString();
             LBL_COA_frequency.Text = MC.RTC.getFreqency().ToString();
             LBL_COA_prescaler.Text = MC.RTC.getPrescaler().ToString();
+        }
+
+        private void CHB_enableSuperTracer_CheckedChanged(object sender, EventArgs e)
+        {
+            if(CHB_enableSuperTracer.Checked)
+            {
+                MC.tracer_enable(true);
+            }
+            else
+            {
+                MC.tracer_enable(false);
+            }
         }
     }
 }

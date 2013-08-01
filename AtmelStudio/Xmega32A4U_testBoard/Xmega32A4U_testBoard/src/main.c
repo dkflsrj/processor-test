@@ -25,8 +25,8 @@
 											delay_ms(50);}
 
 //МК
-#define version 15
-#define birthday 20130731
+#define version 16
+#define birthday 20130801
 #define usart_delay 1
 //Счётчики
 #define COA_setStatus_ready		COA_state =		7;
@@ -34,7 +34,7 @@
 #define COA_setStatus_stunned	COA_state =		9; 
 //USART
 #define USART_COMP						&USARTE0
-#define USART_COMP_BAUDRATE				115200
+#define USART_COMP_BAUDRATE				128000
 #define USART_COMP_CHAR_LENGTH			USART_CHSIZE_8BIT_gc
 #define USART_COMP_PARITY				USART_PMODE_DISABLED_gc
 #define USART_COMP_STOP_BIT				true
@@ -122,7 +122,8 @@ void USART_COMP_transmit_MCstatus(void);
 void USART_COMP_transmit_report(uint8_t ERROR);
 void USART_COMP_transmit_COA_count(void);
 void USART_COMP_transmit_CPUfreq(void);
-void SPI_send(uint8_t DeviceN, uint8_t DATA_1, uint8_t DATA_2);
+void SPI_DAC_send(uint8_t data[]);
+void SPI_ADC_send(uint8_t data[]);
 void COA_set_timeInterval(uint8_t INTERVAL_LENGTH_Hb, uint8_t INTERVAL_LENGTH_Lb);
 void COA_set_delayInterval(uint8_t INTERVAL_DELAY);
 void COA_set_mesureQuontity(uint8_t INTERVAL_COUNT);
@@ -276,48 +277,33 @@ void showMeByte(uint8_t LED_BYTE)
 	USART_COMP_transmit(data,1);
 }
 //SPI
-void SPI_send(uint8_t DeviceN, uint8_t DATA_1, uint8_t DATA_2)
+void SPI_DAC_send(uint8_t DATA[])
 {
-	//ФУНКЦИЯ: Определяем устройство, которому надо послать данные по SPI, и посылаем их
-	//ПРИМЕЧАНИЕ: Можно доработать на отклик и ответ
-	bool Device_Answer = false;					//Булка - будет ли ответ от устройства
-	struct spi_device DEVICE = {
-		.id = 0									//Абстрактное устройство
-	};
-	switch (DeviceN)
-	{
-		case 1:	DEVICE = DAC;						//	1 - DAC
-			break;
-		case 2: DEVICE = ADC;						//	2 - ADC
-				Device_Answer = true;				//Ответ от устройства будет
-			break;
-		default: MC_error = 4;						//	? - Такого устройства нет!
-			break;
-	}
-	if (MC_error != 4)
-	{
-		//Если нет ошибки выбора устройства - посылаем данные
-		uint8_t d[] = {DATA_1,DATA_2};
-		spi_select_device(&SPIC, &DEVICE);
-		spi_write_packet(&SPIC, d, 2);
-		spi_deselect_device(&SPIC, &DEVICE);
-		if (Device_Answer)
-		{
-			//Если нужно взять ответ - берём
-			spi_select_device(&SPIC, &ADC);
-			spi_put(&SPIC, 0);
-			SPI_rDATA[0] = spi_get(&SPIC);
-			spi_put(&SPIC, 0);
-			SPI_rDATA[1] = spi_get(&SPIC);
-			spi_deselect_device(&SPIC, &ADC);
-			//Передём ответ на ПК по USART
-			delay_us(usart_delay);
-			usart_put(USART_COMP,SPI_rDATA[0]);
-			delay_us(usart_delay);
-			usart_put(USART_COMP,SPI_rDATA[1]);
-		}
-	}
-	USART_COMP_transmit_report(MC_error);		//Посылаем отчёт ПК-теру (1 - всё путём)
+	//ФУНКЦИЯ: Посылаем данные о напряжении (адрес и напряжение) ЦАП'у
+	uint8_t data[] = {DATA[1],DATA[2]};
+	spi_select_device(&SPIC, &DAC);
+	spi_write_packet(&SPIC, data, 2);
+	spi_deselect_device(&SPIC, &DAC);
+	uint8_t aswDATA[] = {COMMAND_DAC_set_voltage};
+	USART_COMP_transmit(aswDATA, 1);
+}
+void SPI_ADC_send(uint8_t DATA[])
+{
+	//ФУНКЦИЯ: Запрашиваем данные у АЦП
+	uint8_t data[] = {DATA[1],DATA[2]};
+	spi_select_device(&SPIC, &ADC);
+	spi_write_packet(&SPIC, data, 2);
+	spi_deselect_device(&SPIC, &ADC);
+	//Получаем ответ
+	spi_select_device(&SPIC, &ADC);
+	spi_put(&SPIC, 0);
+	SPI_rDATA[0] = spi_get(&SPIC);
+	spi_put(&SPIC, 0);
+	SPI_rDATA[1] = spi_get(&SPIC);
+	spi_deselect_device(&SPIC, &ADC);
+	//Передём ответ на ПК по USART
+	uint8_t aswDATA[] = {COMMAND_ADC_get_voltage,SPI_rDATA[0],SPI_rDATA[1]};
+	USART_COMP_transmit(aswDATA, 3);
 }
 //USART
 void USART_COMP_transmit(uint8_t DATA[],uint8_t DATA_length)
@@ -358,10 +344,9 @@ void USART_COMP_transmit_MCstatus(void)
 }
 void USART_COMP_transmit_CPUfreq(void)
 {
-// 	uint32_t freq = sysclk_get_cpu_hz();
-// 	uint8_t data[] = {(uint8_t)freq,(uint8_t)(freq >> 8),(uint8_t)(freq >> 16),(uint8_t)(freq >> 24)};
-//	USART_COMP_transmit(COMMAND_MC_get_CPUfreq,data,4);
-ERROR_ASYNCHR();
+ 	uint32_t freq = sysclk_get_cpu_hz();
+ 	uint8_t data[] = {COMMAND_MC_get_CPUfreq,(uint8_t)freq,(uint8_t)(freq >> 8),(uint8_t)(freq >> 16),(uint8_t)(freq >> 24)};
+	USART_COMP_transmit(data,5);
 }
 void USART_COMP_transmit_MCversion(void)
 {
