@@ -214,7 +214,7 @@
             this.CMB_COM_BaudRate.Name = "CMB_COM_BaudRate";
             this.CMB_COM_BaudRate.Size = new System.Drawing.Size(121, 21);
             this.CMB_COM_BaudRate.TabIndex = 2;
-            this.CMB_COM_BaudRate.Text = "128000";
+            this.CMB_COM_BaudRate.Text = "115200";
             // 
             // CMB_COM_StopBits
             // 

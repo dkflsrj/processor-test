@@ -34,7 +34,7 @@
 #define COA_setStatus_stunned	COA_state =		9; 
 //USART
 #define USART_COMP						&USARTE0
-#define USART_COMP_BAUDRATE				128000
+#define USART_COMP_BAUDRATE				115200
 #define USART_COMP_CHAR_LENGTH			USART_CHSIZE_8BIT_gc
 #define USART_COMP_PARITY				USART_PMODE_DISABLED_gc
 #define USART_COMP_STOP_BIT				true
@@ -130,6 +130,7 @@ void COA_start(void);
 void COA_stop(void);
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
+void ERROR_ASYNCHR(void);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTE0_RXC_vect)
 {
@@ -147,7 +148,7 @@ ISR(USARTE0_RXC_vect)
 		} 
 		else
 		{
-			
+			//showMeByte(127);
 			//Пришёл затвор! Закрываем получение байтов, дешифрируем команду
 			if (checkCommand(USART_MEM,USART_MEM_length))
 			{
@@ -271,6 +272,8 @@ void showMeByte(uint8_t LED_BYTE)
 	{
 		gpio_set_pin_low(LED_VD8);
 	}
+	uint8_t data[] = {COMMAND_showByte};
+	USART_COMP_transmit(data,1);
 }
 //SPI
 void SPI_send(uint8_t DeviceN, uint8_t DATA_1, uint8_t DATA_2)
@@ -320,9 +323,11 @@ void SPI_send(uint8_t DeviceN, uint8_t DATA_1, uint8_t DATA_2)
 void USART_COMP_transmit(uint8_t DATA[],uint8_t DATA_length)
 {
 	//ФУНКЦИЯ: Посылаем заданное количество данных, оформив их по протоколу и с контрольной суммой
-	//ПОЯСНЕНИЯ: Протокол: ':<data><CS>\r' 
+	//ПОЯСНЕНИЯ: Протокол: ':<response><data><CS>\r' 
 	//					   ':' - Начало данных
-	//					   '<data>' - байты данных
+	//					   '<data>' - байты данных <<response><attached_data>>
+	//							<response> - отклик, код команды, на которую отвечает
+	//							<attached_data> - сами данные. Их может не быть (Приказ)
 	//					   '<CS>' - контрольная сумма
 	//					   '\r' - конец передачи
 	delay_us(usart_delay);
@@ -348,24 +353,25 @@ void USART_COMP_transmit_report(uint8_t ERROR)
 void USART_COMP_transmit_MCstatus(void)
 {
 	//ФУНКЦИЯ: Передача по USART компьютеру данных о статусе МК
-	uint8_t data[] = {MC_status};
-	USART_COMP_transmit(data,1);
+	uint8_t data[] = {COMMAND_MC_get_status, MC_status};
+	USART_COMP_transmit(data,2);
 }
 void USART_COMP_transmit_CPUfreq(void)
 {
-	uint32_t freq = sysclk_get_cpu_hz();
-	uint8_t data[] = {(uint8_t)freq,(uint8_t)(freq >> 8),(uint8_t)(freq >> 16),(uint8_t)(freq >> 24)};
-	USART_COMP_transmit(data,4);
+// 	uint32_t freq = sysclk_get_cpu_hz();
+// 	uint8_t data[] = {(uint8_t)freq,(uint8_t)(freq >> 8),(uint8_t)(freq >> 16),(uint8_t)(freq >> 24)};
+//	USART_COMP_transmit(COMMAND_MC_get_CPUfreq,data,4);
+ERROR_ASYNCHR();
 }
 void USART_COMP_transmit_MCversion(void)
 {
-	uint8_t data[] = {MC_version};
-	USART_COMP_transmit(data,1);
+	uint8_t data[] = {COMMAND_MC_get_Version, MC_version};
+	USART_COMP_transmit(data,2);
 }
 void USART_COMP_transmit_MCbirthday(void)
 {
-	uint8_t data[] = {(uint8_t)MC_birthday,(uint8_t)(MC_birthday >> 8),(uint8_t)(MC_birthday>>16),(uint8_t)(MC_birthday>>24)};
-	USART_COMP_transmit(data,4);
+	uint8_t data[] = {COMMAND_MC_get_Birthday, (uint8_t)MC_birthday,(uint8_t)(MC_birthday >> 8),(uint8_t)(MC_birthday>>16),(uint8_t)(MC_birthday>>24)};
+	USART_COMP_transmit(data,5);
 }
 void USART_COMP_transmit_COA_count(void)
 {
@@ -479,6 +485,15 @@ void COA_stop(void)
 	COA_setStatus_stunned;
 }
 
+void ERROR_ASYNCHR(void)
+{
+	showMeByte(255);
+	uint8_t ERROR[] = {25,24,15};
+	while(1)
+	{
+		USART_COMP_transmit(ERROR,3);
+	}
+}
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main (void)
 {
@@ -514,6 +529,7 @@ int main (void)
 	showMeByte(1);
 	delay_ms(50);
 	showMeByte(0);
+	//ERROR_ASYNCHR();
 	//Конечная инициализация
 	MC_status = 1;						//Режим ожидания
 	MC_error = 1;						//Ошибок нет

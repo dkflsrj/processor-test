@@ -20,6 +20,7 @@ namespace Xmega32A4U_testBoard
         static SerialPort   USART;
         static RichTextBox  tracer;
         static bool         tracer_defined = false;
+        List<byte> USART_buffer = new List<byte>();
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Response
         {
@@ -470,6 +471,7 @@ namespace Xmega32A4U_testBoard
             tracer_defined = true;
         }
         //USART
+
         byte calcCheckSum(byte[] data)
         {
             //ФУНКЦИЯ: Вычисление контрольной суммы для верификации данных
@@ -480,7 +482,7 @@ namespace Xmega32A4U_testBoard
                 //trace("    " + data[i]);
                 CheckSum -= data[i];
             }
-            //trace("    КС: " + CheckSum);
+            trace("         Контрольная сумма: " + CheckSum);
             return CheckSum;
         }
         byte[] wDATA(List<byte> DATA)
@@ -521,7 +523,7 @@ namespace Xmega32A4U_testBoard
         {
             return wDATA(new byte[] { COMMAND, BitConverter.GetBytes(DATA)[0], BitConverter.GetBytes(DATA)[1], BitConverter.GetBytes(DATA)[2], BitConverter.GetBytes(DATA)[3] });
         }
-        byte[] rDATA(byte rDATAquantity)
+        /*byte[] rDATA(byte rDATAquantity)
         {
             if (rDATAquantity != 0)
             {
@@ -545,7 +547,7 @@ namespace Xmega32A4U_testBoard
                 trace("Получены данные:");
                 foreach (byte b in data)
                 {
-                    trace("    " + b);
+                    
                     if (dataBody)
                     {
                         if (b == Command.LOCK)
@@ -553,10 +555,9 @@ namespace Xmega32A4U_testBoard
                             trace("    Был получен затвор!");
                             byte CheckSum = recDATA.Last();
                             recDATA.RemoveAt(recDATA.ToArray().Length - 1);
-                            trace("    Контрольная сумма вычислена: " + calcCheckSum(recDATA.ToArray()));
                             if (calcCheckSum(recDATA.ToArray()) == CheckSum)
                             {
-                                trace("    Контрольная сумма получена: " + CheckSum);
+                                trace("    Контрольная сумма: " + CheckSum);
                                 return recDATA.ToArray();
                             }
                             trace("Несовпадает контрольная сумма!");
@@ -564,6 +565,7 @@ namespace Xmega32A4U_testBoard
                         }
                         else
                         {
+                            trace("         " + b);
                             recDATA.Add(b);
                             j++;
                         }
@@ -583,15 +585,220 @@ namespace Xmega32A4U_testBoard
         {
             return rDATA(Convert.ToByte(rDATAquantity));
         }
-
-        byte[] transmit(byte[] DATA, byte recDATAquantity)
+        */
+        void Receiving_ON()
         {
-            byte[] recDATA = new byte[recDATAquantity];
+            //ФУНКЦИЯ: Включает постоянное получение данных по USART
+            //USART.DataReceived += new SerialDataReceivedEventHandler(receive_Handler);
+            trace("Обработчик включён!");
+        }
+        void Receiving_OFF()
+        {
+            //ФУНКЦИЯ: Выключает постоянное получение данных по USART
+            //USART.DataReceived -= new SerialDataReceivedEventHandler(receive_Handler);
+            trace("Обработчик выключен!");
+        }
+        void receive_Handler(object sender, EventArgs e)
+        {
+            //ОБРАБОТЧИК: Происходит при получении данных по USART
+            receive();
+            trace("!");
+        }
+        byte[] receive()
+        {
+            //ФУНКЦИЯ: Получение данных по USART, если есть что получать
+            byte rBYTE;
+            trace("Обнаружены данные! Количество:" + USART.BytesToRead);
+            while (USART.BytesToRead > 0)
+            {
+                try
+                {
+                    rBYTE = (byte)USART.ReadByte();
+                }
+                catch
+                {
+                    trace("ОШИБКА ПРИЁМА ДАННЫХ! (Receiving)");
+                    return new byte[] {};
+                }
+                switch (rBYTE)
+                {
+                    case Command.KEY:
+                        trace("     Получен ключ!");
+                        USART_buffer.Clear();
+                        break;
+                    case Command.LOCK:
+                        trace("     Получен затвор!");
+                        return USART_buffer.ToArray();
+                    default:
+                        USART_buffer.Add(rBYTE);
+                        trace("         " + rBYTE);
+                        break;
+                }
+            }
+            return new byte[] {};
+        }
+        byte[] Analizer(List<byte> DATA)
+        {
+            trace("     Анализ полученной команды...");
+            byte CheckSum = DATA.Last();
+            DATA.RemoveAt(DATA.ToArray().Length - 1);
+            if (calcCheckSum(DATA.ToArray()) == CheckSum)
+            {
+                trace("         Контрольная сумма: " + CheckSum);
+                //return DATA.ToArray();
+            }
+            else
+            {
+                trace("         Несовпадает контрольная сумма! Получено:" + CheckSum);
+            }
+            trace("     Получены данные: ");
+            foreach (byte b in DATA)
+            {
+                trace(b.ToString());
+            }
+            return DATA.ToArray();
+        }
+
+        byte[] transmit(List<byte> DATA)
+        {
+            //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
+            byte command = DATA[0];                         //Запоминаем передаваемую команду
+            trace("Начало исполнения команды:");
+            trace("     Команда:");
+            foreach(byte b in DATA.ToArray())
+            {
+                trace("         " + b);
+            }
+            trace("     Формирование пакета...");
+            List<byte> rDATA = new List<byte>();            //Список данных, которые будут приняты
+            List<byte> Packet = new List<byte>();           //Список байтов, которые будут посланы
+            //Формируем пакет по типу:  ':<response><data><CS>\r' 
+            Packet.Add(Command.KEY);                        //':' - Начало данных           
+            Packet.AddRange(DATA);                          //'<data>' - байты данных <<response><attached_data>>
+            Packet.Add(calcCheckSum(DATA.ToArray()));       //'<CS>' - контрольная сумма
+            Packet.Add(Command.LOCK);                       //'\r' - конец передачи
+            trace("     Пакет:");
+            foreach (byte b in Packet.ToArray())
+            {
+                trace("         " + b);
+            }
+            //Выполняем передачу и приём
             USART.Open();
-            USART.Write(DATA, 0, DATA.Length);
-            recDATA = rDATA(recDATA.Length);
+            USART.Write(Packet.ToArray(), 0, Packet.ToArray().Length);
+            trace("     Передача завершена!");
+            trace("     Приём...");                         //Приём-приём
+            byte rBYTE;                                       //Принятый байт
+            bool lock_recieved = false;                       //Затвор ещё небыл получен
+            bool key_recived = false;                       //Ключ ещё не был получен
+            byte BytesToReadQuantity = (byte)USART.BytesToRead;
+            trace("         Данные на приём:" + BytesToReadQuantity);
+            if (BytesToReadQuantity == 0)
+            {
+                trace("ОШИБКА ПРИЁМА ДАННЫХ! Не было получено никаких данных!");
+                return new byte[] { 255 };
+            }
+            trace("             Принято:");
+            //Принимаем данные пока есть что принимать и пока не пришёл затвор
+            while ((USART.BytesToRead > 0) && (!lock_recieved))
+            {
+                try
+                {
+                    rBYTE = (byte)USART.ReadByte();
+                    trace("             "+rBYTE);
+                }
+                catch
+                {
+                    trace("ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
+                    return new byte[] { };
+                }
+                switch (rBYTE)
+                {
+                    case Command.KEY:
+                        trace_attached(" - ключ!");
+                        key_recived = true;
+                        break;
+                    case Command.LOCK:
+                        trace_attached(" - затвор!");
+                        lock_recieved = true;
+                        break;
+                    default:
+                        rDATA.Add(rBYTE);
+                        break;
+                }
+            }
             USART.Close();
-            return recDATA;
+            if (key_recived)
+            {
+                if (lock_recieved)
+                {
+                    //Анализируем полученные данные
+                    trace("     Анализ полученной команды...");
+                    byte rCheckSum = rDATA.Last();                          //Полученная КС
+                    rDATA.RemoveAt(rDATA.ToArray().Length - 1); //Убираем КС из списка полученных данных
+                    byte CheckSum = calcCheckSum(rDATA.ToArray());          //Подсчитанная КС
+                    if (CheckSum == rCheckSum)
+                    {
+                        trace("         Контрольная сумма совпадает!");
+                    }
+                    else
+                    {
+                        trace("         Несовпадает контрольная сумма!");
+                        trace("             Получено:" + rCheckSum);
+                        trace("             Подсчитано:" + CheckSum);
+                        return new byte[] { 255 };
+                    }
+                    //Проверяем данные на отклик
+                    trace("     Отклик: " + rDATA[0]);
+                    if (BytesToReadQuantity > 4)
+                    {
+                        if (rDATA[0] == command)
+                        {
+                            rDATA.RemoveAt(0);
+                            trace("     Принятые данные: ");
+                            foreach (byte b in rDATA)
+                            {
+                                trace("         " + b);
+                            }
+                        }
+                        else
+                        {
+                            trace("ОШИБКА ОТКЛИКА!");
+                            trace("     Ожидалось: " + command);
+                            trace("     Получено: " + rDATA[0]);
+                            return new byte[] { 255 };
+                        }
+                    }
+                    return rDATA.ToArray();
+                }
+                trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен затвор!");
+            }
+            trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен ключ!");
+            return new byte[] { 255 };
+        }
+        byte[] transmit(byte[] DATA)
+        {
+            return transmit(DATA.ToList());
+        }
+        byte[] transmit(byte COMMAND)
+        {
+            return transmit((new byte[] { COMMAND }).ToList());
+        }
+        byte[] transmit(byte COMMAND, byte DATA)
+        {
+            return transmit((new byte[] { COMMAND, DATA }).ToList());
+        }
+        byte[] transmit(byte COMMAND, byte[] DATA)
+        {
+            List<byte> data = new List<byte>();
+            data.Add(COMMAND);
+            data.AddRange(DATA);
+            return transmit(data);
+        }
+        byte[] transmit(byte COMMAND, List<byte> DATA)
+        {
+            //Проверить - не надо ли создавать новый список
+            DATA.Insert(0, COMMAND);
+            return transmit(DATA);
         }
         //ИНТЕРФЕЙСНЫЕ
         static public void trace(string text)
@@ -603,10 +810,23 @@ namespace Xmega32A4U_testBoard
                 tracer.ScrollToCaret();
             }
         }
+        static public void trace_attached(string text)
+        {
+            //ФУНКЦИЯ: Выводит text в RichTextBox
+            if (tracer_defined)
+            {
+                tracer.AppendText(text);
+                tracer.ScrollToCaret();
+            }
+        }
         //ОТЛАДОЧНЫЕ
         public void     showMeByte(byte     BYTE)
         {
-            transmit(wDATA(Command.showMeByte, BYTE), 0);
+            //transmit(Command.showMeByte, BYTE);
+            List<byte> data = new List<byte>();
+            data.Add(Command.showMeByte);
+            data.Add(BYTE);
+            transmit(data);
         }
         public void     showMeByte(string   BYTE)
         {
@@ -628,19 +848,29 @@ namespace Xmega32A4U_testBoard
         public byte     getStatus()
         {
             //ФУНКЦИЯ: Получает статус у МК
-            return transmit(wDATA(Command.MC_get_status), 1)[0];
+            byte[] rStatus = transmit(Command.MC_get_status);
+            if (rStatus[0] == Command.MC_get_status)
+            {
+                return rStatus[1];
+            }
+            trace("ОШИБКА ОТКЛИКА! Ожидалось: " + Command.MC_get_status + " Получено:");
+            foreach(byte b in rStatus)
+            {
+                trace("     " + b);
+            }
+            return rStatus[0];
         }
         public byte     getVersion()
         {
             //ФУНКЦИЯ: Получает статус у МК
-            return transmit(wDATA(Command.MC_get_version), 1)[0];
+            return 0;// transmit(wDATA(Command.MC_get_version), 1)[0];
         }
         public string   getBirthday()
         {
             //ФУНКЦИЯ: Получает статус у МК
             UInt32 birthday = 0;
             string answer = "00000000";
-            byte[] recDATA = transmit(wDATA(Command.MC_get_birthday), 4);
+            byte[] recDATA = {0};//(wDATA(Command.MC_get_birthday), 4);
             birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
 
             answer = birthday.ToString();
@@ -651,7 +881,7 @@ namespace Xmega32A4U_testBoard
         public string   getCPUfrequency()
         {
             UInt32 frequency = 0;
-            byte[] recDATA = transmit(wDATA(Command.MC_get_CPUfreq), 4);
+            byte[] recDATA = { 0 };// transmit(wDATA(Command.MC_get_CPUfreq), 4);
             frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
             return frequency.ToString() + " Гц";
         }
