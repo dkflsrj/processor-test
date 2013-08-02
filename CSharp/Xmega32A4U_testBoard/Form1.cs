@@ -248,7 +248,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_setInterval_Click(object sender, EventArgs e)
         {
-            //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах [1...130]
+            //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах 
             MC.COA.setTimeInterval(TXB_interval.Text);
         }
         private void BTN_stopCounter_Click(object sender, EventArgs e)

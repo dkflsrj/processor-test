@@ -321,9 +321,9 @@
             this.GRB_TotalControl.Controls.Add(this.label1);
             this.GRB_TotalControl.Controls.Add(this.CHB_TotalControl);
             this.GRB_TotalControl.Enabled = false;
-            this.GRB_TotalControl.Location = new System.Drawing.Point(6, 124);
+            this.GRB_TotalControl.Location = new System.Drawing.Point(241, 10);
             this.GRB_TotalControl.Name = "GRB_TotalControl";
-            this.GRB_TotalControl.Size = new System.Drawing.Size(223, 103);
+            this.GRB_TotalControl.Size = new System.Drawing.Size(305, 108);
             this.GRB_TotalControl.TabIndex = 14;
             this.GRB_TotalControl.TabStop = false;
             this.GRB_TotalControl.Text = "Контроль";
@@ -373,7 +373,6 @@
             this.GRB_Counter.Controls.Add(this.BTN_startCounter);
             this.GRB_Counter.Controls.Add(this.BTN_reqCount);
             this.GRB_Counter.Controls.Add(this.BTN_stopCounter);
-            this.GRB_Counter.Enabled = false;
             this.GRB_Counter.Location = new System.Drawing.Point(235, 205);
             this.GRB_Counter.Name = "GRB_Counter";
             this.GRB_Counter.Size = new System.Drawing.Size(311, 109);
@@ -465,6 +464,7 @@
             // 
             // BTN_reqCount
             // 
+            this.BTN_reqCount.Enabled = false;
             this.BTN_reqCount.Location = new System.Drawing.Point(6, 77);
             this.BTN_reqCount.Name = "BTN_reqCount";
             this.BTN_reqCount.Size = new System.Drawing.Size(103, 23);
@@ -475,6 +475,7 @@
             // 
             // BTN_stopCounter
             // 
+            this.BTN_stopCounter.Enabled = false;
             this.BTN_stopCounter.Location = new System.Drawing.Point(6, 48);
             this.BTN_stopCounter.Name = "BTN_stopCounter";
             this.BTN_stopCounter.Size = new System.Drawing.Size(103, 23);
