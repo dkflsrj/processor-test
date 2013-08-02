@@ -464,7 +464,6 @@
             // 
             // BTN_reqCount
             // 
-            this.BTN_reqCount.Enabled = false;
             this.BTN_reqCount.Location = new System.Drawing.Point(6, 77);
             this.BTN_reqCount.Name = "BTN_reqCount";
             this.BTN_reqCount.Size = new System.Drawing.Size(103, 23);

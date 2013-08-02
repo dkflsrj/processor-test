@@ -124,11 +124,12 @@ void USART_COMP_transmit_COA_count(void);
 void USART_COMP_transmit_CPUfreq(void);
 void SPI_DAC_send(uint8_t data[]);
 void SPI_ADC_send(uint8_t data[]);
-void COA_set_timeInterval(uint8_t INTERVAL_LENGTH_Hb, uint8_t INTERVAL_LENGTH_Lb);
+void COA_set_timeInterval(uint8_t DATA[]);
 void COA_set_delayInterval(uint8_t INTERVAL_DELAY);
 void COA_set_mesureQuontity(uint8_t INTERVAL_COUNT);
 void COA_start(void);
 void COA_stop(void);
+void RTC_setPrescaler(uint8_t DATA[]);
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
 void ERROR_ASYNCHR(void);
@@ -273,8 +274,8 @@ void showMeByte(uint8_t LED_BYTE)
 	{
 		gpio_set_pin_low(LED_VD8);
 	}
-	uint8_t data[] = {COMMAND_showByte};
-	USART_COMP_transmit(data,1);
+	//uint8_t data[] = {COMMAND_showByte};
+	//USART_COMP_transmit(data,1);
 }
 //SPI
 void SPI_DAC_send(uint8_t DATA[])
@@ -361,16 +362,18 @@ void USART_COMP_transmit_MCbirthday(void)
 void USART_COMP_transmit_COA_count(void)
 {
 	//ФУНКЦИЯ: Вернуть ПК результат измерения
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP, COA_state);
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP, (COA_measurment_2 >> 8));
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP, COA_measurment_2);
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP, (COA_measurment >> 8));
-	delay_us(usart_delay);
-	usart_putchar(USART_COMP, COA_measurment);
+	uint8_t data[] = {COMMAND_COA_get_count,(COA_measurment_2 >> 8),COA_measurment_2,(COA_measurment >> 8),COA_measurment};
+	USART_COMP_transmit(data,5);
+// 	delay_us(usart_delay);
+// 	usart_putchar(USART_COMP, COA_state);
+// 	delay_us(usart_delay);
+// 	usart_putchar(USART_COMP, (COA_measurment_2 >> 8));
+// 	delay_us(usart_delay);
+// 	usart_putchar(USART_COMP, COA_measurment_2);
+// 	delay_us(usart_delay);
+// 	usart_putchar(USART_COMP, (COA_measurment >> 8));
+// 	delay_us(usart_delay);
+// 	usart_putchar(USART_COMP, COA_measurment);
 }
 bool checkCommand(uint8_t data[], uint8_t data_length)
 {
@@ -430,11 +433,13 @@ bool EVSYS_SetEventChannelFilter( uint8_t eventChannel,EVSYS_DIGFILT_t filterCoe
 	}
 }
 
-void COA_set_timeInterval(uint8_t INTERVAL_LENGTH_Hb, uint8_t INTERVAL_LENGTH_Lb)
+void COA_set_timeInterval(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов
-	Interval_length = (((uint16_t)INTERVAL_LENGTH_Hb)<<8) + INTERVAL_LENGTH_Lb;	
+	Interval_length = (((uint16_t)DATA[1])<<8) + DATA[2];	
 	RTC.PER = (Interval_length);
+	uint8_t data[] = {COMMAND_COA_set_timeInterval};
+	USART_COMP_transmit(data,1);
 }
 void COA_set_delayInterval(uint8_t INTERVAL_DELAY)
 {
@@ -449,9 +454,8 @@ void COA_set_mesureQuontity(uint8_t INTERVAL_COUNT)
 void COA_start(void)
 {
 	//ФУНКЦИЯ: Запускаем счётчик на определённое интервалом время
-	RTC_prescaler = RTC_PRESCALER_DIV1_gc;
-	RTC.PER = 32768;
-	
+	//RTC_prescaler = RTC_PRESCALER_DIV1_gc;
+	//RTC.PER = 32768;
 	TCD0.CNT = 0;
 	TCD1.CNT = 0;
 	RTC.CNT = 0;
@@ -460,6 +464,8 @@ void COA_start(void)
 	tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
 	tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);
 	RTC.CTRL = RTC_prescaler;
+	uint8_t data[] = {COMMAND_COA_start};
+	USART_COMP_transmit(data,1);
 }
 void COA_stop(void)
 {
@@ -472,7 +478,13 @@ void COA_stop(void)
 	TCD1.CNT = 0;
 	COA_setStatus_stunned;
 }
-
+void RTC_setPrescaler(uint8_t DATA[])
+{
+	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
+	RTC_prescaler = DATA[1];
+	uint8_t data[] = {COMMAND_RTC_set_prescaler};
+	USART_COMP_transmit(data, 1);
+}
 void ERROR_ASYNCHR(void)
 {
 	showMeByte(255);

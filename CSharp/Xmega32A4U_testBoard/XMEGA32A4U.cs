@@ -88,31 +88,29 @@ namespace Xmega32A4U_testBoard
             public void   setPrescaler(ushort DIV_1_2_8_16_64_256_1024)
             {
                 prescaler = DIV_1_2_8_16_64_256_1024;
-                byte[] wDATA = { Command.RTC_set_prescaler, 0};
+                byte data;
                 switch (DIV_1_2_8_16_64_256_1024)
                 {
 
-                    case 1:     wDATA[1] = 1;
+                    case 1: data = 1;
                         break;
-                    case 2:     wDATA[1] = 2;
+                    case 2: data = 2;
                         break;
-                    case 8:     wDATA[1] = 3;
+                    case 8: data = 3;
                         break;
-                    case 16:    wDATA[1] = 4;
+                    case 16: data = 4;
                         break;
-                    case 64:    wDATA[1] = 5;
+                    case 64: data = 5;
                         break;
-                    case 256:   wDATA[1] = 6;
+                    case 256: data = 6;
                         break;
-                    case 1024:  wDATA[1] = 7;
+                    case 1024: data = 7;
                         break;
                     default: trace("ОШИБКА! Неверный предделитель!");
                         prescaler = 0;
                         return;
                 }
-                USART.Open();
-                USART.Write(wDATA, 0, 2);
-                USART.Close();
+                transmit(Command.RTC_set_prescaler, data);
             }
             public ushort getPrescaler()
             {
@@ -332,43 +330,37 @@ namespace Xmega32A4U_testBoard
             public UInt32   getResult()
             {
                 //ФУНКЦИЯ: Запрашиваем результат счёта у МК
-                byte[] wDATA = { Command.COA_get_count };
-                byte[] rDATA = { 0, 0, 0, 0, 0 };
                 UInt32 count = 0;
+                byte[] rDATA = transmit(Command.COA_get_count);
+                //USART.Open();
+                //USART.Write(wDATA, 0, 1);
+                //try
+                //{
+                //    rDATA[0] = Convert.ToByte(USART.ReadByte());
+                //    rDATA[1] = Convert.ToByte(USART.ReadByte());
+                //    rDATA[2] = Convert.ToByte(USART.ReadByte());
+                //    rDATA[3] = Convert.ToByte(USART.ReadByte());
+                //    rDATA[4] = Convert.ToByte(USART.ReadByte());
+                //}
+                //catch (Exception)
+                //{
+                //    trace("ОШИБКА ПРИЁМА ДАННЫХ!");
+                //}
+                //USART.Close();
 
-                USART.Open();
-                USART.Write(wDATA, 0, 1);
-                try
-                {
-                    rDATA[0] = Convert.ToByte(USART.ReadByte());
-                    rDATA[1] = Convert.ToByte(USART.ReadByte());
-                    rDATA[2] = Convert.ToByte(USART.ReadByte());
-                    rDATA[3] = Convert.ToByte(USART.ReadByte());
-                    rDATA[4] = Convert.ToByte(USART.ReadByte());
-                }
-                catch (Exception)
-                {
-                    trace("ОШИБКА ПРИЁМА ДАННЫХ!");
-                }
-                USART.Close();
-
-                if (rDATA[0] == Response.COX_done)
-                {
-                    trace("Счётчик завершил счёт.");
-                }
-                else if (rDATA[0] == Response.COX_busy)
-                {
-                    trace("Счётчик всё ещё считает!");
-                }
-                else if (rDATA[0] == Response.COX_stoped)
-                {
-                    trace("Счётчик был принудительно остановлен!");
-                }
-                else
-                {
-                    trace("ОШИБКА ОТКЛИКА! Ожидалось: " + Response.COX_done + "|" + Response.COX_busy + "|" + Response.COX_stoped + ", получено: " + rDATA[0] + " " + rDATA[1] + " " + rDATA[2]);
-                }
-                count = Convert.ToUInt32(rDATA[1] * 16777216 + rDATA[2]*65536 + rDATA[3]*256 + rDATA[4]);
+                //if (rDATA[0] == Response.COX_done)
+                //{
+                //    trace("Счётчик завершил счёт.");
+                //}
+                //else if (rDATA[0] == Response.COX_busy)
+                //{
+                //    trace("Счётчик всё ещё считает!");
+                //}
+                //else if (rDATA[0] == Response.COX_stoped)
+                //{
+                //    trace("Счётчик был принудительно остановлен!");
+                //}
+                count = Convert.ToUInt32(rDATA[0] * 16777216 + rDATA[1]*65536 + rDATA[2]*256 + rDATA[3]);
                 return count;
             }
             public void     setTimeInterval(int MILLISECONDS)
@@ -377,11 +369,7 @@ namespace Xmega32A4U_testBoard
                 ushort ticks = RTC_.getTicks(MILLISECONDS);
                 RTC_.setPrescaler(RTC_.getPrescaler());
                 byte[] bytes_ticks = BitConverter.GetBytes(ticks);
-                byte[] wDATA = { Command.COA_set_timeInterval, bytes_ticks[1], bytes_ticks[0] };
-
-                USART.Open();
-                USART.Write(wDATA, 0, 3);
-                USART.Close();
+                transmit(Command.COA_set_timeInterval,bytes_ticks);
 
                 trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
             }
