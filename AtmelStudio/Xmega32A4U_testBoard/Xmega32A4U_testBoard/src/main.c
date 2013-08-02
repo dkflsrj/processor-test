@@ -449,6 +449,9 @@ void COA_set_mesureQuontity(uint8_t INTERVAL_COUNT)
 void COA_start(void)
 {
 	//ФУНКЦИЯ: Запускаем счётчик на определённое интервалом время
+	RTC_prescaler = RTC_PRESCALER_DIV1_gc;
+	RTC.PER = 32768;
+	
 	TCD0.CNT = 0;
 	TCD1.CNT = 0;
 	RTC.CNT = 0;
@@ -493,7 +496,7 @@ int main (void)
 	PORTD.PIN5CTRL = PORT_ISC_RISING_gc;
 	//PORTD.DIRCLR = 0x01;
 	EVSYS_SetEventSource( 0, EVSYS_CHMUX_PORTD_PIN5_gc );
-	EVSYS_SetEventChannelFilter( 0, EVSYS_DIGFILT_8SAMPLES_gc );
+	EVSYS_SetEventChannelFilter( 0, EVSYS_DIGFILT_3SAMPLES_gc );
 	//Инициировать двойные счётчики
 	EVSYS_SetEventSource(1, EVSYS_CHMUX_TCD0_OVF_gc);
 	EVSYS_SetEventChannelFilter( 1, EVSYS_DIGFILT_1SAMPLE_gc );

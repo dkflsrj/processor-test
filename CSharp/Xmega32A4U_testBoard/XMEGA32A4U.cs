@@ -315,19 +315,19 @@ namespace Xmega32A4U_testBoard
             {
                 //ФУНКЦИЯ: Запускаем счётчик
                 //ПРИМЕЧАНИЕ: Надо сделать проверку состояния, вдруг он уже считает
-                byte[] wDATA = { Command.COA_start };
-                USART.Open();
-                USART.Write(wDATA, 0, 1);
-                USART.Close();
+                transmit(Command.COA_start);
+
             }
             public void     stop()
             {
                 //ФУНКЦИЯ: Останавливаем счётчик
                 //ПРИМЕЧАНИЕ: Надо сделать проверку состояния, вдруг он уже стоит, откликнуться
                 byte[] wDATA = { Command.COA_stop };
+
                 USART.Open();
                 USART.Write(wDATA, 0, 1);
                 USART.Close();
+
             }
             public UInt32   getResult()
             {
@@ -335,6 +335,7 @@ namespace Xmega32A4U_testBoard
                 byte[] wDATA = { Command.COA_get_count };
                 byte[] rDATA = { 0, 0, 0, 0, 0 };
                 UInt32 count = 0;
+
                 USART.Open();
                 USART.Write(wDATA, 0, 1);
                 try
@@ -350,6 +351,7 @@ namespace Xmega32A4U_testBoard
                     trace("ОШИБКА ПРИЁМА ДАННЫХ!");
                 }
                 USART.Close();
+
                 if (rDATA[0] == Response.COX_done)
                 {
                     trace("Счётчик завершил счёт.");
@@ -376,9 +378,11 @@ namespace Xmega32A4U_testBoard
                 RTC_.setPrescaler(RTC_.getPrescaler());
                 byte[] bytes_ticks = BitConverter.GetBytes(ticks);
                 byte[] wDATA = { Command.COA_set_timeInterval, bytes_ticks[1], bytes_ticks[0] };
+
                 USART.Open();
                 USART.Write(wDATA, 0, 3);
                 USART.Close();
+
                 trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
             }
             public void     setTimeInterval(string MILLISECONDS)
