@@ -52,6 +52,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.CHB_TotalControl = new System.Windows.Forms.CheckBox();
             this.GRB_Counter = new System.Windows.Forms.GroupBox();
+            this.PGB_COA_progress = new System.Windows.Forms.ProgressBar();
             this.LBL_COA_ticks = new System.Windows.Forms.Label();
             this.LBL_COA_prescaler = new System.Windows.Forms.Label();
             this.LBL_COA_frequency = new System.Windows.Forms.Label();
@@ -75,15 +76,15 @@
             this.BTN_COM_getMCversion = new System.Windows.Forms.Button();
             this.BTN_MCstatus = new System.Windows.Forms.Button();
             this.BTN_COM_MC_CPUfreq = new System.Windows.Forms.Button();
+            this.BTN_MC_Reset = new System.Windows.Forms.Button();
             this.BTN_LEDbyte = new System.Windows.Forms.Button();
             this.TXB_LEDbyte = new System.Windows.Forms.TextBox();
             this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
             this.Hinter = new System.Windows.Forms.ToolTip(this.components);
             this.CLK_timer = new System.Windows.Forms.Timer(this.components);
             this.CHB_enableSuperTracer = new System.Windows.Forms.CheckBox();
-            this.PGB_COA_progress = new System.Windows.Forms.ProgressBar();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.BTN_MC_Reset = new System.Windows.Forms.Button();
+            this.BTN_openLog = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -383,6 +384,14 @@
             this.GRB_Counter.TabStop = false;
             this.GRB_Counter.Text = "Счётчик";
             // 
+            // PGB_COA_progress
+            // 
+            this.PGB_COA_progress.Location = new System.Drawing.Point(6, 115);
+            this.PGB_COA_progress.Maximum = 2000;
+            this.PGB_COA_progress.Name = "PGB_COA_progress";
+            this.PGB_COA_progress.Size = new System.Drawing.Size(299, 15);
+            this.PGB_COA_progress.TabIndex = 10;
+            // 
             // LBL_COA_ticks
             // 
             this.LBL_COA_ticks.AutoSize = true;
@@ -612,6 +621,17 @@
             this.BTN_COM_MC_CPUfreq.UseVisualStyleBackColor = true;
             this.BTN_COM_MC_CPUfreq.Click += new System.EventHandler(this.BTN_COM_getCPUfreq_Click);
             // 
+            // BTN_MC_Reset
+            // 
+            this.BTN_MC_Reset.Enabled = false;
+            this.BTN_MC_Reset.Location = new System.Drawing.Point(6, 103);
+            this.BTN_MC_Reset.Name = "BTN_MC_Reset";
+            this.BTN_MC_Reset.Size = new System.Drawing.Size(103, 23);
+            this.BTN_MC_Reset.TabIndex = 1;
+            this.BTN_MC_Reset.Text = "Перезагрузить";
+            this.BTN_MC_Reset.UseVisualStyleBackColor = true;
+            this.BTN_MC_Reset.Click += new System.EventHandler(this.BTN_MC_Reset_Click);
+            // 
             // BTN_LEDbyte
             // 
             this.BTN_LEDbyte.Location = new System.Drawing.Point(6, 77);
@@ -651,7 +671,7 @@
             this.CHB_enableSuperTracer.AutoSize = true;
             this.CHB_enableSuperTracer.Checked = true;
             this.CHB_enableSuperTracer.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_enableSuperTracer.Location = new System.Drawing.Point(12, 362);
+            this.CHB_enableSuperTracer.Location = new System.Drawing.Point(53, 364);
             this.CHB_enableSuperTracer.Name = "CHB_enableSuperTracer";
             this.CHB_enableSuperTracer.Size = new System.Drawing.Size(114, 17);
             this.CHB_enableSuperTracer.TabIndex = 3;
@@ -659,34 +679,27 @@
             this.CHB_enableSuperTracer.UseVisualStyleBackColor = true;
             this.CHB_enableSuperTracer.CheckedChanged += new System.EventHandler(this.CHB_enableSuperTracer_CheckedChanged);
             // 
-            // PGB_COA_progress
-            // 
-            this.PGB_COA_progress.Location = new System.Drawing.Point(6, 115);
-            this.PGB_COA_progress.Maximum = 2000;
-            this.PGB_COA_progress.Name = "PGB_COA_progress";
-            this.PGB_COA_progress.Size = new System.Drawing.Size(299, 15);
-            this.PGB_COA_progress.TabIndex = 10;
-            // 
             // CLK_COA
             // 
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
-            // BTN_MC_Reset
+            // BTN_openLog
             // 
-            this.BTN_MC_Reset.Location = new System.Drawing.Point(6, 103);
-            this.BTN_MC_Reset.Name = "BTN_MC_Reset";
-            this.BTN_MC_Reset.Size = new System.Drawing.Size(103, 23);
-            this.BTN_MC_Reset.TabIndex = 1;
-            this.BTN_MC_Reset.Text = "Перезагрузить";
-            this.BTN_MC_Reset.UseVisualStyleBackColor = true;
-            this.BTN_MC_Reset.Click += new System.EventHandler(this.BTN_MC_Reset_Click);
+            this.BTN_openLog.Location = new System.Drawing.Point(12, 360);
+            this.BTN_openLog.Name = "BTN_openLog";
+            this.BTN_openLog.Size = new System.Drawing.Size(35, 23);
+            this.BTN_openLog.TabIndex = 4;
+            this.BTN_openLog.Text = "Log";
+            this.BTN_openLog.UseVisualStyleBackColor = true;
+            this.BTN_openLog.Click += new System.EventHandler(this.BTN_openLog_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(584, 562);
+            this.Controls.Add(this.BTN_openLog);
             this.Controls.Add(this.CHB_enableSuperTracer);
             this.Controls.Add(this.TABpanel);
             this.Controls.Add(this.Log);
@@ -768,6 +781,7 @@
         private System.Windows.Forms.ProgressBar PGB_COA_progress;
         private System.Windows.Forms.Timer CLK_COA;
         private System.Windows.Forms.Button BTN_MC_Reset;
+        private System.Windows.Forms.Button BTN_openLog;
     }
 }
 

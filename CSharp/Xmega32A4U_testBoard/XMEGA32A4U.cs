@@ -21,9 +21,11 @@ namespace Xmega32A4U_testBoard
         //-------------------------------------ПЕРЕМЕННЫЕ-----------------------------------------
         static SerialPort   USART;
         static RichTextBox  tracer;
+        //static System.IO.StreamWriter FILE_log = new System.IO.StreamWriter("Log.txt");
         static bool         tracer_defined = false;
         static bool         tracer_enabled = true;
-        
+        static bool         tracer_log_enabled = true;
+        static bool ERROR = false;
         
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Response
@@ -226,12 +228,15 @@ namespace Xmega32A4U_testBoard
                 if (DoubleRange){Lbyte = Lbyte_DoubleRange;}else{Lbyte = Lbyte_NormalRange;}
                 byte[] data = {Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.ADC_get_voltage, data);
-                byte adress = 1;
                 ushort voltage = 0;
-                adress += Convert.ToByte(rDATA[0] >> 4);
-                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                trace("    Ответный адрес канала: " + adress);
-                trace("    Напряжение: " + voltage);
+                if (!ERROR)
+                {
+                    byte adress = 1;
+                    adress += Convert.ToByte(rDATA[0] >> 4);
+                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                    trace("    Ответный адрес канала: " + adress);
+                    trace("    Напряжение: " + voltage);
+                }
                 return voltage;
             }
             public ushort getVoltage(string   CHANNEL)
@@ -325,7 +330,7 @@ namespace Xmega32A4U_testBoard
                 //ФУНКЦИЯ: Останавливаем счётчик
                 return (transmit(Command.COA_stop)[0] == Command.COA_stop);
             }
-            public UInt32[]   getResult()
+            public UInt32[] getResult()
             {
                 //ФУНКЦИЯ: Запрашиваем результат счёта у МК
                 UInt32 count = 0;
@@ -392,20 +397,30 @@ namespace Xmega32A4U_testBoard
         //ИНТЕРФЕЙСНЫЕ
         static public void trace(string text)
         {
-            //ФУНКЦИЯ: Выводит text в RichTextBox
+            //ФУНКЦИЯ: Выводит text в RichTextBox и в файл
+            string TEXT = Environment.NewLine + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text;
             if (tracer_defined && tracer_enabled)
             {
-                tracer.AppendText(Environment.NewLine + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text);
+                tracer.AppendText(TEXT);
                 tracer.ScrollToCaret();
+            }
+            if (tracer_log_enabled)
+            {
+                System.IO.File.AppendAllText("Log.txt", TEXT);
             }
         }
         static public void trace_attached(string text)
         {
             //ФУНКЦИЯ: Выводит text в RichTextBox
-            if (tracer_defined&&tracer_enabled)
+            string TEXT = text;
+            if (tracer_defined && tracer_enabled)
             {
-                tracer.AppendText(text);
+                tracer.AppendText(TEXT);
                 tracer.ScrollToCaret();
+            }
+            if (tracer_log_enabled)
+            {
+                System.IO.File.AppendAllText("Log.txt", TEXT);
             }
         }
         public void tracer_enable(bool enable)
@@ -418,6 +433,8 @@ namespace Xmega32A4U_testBoard
             //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
             USART = COM_PORT;
             COA = new Counter(RTC);
+            
+            trace("Инициализация " + DateTime.Now.ToString("dd MMMM yyyy"));
         }
         static byte calcCheckSum(byte[] data)
         {
@@ -461,8 +478,8 @@ namespace Xmega32A4U_testBoard
             Thread.Sleep(delay);
             trace("     Передача завершена!");
             trace("     Приём...");                         //Приём-приём
-            byte rBYTE;                                       //Принятый байт
-            bool lock_recieved = false;                       //Затвор ещё небыл получен
+            byte rBYTE;                                     //Принятый байт
+            bool lock_recieved = false;                     //Затвор ещё небыл получен
             bool key_recived = false;                       //Ключ ещё не был получен
             byte BytesToReadQuantity = Convert.ToByte(USART.BytesToRead);
             trace("         Данные на приём:" + BytesToReadQuantity);
@@ -470,7 +487,8 @@ namespace Xmega32A4U_testBoard
             {
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не было получено никаких данных!");
                 USART.Close();
-                return new byte[] {255};
+                ERROR = true;
+                return new byte[] {0};
             }
             trace("             Принято:");
             //Принимаем данные пока есть что принимать и пока не пришёл затвор
@@ -485,7 +503,8 @@ namespace Xmega32A4U_testBoard
                 {
                     trace("ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
                     USART.Close();
-                    return new byte[] {255};
+                    ERROR = true;
+                    return new byte[] {0};
                 }
                 switch (rBYTE)
                 {
@@ -521,7 +540,8 @@ namespace Xmega32A4U_testBoard
                         trace("         Несовпадает контрольная сумма!");
                         trace("             Получено:" + rCheckSum);
                         trace("             Подсчитано:" + CheckSum);
-                        return new byte[] { 255 };
+                        ERROR = true;
+                        return new byte[] { 0 };
                     }
                     //Проверяем данные на отклик
                     trace("     Отклик: " + rDATA[0]);
@@ -541,15 +561,18 @@ namespace Xmega32A4U_testBoard
                             trace("ОШИБКА ОТКЛИКА!");
                             trace("     Ожидалось: " + command);
                             trace("     Получено: " + rDATA[0]);
-                            return new byte[] { 255 };
+                            ERROR = true;
+                            return new byte[] { 0 };
                         }
                     }
                     return rDATA.ToArray();
                 }
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен затвор!");
+                ERROR = true;
             }
             trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен ключ!");
-            return new byte[] { 255 };
+            ERROR = true;
+            return new byte[] { 0 };
         }
             static byte[] transmit(byte[] DATA)
         {
@@ -599,7 +622,14 @@ namespace Xmega32A4U_testBoard
             USART.Close();
         }
         //ФУНКЦИИ МИКРОКОНТРОЛЛЕРА
-        public bool reset()
+        void defineERROR()
+        {
+            //ФУНКЦИЯ: Определение ошибки, и что нужно делать
+
+
+
+        }
+        public bool     reset()
         {
             //ФУНКЦИЯ: Програмная перезагрузка микроконтроллера
             return (transmit(Command.MC_reset)[0] == Command.MC_reset);
@@ -620,19 +650,27 @@ namespace Xmega32A4U_testBoard
             UInt32 birthday = 0;
             string answer = "00000000";
             byte[] recDATA = transmit(Command.MC_get_birthday);
-            birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+            if (!ERROR)
+            {
+                birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
 
-            answer = birthday.ToString();
-            answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
+                answer = birthday.ToString();
+                answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
 
+                
+            }
             return answer;
         }
         public string   getCPUfrequency()
         {
             UInt32 frequency = 0;
             byte[] recDATA = transmit(Command.MC_get_CPUfreq);
-            frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
-            return frequency.ToString() + " Гц";
+            if (!ERROR)
+            {
+                frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                return frequency.ToString() + " Гц";
+            }
+            return "0";
         }
         //--------------------------------------ЗАМЕТКИ-------------------------------------------
     }
