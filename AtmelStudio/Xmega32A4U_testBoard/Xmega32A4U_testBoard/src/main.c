@@ -133,6 +133,7 @@ void RTC_setPrescaler(uint8_t DATA[]);
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
 void ERROR_ASYNCHR(void);
+void MC_reset(void);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTE0_RXC_vect)
 {
@@ -502,6 +503,16 @@ void ERROR_ASYNCHR(void)
 		USART_COMP_transmit(ERROR,3);
 	}
 }
+void MC_reset(void)
+{
+	//ФУНКЦИЯ: Перезагружаем МК
+	//ВНИМАНИЕ: Нужно уделить особое внимание состоянию системы перед перезагрузкой, навести порядок
+	cpu_irq_disable();
+	uint8_t data[] = {COMMAND_MC_reset};
+	USART_COMP_transmit(data,1);
+	
+	RST.CTRL = 1;
+}
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main (void)
 {
@@ -537,7 +548,6 @@ int main (void)
 	showMeByte(1);
 	delay_ms(50);
 	showMeByte(0);
-	//ERROR_ASYNCHR();
 	//Конечная инициализация
 	COA_setStatus_ready;
 	MC_status = 1;						//Режим ожидания
@@ -545,8 +555,6 @@ int main (void)
 	cpu_irq_enable();					//Разрешаем прерывания	
 
 	//Инициализация завершена
-	//Decode(129,1);
-	//Decode(66,1);
 
 	while (1) 
 	{

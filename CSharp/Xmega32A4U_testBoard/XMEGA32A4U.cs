@@ -46,7 +46,7 @@ namespace Xmega32A4U_testBoard
             public const byte MC_get_version =          1;
             public const byte MC_get_birthday =         2;
             public const byte MC_get_CPUfreq =          3;
-
+            public const byte MC_reset =                4;
             public const byte MC_wait =                 5;
             public const byte showTCD2_CNTl =           6;
             public const byte showTCD2_CNTh =           7;
@@ -373,7 +373,6 @@ namespace Xmega32A4U_testBoard
                     setTimeInterval(Convert.ToInt32(MILLISECONDS));
                 }
             }
-            //public DateTime MILLISECONDS { get; set; }
         }
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
         public _RTC RTC = new _RTC();
@@ -600,6 +599,11 @@ namespace Xmega32A4U_testBoard
             USART.Close();
         }
         //ФУНКЦИИ МИКРОКОНТРОЛЛЕРА
+        public bool reset()
+        {
+            //ФУНКЦИЯ: Програмная перезагрузка микроконтроллера
+            return (transmit(Command.MC_reset)[0] == Command.MC_reset);
+        }
         public byte     getStatus()
         {
             //ФУНКЦИЯ: Получает статус у МК

@@ -402,5 +402,16 @@ namespace Xmega32A4U_testBoard
             }
 
         }
+
+        private void BTN_MC_Reset_Click(object sender, EventArgs e)
+        {
+            CHB_TotalControl.Checked = false;
+            if (MC.reset())
+            {
+                trace(true, "Производится перезагрузка микроконтроллера...");
+                return;
+            }
+            trace(true, "ОШИБКА ОТКЛИКА! Вероятно перезагрузка не была выполнена!");
+        }
     }
 }
