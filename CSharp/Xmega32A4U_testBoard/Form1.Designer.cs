@@ -83,6 +83,7 @@
             this.CHB_enableSuperTracer = new System.Windows.Forms.CheckBox();
             this.PGB_COA_progress = new System.Windows.Forms.ProgressBar();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
+            this.BTN_MC_Reset = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -322,7 +323,6 @@
             this.GRB_TotalControl.Controls.Add(this.LBL_TotalC_Status);
             this.GRB_TotalControl.Controls.Add(this.label1);
             this.GRB_TotalControl.Controls.Add(this.CHB_TotalControl);
-            this.GRB_TotalControl.Enabled = false;
             this.GRB_TotalControl.Location = new System.Drawing.Point(241, 10);
             this.GRB_TotalControl.Name = "GRB_TotalControl";
             this.GRB_TotalControl.Size = new System.Drawing.Size(305, 108);
@@ -571,12 +571,13 @@
             this.GRB_MC.Controls.Add(this.BTN_COM_getMCversion);
             this.GRB_MC.Controls.Add(this.BTN_MCstatus);
             this.GRB_MC.Controls.Add(this.BTN_COM_MC_CPUfreq);
+            this.GRB_MC.Controls.Add(this.BTN_MC_Reset);
             this.GRB_MC.Controls.Add(this.BTN_LEDbyte);
             this.GRB_MC.Controls.Add(this.TXB_LEDbyte);
             this.GRB_MC.Controls.Add(this.BTN_COM_setMCwait);
             this.GRB_MC.Location = new System.Drawing.Point(6, 10);
             this.GRB_MC.Name = "GRB_MC";
-            this.GRB_MC.Size = new System.Drawing.Size(223, 108);
+            this.GRB_MC.Size = new System.Drawing.Size(223, 132);
             this.GRB_MC.TabIndex = 10;
             this.GRB_MC.TabStop = false;
             this.GRB_MC.Text = "Процессор";
@@ -671,6 +672,16 @@
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
+            // BTN_MC_Reset
+            // 
+            this.BTN_MC_Reset.Location = new System.Drawing.Point(6, 103);
+            this.BTN_MC_Reset.Name = "BTN_MC_Reset";
+            this.BTN_MC_Reset.Size = new System.Drawing.Size(103, 23);
+            this.BTN_MC_Reset.TabIndex = 1;
+            this.BTN_MC_Reset.Text = "Перезагрузить";
+            this.BTN_MC_Reset.UseVisualStyleBackColor = true;
+            this.BTN_MC_Reset.Click += new System.EventHandler(this.BTN_MC_Reset_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -756,6 +767,7 @@
         private System.Windows.Forms.CheckBox CHB_enableSuperTracer;
         private System.Windows.Forms.ProgressBar PGB_COA_progress;
         private System.Windows.Forms.Timer CLK_COA;
+        private System.Windows.Forms.Button BTN_MC_Reset;
     }
 }
 
