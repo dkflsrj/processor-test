@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO.Ports;
 using System.Threading;
+using System.Diagnostics;
 
 namespace Xmega32A4U_testBoard
 {
@@ -68,31 +69,6 @@ namespace Xmega32A4U_testBoard
         {
             setCOMparams();
         }
-        /*private void COM_Port_send(byte DATA)
-        {
-            byte[] BYTE = {DATA};
-            COM_Port.Open();
-            COM_Port.Write(BYTE,0,1);
-            COM_Port.Close();
-        }*/
-        /*private byte COM_Port_read()
-        {
-            byte[] DATA = { 0 };
-            COM_Port.Open();
-            try
-            {
-                COM_Port.Read(DATA, 0, 1);
-                COM_Port.Close();
-                return DATA[0];
-            }
-            catch (Exception)
-            {
-                trace(true, "ОШИБКА ПРИЁМА ДАННЫХ! ");
-                COM_Port.Close();
-                return DATA[0];
-            }
-
-        }*/
         void setCOMparams()
         {
             Parity l_parity;
@@ -339,7 +315,8 @@ namespace Xmega32A4U_testBoard
                     case 4: LBL_TotalC_Status.Text = "Отображение байтов";
                         LBL_TotalC_Status.ForeColor = System.Drawing.Color.Green;
                         break;
-                    default:
+                    default: LBL_TotalC_Status.Text = "Неизвестно!";
+                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
                         break;
                 }
             }
@@ -412,6 +389,11 @@ namespace Xmega32A4U_testBoard
                 return;
             }
             trace(true, "ОШИБКА ОТКЛИКА! Вероятно перезагрузка не была выполнена!");
+        }
+
+        private void BTN_openLog_Click(object sender, EventArgs e)
+        {
+            Process.Start("log.txt");
         }
     }
 }
