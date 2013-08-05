@@ -81,6 +81,8 @@
             this.Hinter = new System.Windows.Forms.ToolTip(this.components);
             this.CLK_timer = new System.Windows.Forms.Timer(this.components);
             this.CHB_enableSuperTracer = new System.Windows.Forms.CheckBox();
+            this.PGB_COA_progress = new System.Windows.Forms.ProgressBar();
+            this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -362,6 +364,7 @@
             // 
             // GRB_Counter
             // 
+            this.GRB_Counter.Controls.Add(this.PGB_COA_progress);
             this.GRB_Counter.Controls.Add(this.LBL_COA_ticks);
             this.GRB_Counter.Controls.Add(this.LBL_COA_prescaler);
             this.GRB_Counter.Controls.Add(this.LBL_COA_frequency);
@@ -373,9 +376,9 @@
             this.GRB_Counter.Controls.Add(this.BTN_startCounter);
             this.GRB_Counter.Controls.Add(this.BTN_reqCount);
             this.GRB_Counter.Controls.Add(this.BTN_stopCounter);
-            this.GRB_Counter.Location = new System.Drawing.Point(235, 205);
+            this.GRB_Counter.Location = new System.Drawing.Point(235, 178);
             this.GRB_Counter.Name = "GRB_Counter";
-            this.GRB_Counter.Size = new System.Drawing.Size(311, 109);
+            this.GRB_Counter.Size = new System.Drawing.Size(311, 136);
             this.GRB_Counter.TabIndex = 12;
             this.GRB_Counter.TabStop = false;
             this.GRB_Counter.Text = "Счётчик";
@@ -474,7 +477,6 @@
             // 
             // BTN_stopCounter
             // 
-            this.BTN_stopCounter.Enabled = false;
             this.BTN_stopCounter.Location = new System.Drawing.Point(6, 48);
             this.BTN_stopCounter.Name = "BTN_stopCounter";
             this.BTN_stopCounter.Size = new System.Drawing.Size(103, 23);
@@ -656,6 +658,19 @@
             this.CHB_enableSuperTracer.UseVisualStyleBackColor = true;
             this.CHB_enableSuperTracer.CheckedChanged += new System.EventHandler(this.CHB_enableSuperTracer_CheckedChanged);
             // 
+            // PGB_COA_progress
+            // 
+            this.PGB_COA_progress.Location = new System.Drawing.Point(6, 115);
+            this.PGB_COA_progress.Maximum = 2000;
+            this.PGB_COA_progress.Name = "PGB_COA_progress";
+            this.PGB_COA_progress.Size = new System.Drawing.Size(299, 15);
+            this.PGB_COA_progress.TabIndex = 10;
+            // 
+            // CLK_COA
+            // 
+            this.CLK_COA.Interval = 10;
+            this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -739,6 +754,8 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.CheckBox CHB_enableSuperTracer;
+        private System.Windows.Forms.ProgressBar PGB_COA_progress;
+        private System.Windows.Forms.Timer CLK_COA;
     }
 }
 

@@ -25,13 +25,14 @@
 											delay_ms(50);}
 
 //МК
-#define version 16
-#define birthday 20130801
+#define version 17
+#define birthday 20130805
 #define usart_delay 1
 //Счётчики
-#define COA_setStatus_ready		COA_state =		7;
-#define COA_setStatus_busy		COA_state =		8;
-#define COA_setStatus_stunned	COA_state =		9; 
+#define COA_setStatus_ready		COA_state =		0	//Счётчик готов к работе
+#define COA_setStatus_stunned	COA_state =		1	//Счётчик был принудительно остановлен
+#define COA_setStatus_busy		COA_state =		2	//Счётчик ещё считает
+#define COA_setStatus_ovflowed	COA_state++		//Счётчик был переполнен (COA_state - 2) раз
 //USART
 #define USART_COMP						&USARTE0
 #define USART_COMP_BAUDRATE				128000
@@ -93,8 +94,7 @@ uint8_t Interval_delay = 20;			//Задержка в миллисекундах между интервалами [10.
 uint16_t Intervals_count = 100;			//Количество интервалов (интервал + задержка)
 uint16_t COA_measurment = 0;			//Последнее измерение счётчика
 uint16_t COA_measurment_2 = 0;
-uint8_t COA_ovf = 0;					//Количество переполнений счётчика
-uint8_t COA_state = 0;					//Состояния счётчика 7 - готов, 8 - считает, 9 - остановлен
+uint8_t COA_state = 0;					//Состояния счётчика
 
 uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
 
@@ -189,12 +189,15 @@ ISR(RTC_OVF_vect)
 	COA_measurment_2 = TCD1.CNT;
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
 	RTC.CNT = 0;
-	COA_setStatus_ready;
+	if (COA_state == 2)
+	{
+		COA_setStatus_ready;
+	}
 	MC_status = 4;
 }
  static void ISR_TCD1(void)
  {
-	 COA_ovf++;
+	 COA_setStatus_ovflowed;
  }
 
 //
@@ -362,18 +365,22 @@ void USART_COMP_transmit_MCbirthday(void)
 void USART_COMP_transmit_COA_count(void)
 {
 	//ФУНКЦИЯ: Вернуть ПК результат измерения
-	uint8_t data[] = {COMMAND_COA_get_count,(COA_measurment_2 >> 8),COA_measurment_2,(COA_measurment >> 8),COA_measurment};
-	USART_COMP_transmit(data,5);
-// 	delay_us(usart_delay);
-// 	usart_putchar(USART_COMP, COA_state);
-// 	delay_us(usart_delay);
-// 	usart_putchar(USART_COMP, (COA_measurment_2 >> 8));
-// 	delay_us(usart_delay);
-// 	usart_putchar(USART_COMP, COA_measurment_2);
-// 	delay_us(usart_delay);
-// 	usart_putchar(USART_COMP, (COA_measurment >> 8));
-// 	delay_us(usart_delay);
-// 	usart_putchar(USART_COMP, COA_measurment);
+	uint8_t data[] = {COMMAND_COA_get_count,COA_state,0,0,0,0};
+	switch(COA_state)
+	{
+		case 1:
+		case 2:
+			USART_COMP_transmit(data,2);
+			break;
+		case 0:
+		default:
+			data[2] = (COA_measurment_2 >> 8);
+			data[3] = COA_measurment_2;
+			data[4] = (COA_measurment >> 8);
+			data[5] = COA_measurment;
+			USART_COMP_transmit(data,6);	
+			break;
+	}
 }
 bool checkCommand(uint8_t data[], uint8_t data_length)
 {
@@ -459,7 +466,6 @@ void COA_start(void)
 	TCD0.CNT = 0;
 	TCD1.CNT = 0;
 	RTC.CNT = 0;
-	COA_ovf = 0;
 	COA_setStatus_busy;
 	tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
 	tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);
@@ -477,6 +483,8 @@ void COA_stop(void)
 	TCD0.CNT = 0;
 	TCD1.CNT = 0;
 	COA_setStatus_stunned;
+	uint8_t data[] = {COMMAND_COA_stop};
+	USART_COMP_transmit(data,1);
 }
 void RTC_setPrescaler(uint8_t DATA[])
 {
@@ -531,6 +539,7 @@ int main (void)
 	showMeByte(0);
 	//ERROR_ASYNCHR();
 	//Конечная инициализация
+	COA_setStatus_ready;
 	MC_status = 1;						//Режим ожидания
 	MC_error = 1;						//Ошибок нет
 	cpu_irq_enable();					//Разрешаем прерывания	
