@@ -15,6 +15,9 @@ namespace Xmega32A4U_testBoard
     {
         SerialPort COM_Port;
         XMEGA32A4U MC;
+        decimal UI_PGB_COA_step = 0;
+        decimal UI_PGB_COA_count = 0;
+        const int CLK_COA_intreval = 10;
 
         public Form1()
         {
@@ -38,6 +41,7 @@ namespace Xmega32A4U_testBoard
             MC.setUSART(COM_Port);
             MC.setTracer(Log);
 
+            CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
         }
         //Функции интерфейса
@@ -239,21 +243,78 @@ namespace Xmega32A4U_testBoard
         private void BTN_startCounter_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Запускаем счётчик МК
-            MC.COA.start();
+            try
+            {
+                Convert.ToInt32(TXB_interval.Text);
+                
+                
+            }
+            catch(Exception)
+            {
+                trace(true,"ОШИБКА! Неверный интервал!");
+                return;
+            }
+            if (MC.COA.start())
+            {
+                trace(true,"COA начал счёт...");
+                PGB_COA_progress.Value = 0;
+                UI_PGB_COA_count = 0;
+                UI_PGB_COA_step =  (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_interval.Text);
+                CLK_COA.Enabled = true;
+                return;
+            }
+            trace(true, "Ошибка отклика! Возможно COA не начал счёт!");
+            
         }
         private void BTN_reqCount_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Проверям счётчик МК, если сосчитал, то принимаем результат
-            trace(true, "   Счёт: " + MC.COA.getResult().ToString());
+            UInt32[] Result = MC.COA.getResult();
+            switch(Result[0])
+            {
+                case 0:
+                    //Счётчик готов (ОН НЕ СЧИТАЛ!)
+                    trace(true,"Счётчик готов к работе.");
+                    break;
+                case 1:
+                    //Счётчик был принудительно остановлен!
+                    trace(true,"Счётчик был принудительно остановлен!");
+                    return;
+                case 2:
+                    //Счётчик успешно завершил счёт, без переполнения
+                    trace(true,"Счётчик ещё считает!");
+                    return;
+                default:
+                    //Счётчик переполнился <state> раз
+                    trace(true, "Счётчик был переполнен! Количество переполнений: " + (Result[0] - 2).ToString());
+                    break;
+            }
+            trace(true, "   Счёт: " + Result[1]);
         }
         private void BTN_setInterval_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах 
+            try
+            {
+                Convert.ToInt32(TXB_interval.Text);
+
+
+            }
+            catch (Exception)
+            {
+                trace(true, "ОШИБКА! Неверный интервал!");
+                return;
+            }
             MC.COA.setTimeInterval(TXB_interval.Text);
         }
         private void BTN_stopCounter_Click(object sender, EventArgs e)
         {
-            MC.COA.stop();
+            if (MC.COA.stop())
+            {
+                trace(true, "Счётчик был успешно остановлен!");
+                return;
+            }
+            trace(true, "ОШИБКА ОТКЛИКА! Возможно Счётчик не был остановлен!");
         }
 
 
@@ -302,6 +363,14 @@ namespace Xmega32A4U_testBoard
         }
         private void TXB_interval_TextChanged(object sender, EventArgs e)
         {
+            try
+            {
+                Convert.ToInt32(TXB_interval.Text);
+            }
+            catch (Exception)
+            {
+                return;
+            }
             LBL_COA_ticks.Text = MC.RTC.getTicks(TXB_interval.Text).ToString();
             LBL_COA_frequency.Text = MC.RTC.getFreqency().ToString();
             LBL_COA_prescaler.Text = MC.RTC.getPrescaler().ToString();
@@ -317,6 +386,21 @@ namespace Xmega32A4U_testBoard
             {
                 MC.tracer_enable(false);
             }
+        }
+
+        private void CLK_COA_Tick(object sender, EventArgs e)
+        {
+            UI_PGB_COA_count += UI_PGB_COA_step;
+            if (Convert.ToInt16(Math.Round(UI_PGB_COA_count)) >= PGB_COA_progress.Maximum)
+            {
+                PGB_COA_progress.Value = PGB_COA_progress.Maximum;
+                CLK_COA.Enabled = false;
+            }
+            else
+            {
+                PGB_COA_progress.Value = Convert.ToInt16(Math.Round(UI_PGB_COA_count));
+            }
+
         }
     }
 }

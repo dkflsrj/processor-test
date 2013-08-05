@@ -62,6 +62,7 @@ namespace Xmega32A4U_testBoard
             public const byte COA_get_count =           32;
             public const byte COA_stop =                33;
             public const byte RTC_set_prescaler =       34;
+            public const byte COA_getStatus =           35;
 
             public const byte DAC_set_voltage =         40;
             public const byte ADC_get_voltage =         41;
@@ -309,59 +310,50 @@ namespace Xmega32A4U_testBoard
             {
                 RTC_ = RealTimeCounter;
             }
-            public void     start()
+            public bool     start()
             {
                 //ФУНКЦИЯ: Запускаем счётчик
                 //ПРИМЕЧАНИЕ: Надо сделать проверку состояния, вдруг он уже считает
-                transmit(Command.COA_start);
-
+                if (transmit(Command.COA_start)[0] == Command.COA_start)
+                {
+                    return true;
+                }
+                return false;
             }
-            public void     stop()
+            public bool     stop()
             {
                 //ФУНКЦИЯ: Останавливаем счётчик
-                //ПРИМЕЧАНИЕ: Надо сделать проверку состояния, вдруг он уже стоит, откликнуться
-                byte[] wDATA = { Command.COA_stop };
-
-                USART.Open();
-                USART.Write(wDATA, 0, 1);
-                USART.Close();
-
+                return (transmit(Command.COA_stop)[0] == Command.COA_stop);
             }
-            public UInt32   getResult()
+            public UInt32[]   getResult()
             {
                 //ФУНКЦИЯ: Запрашиваем результат счёта у МК
                 UInt32 count = 0;
+                
                 byte[] rDATA = transmit(Command.COA_get_count);
-                //USART.Open();
-                //USART.Write(wDATA, 0, 1);
-                //try
-                //{
-                //    rDATA[0] = Convert.ToByte(USART.ReadByte());
-                //    rDATA[1] = Convert.ToByte(USART.ReadByte());
-                //    rDATA[2] = Convert.ToByte(USART.ReadByte());
-                //    rDATA[3] = Convert.ToByte(USART.ReadByte());
-                //    rDATA[4] = Convert.ToByte(USART.ReadByte());
-                //}
-                //catch (Exception)
-                //{
-                //    trace("ОШИБКА ПРИЁМА ДАННЫХ!");
-                //}
-                //USART.Close();
-
-                //if (rDATA[0] == Response.COX_done)
-                //{
-                //    trace("Счётчик завершил счёт.");
-                //}
-                //else if (rDATA[0] == Response.COX_busy)
-                //{
-                //    trace("Счётчик всё ещё считает!");
-                //}
-                //else if (rDATA[0] == Response.COX_stoped)
-                //{
-                //    trace("Счётчик был принудительно остановлен!");
-                //}
-                count = Convert.ToUInt32(rDATA[0] * 16777216 + rDATA[1]*65536 + rDATA[2]*256 + rDATA[3]);
-                return count;
+                UInt32 state = rDATA[0];
+                switch (state)
+                {
+                    case 0:
+                        //Счётчик готов (ОН НЕ СЧИТАЛ!)
+                        trace("Счётчик готов к работе.");
+                        count = Convert.ToUInt32(rDATA[1] * 16777216 + rDATA[2] * 65536 + rDATA[3] * 256 + rDATA[4]);
+                        break;
+                    case 1:
+                        //Счётчик был принудительно остановлен!
+                        trace("Счётчик был принудительно остановлен!");
+                        break;
+                    case 2:
+                        //Счётчик успешно завершил счёт, без переполнения
+                        trace("Счётчик ещё считает!");
+                        break;
+                    default:
+                        //Счётчик переполнился <state> раз
+                        trace("Счётчик был переполнен! Количество переполнений: " + (state - 2).ToString());
+                        count = Convert.ToUInt32(rDATA[1] * 16777216 + rDATA[2] * 65536 + rDATA[3] * 256 + rDATA[4]);
+                        break;
+                }
+                return new UInt32[] { state, count };
             }
             public void     setTimeInterval(int MILLISECONDS)
             {
@@ -369,7 +361,8 @@ namespace Xmega32A4U_testBoard
                 ushort ticks = RTC_.getTicks(MILLISECONDS);
                 RTC_.setPrescaler(RTC_.getPrescaler());
                 byte[] bytes_ticks = BitConverter.GetBytes(ticks);
-                transmit(Command.COA_set_timeInterval,bytes_ticks);
+                byte[] data = { bytes_ticks[1], bytes_ticks[0]};
+                transmit(Command.COA_set_timeInterval, data);
 
                 trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
             }
