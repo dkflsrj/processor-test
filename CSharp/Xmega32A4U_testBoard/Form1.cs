@@ -455,6 +455,33 @@ namespace Xmega32A4U_testBoard
                 MC.log_enable(false);
             }
         }
+
+        private void WATCHER_Counters_Tick(object sender, EventArgs e)
+        {
+            byte COA_Status = MC.COA.getStatus();
+            switch (COA_Status)
+            {
+                case 0: LBL_COA_status.Text = "Готов";
+                    LBL_COA_status.ForeColor = System.Drawing.Color.Green;
+                    break;
+                case 1: LBL_COA_status.Text = "Остановлен";
+                    LBL_COA_status.ForeColor = System.Drawing.Color.Orange;
+                    break;
+                case 2: LBL_COA_status.Text = "Считает";
+                    LBL_COA_status.ForeColor = System.Drawing.Color.Orange;
+                    break;
+                default: LBL_COA_status.Text = "Переполнен " + COA_Status;
+                    LBL_COA_status.ForeColor = System.Drawing.Color.Red;
+                    break;
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            MC.sendSomething();
+        }
+
+
         
     }
 }
