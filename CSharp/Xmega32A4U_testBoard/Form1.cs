@@ -221,7 +221,7 @@ namespace Xmega32A4U_testBoard
             //ФУНКЦИЯ: Запускаем счётчик МК
             try
             {
-                Convert.ToInt32(TXB_interval.Text);
+                Convert.ToInt32(TXB_COA_measureTime.Text);
                 
                 
             }
@@ -235,11 +235,11 @@ namespace Xmega32A4U_testBoard
                 trace(true,"COA начал счёт...");
                 PGB_COA_progress.Value = 0;
                 UI_PGB_COA_count = 0;
-                UI_PGB_COA_step =  (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_interval.Text);
+                UI_PGB_COA_step =  (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_COA_measureTime.Text);
                 CLK_COA.Enabled = true;
                 return;
             }
-            trace(true, "Ошибка отклика! Возможно COA не начал счёт!");
+            trace(true, "Ошибка! Возможно COA не начал счёт!");
             
         }
         private void BTN_reqCount_Click(object sender, EventArgs e)
@@ -272,22 +272,51 @@ namespace Xmega32A4U_testBoard
             //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах 
             try
             {
-                Convert.ToInt32(TXB_interval.Text);
-
-
+                Convert.ToInt32(TXB_COA_measureTime.Text);
             }
             catch (Exception)
             {
-                trace(true, "ОШИБКА! Неверный интервал!");
+                trace(true, "ОШИБКА! Неверное время измерения!");
                 return;
             }
-            MC.COA.setTimeInterval(TXB_interval.Text);
+            try
+            {
+                Convert.ToByte(TXB_COA_delay.Text);
+            }
+            catch (Exception)
+            {
+                trace(true, "ОШИБКА! Неверное время паузы!");
+                return;
+            }
+            try
+            {
+                Convert.ToUInt16(TXB_COA_quantity.Text);
+            }
+            catch (Exception)
+            {
+                trace(true, "ОШИБКА! Неверное количество измерений!");
+                return;
+            }
+            if (MC.COA.setMeasureTime(TXB_COA_measureTime.Text))
+            {
+                trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.RTC.get_Ticks(TXB_COA_measureTime.Text, MC.RTC.get_Prescaler(TXB_COA_measureTime.Text)) + " тиков)");
+            }
+            if (MC.COA.setMeasureDelay(TXB_COA_delay.Text))
+            {
+                trace(true, "Задана пауза между измерениями: " + TXB_COA_delay.Text + "мс (" + MC.RTC.get_Ticks(TXB_COA_delay.Text,1) + " тиков)");
+            }
+            if(MC.COA.setMeasureQuantity(TXB_COA_quantity.Text))
+            {
+                trace(true, "Задано количество измерений: " + TXB_COA_quantity.Text);
+            }
         }
         private void BTN_stopCounter_Click(object sender, EventArgs e)
         {
             if (MC.COA.stop())
             {
                 trace(true, "Счётчик был успешно остановлен!");
+                CLK_COA.Enabled = false;
+                PGB_COA_progress.Value = PGB_COA_progress.Minimum;
                 return;
             }
             trace(true, "ОШИБКА ОТКЛИКА! Возможно Счётчик не был остановлен!");
@@ -319,6 +348,17 @@ namespace Xmega32A4U_testBoard
                         LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
                         break;
                 }
+                if (MC.checkErrors())
+                {
+                    LBL_error.Text = "Есть ошибки!";
+                    LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
+                }
+                else
+                {
+
+                    LBL_error.Text = "Ошибок нет";
+                    LBL_error.ForeColor = System.Drawing.Color.Green;
+                }
             }
         }
         private void CHB_TotalControl_CheckedChanged(object sender, EventArgs e)
@@ -331,31 +371,38 @@ namespace Xmega32A4U_testBoard
             }
             else
             {
+                CLK_timer.Enabled = false;
                 CHB_TotalControl.ForeColor = System.Drawing.Color.Red;
                 CHB_TotalControl.Text = "Выключен";
                 LBL_TotalC_Status.Text = "Неизвестно!";
                 LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
-                CLK_timer.Enabled = false;
+                LBL_error.Text = "Неизвестно!";
+                LBL_error.ForeColor = System.Drawing.Color.Red;
+                
             }
         }
         private void TXB_interval_TextChanged(object sender, EventArgs e)
         {
             try
             {
-                Convert.ToInt32(TXB_interval.Text);
+                Convert.ToInt32(TXB_COA_measureTime.Text);
+                Convert.ToByte(TXB_COA_delay.Text);
+                Convert.ToUInt16(TXB_COA_quantity.Text);
             }
             catch (Exception)
             {
                 return;
             }
-            LBL_COA_ticks.Text = MC.RTC.getTicks(TXB_interval.Text).ToString();
-            LBL_COA_frequency.Text = MC.RTC.getFreqency().ToString();
-            LBL_COA_prescaler.Text = MC.RTC.getPrescaler().ToString();
+            LBL_COA_ticks.Text = "(" + MC.RTC.get_Ticks(TXB_COA_measureTime.Text, MC.RTC.get_Prescaler(TXB_COA_measureTime.Text)).ToString();
+            LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
+            LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
+            LBL_COA_frequency.Text = MC.RTC.get_Freqency().ToString();
+            LBL_COA_prescaler.Text = MC.RTC.get_Prescaler(TXB_COA_measureTime.Text).ToString();
         }
 
         private void CHB_enableSuperTracer_CheckedChanged(object sender, EventArgs e)
         {
-            if(CHB_enableSuperTracer.Checked)
+            if (CHB_enableSuperTracer.Checked)
             {
                 MC.tracer_enable(true);
             }
@@ -395,5 +442,18 @@ namespace Xmega32A4U_testBoard
         {
             Process.Start("log.txt");
         }
+
+        private void CHB_traceLog_CheckedChanged(object sender, EventArgs e)
+        {
+            if (CHB_traceLog.Checked)
+            {
+                MC.log_enable(true);
+            }
+            else
+            {
+                MC.log_enable(false);
+            }
+        }
+        
     }
 }

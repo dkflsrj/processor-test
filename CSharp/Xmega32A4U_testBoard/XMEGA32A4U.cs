@@ -21,11 +21,10 @@ namespace Xmega32A4U_testBoard
         //-------------------------------------ПЕРЕМЕННЫЕ-----------------------------------------
         static SerialPort   USART;
         static RichTextBox  tracer;
-        //static System.IO.StreamWriter FILE_log = new System.IO.StreamWriter("Log.txt");
         static bool         tracer_defined = false;
         static bool         tracer_enabled = true;
         static bool         tracer_log_enabled = true;
-        static bool ERROR = false;
+        static bool         ERROR = false;
         
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Response
@@ -59,12 +58,14 @@ namespace Xmega32A4U_testBoard
 
             public const byte MC_get_status =           20;
 
-            public const byte COA_set_timeInterval =    30;
+            public const byte COA_set_MeasureTime =     30;
             public const byte COA_start =               31;
             public const byte COA_get_count =           32;
             public const byte COA_stop =                33;
             public const byte RTC_set_prescaler =       34;
             public const byte COA_getStatus =           35;
+            public const byte COA_setMeasureDelay =     36;
+            public const byte COA_setMeasureQuantity =  37;
 
             public const byte DAC_set_voltage =         40;
             public const byte ADC_get_voltage =         41;
@@ -86,87 +87,101 @@ namespace Xmega32A4U_testBoard
             const int    min_ms_div1024      = 511981;
             const int    max_ms_div1024      = 2047925;
             //предделители частоты
-            ushort prescaler;
+            byte prescaler; //1,2,3(8),4(16),5(64),6(256),7(1024)
+            ushort prescaler_long;
 
-            public void   setPrescaler(ushort DIV_1_2_8_16_64_256_1024)
+
+            public bool   setPrescaler(ushort PRESCALER)
             {
-                prescaler = DIV_1_2_8_16_64_256_1024;
-                byte data;
-                switch (DIV_1_2_8_16_64_256_1024)
+                switch (PRESCALER)
                 {
-
-                    case 1: data = 1;
+                    case 1: prescaler = 1;
                         break;
-                    case 2: data = 2;
+                    case 2: prescaler = 2;
                         break;
-                    case 8: data = 3;
+                    case 8: prescaler = 3;
                         break;
-                    case 16: data = 4;
+                    case 16: prescaler = 4;
                         break;
-                    case 64: data = 5;
+                    case 64: prescaler = 5;
                         break;
-                    case 256: data = 6;
+                    case 256: prescaler = 6;
                         break;
-                    case 1024: data = 7;
+                    case 1024: prescaler = 7;
                         break;
                     default: trace("ОШИБКА! Неверный предделитель!");
                         prescaler = 0;
-                        return;
+                        return false;
                 }
-                transmit(Command.RTC_set_prescaler, data);
+                return (transmit(Command.RTC_set_prescaler, prescaler)[0] == Command.RTC_set_prescaler);
             }
-            public ushort getPrescaler()
-            {
-                return prescaler;
-            }
-            public double getFreqency()
-            {
-                return (sourceFrequency / prescaler);
-            }
-            public ushort getTicks(int MILLISECONDS)
+            public ushort get_Prescaler(uint MILLISECONDS)
             {
                 if ((MILLISECONDS >= _RTC.min_ms_div1) && (MILLISECONDS < _RTC.min_ms_div2))
                 {
-                    prescaler = 1;
+                    prescaler_long = 1;
                 }
                 else if ((MILLISECONDS >= _RTC.min_ms_div2) && (MILLISECONDS < _RTC.min_ms_div8))
                 {
-                    prescaler = 2;
+                    prescaler_long = 2;
                 }
                 else if ((MILLISECONDS >= _RTC.min_ms_div8) && (MILLISECONDS < _RTC.min_ms_div16))
                 {
-                    prescaler = 8;
+                    prescaler_long = 8;
                 }
                 else if ((MILLISECONDS >= _RTC.min_ms_div16) && (MILLISECONDS < _RTC.min_ms_div64))
                 {
-                    prescaler = 16;
+                    prescaler_long = 16;
                 }
                 else if ((MILLISECONDS >= _RTC.min_ms_div64) && (MILLISECONDS < _RTC.min_ms_div256))
                 {
-                    prescaler = 64;
+                    prescaler_long = 64;
                 }
                 else if ((MILLISECONDS >= _RTC.min_ms_div256) && (MILLISECONDS < _RTC.min_ms_div1024))
                 {
-                    prescaler = 256;
+                    prescaler_long = 256;
                 }
                 else if ((MILLISECONDS >= _RTC.min_ms_div1024) && (MILLISECONDS < _RTC.max_ms_div1024))
                 {
-                    prescaler = 1024;
+                    prescaler_long = 1024;
                 }
                 else
                 {
                     trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MILLISECONDS < 2047967; Получено: " + MILLISECONDS);
-                    prescaler = 0;
+                    prescaler_long = 0;
                     return 0;
                 }
-                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * getFreqency()));
+                return prescaler_long;
+            }
+                public ushort get_Prescaler(string MILLISECONDS)
+            {
+                return get_Prescaler(Convert.ToUInt32(MILLISECONDS));
+            }
+            public double get_Freqency()
+            {
+                return (sourceFrequency / prescaler_long);
+            }
+            public ushort get_Ticks(uint MILLISECONDS, ushort PRESCALER)
+            {
+                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (sourceFrequency / PRESCALER)));
                 return tiks;
             }
-            public ushort getTicks(string MILLISECONDS)
+                public ushort get_Ticks(string MILLISECONDS, string PRESCALER)
             {
-                if (MILLISECONDS != "")
+                if ((MILLISECONDS != "") && (PRESCALER != ""))
                 {
-                    return getTicks(Convert.ToInt32(MILLISECONDS));
+                    return get_Ticks(Convert.ToUInt32(MILLISECONDS), Convert.ToUInt16(PRESCALER));
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+                public ushort get_Ticks(string MILLISECONDS, ushort PRESCALER)
+            {
+                if ((MILLISECONDS != ""))
+                {
+                    return get_Ticks(Convert.ToUInt32(MILLISECONDS), PRESCALER);
                 }
                 else
                 {
@@ -310,22 +325,35 @@ namespace Xmega32A4U_testBoard
         {
             //СТРУКТУРА: Счётчики, их три СОА, СОВ и СОС.
             _RTC RTC_;
+
+            const byte state_ready = 0;
+            const byte state_stopped = 1;
+            const byte state_busy = 2;
+            
+            public byte state;
+
             public Counter(_RTC RealTimeCounter)
                 : this()
             {
                 RTC_ = RealTimeCounter;
             }
-            public bool     start()
+            public bool start()
             {
-                //ФУНКЦИЯ: Запускаем счётчик
-                //ПРИМЕЧАНИЕ: Надо сделать проверку состояния, вдруг он уже считает
-                if (transmit(Command.COA_start)[0] == Command.COA_start)
+                //ФУНКЦИЯ: Запускаем счётчик, возвращаем состояние счётчика на момент запуска.
+                byte[] answer = transmit(Command.COA_start);
+                if (answer[0] != state_busy)
                 {
+                    trace("Счётчик начал счёт...");
+                    state = state_busy;
                     return true;
                 }
-                return false;
+                else
+                {
+                    trace("Счётчик уже считает! Вы можите остановить счёт командой stop()");
+                    return false;
+                }
             }
-            public bool     stop()
+            public bool stop()
             {
                 //ФУНКЦИЯ: Останавливаем счётчик
                 return (transmit(Command.COA_stop)[0] == Command.COA_stop);
@@ -360,23 +388,49 @@ namespace Xmega32A4U_testBoard
                 }
                 return new UInt32[] { state, count };
             }
-            public void     setTimeInterval(int MILLISECONDS)
+            public bool setMeasureTime(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Задаёт количество тиков для RTC через интервал в миллисекундах
-                ushort ticks = RTC_.getTicks(MILLISECONDS);
-                RTC_.setPrescaler(RTC_.getPrescaler());
+                ushort RTC_prescaler = RTC_.get_Prescaler(MILLISECONDS);
+                RTC_.setPrescaler(RTC_prescaler);
+                ushort ticks = RTC_.get_Ticks(MILLISECONDS,RTC_prescaler);
                 byte[] bytes_ticks = BitConverter.GetBytes(ticks);
                 byte[] data = { bytes_ticks[1], bytes_ticks[0]};
-                transmit(Command.COA_set_timeInterval, data);
-
-                trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
+                if (transmit(Command.COA_set_MeasureTime, data)[0] == Command.COA_set_MeasureTime)
+                {
+                    //trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
+                    return true;
+                }
+                return false;
             }
-            public void     setTimeInterval(string MILLISECONDS)
+                public bool setMeasureTime(string MILLISECONDS)
             {
                 if (MILLISECONDS != "")
                 {
-                    setTimeInterval(Convert.ToInt32(MILLISECONDS));
+                    return setMeasureTime(Convert.ToUInt32(MILLISECONDS));
                 }
+                return false;
+            }
+            public bool setMeasureDelay(byte MILLISECONDS)
+            {
+                //ФУНКЦИЯ: Задаёт задержку между измерениями
+                return (transmit(Command.COA_setMeasureDelay, MILLISECONDS)[0] == Command.COA_setMeasureDelay);
+            }
+                public bool setMeasureDelay(string MILLISECONDS)
+            {
+                return setMeasureDelay(Convert.ToByte(MILLISECONDS));
+            }
+            public bool setMeasureQuantity(ushort QUANTITY)
+            {
+                //ФУНКЦИЯ: Задаёт количество измерений
+                byte[] bytes = BitConverter.GetBytes(QUANTITY);
+                byte[] data = { bytes[1], bytes[0] };
+                return (transmit(Command.COA_setMeasureQuantity, data)[0] == Command.COA_setMeasureQuantity);
+                 
+            }
+                public bool setMeasureQuantity(string QUANTITY)
+            {
+                return setMeasureQuantity(Convert.ToUInt16(QUANTITY));
             }
         }
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
@@ -426,6 +480,14 @@ namespace Xmega32A4U_testBoard
         public void tracer_enable(bool enable)
         {
             tracer_enabled = enable;
+        }
+        public void log_enable(bool enable)
+        {
+            tracer_log_enabled = enable;
+        }
+        public bool checkErrors()
+        {
+            return ERROR;
         }
         //USART
         public void setUSART(SerialPort COM_PORT)
@@ -622,12 +684,17 @@ namespace Xmega32A4U_testBoard
             USART.Close();
         }
         //ФУНКЦИИ МИКРОКОНТРОЛЛЕРА
-        void defineERROR()
+        void trace_error(byte[] DATA)
         {
-            //ФУНКЦИЯ: Определение ошибки, и что нужно делать
-
-
-
+            //ФУНКЦИЯ: Определение что за неверные данные такие пришли, и что нужно делать
+            //сохраним данные в log
+            trace("-----------------ОШИБКА!-----------------");
+            trace("! Принятые данные:");
+            foreach (byte b in DATA)
+            {
+                trace("!     ");
+            }
+            trace("--------------Конец ошибки---------------");
         }
         public bool     reset()
         {

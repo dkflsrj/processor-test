@@ -25,14 +25,17 @@
 											delay_ms(50);}
 
 //МК
-#define version 17
-#define birthday 20130805
+#define version 20
+#define birthday 20130806
 #define usart_delay 1
 //Счётчики
-#define COA_setStatus_ready		COA_state =		0	//Счётчик готов к работе
-#define COA_setStatus_stunned	COA_state =		1	//Счётчик был принудительно остановлен
-#define COA_setStatus_busy		COA_state =		2	//Счётчик ещё считает
-#define COA_setStatus_ovflowed	COA_state++		//Счётчик был переполнен (COA_state - 2) раз
+#define COUNTER_state_ready						0		//Счётчик готов к работе
+#define COUNTER_state_stopped					1		//Счётчик был принудительно остановлен
+#define COUNTER_state_busy						2		//Счётчик ещё считает
+#define COA_setStatus_ready			COA_State =	COUNTER_state_ready	 
+#define COA_setStatus_stopped		COA_State =	COUNTER_state_stopped
+#define COA_setStatus_busy			COA_State =	COUNTER_state_busy	 
+#define COA_setStatus_ovflowed		COA_State++	//Счётчик был переполнен (COA_State - 2) раз
 //USART
 #define USART_COMP						&USARTE0
 #define USART_COMP_BAUDRATE				128000
@@ -89,12 +92,12 @@ uint8_t USART_MEM_length = 0;
 //		SPI
 uint8_t SPI_rDATA[] = {0,0};			//Память SPI для приёма данных (два байта)
 //		Измерения
-uint16_t Interval_length = 1000;		//Время интервала (в миллисекунд)[0.05...30 сек]
-uint8_t Interval_delay = 20;			//Задержка в миллисекундах между интервалами [10..50мс]
-uint16_t Intervals_count = 100;			//Количество интервалов (интервал + задержка)
-uint16_t COA_measurment = 0;			//Последнее измерение счётчика
-uint16_t COA_measurment_2 = 0;
-uint8_t COA_state = 0;					//Состояния счётчика
+uint16_t COA_MeasureTime = 1000;		//Время интервала (в миллисекунд)[0.05...30 сек]
+uint8_t  COA_MeasureDelay = 10;			//Задержка в миллисекундах между интервалами [10..50мс]
+uint16_t COA_MeasureQuantity = 1;		//Количество интервалов (интервал + задержка)
+uint16_t COA_Measurment = 0;			//Последнее измерение счётчика
+uint16_t COA_Measurment_2 = 0;
+uint8_t  COA_State = COUNTER_state_ready;					//Состояния счётчика
 
 uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
 
@@ -124,9 +127,9 @@ void USART_COMP_transmit_COA_count(void);
 void USART_COMP_transmit_CPUfreq(void);
 void SPI_DAC_send(uint8_t data[]);
 void SPI_ADC_send(uint8_t data[]);
-void COA_set_timeInterval(uint8_t DATA[]);
-void COA_set_delayInterval(uint8_t INTERVAL_DELAY);
-void COA_set_mesureQuontity(uint8_t INTERVAL_COUNT);
+void COA_set_MeasureTime(uint8_t DATA[]);
+void COA_set_Delay(uint8_t DELAY);
+void COA_set_MeasureQuontity(uint8_t COUNT[]);
 void COA_start(void);
 void COA_stop(void);
 void RTC_setPrescaler(uint8_t DATA[]);
@@ -186,11 +189,11 @@ ISR(RTC_OVF_vect)
 	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
 	//gpio_set_pin_low(A3);	//Зелёный луч
 	showMeByte(255);
-	COA_measurment = TCD0.CNT;
-	COA_measurment_2 = TCD1.CNT;
+	COA_Measurment = TCD0.CNT;
+	COA_Measurment_2 = TCD1.CNT;
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
 	RTC.CNT = 0;
-	if (COA_state == 2)
+	if (COA_State == COUNTER_state_busy)
 	{
 		COA_setStatus_ready;
 	}
@@ -366,8 +369,8 @@ void USART_COMP_transmit_MCbirthday(void)
 void USART_COMP_transmit_COA_count(void)
 {
 	//ФУНКЦИЯ: Вернуть ПК результат измерения
-	uint8_t data[] = {COMMAND_COA_get_count,COA_state,0,0,0,0};
-	switch(COA_state)
+	uint8_t data[] = {COMMAND_COA_get_Count,COA_State,0,0,0,0};
+	switch(COA_State)
 	{
 		case 1:
 		case 2:
@@ -375,10 +378,10 @@ void USART_COMP_transmit_COA_count(void)
 			break;
 		case 0:
 		default:
-			data[2] = (COA_measurment_2 >> 8);
-			data[3] = COA_measurment_2;
-			data[4] = (COA_measurment >> 8);
-			data[5] = COA_measurment;
+			data[2] = (COA_Measurment_2 >> 8);
+			data[3] = COA_Measurment_2;
+			data[4] = (COA_Measurment >> 8);
+			data[5] = COA_Measurment;
 			USART_COMP_transmit(data,6);	
 			break;
 	}
@@ -441,38 +444,45 @@ bool EVSYS_SetEventChannelFilter( uint8_t eventChannel,EVSYS_DIGFILT_t filterCoe
 	}
 }
 
-void COA_set_timeInterval(uint8_t DATA[])
+void COA_set_MeasureTime(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов
-	Interval_length = (((uint16_t)DATA[1])<<8) + DATA[2];	
-	RTC.PER = (Interval_length);
-	uint8_t data[] = {COMMAND_COA_set_timeInterval};
+	COA_MeasureTime = (((uint16_t)DATA[1])<<8) + DATA[2];	
+	RTC.PER = (COA_MeasureTime);
+	uint8_t data[] = {COMMAND_COA_set_MeasureTime};
 	USART_COMP_transmit(data,1);
 }
-void COA_set_delayInterval(uint8_t INTERVAL_DELAY)
+void COA_set_Delay(uint8_t DELAY)
 {
 	//ФУНКЦИЯ: Задаёт задержку между интервалами
-	Interval_delay = INTERVAL_DELAY;
+	COA_MeasureDelay = DELAY;
+	showMeByte(COA_MeasureDelay);
+	uint8_t data[] = {COMMAND_COA_set_Delay};
+	USART_COMP_transmit(data,1);
 }
-void COA_set_mesureQuontity(uint8_t INTERVAL_COUNT)
+void COA_set_MeasureQuontity(uint8_t COUNT[])
 {
 	//ФУНКЦИЯ: Задаёт количество интервалов
-	Intervals_count = INTERVAL_COUNT;
+	COA_MeasureQuantity = (COUNT[1] << 8) + COUNT[2];
+	uint8_t data[] = {COMMAND_COA_set_Quantity};
+	USART_COMP_transmit(data,1);
 }
 void COA_start(void)
 {
 	//ФУНКЦИЯ: Запускаем счётчик на определённое интервалом время
-	//RTC_prescaler = RTC_PRESCALER_DIV1_gc;
-	//RTC.PER = 32768;
-	TCD0.CNT = 0;
-	TCD1.CNT = 0;
-	RTC.CNT = 0;
+	if (COA_State != COUNTER_state_busy)
+	{	
+		TCD0.CNT = 0;
+		TCD1.CNT = 0;
+		RTC.CNT = 0;
+		
+		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
+		tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);
+		RTC.CTRL = RTC_prescaler;
+	}
+	uint8_t data[] = {COMMAND_COA_start, COA_State};
+	USART_COMP_transmit(data,2);
 	COA_setStatus_busy;
-	tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
-	tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);
-	RTC.CTRL = RTC_prescaler;
-	uint8_t data[] = {COMMAND_COA_start};
-	USART_COMP_transmit(data,1);
 }
 void COA_stop(void)
 {
@@ -483,7 +493,7 @@ void COA_stop(void)
 	RTC.CNT = 0;
 	TCD0.CNT = 0;
 	TCD1.CNT = 0;
-	COA_setStatus_stunned;
+	COA_setStatus_stopped;
 	uint8_t data[] = {COMMAND_COA_stop};
 	USART_COMP_transmit(data,1);
 }
@@ -491,7 +501,7 @@ void RTC_setPrescaler(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
 	RTC_prescaler = DATA[1];
-	uint8_t data[] = {COMMAND_RTC_set_prescaler};
+	uint8_t data[] = {COMMAND_RTC_set_Prescaler};
 	USART_COMP_transmit(data, 1);
 }
 void ERROR_ASYNCHR(void)
@@ -573,20 +583,21 @@ int main (void)
 						gpio_toggle_pin(LED_VD1);
 						delay_ms(50);
 					}
-					showMeByte(COA_measurment_2 >> 8);
+					showMeByte(COA_Measurment_2 >> 8);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_measurment_2);
+					showMeByte(COA_Measurment_2);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_measurment >> 8);
+					showMeByte(COA_Measurment >> 8);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_measurment);
+					showMeByte(COA_Measurment);
 					delay_ms(2000);
+
 				break;
 		}
 	}
