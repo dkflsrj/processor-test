@@ -23,7 +23,7 @@ namespace Xmega32A4U_testBoard
         static RichTextBox  tracer;
         static bool         tracer_defined = false;
         static bool         tracer_enabled = true;
-        static bool         tracer_log_enabled = true;
+        static bool         tracer_log_enabled = false;
         static bool         ERROR = false;
         
         //-------------------------------------СТРУКТУРЫ------------------------------------------
