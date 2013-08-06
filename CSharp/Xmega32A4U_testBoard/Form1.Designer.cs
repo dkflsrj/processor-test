@@ -57,9 +57,12 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
+            this.LBL_COA_status = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.PGB_COA_progress = new System.Windows.Forms.ProgressBar();
+            this.CHB_Control_COA = new System.Windows.Forms.CheckBox();
             this.LBL_COA_ticks = new System.Windows.Forms.Label();
             this.LBL_COA_prescaler = new System.Windows.Forms.Label();
             this.LBL_COA_frequency = new System.Windows.Forms.Label();
@@ -92,9 +95,10 @@
             this.Hinter = new System.Windows.Forms.ToolTip(this.components);
             this.CLK_timer = new System.Windows.Forms.Timer(this.components);
             this.CHB_enableSuperTracer = new System.Windows.Forms.CheckBox();
-            this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
+            this.CLK_COA = new System.Windows.Forms.Timer(this.components);
+            this.button1 = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -318,6 +322,7 @@
             // TABpanel_2
             // 
             this.TABpanel_2.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel_2.Controls.Add(this.button1);
             this.TABpanel_2.Controls.Add(this.GRB_TotalControl);
             this.TABpanel_2.Controls.Add(this.GRB_Counter);
             this.TABpanel_2.Controls.Add(this.GRB_SPI);
@@ -336,9 +341,9 @@
             this.GRB_TotalControl.Controls.Add(this.label2);
             this.GRB_TotalControl.Controls.Add(this.label1);
             this.GRB_TotalControl.Controls.Add(this.CHB_TotalControl);
-            this.GRB_TotalControl.Location = new System.Drawing.Point(6, 145);
+            this.GRB_TotalControl.Location = new System.Drawing.Point(235, 10);
             this.GRB_TotalControl.Name = "GRB_TotalControl";
-            this.GRB_TotalControl.Size = new System.Drawing.Size(223, 85);
+            this.GRB_TotalControl.Size = new System.Drawing.Size(411, 108);
             this.GRB_TotalControl.TabIndex = 14;
             this.GRB_TotalControl.TabStop = false;
             this.GRB_TotalControl.Text = "Контроль";
@@ -399,9 +404,12 @@
             this.GRB_Counter.Controls.Add(this.label11);
             this.GRB_Counter.Controls.Add(this.label9);
             this.GRB_Counter.Controls.Add(this.label10);
+            this.GRB_Counter.Controls.Add(this.LBL_COA_status);
             this.GRB_Counter.Controls.Add(this.label8);
+            this.GRB_Counter.Controls.Add(this.label7);
             this.GRB_Counter.Controls.Add(this.label6);
             this.GRB_Counter.Controls.Add(this.PGB_COA_progress);
+            this.GRB_Counter.Controls.Add(this.CHB_Control_COA);
             this.GRB_Counter.Controls.Add(this.LBL_COA_ticks);
             this.GRB_Counter.Controls.Add(this.LBL_COA_prescaler);
             this.GRB_Counter.Controls.Add(this.LBL_COA_frequency);
@@ -415,9 +423,9 @@
             this.GRB_Counter.Controls.Add(this.BTN_startCounter);
             this.GRB_Counter.Controls.Add(this.BTN_reqCount);
             this.GRB_Counter.Controls.Add(this.BTN_stopCounter);
-            this.GRB_Counter.Location = new System.Drawing.Point(287, 124);
+            this.GRB_Counter.Location = new System.Drawing.Point(235, 124);
             this.GRB_Counter.Name = "GRB_Counter";
-            this.GRB_Counter.Size = new System.Drawing.Size(359, 190);
+            this.GRB_Counter.Size = new System.Drawing.Size(411, 190);
             this.GRB_Counter.TabIndex = 12;
             this.GRB_Counter.TabStop = false;
             this.GRB_Counter.Text = "Счётчик";
@@ -425,7 +433,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(306, 24);
+            this.label11.Location = new System.Drawing.Point(373, 24);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(21, 13);
             this.label11.TabIndex = 12;
@@ -435,7 +443,7 @@
             // 
             this.label9.AutoSize = true;
             this.label9.Enabled = false;
-            this.label9.Location = new System.Drawing.Point(306, 50);
+            this.label9.Location = new System.Drawing.Point(373, 50);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(21, 13);
             this.label9.TabIndex = 12;
@@ -445,26 +453,47 @@
             // 
             this.label10.AutoSize = true;
             this.label10.Enabled = false;
-            this.label10.Location = new System.Drawing.Point(125, 50);
+            this.label10.Location = new System.Drawing.Point(192, 50);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(77, 13);
             this.label10.TabIndex = 11;
             this.label10.Text = "Время паузы:";
             // 
+            // LBL_COA_status
+            // 
+            this.LBL_COA_status.AutoSize = true;
+            this.LBL_COA_status.Enabled = false;
+            this.LBL_COA_status.ForeColor = System.Drawing.Color.Red;
+            this.LBL_COA_status.Location = new System.Drawing.Point(65, 80);
+            this.LBL_COA_status.Name = "LBL_COA_status";
+            this.LBL_COA_status.Size = new System.Drawing.Size(68, 13);
+            this.LBL_COA_status.TabIndex = 14;
+            this.LBL_COA_status.Text = "Неизвестно";
+            // 
             // label8
             // 
             this.label8.AutoSize = true;
             this.label8.Enabled = false;
-            this.label8.Location = new System.Drawing.Point(125, 77);
+            this.label8.Location = new System.Drawing.Point(192, 80);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(131, 13);
+            this.label8.Size = new System.Drawing.Size(128, 13);
             this.label8.TabIndex = 11;
-            this.label8.Text = "Количество интервалов:";
+            this.label8.Text = "Количество измерений:";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Enabled = false;
+            this.label7.Location = new System.Drawing.Point(27, 80);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(32, 13);
+            this.label7.TabIndex = 14;
+            this.label7.Text = "COA:";
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(125, 24);
+            this.label6.Location = new System.Drawing.Point(192, 24);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(102, 13);
             this.label6.TabIndex = 11;
@@ -480,6 +509,17 @@
             this.PGB_COA_progress.Size = new System.Drawing.Size(337, 15);
             this.PGB_COA_progress.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.PGB_COA_progress.TabIndex = 10;
+            // 
+            // CHB_Control_COA
+            // 
+            this.CHB_Control_COA.AutoSize = true;
+            this.CHB_Control_COA.Enabled = false;
+            this.CHB_Control_COA.ForeColor = System.Drawing.Color.Red;
+            this.CHB_Control_COA.Location = new System.Drawing.Point(6, 80);
+            this.CHB_Control_COA.Name = "CHB_Control_COA";
+            this.CHB_Control_COA.Size = new System.Drawing.Size(15, 14);
+            this.CHB_Control_COA.TabIndex = 13;
+            this.CHB_Control_COA.UseVisualStyleBackColor = true;
             // 
             // LBL_COA_ticks
             // 
@@ -529,7 +569,7 @@
             // TXB_COA_delay
             // 
             this.TXB_COA_delay.Enabled = false;
-            this.TXB_COA_delay.Location = new System.Drawing.Point(260, 47);
+            this.TXB_COA_delay.Location = new System.Drawing.Point(327, 47);
             this.TXB_COA_delay.Name = "TXB_COA_delay";
             this.TXB_COA_delay.Size = new System.Drawing.Size(40, 20);
             this.TXB_COA_delay.TabIndex = 2;
@@ -548,7 +588,7 @@
             // TXB_COA_quantity
             // 
             this.TXB_COA_quantity.Enabled = false;
-            this.TXB_COA_quantity.Location = new System.Drawing.Point(260, 74);
+            this.TXB_COA_quantity.Location = new System.Drawing.Point(327, 77);
             this.TXB_COA_quantity.Name = "TXB_COA_quantity";
             this.TXB_COA_quantity.Size = new System.Drawing.Size(40, 20);
             this.TXB_COA_quantity.TabIndex = 2;
@@ -567,7 +607,7 @@
             // 
             // TXB_COA_measureTime
             // 
-            this.TXB_COA_measureTime.Location = new System.Drawing.Point(237, 22);
+            this.TXB_COA_measureTime.Location = new System.Drawing.Point(304, 22);
             this.TXB_COA_measureTime.Name = "TXB_COA_measureTime";
             this.TXB_COA_measureTime.Size = new System.Drawing.Size(63, 20);
             this.TXB_COA_measureTime.TabIndex = 2;
@@ -789,11 +829,6 @@
             this.CHB_enableSuperTracer.UseVisualStyleBackColor = true;
             this.CHB_enableSuperTracer.CheckedChanged += new System.EventHandler(this.CHB_enableSuperTracer_CheckedChanged);
             // 
-            // CLK_COA
-            // 
-            this.CLK_COA.Interval = 10;
-            this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
-            // 
             // BTN_openLog
             // 
             this.BTN_openLog.Location = new System.Drawing.Point(12, 360);
@@ -814,6 +849,21 @@
             this.CHB_traceLog.Text = "Записывать в файл";
             this.CHB_traceLog.UseVisualStyleBackColor = true;
             this.CHB_traceLog.CheckedChanged += new System.EventHandler(this.CHB_traceLog_CheckedChanged);
+            // 
+            // CLK_COA
+            // 
+            this.CLK_COA.Interval = 10;
+            this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(37, 172);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 15;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // Form1
             // 
@@ -901,7 +951,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.CheckBox CHB_enableSuperTracer;
         private System.Windows.Forms.ProgressBar PGB_COA_progress;
-        private System.Windows.Forms.Timer CLK_COA;
         private System.Windows.Forms.Button BTN_MC_Reset;
         private System.Windows.Forms.Button BTN_openLog;
         private System.Windows.Forms.Label LBL_error;
@@ -914,6 +963,11 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox TXB_COA_delay;
         private System.Windows.Forms.TextBox TXB_COA_quantity;
+        private System.Windows.Forms.Label LBL_COA_status;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox CHB_Control_COA;
+        private System.Windows.Forms.Timer CLK_COA;
+        private System.Windows.Forms.Button button1;
     }
 }
 

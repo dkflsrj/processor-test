@@ -25,22 +25,17 @@ namespace Xmega32A4U_testBoard
         static bool         tracer_enabled = true;
         static bool         tracer_log_enabled = false;
         static bool         ERROR = false;
+        public static byte recived_error = 0;
         
         //-------------------------------------СТРУКТУРЫ------------------------------------------
-        struct Response
+        struct Error
         {
-            //СТРУКТУРА: Хранилище констант - кодов откликов
-            public const byte status =                  1;
-            public const byte error =                   2;
-
-            public const byte version =                 4;
-            public const byte birthday =                5;
-            public const byte CPU_frequency =           6;
-
-            public const byte COX_done =                7;
-            public const byte COX_busy =                8;
-            public const byte COX_stoped =              9;
-        };
+            //СТРУКТУРА: Хранилище констант ошибок
+            //ПОЯСНЕНИЯ: Ошибка приходит в формате <key><ERROR = 0><ErrorNum><data[]><CS><lock>
+            public const byte Token = 0;    //Есть ошибка
+            //ErrorNums...
+            public const byte DecoderError = 1;       //Такое команды не существует
+        }
         struct Command
         {
             //СТРУКТУРА: Хранилище констант - кодов команд
@@ -432,6 +427,10 @@ namespace Xmega32A4U_testBoard
             {
                 return setMeasureQuantity(Convert.ToUInt16(QUANTITY));
             }
+            public byte getStatus()
+            {
+                return transmit(Command.COA_getStatus)[0];
+            }
         }
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
         public _RTC RTC = new _RTC();
@@ -498,6 +497,7 @@ namespace Xmega32A4U_testBoard
             
             trace("Инициализация " + DateTime.Now.ToString("dd MMMM yyyy"));
         }
+        
         static byte calcCheckSum(byte[] data)
         {
             //ФУНКЦИЯ: Вычисление контрольной суммы для верификации данных
@@ -624,6 +624,7 @@ namespace Xmega32A4U_testBoard
                             trace("     Ожидалось: " + command);
                             trace("     Получено: " + rDATA[0]);
                             ERROR = true;
+                            defineError(rDATA.ToArray());
                             return new byte[] { 0 };
                         }
                     }
@@ -662,6 +663,56 @@ namespace Xmega32A4U_testBoard
             return transmit(DATA);
         }
         //ОТЛАДОЧНЫЕ
+        public void sendSomething()
+        {
+            transmit(243);
+        }
+        static void defineError(byte[] DATA)
+        {
+            trace("---------------ОШИБКА-------------");
+            trace("Принятые данные:");
+            foreach (byte b in DATA)
+            {
+                
+                trace("     " + b);
+            }
+            if (DATA.Length > 1)
+            {
+                if (DATA[0] == Error.Token)
+                {
+                    //это сообщение об ошибке
+                    switch (DATA[1])
+                    {
+                        default:
+                            if (DATA.Length > 2)
+                            {
+                                switch (DATA[1])
+                                {
+                                    case Error.DecoderError:
+                                        trace("МК СООБЩАЕТ ОБ ОШИБКЕ ДЕКОДЕРА! Неизвестная команда: " + DATA[2]);
+                                        break;
+                                    default:
+                                        trace("МК сообщает о неизвестной ОШИБКЕ № " + DATA[1] + "!");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                trace("Неизвестная ошибка!");
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    trace("Неверное сообщение об ошибке! Отсутствует метка ошибки!");
+                }
+            }
+            else
+            {
+                trace("Слишком короткое сообщение. Вероятно, это отклик.");
+            }
+        }
         public void     showMeByte(byte     BYTE)
         {
             transmit(Command.showMeByte, BYTE);
@@ -740,6 +791,23 @@ namespace Xmega32A4U_testBoard
             return "0";
         }
         //--------------------------------------ЗАМЕТКИ-------------------------------------------
+        //public void AsyncEndable(bool enable)
+        //{
+        //    if (enable)
+        //    {
+        //        USART.DataReceived += new SerialDataReceivedEventHandler(AsyncHandler);
+        //    }
+        //    else
+        //    {
+        //        USART.DataReceived -= new SerialDataReceivedEventHandler(AsyncHandler);
+        //    }
+        //}
+        //public void AsyncHandler(object sender,SerialDataReceivedEventArgs e)
+        //{
+        //    SerialPort usart = (SerialPort)sender;
+        //    string data = usart.ReadExisting();
+        //    recived_error = (byte)data.Length;
+        //}
     }
     //---------------------------------------THE END------------------------------------------
 }

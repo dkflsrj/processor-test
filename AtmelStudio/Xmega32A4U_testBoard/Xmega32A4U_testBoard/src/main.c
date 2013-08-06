@@ -23,7 +23,8 @@
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 #define FATAL_ERROR						while(1){showMeByte(255);								\
 											delay_ms(50);}
-
+#define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
+											delay_ms(50);}
 //МК
 #define version 20
 #define birthday 20130806
@@ -32,11 +33,11 @@
 #define COUNTER_state_ready						0		//Счётчик готов к работе
 #define COUNTER_state_stopped					1		//Счётчик был принудительно остановлен
 #define COUNTER_state_busy						2		//Счётчик ещё считает
-#define COA_setStatus_ready			COA_State =	COUNTER_state_ready	 
-#define COA_setStatus_stopped		COA_State =	COUNTER_state_stopped
-#define COA_setStatus_busy			COA_State =	COUNTER_state_busy	
+#define COA_setStatus_ready			COA_Status =	COUNTER_state_ready	 
+#define COA_setStatus_stopped		COA_Status =	COUNTER_state_stopped
+#define COA_setStatus_busy			COA_Status =	COUNTER_state_busy	
  //delayed status!!! 
-#define COA_setStatus_ovflowed		COA_State++	//Счётчик был переполнен (COA_State - 2) раз
+#define COA_setStatus_ovflowed		COA_Status++	//Счётчик был переполнен (COA_Status - 2) раз
 //USART
 #define USART_COMP						&USARTE0
 #define USART_COMP_BAUDRATE				128000
@@ -98,8 +99,8 @@ uint8_t  COA_MeasureDelay = 10;				//Задержка в миллисекундах между интервалами 
 uint16_t COA_MeasureQuantity = 1;			//Количество интервалов (интервал + задержка)
 uint32_t COA_Measurments[] = {0,0};				//Последнее измерение счётчика
 uint8_t	 COA_MeasurementsQuantity = 1;		//Количество измерений
-uint8_t  COA_State = COUNTER_state_ready;	//Состояния счётчика
-uint8_t COA_Results_transmitted = 0;		//Были ли переданны измеренные данные 0 - не было данных, 1 - есть данные, 2 - были переданы, 3 - затёрты!
+uint8_t  COA_Status = COUNTER_state_ready;	//Состояния счётчика
+//uint8_t COA_Results_transmitted = 0;		//Были ли переданны измеренные данные 0 - не было данных, 1 - есть данные, 2 - были переданы, 3 - затёрты!
 
 //uint8_t	 COA_ovflowed = 0; 
 uint8_t RTC_Status = 0;						//RTC выключен, 1 - таймирует измерение, 2 - задержку
@@ -168,7 +169,9 @@ ISR(USARTE0_RXC_vect)
 			else
 			{
 				//Надо послать ошибку
-				FATAL_ERROR;
+				//FATAL_ERROR;
+				uint8_t data[] = {ERROR_Token, ERROR_Decoder, USART_MEM[0]};
+				transmit(data,3);
 			}
 			
 			USART_recieving = false;
@@ -225,7 +228,7 @@ void COA_Measure_done(void)
 	COA_Measurments[0] = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
 	RTC.CNT = 0;
-	if (COA_State == COUNTER_state_busy)
+	if (COA_Status == COUNTER_state_busy)
 	{
 		COA_setStatus_ready;
 	}
@@ -445,8 +448,8 @@ void MC_transmit_Birthday(void)
 void COA_transmit_Result(void)
 {
 	//ФУНКЦИЯ: Вернуть ПК результат измерения
-	uint8_t data[] = {COMMAND_COA_get_Count,COA_State,0,0,0,0};
-	switch(COA_State)
+	uint8_t data[] = {COMMAND_COA_get_Count,COA_Status,0,0,0,0};
+	switch(COA_Status)
 	{
 		case 1:
 		case 2:
@@ -488,7 +491,7 @@ void COA_set_MeasureQuontity(uint8_t COUNT[])
 void COA_start(void)
 {
 	//ФУНКЦИЯ: Запускаем счётчик на определённое интервалом время
-	if (COA_State != COUNTER_state_busy)
+	if (COA_Status != COUNTER_state_busy)
 	{	
 		TCD0.CNT = 0;
 		TCD1.CNT = 0;
@@ -498,7 +501,7 @@ void COA_start(void)
 		RTC.CTRL = RTC_prescaler;
 		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
 	}
-	uint8_t data[] = {COMMAND_COA_start, COA_State};
+	uint8_t data[] = {COMMAND_COA_start, COA_Status};
 	transmit(data,2);
 	COA_setStatus_busy;
 }
@@ -627,6 +630,7 @@ int main (void)
 
 	//Инициализация завершена
 
+	//FATAL_transmit_ERROR;
 	while (1) 
 	{
 		switch (MC_status)
