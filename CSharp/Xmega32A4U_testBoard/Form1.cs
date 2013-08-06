@@ -378,7 +378,6 @@ namespace Xmega32A4U_testBoard
                 LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
                 LBL_error.Text = "Неизвестно!";
                 LBL_error.ForeColor = System.Drawing.Color.Red;
-                
             }
         }
         private void TXB_interval_TextChanged(object sender, EventArgs e)
@@ -393,9 +392,11 @@ namespace Xmega32A4U_testBoard
             {
                 return;
             }
-            LBL_COA_ticks.Text = "(" + MC.RTC.get_Ticks(TXB_COA_measureTime.Text, MC.RTC.get_Prescaler(TXB_COA_measureTime.Text)).ToString();
-            LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
-            LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
+            LBL_COA_ticks.Text = "";
+            //LBL_COA_ticks.Text += "(";
+            LBL_COA_ticks.Text += MC.RTC.get_Ticks(TXB_COA_measureTime.Text, MC.RTC.get_Prescaler(TXB_COA_measureTime.Text)).ToString();
+            //LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
+            //LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
             LBL_COA_frequency.Text = MC.RTC.get_Freqency().ToString();
             LBL_COA_prescaler.Text = MC.RTC.get_Prescaler(TXB_COA_measureTime.Text).ToString();
         }

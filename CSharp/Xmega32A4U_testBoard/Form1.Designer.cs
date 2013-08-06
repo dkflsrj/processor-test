@@ -434,6 +434,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
+            this.label9.Enabled = false;
             this.label9.Location = new System.Drawing.Point(306, 50);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(21, 13);
@@ -443,6 +444,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
+            this.label10.Enabled = false;
             this.label10.Location = new System.Drawing.Point(125, 50);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(77, 13);
@@ -452,6 +454,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
+            this.label8.Enabled = false;
             this.label8.Location = new System.Drawing.Point(125, 77);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(131, 13);
@@ -525,6 +528,7 @@
             // 
             // TXB_COA_delay
             // 
+            this.TXB_COA_delay.Enabled = false;
             this.TXB_COA_delay.Location = new System.Drawing.Point(260, 47);
             this.TXB_COA_delay.Name = "TXB_COA_delay";
             this.TXB_COA_delay.Size = new System.Drawing.Size(40, 20);
@@ -543,6 +547,7 @@
             // 
             // TXB_COA_quantity
             // 
+            this.TXB_COA_quantity.Enabled = false;
             this.TXB_COA_quantity.Location = new System.Drawing.Point(260, 74);
             this.TXB_COA_quantity.Name = "TXB_COA_quantity";
             this.TXB_COA_quantity.Size = new System.Drawing.Size(40, 20);

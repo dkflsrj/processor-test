@@ -34,7 +34,8 @@
 #define COUNTER_state_busy						2		//Счётчик ещё считает
 #define COA_setStatus_ready			COA_State =	COUNTER_state_ready	 
 #define COA_setStatus_stopped		COA_State =	COUNTER_state_stopped
-#define COA_setStatus_busy			COA_State =	COUNTER_state_busy	 
+#define COA_setStatus_busy			COA_State =	COUNTER_state_busy	
+ //delayed status!!! 
 #define COA_setStatus_ovflowed		COA_State++	//Счётчик был переполнен (COA_State - 2) раз
 //USART
 #define USART_COMP						&USARTE0
@@ -81,26 +82,28 @@ uint8_t MC_error = 0;					/* Код последней ошибки:
 *	3 - ошибка MC_lastCommand;
 *	4 - ошибка выбора SPI устройства (нет такого)
 */
-uint8_t MC_lastCommand = 0;				// Последняя команда, которую выполняет\нял контроллер
-uint8_t MC_MEM[] = {0,0,0,0,0,0,0,0,0}; //Восемь байт для всяких операций (включая SPI) + счётчик
+uint8_t MC_lastCommand = 0;					// Последняя команда, которую выполняет\нял контроллер
+uint8_t MC_MEM[] = {0,0,0,0,0,0,0,0,0};		//Восемь байт для всяких операций (включая SPI) + счётчик
 //		USART
-uint8_t USART_rDATA = 0;				//Последний принятый байт по USART
+uint8_t USART_rDATA = 0;					//Последний принятый байт по USART
 uint8_t USART_nextByteIsData_count = 0;
-bool USART_recieving = false;			//Можно пристыковать для экономии памяти к USART_MEM_length
+bool	USART_recieving = false;			//Можно пристыковать для экономии памяти к USART_MEM_length
 uint8_t USART_MEM[] = {0,0,0,0,0,0,0,0,0,0};
 uint8_t USART_MEM_length = 0;
 //		SPI
-uint8_t SPI_rDATA[] = {0,0};			//Память SPI для приёма данных (два байта)
+uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
 //		Измерения
-uint16_t COA_MeasureTime = 1000;		//Время интервала (в миллисекунд)[0.05...30 сек]
-uint8_t  COA_MeasureDelay = 10;			//Задержка в миллисекундах между интервалами [10..50мс]
-uint16_t COA_MeasureQuantity = 1;		//Количество интервалов (интервал + задержка)
-uint16_t COA_Measurment = 0;			//Последнее измерение счётчика
-uint16_t COA_Measurment_2 = 0;
-uint8_t  COA_State = COUNTER_state_ready;					//Состояния счётчика
+uint16_t COA_MeasureTime = 1000;			//Время интервала (в миллисекунд)[0.05...30 сек]
+uint8_t  COA_MeasureDelay = 10;				//Задержка в миллисекундах между интервалами [10..50мс]
+uint16_t COA_MeasureQuantity = 1;			//Количество интервалов (интервал + задержка)
+uint32_t COA_Measurments[] = {0,0};				//Последнее измерение счётчика
+uint8_t	 COA_MeasurementsQuantity = 1;		//Количество измерений
+uint8_t  COA_State = COUNTER_state_ready;	//Состояния счётчика
+uint8_t COA_Results_transmitted = 0;		//Были ли переданны измеренные данные 0 - не было данных, 1 - есть данные, 2 - были переданы, 3 - затёрты!
 
+//uint8_t	 COA_ovflowed = 0; 
+uint8_t RTC_Status = 0;						//RTC выключен, 1 - таймирует измерение, 2 - задержку
 uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
-
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 static usart_rs232_options_t USART_COMP_OPTIONS = {
 	.baudrate = USART_COMP_BAUDRATE,
@@ -118,17 +121,17 @@ struct spi_device ADC = {
 void showMeByte(uint8_t LED_BYTE);
 bool checkCommand(uint8_t data[], uint8_t data_length);
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
-void USART_COMP_transmit(uint8_t DATA[],uint8_t DATA_length);
-void USART_COMP_transmit_MCversion(void);
-void USART_COMP_transmit_MCbirthday(void);
-void USART_COMP_transmit_MCstatus(void);
+void transmit(uint8_t DATA[],uint8_t DATA_length);
+void transmit_byte(uint8_t DATA);
+void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2);
+void MC_transmit_Birthday(void);
 void USART_COMP_transmit_report(uint8_t ERROR);
-void USART_COMP_transmit_COA_count(void);
-void USART_COMP_transmit_CPUfreq(void);
+void COA_transmit_Result(void);
+void MC_transmit_CPUfreq(void);
 void SPI_DAC_send(uint8_t data[]);
 void SPI_ADC_send(uint8_t data[]);
 void COA_set_MeasureTime(uint8_t DATA[]);
-void COA_set_Delay(uint8_t DELAY);
+void COA_set_MeasureDelay(uint8_t DELAY);
 void COA_set_MeasureQuontity(uint8_t COUNT[]);
 void COA_start(void);
 void COA_stop(void);
@@ -137,6 +140,8 @@ bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
 void ERROR_ASYNCHR(void);
 void MC_reset(void);
+void COA_Measure_done(void);
+void RTC_delay(void);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTE0_RXC_vect)
 {
@@ -184,13 +189,40 @@ ISR(RTC_OVF_vect)
 {
 	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
 	//ФУНКЦИЯ: Остановка счётчиков импульсов
-	//gpio_set_pin_low(A2);	// жёлтый луч
+// 	if (RTC_Status == 1)
+// 	{
+		COA_Measure_done();
+// 	} 
+// 	else if(RTC_Status == 2)
+// 	{
+// 		TCD0.CNT = 0;
+// 		TCD1.CNT = 0;
+// 		RTC.CNT = 0;
+// 		RTC_Status = 1;
+// 		tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);
+// 		RTC.CTRL = RTC_prescaler;
+// 		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
+// 	}
+// 	
+}
+ static void ISR_TCD1(void)
+ {
+	 COA_setStatus_ovflowed;
+	 //COA_stop();
+	 tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
+	 tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
+	 RTC.CTRL = RTC_PRESCALER_OFF_gc;
+	 RTC.CNT = 0;
+	 TCD0.CNT = 65535;
+	 TCD1.CNT = 65535;
+	 //COA_ovflowed = 1;
+ }
+void COA_Measure_done(void)
+{
 	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
 	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
-	//gpio_set_pin_low(A3);	//Зелёный луч
-	showMeByte(255);
-	COA_Measurment = TCD0.CNT;
-	COA_Measurment_2 = TCD1.CNT;
+	//showMeByte(255);
+	COA_Measurments[0] = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
 	RTC.CNT = 0;
 	if (COA_State == COUNTER_state_busy)
@@ -198,12 +230,15 @@ ISR(RTC_OVF_vect)
 		COA_setStatus_ready;
 	}
 	MC_status = 4;
+// 	//Проверяем, надо ли ещё проводить измерения
+// 	if (COA_MeasureQuantity > 1)
+// 	{
+// 		//COA_start();
+// 		COA_MeasureQuantity--;
+// 		//Выполнить задержку
+// 		RTC_delay();
+// 	}
 }
- static void ISR_TCD1(void)
- {
-	 COA_setStatus_ovflowed;
- }
-
 //
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
 void showMeByte(uint8_t LED_BYTE)
@@ -282,7 +317,7 @@ void showMeByte(uint8_t LED_BYTE)
 		gpio_set_pin_low(LED_VD8);
 	}
 	//uint8_t data[] = {COMMAND_showByte};
-	//USART_COMP_transmit(data,1);
+	//transmit(data,1);
 }
 //SPI
 void SPI_DAC_send(uint8_t DATA[])
@@ -293,7 +328,7 @@ void SPI_DAC_send(uint8_t DATA[])
 	spi_write_packet(&SPIC, data, 2);
 	spi_deselect_device(&SPIC, &DAC);
 	uint8_t aswDATA[] = {COMMAND_DAC_set_voltage};
-	USART_COMP_transmit(aswDATA, 1);
+	transmit(aswDATA, 1);
 }
 void SPI_ADC_send(uint8_t DATA[])
 {
@@ -311,10 +346,10 @@ void SPI_ADC_send(uint8_t DATA[])
 	spi_deselect_device(&SPIC, &ADC);
 	//Передём ответ на ПК по USART
 	uint8_t aswDATA[] = {COMMAND_ADC_get_voltage,SPI_rDATA[0],SPI_rDATA[1]};
-	USART_COMP_transmit(aswDATA, 3);
+	transmit(aswDATA, 3);
 }
 //USART
-void USART_COMP_transmit(uint8_t DATA[],uint8_t DATA_length)
+void transmit(uint8_t DATA[],uint8_t DATA_length)
 {
 	//ФУНКЦИЯ: Посылаем заданное количество данных, оформив их по протоколу и с контрольной суммой
 	//ПОЯСНЕНИЯ: Протокол: ':<response><data><CS>\r' 
@@ -336,55 +371,31 @@ void USART_COMP_transmit(uint8_t DATA[],uint8_t DATA_length)
 	delay_us(usart_delay);
 	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
-void USART_COMP_transmit_report(uint8_t ERROR)
+void transmit_byte(uint8_t DATA)
 {
-	//ФУНКЦИЯ: Передача по USART компьютеру данных об ошибке
-	delay_us(usart_delay);						//Задержка (МК больно шустрый, ПК не успевает)
-	usart_put(USART_COMP,2);			//Посылаем отклик - "ошибка"
+	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
 	delay_us(usart_delay);
-	usart_putchar(USART_COMP,ERROR);	//Посылаем код ошибки
+	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP,DATA);									//<data>
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP, (uint8_t)(256 - DATA));						//<CS>
+	delay_us(usart_delay);
+	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
-void USART_COMP_transmit_MCstatus(void)
+void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 {
-	//ФУНКЦИЯ: Передача по USART компьютеру данных о статусе МК
-	uint8_t data[] = {COMMAND_MC_get_status, MC_status};
-	USART_COMP_transmit(data,2);
-}
-void USART_COMP_transmit_CPUfreq(void)
-{
- 	uint32_t freq = sysclk_get_cpu_hz();
- 	uint8_t data[] = {COMMAND_MC_get_CPUfreq,(uint8_t)freq,(uint8_t)(freq >> 8),(uint8_t)(freq >> 16),(uint8_t)(freq >> 24)};
-	USART_COMP_transmit(data,5);
-}
-void USART_COMP_transmit_MCversion(void)
-{
-	uint8_t data[] = {COMMAND_MC_get_Version, MC_version};
-	USART_COMP_transmit(data,2);
-}
-void USART_COMP_transmit_MCbirthday(void)
-{
-	uint8_t data[] = {COMMAND_MC_get_Birthday, (uint8_t)MC_birthday,(uint8_t)(MC_birthday >> 8),(uint8_t)(MC_birthday>>16),(uint8_t)(MC_birthday>>24)};
-	USART_COMP_transmit(data,5);
-}
-void USART_COMP_transmit_COA_count(void)
-{
-	//ФУНКЦИЯ: Вернуть ПК результат измерения
-	uint8_t data[] = {COMMAND_COA_get_Count,COA_State,0,0,0,0};
-	switch(COA_State)
-	{
-		case 1:
-		case 2:
-			USART_COMP_transmit(data,2);
-			break;
-		case 0:
-		default:
-			data[2] = (COA_Measurment_2 >> 8);
-			data[3] = COA_Measurment_2;
-			data[4] = (COA_Measurment >> 8);
-			data[5] = COA_Measurment;
-			USART_COMP_transmit(data,6);	
-			break;
-	}
+	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP,DATA_1);
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP,DATA_2);									//<data>
+	delay_us(usart_delay);
+	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2));		//<CS>
+	delay_us(usart_delay);
+	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
 bool checkCommand(uint8_t data[], uint8_t data_length)
 {
@@ -411,6 +422,136 @@ uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 	return CheckSum;
 }
 
+void USART_COMP_transmit_report(uint8_t ERROR)
+{
+	//ФУНКЦИЯ: Передача по USART компьютеру данных об ошибке
+// 	delay_us(usart_delay);						//Задержка (МК больно шустрый, ПК не успевает)
+// 	usart_put(USART_COMP,2);			//Посылаем отклик - "ошибка"
+// 	delay_us(usart_delay);
+// 	usart_putchar(USART_COMP,ERROR);	//Посылаем код ошибки
+}
+void MC_transmit_CPUfreq(void)
+{
+ 	uint32_t freq = sysclk_get_cpu_hz();
+ 	uint8_t data[] = {COMMAND_MC_get_CPUfreq,(uint8_t)freq,(uint8_t)(freq >> 8),(uint8_t)(freq >> 16),(uint8_t)(freq >> 24)};
+	transmit(data,5);
+}
+void MC_transmit_Birthday(void)
+{
+	uint8_t data[] = {COMMAND_MC_get_Birthday, (uint8_t)MC_birthday,(uint8_t)(MC_birthday >> 8),(uint8_t)(MC_birthday>>16),(uint8_t)(MC_birthday>>24)};
+	transmit(data,5);
+}
+//COUNTERS
+void COA_transmit_Result(void)
+{
+	//ФУНКЦИЯ: Вернуть ПК результат измерения
+	uint8_t data[] = {COMMAND_COA_get_Count,COA_State,0,0,0,0};
+	switch(COA_State)
+	{
+		case 1:
+		case 2:
+			transmit(data,2);
+			break;
+		case 0:
+		default:
+			data[2] = (COA_Measurments[0] >> 24);
+			data[3] = (COA_Measurments[0] >> 16);
+			data[4] = (COA_Measurments[0] >> 8);
+			data[5] = COA_Measurments[0];
+			transmit(data,6);	
+			break;
+	}
+}
+void COA_set_MeasureTime(uint8_t DATA[])
+{
+	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов
+	COA_MeasureTime = (((uint16_t)DATA[1])<<8) + DATA[2];	
+	RTC.PER = (COA_MeasureTime);
+	uint8_t data[] = {COMMAND_COA_set_MeasureTime};
+	transmit(data,1);
+}
+void COA_set_MeasureDelay(uint8_t DELAY)
+{
+	//ФУНКЦИЯ: Задаёт задержку между интервалами
+	COA_MeasureDelay = DELAY;
+	//showMeByte(COA_MeasureDelay);
+	uint8_t data[] = {COMMAND_COA_set_Delay};
+	transmit(data,1);
+}
+void COA_set_MeasureQuontity(uint8_t COUNT[])
+{
+	//ФУНКЦИЯ: Задаёт количество интервалов
+	COA_MeasureQuantity = (COUNT[1] << 8) + COUNT[2];
+	uint8_t data[] = {COMMAND_COA_set_Quantity};
+	transmit(data,1);
+}
+void COA_start(void)
+{
+	//ФУНКЦИЯ: Запускаем счётчик на определённое интервалом время
+	if (COA_State != COUNTER_state_busy)
+	{	
+		TCD0.CNT = 0;
+		TCD1.CNT = 0;
+		RTC.CNT = 0;
+		RTC_Status = 1;
+		tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);
+		RTC.CTRL = RTC_prescaler;
+		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
+	}
+	uint8_t data[] = {COMMAND_COA_start, COA_State};
+	transmit(data,2);
+	COA_setStatus_busy;
+}
+void COA_stop(void)
+{
+	//ФУНКЦИЯ: Принудительная остановка счётчика
+	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
+	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
+	RTC.CTRL = RTC_PRESCALER_OFF_gc;
+	RTC.CNT = 0;
+	TCD0.CNT = 0;
+	TCD1.CNT = 0;
+	RTC_Status = 0;
+	COA_setStatus_stopped;
+	uint8_t data[] = {COMMAND_COA_stop};
+	transmit(data,1);
+}
+//RTC
+void RTC_setPrescaler(uint8_t DATA[])
+{
+	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
+	RTC_prescaler = DATA[1];
+	uint8_t data[] = {COMMAND_RTC_set_Prescaler};
+	transmit(data, 1);
+}
+void RTC_delay()
+{
+	//ФУНКЦИЯ: RTC выполняет задержку между измерениями
+	RTC.CNT = 0;
+	RTC.PER = (COA_MeasureDelay);
+	RTC_Status = 2;
+	RTC.CTRL = RTC_PRESCALER_DIV1_gc;
+}
+//Прочие
+void ERROR_ASYNCHR(void)
+{
+	showMeByte(255);
+	uint8_t ERROR[] = {25,24,15};
+	while(1)
+	{
+		transmit(ERROR,3);
+	}
+}
+void MC_reset(void)
+{
+	//ФУНКЦИЯ: Перезагружаем МК
+	//ВНИМАНИЕ: Нужно уделить особое внимание состоянию системы перед перезагрузкой, навести порядок
+	cpu_irq_disable();
+	uint8_t data[] = {COMMAND_MC_reset};
+	transmit(data,1);
+	
+	RST.CTRL = 1;
+}
 bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource )
 {
 	volatile uint8_t * chMux;
@@ -442,86 +583,6 @@ bool EVSYS_SetEventChannelFilter( uint8_t eventChannel,EVSYS_DIGFILT_t filterCoe
 	} else {
 		return false;
 	}
-}
-
-void COA_set_MeasureTime(uint8_t DATA[])
-{
-	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов
-	COA_MeasureTime = (((uint16_t)DATA[1])<<8) + DATA[2];	
-	RTC.PER = (COA_MeasureTime);
-	uint8_t data[] = {COMMAND_COA_set_MeasureTime};
-	USART_COMP_transmit(data,1);
-}
-void COA_set_Delay(uint8_t DELAY)
-{
-	//ФУНКЦИЯ: Задаёт задержку между интервалами
-	COA_MeasureDelay = DELAY;
-	showMeByte(COA_MeasureDelay);
-	uint8_t data[] = {COMMAND_COA_set_Delay};
-	USART_COMP_transmit(data,1);
-}
-void COA_set_MeasureQuontity(uint8_t COUNT[])
-{
-	//ФУНКЦИЯ: Задаёт количество интервалов
-	COA_MeasureQuantity = (COUNT[1] << 8) + COUNT[2];
-	uint8_t data[] = {COMMAND_COA_set_Quantity};
-	USART_COMP_transmit(data,1);
-}
-void COA_start(void)
-{
-	//ФУНКЦИЯ: Запускаем счётчик на определённое интервалом время
-	if (COA_State != COUNTER_state_busy)
-	{	
-		TCD0.CNT = 0;
-		TCD1.CNT = 0;
-		RTC.CNT = 0;
-		
-		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
-		tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);
-		RTC.CTRL = RTC_prescaler;
-	}
-	uint8_t data[] = {COMMAND_COA_start, COA_State};
-	USART_COMP_transmit(data,2);
-	COA_setStatus_busy;
-}
-void COA_stop(void)
-{
-	//ФУНКЦИЯ: Принудительная остановка счётчика
-	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
-	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
-	RTC.CTRL = RTC_PRESCALER_OFF_gc;
-	RTC.CNT = 0;
-	TCD0.CNT = 0;
-	TCD1.CNT = 0;
-	COA_setStatus_stopped;
-	uint8_t data[] = {COMMAND_COA_stop};
-	USART_COMP_transmit(data,1);
-}
-void RTC_setPrescaler(uint8_t DATA[])
-{
-	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
-	RTC_prescaler = DATA[1];
-	uint8_t data[] = {COMMAND_RTC_set_Prescaler};
-	USART_COMP_transmit(data, 1);
-}
-void ERROR_ASYNCHR(void)
-{
-	showMeByte(255);
-	uint8_t ERROR[] = {25,24,15};
-	while(1)
-	{
-		USART_COMP_transmit(ERROR,3);
-	}
-}
-void MC_reset(void)
-{
-	//ФУНКЦИЯ: Перезагружаем МК
-	//ВНИМАНИЕ: Нужно уделить особое внимание состоянию системы перед перезагрузкой, навести порядок
-	cpu_irq_disable();
-	uint8_t data[] = {COMMAND_MC_reset};
-	USART_COMP_transmit(data,1);
-	
-	RST.CTRL = 1;
 }
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main (void)
@@ -583,19 +644,19 @@ int main (void)
 						gpio_toggle_pin(LED_VD1);
 						delay_ms(50);
 					}
-					showMeByte(COA_Measurment_2 >> 8);
+					showMeByte(COA_Measurments[0] >> 24);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_Measurment_2);
+					showMeByte(COA_Measurments[0] >> 16);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_Measurment >> 8);
+					showMeByte(COA_Measurments[0] >> 8);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_Measurment);
+					showMeByte(COA_Measurments[0]);
 					delay_ms(2000);
 
 				break;
