@@ -10,11 +10,6 @@
 
 void board_init(void)
 {
-
-	
-#ifdef BOARD_TEST
-//------------------------------------КОНФИГУРАЦИИ ДЛЯ ТЕСТА---------------------------------------
-///*
 	//LEDs
 	gpio_configure_pin(LED_VD1,IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(LED_VD2,IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
@@ -48,49 +43,5 @@ void board_init(void)
 	ioport_configure_port_pin(&PORTC, PIN7_bm, IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 	
 	ioport_configure_port_pin(&PORTD, PIN5_bm, IOPORT_DIR_INPUT);
-//*/
-#endif
 
-#ifdef BOARD_MAIN
-//------------------------------------КОНФИГУРАЦИИ ДЛЯ МСП---------------------------------------
-///*
-	//USART COMP
-	gpio_configure_pin(pin_RXD0,	IOPORT_DIR_INPUT);
-	gpio_configure_pin(pin_TXD0,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
-	//USART TIC
-	gpio_configure_pin(pin_RXE0,	IOPORT_DIR_INPUT);
-	gpio_configure_pin(pin_TXE0,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
-	//SPI
-	gpio_configure_pin(pin_SCLK,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_MISO,	IOPORT_DIR_INPUT);
-	gpio_configure_pin(pin_SDIN,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iRDUN,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iECIS,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iWRIS,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iECSV,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iWRSV,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iWRCV,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iECVD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iWRVD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iEDCD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iECINL,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iWINL,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	//HVE
-	gpio_configure_pin(pin_iHVE,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	//ADC
-		//не используется
-	//DAC
-		//не используется
-	//Вентиля
-	gpio_configure_pin(pin_SEMV1, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_SEMV2, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_SEMV3, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
-	//PUMP
-	gpio_configure_pin(pin_SPUMP, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
-	//СЧЁТЧИКИ
-	gpio_configure_pin(pin_COA, IOPORT_DIR_INPUT);
-	gpio_configure_pin(pin_COB, IOPORT_DIR_INPUT);
-	gpio_configure_pin(pin_COC, IOPORT_DIR_INPUT);
-//*/
-#endif
 }

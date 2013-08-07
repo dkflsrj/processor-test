@@ -301,14 +301,14 @@ namespace Xmega32A4U_testBoard
             {
                 trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.RTC.get_Ticks(TXB_COA_measureTime.Text, MC.RTC.get_Prescaler(TXB_COA_measureTime.Text)) + " тиков)");
             }
-            if (MC.COA.setMeasureDelay(TXB_COA_delay.Text))
+            /*if (MC.COA.setMeasureDelay(TXB_COA_delay.Text))
             {
                 trace(true, "Задана пауза между измерениями: " + TXB_COA_delay.Text + "мс (" + MC.RTC.get_Ticks(TXB_COA_delay.Text,1) + " тиков)");
             }
             if(MC.COA.setMeasureQuantity(TXB_COA_quantity.Text))
             {
                 trace(true, "Задано количество измерений: " + TXB_COA_quantity.Text);
-            }
+            }*/
         }
         private void BTN_stopCounter_Click(object sender, EventArgs e)
         {

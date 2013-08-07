@@ -455,6 +455,9 @@
     <Compile Include="src\config\Decoder.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\config\Initializator.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>
