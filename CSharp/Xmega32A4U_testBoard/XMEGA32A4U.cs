@@ -48,7 +48,8 @@ namespace Xmega32A4U_testBoard
             public const byte showTCD2_CNTh =           7;
 
             public const byte showMeByte =              10;
-
+            public const byte retransmitToTIC =         11;
+          
             public const byte LOCK =                    13;
 
             public const byte MC_get_status =           20;
@@ -790,6 +791,30 @@ namespace Xmega32A4U_testBoard
             }
             return "0";
         }
+
+        //TIC
+        public void sendToTIC()
+        {
+            //ФУНКЦИЯ: Посылает данные TIC контроллеру
+            //ПОЯСНЕНИЯ: ПК->МК: <key><Command.retransmitToTIC><lengthOfMessage><MessageToTIC><CS><lock>
+            //           МК->TIC: <MessageToTIC>
+            byte[] msg = { 45,76,78,34};
+            byte[] data = transmit_toTIC(msg);
+            trace("Получено от TIC'а: (пока отражение)");
+            foreach (byte b in data)
+            {
+                trace("     " + b);
+            }
+        }
+        byte[] transmit_toTIC(byte[] DATA)
+        {
+            List<byte> formedDATA = new List<byte>();
+            formedDATA.Add(Command.retransmitToTIC);
+            formedDATA.Add((byte)(DATA.Length+2)); //+2 для смещения относительно команды и байта длины
+            formedDATA.AddRange(DATA);
+            return transmit(formedDATA.ToArray());
+        }
+
         //--------------------------------------ЗАМЕТКИ-------------------------------------------
         //public void AsyncEndable(bool enable)
         //{

@@ -19,6 +19,8 @@
 //#include <avr/pgmspace.h>		//Включаем управление flash-памятью контроллера
 #include <spi_master.h>			//Включаем модуль SPI
 #include <Decoder.h>
+//#include <stdio.h>
+//#include <conio.h>
 //
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 #define FATAL_ERROR						while(1){showMeByte(255);								\
@@ -26,9 +28,10 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 20
-#define birthday 20130806
-#define usart_delay 1
+#define version 21
+#define birthday 20130807
+#define usartCOMP_delay 1
+#define usartTIC_delay 1
 //Счётчики
 #define COUNTER_state_ready						0		//Счётчик готов к работе
 #define COUNTER_state_stopped					1		//Счётчик был принудительно остановлен
@@ -61,7 +64,7 @@
 										osc_disable(OSC_ID_RC2MHZ)
 //COUNTERS
 #define Counters_init					tc_enable(&TCD1);										 \
-										tc_set_overflow_interrupt_callback(&TCD1, ISR_TCD1);  \
+										tc_set_overflow_interrupt_callback(&TCD1, ISR_TCD1);	 \
 										tc_set_wgm(&TCD1, TC_WG_NORMAL);						 \
 										tc_set_overflow_interrupt_level(&TCD1,TC_INT_LVL_LO);	 \
 										//tc_set_overflow_interrupt_level(&TCD0,TC_INT_LVL_LO);
@@ -126,7 +129,6 @@ void transmit(uint8_t DATA[],uint8_t DATA_length);
 void transmit_byte(uint8_t DATA);
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2);
 void MC_transmit_Birthday(void);
-void USART_COMP_transmit_report(uint8_t ERROR);
 void COA_transmit_Result(void);
 void MC_transmit_CPUfreq(void);
 void SPI_DAC_send(uint8_t data[]);
@@ -143,6 +145,8 @@ void ERROR_ASYNCHR(void);
 void MC_reset(void);
 void COA_Measure_done(void);
 void RTC_delay(void);
+
+void TIC_transmit(uint8_t DATA[]);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTE0_RXC_vect)
 {
@@ -362,42 +366,42 @@ void transmit(uint8_t DATA[],uint8_t DATA_length)
 	//							<attached_data> - сами данные. Их может не быть (Приказ)
 	//					   '<CS>' - контрольная сумма
 	//					   '\r' - конец передачи
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	for (uint8_t i = 0; i < DATA_length; i++)
 	{
 		usart_putchar(USART_COMP,DATA[i]);							//<data>
-		delay_us(usart_delay);
+		delay_us(usartCOMP_delay);
 	}
 	usart_putchar(USART_COMP,calcCheckSum(DATA,DATA_length + 1));	//<CS>
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
 void transmit_byte(uint8_t DATA)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,DATA);									//<data>
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA));						//<CS>
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,DATA_1);
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,DATA_2);									//<data>
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2));		//<CS>
-	delay_us(usart_delay);
+	delay_us(usartCOMP_delay);
 	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
 bool checkCommand(uint8_t data[], uint8_t data_length)
@@ -425,14 +429,6 @@ uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 	return CheckSum;
 }
 
-void USART_COMP_transmit_report(uint8_t ERROR)
-{
-	//ФУНКЦИЯ: Передача по USART компьютеру данных об ошибке
-// 	delay_us(usart_delay);						//Задержка (МК больно шустрый, ПК не успевает)
-// 	usart_put(USART_COMP,2);			//Посылаем отклик - "ошибка"
-// 	delay_us(usart_delay);
-// 	usart_putchar(USART_COMP,ERROR);	//Посылаем код ошибки
-}
 void MC_transmit_CPUfreq(void)
 {
  	uint32_t freq = sysclk_get_cpu_hz();
@@ -534,6 +530,17 @@ void RTC_delay()
 	RTC.PER = (COA_MeasureDelay);
 	RTC_Status = 2;
 	RTC.CTRL = RTC_PRESCALER_DIV1_gc;
+}
+//TIC
+void TIC_transmit(uint8_t DATA[])
+{
+	//ФУНКЦИЯ: ретранслировать команду TIC насосу
+	delay_us(usartCOMP_delay);
+	for (uint8_t i = 2; i < DATA[1]; i++)
+	{
+		usart_putchar(USART_COMP,DATA[i]);				//USART_TIC
+		delay_us(usartCOMP_delay);
+	}
 }
 //Прочие
 void ERROR_ASYNCHR(void)

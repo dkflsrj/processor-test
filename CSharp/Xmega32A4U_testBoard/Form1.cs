@@ -481,6 +481,11 @@ namespace Xmega32A4U_testBoard
             MC.sendSomething();
         }
 
+        private void BTN_TIC_Click(object sender, EventArgs e)
+        {
+            MC.sendToTIC();
+        }
+
 
         
     }
