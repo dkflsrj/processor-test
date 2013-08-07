@@ -99,6 +99,8 @@
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.button1 = new System.Windows.Forms.Button();
+            this.TABpanel3 = new System.Windows.Forms.TabPage();
+            this.BTN_TIC = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -106,6 +108,7 @@
             this.GRB_Counter.SuspendLayout();
             this.GRB_SPI.SuspendLayout();
             this.GRB_MC.SuspendLayout();
+            this.TABpanel3.SuspendLayout();
             this.SuspendLayout();
             // 
             // Log
@@ -131,6 +134,7 @@
             // 
             this.TABpanel.Controls.Add(this.TABpanel_1);
             this.TABpanel.Controls.Add(this.TABpanel_2);
+            this.TABpanel.Controls.Add(this.TABpanel3);
             this.TABpanel.Location = new System.Drawing.Point(12, 12);
             this.TABpanel.Name = "TABpanel";
             this.TABpanel.SelectedIndex = 0;
@@ -865,6 +869,26 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // TABpanel3
+            // 
+            this.TABpanel3.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel3.Controls.Add(this.BTN_TIC);
+            this.TABpanel3.Location = new System.Drawing.Point(4, 22);
+            this.TABpanel3.Name = "TABpanel3";
+            this.TABpanel3.Size = new System.Drawing.Size(652, 320);
+            this.TABpanel3.TabIndex = 2;
+            this.TABpanel3.Text = "TIC";
+            // 
+            // BTN_TIC
+            // 
+            this.BTN_TIC.Location = new System.Drawing.Point(101, 115);
+            this.BTN_TIC.Name = "BTN_TIC";
+            this.BTN_TIC.Size = new System.Drawing.Size(62, 40);
+            this.BTN_TIC.TabIndex = 0;
+            this.BTN_TIC.Text = "TIC";
+            this.BTN_TIC.UseVisualStyleBackColor = true;
+            this.BTN_TIC.Click += new System.EventHandler(this.BTN_TIC_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -891,6 +915,7 @@
             this.GRB_SPI.PerformLayout();
             this.GRB_MC.ResumeLayout(false);
             this.GRB_MC.PerformLayout();
+            this.TABpanel3.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -968,6 +993,8 @@
         private System.Windows.Forms.CheckBox CHB_Control_COA;
         private System.Windows.Forms.Timer CLK_COA;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.TabPage TABpanel3;
+        private System.Windows.Forms.Button BTN_TIC;
     }
 }
 
