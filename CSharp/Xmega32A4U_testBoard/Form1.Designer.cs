@@ -47,6 +47,7 @@
             this.lable_COM = new System.Windows.Forms.Label();
             this.BTN_COM_setParams = new System.Windows.Forms.Button();
             this.TABpanel_2 = new System.Windows.Forms.TabPage();
+            this.button1 = new System.Windows.Forms.Button();
             this.GRB_TotalControl = new System.Windows.Forms.GroupBox();
             this.LBL_TotalC_Status = new System.Windows.Forms.Label();
             this.LBL_error = new System.Windows.Forms.Label();
@@ -92,15 +93,14 @@
             this.BTN_LEDbyte = new System.Windows.Forms.Button();
             this.TXB_LEDbyte = new System.Windows.Forms.TextBox();
             this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
+            this.TABpanel3 = new System.Windows.Forms.TabPage();
+            this.BTN_TIC = new System.Windows.Forms.Button();
             this.Hinter = new System.Windows.Forms.ToolTip(this.components);
             this.CLK_timer = new System.Windows.Forms.Timer(this.components);
             this.CHB_enableSuperTracer = new System.Windows.Forms.CheckBox();
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.button1 = new System.Windows.Forms.Button();
-            this.TABpanel3 = new System.Windows.Forms.TabPage();
-            this.BTN_TIC = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -337,6 +337,16 @@
             this.TABpanel_2.Size = new System.Drawing.Size(652, 320);
             this.TABpanel_2.TabIndex = 1;
             this.TABpanel_2.Text = "XMega32A4U_testBoard";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(37, 172);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 15;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // GRB_TotalControl
             // 
@@ -815,9 +825,28 @@
             this.BTN_COM_setMCwait.UseVisualStyleBackColor = true;
             this.BTN_COM_setMCwait.Click += new System.EventHandler(this.BTN_COM_setMCwait_Click);
             // 
+            // TABpanel3
+            // 
+            this.TABpanel3.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel3.Controls.Add(this.BTN_TIC);
+            this.TABpanel3.Location = new System.Drawing.Point(4, 22);
+            this.TABpanel3.Name = "TABpanel3";
+            this.TABpanel3.Size = new System.Drawing.Size(652, 320);
+            this.TABpanel3.TabIndex = 2;
+            this.TABpanel3.Text = "TIC";
+            // 
+            // BTN_TIC
+            // 
+            this.BTN_TIC.Location = new System.Drawing.Point(101, 115);
+            this.BTN_TIC.Name = "BTN_TIC";
+            this.BTN_TIC.Size = new System.Drawing.Size(62, 40);
+            this.BTN_TIC.TabIndex = 0;
+            this.BTN_TIC.Text = "TIC";
+            this.BTN_TIC.UseVisualStyleBackColor = true;
+            this.BTN_TIC.Click += new System.EventHandler(this.BTN_TIC_Click);
+            // 
             // CLK_timer
             // 
-            this.CLK_timer.Interval = 2000;
             this.CLK_timer.Tick += new System.EventHandler(this.CLK_timer_Tick);
             // 
             // CHB_enableSuperTracer
@@ -858,36 +887,6 @@
             // 
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(37, 172);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 15;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // TABpanel3
-            // 
-            this.TABpanel3.BackColor = System.Drawing.SystemColors.Control;
-            this.TABpanel3.Controls.Add(this.BTN_TIC);
-            this.TABpanel3.Location = new System.Drawing.Point(4, 22);
-            this.TABpanel3.Name = "TABpanel3";
-            this.TABpanel3.Size = new System.Drawing.Size(652, 320);
-            this.TABpanel3.TabIndex = 2;
-            this.TABpanel3.Text = "TIC";
-            // 
-            // BTN_TIC
-            // 
-            this.BTN_TIC.Location = new System.Drawing.Point(101, 115);
-            this.BTN_TIC.Name = "BTN_TIC";
-            this.BTN_TIC.Size = new System.Drawing.Size(62, 40);
-            this.BTN_TIC.TabIndex = 0;
-            this.BTN_TIC.Text = "TIC";
-            this.BTN_TIC.UseVisualStyleBackColor = true;
-            this.BTN_TIC.Click += new System.EventHandler(this.BTN_TIC_Click);
             // 
             // Form1
             // 
