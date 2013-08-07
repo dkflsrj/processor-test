@@ -19,6 +19,7 @@
 //#include <avr/pgmspace.h>		//Включаем управление flash-памятью контроллера
 #include <spi_master.h>			//Включаем модуль SPI
 #include <Decoder.h>
+#include <Initializator.h>
 //#include <stdio.h>
 //#include <conio.h>
 //
@@ -30,7 +31,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 21
+#define version 22
 #define birthday 20130807
 #define usartCOMP_delay 1
 #define usartTIC_delay 1
@@ -43,34 +44,7 @@
 #define COA_setStatus_busy			COA_Status =	COUNTER_state_busy	
  //delayed status!!! 
 #define COA_setStatus_ovflowed		COA_Status++	//Счётчик был переполнен (COA_Status - 2) раз
-//USART
-#define USART_COMP						&USARTE0
-#define USART_COMP_BAUDRATE				128000
-#define USART_COMP_CHAR_LENGTH			USART_CHSIZE_8BIT_gc
-#define USART_COMP_PARITY				USART_PMODE_DISABLED_gc
-#define USART_COMP_STOP_BIT				true
-#define USART_COMP_init					usart_init_rs232(USART_COMP, &USART_COMP_OPTIONS);		 \
-										usart_set_rx_interrupt_level(USART_COMP,USART_INT_LVL_MED)
-//SPI
-#define SPI_init						spi_master_init(&SPIC);									 \
-										spi_enable(&SPIC)			//Включаем ШПИКа
-//RTC
-#define RTC_init						rtc_init();												 \
-										CLK.RTCCTRL = 13//5 // RTC 1.024кГц								
-//#define RTC_reset						RTC.CNT = 0
-//SYSCLK
-#define SYSCLK_init						osc_enable(OSC_ID_RC32MHZ);								 \
-										osc_wait_ready(OSC_ID_RC32MHZ);							 \
-										ccp_write_io((uint8_t *)&CLK.CTRL, CONFIG_SYSCLK_SOURCE);\
-										Assert(CLK.CTRL == CONFIG_SYSCLK_SOURCE);				 \
-										osc_disable(OSC_ID_RC2MHZ)
-//COUNTERS
-#define Counters_init					tc_enable(&TCD1);										 \
-										tc_set_overflow_interrupt_callback(&TCD1, ISR_TCD1);	 \
-										tc_set_wgm(&TCD1, TC_WG_NORMAL);						 \
-										tc_set_overflow_interrupt_level(&TCD1,TC_INT_LVL_LO);	 \
-										//tc_set_overflow_interrupt_level(&TCD0,TC_INT_LVL_LO);
-										//tc_set_overflow_interrupt_level(&TCC0,TC_INT_LVL_LO)			 
+		 
 
 //----------------------------------------ПЕРЕМЕННЫЕ----------------------------------------------
 //	МИКРОКОНТРОЛЛЕР
@@ -99,15 +73,17 @@ uint8_t USART_MEM_length = 0;
 //		SPI
 uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
 //		Измерения
+
 uint16_t COA_MeasureTime = 1000;			//Время интервала (в миллисекунд)[0.05...30 сек]
 uint8_t  COA_MeasureDelay = 10;				//Задержка в миллисекундах между интервалами [10..50мс]
 uint16_t COA_MeasureQuantity = 1;			//Количество интервалов (интервал + задержка)
-uint32_t COA_Measurments[] = {0,0};				//Последнее измерение счётчика
+uint32_t COA_Measurment = 0;				//Последнее измерение счётчика
 uint8_t	 COA_MeasurementsQuantity = 1;		//Количество измерений
 uint8_t  COA_Status = COUNTER_state_ready;	//Состояния счётчика
-//uint8_t COA_Results_transmitted = 0;		//Были ли переданны измеренные данные 0 - не было данных, 1 - есть данные, 2 - были переданы, 3 - затёрты!
 
-//uint8_t	 COA_ovflowed = 0; 
+uint8_t COA_Results_transmitted = 0;		//Были ли переданны измеренные данные 0 - не было данных, 1 - есть данные, 2 - были переданы, 3 - затёрты!
+
+uint8_t	COA_ovflowed = 0; 
 uint8_t RTC_Status = 0;						//RTC выключен, 1 - таймирует измерение, 2 - задержку
 uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
@@ -123,12 +99,6 @@ struct spi_device DAC = {
 struct spi_device ADC = {
 	.id = IOPORT_CREATE_PIN(PORTC, 2)
 };
-struct COUNTER{
-	uint16_t MeasureTime;
-	uint8_t MeasureDelay;
-	uint16_t Measurment;
-	uint8_t Status;
-	}COA;
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 void showMeByte(uint8_t LED_BYTE);
 bool checkCommand(uint8_t data[], uint8_t data_length);
@@ -141,8 +111,8 @@ void COA_transmit_Result(void);
 void MC_transmit_CPUfreq(void);
 void SPI_DAC_send(uint8_t data[]);
 void SPI_ADC_send(uint8_t data[]);
-void COA_set_MeasureTime(uint8_t DATA[]);
-void COA_set_MeasureDelay(uint8_t DELAY);
+void RTC_set_Period(uint8_t DATA[]);
+/*void RTC_set_Delay(uint8_t DELAY);*/
 void COA_set_MeasureQuontity(uint8_t COUNT[]);
 void COA_start(void);
 void COA_stop(void);
@@ -220,7 +190,7 @@ ISR(RTC_OVF_vect)
 // 	}
 // 	
 }
- static void ISR_TCD1(void)
+static void ISR_TCD1(void)
  {
 	 COA_setStatus_ovflowed;
 	 //COA_stop();
@@ -237,7 +207,7 @@ void COA_Measure_done(void)
 	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
 	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
 	//showMeByte(255);
-	COA_Measurments[0] = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
+	COA_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
 	RTC.CNT = 0;
 	if (COA_Status == COUNTER_state_busy)
@@ -461,34 +431,32 @@ void COA_transmit_Result(void)
 			break;
 		case 0:
 		default:
-			data[2] = (COA_Measurments[0] >> 24);
-			data[3] = (COA_Measurments[0] >> 16);
-			data[4] = (COA_Measurments[0] >> 8);
-			data[5] = COA_Measurments[0];
+			data[2] = (COA_Measurment >> 24);
+			data[3] = (COA_Measurment >> 16);
+			data[4] = (COA_Measurment >> 8);
+			data[5] = COA_Measurment;
 			transmit(data,6);	
 			break;
 	}
 }
-void COA_set_MeasureTime(uint8_t DATA[])
+void RTC_set_Period(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов
-	COA_MeasureTime = (((uint16_t)DATA[1])<<8) + DATA[2];	
-	RTC.PER = (COA_MeasureTime);
-	uint8_t data[] = {COMMAND_COA_set_MeasureTime};
+	RTC.PER = (((uint16_t)DATA[1])<<8) + DATA[2];
+	uint8_t data[] = {COMMAND_RTC_set_Period};
 	transmit(data,1);
 }
-void COA_set_MeasureDelay(uint8_t DELAY)
-{
-	//ФУНКЦИЯ: Задаёт задержку между интервалами
-	COA_MeasureDelay = DELAY;
-	//showMeByte(COA_MeasureDelay);
-	uint8_t data[] = {COMMAND_COA_set_Delay};
-	transmit(data,1);
-}
+// void RTC_set_Delay(uint8_t DELAY)
+// {
+// 	//ФУНКЦИЯ: Задаёт задержку между интервалами
+// 	RTC.PER = (uint16_t)DELAY;
+// 	uint8_t data[] = {COMMAND_RTC_set_Delay};
+// 	transmit(data,1);
+// }
 void COA_set_MeasureQuontity(uint8_t COUNT[])
 {
 	//ФУНКЦИЯ: Задаёт количество интервалов
-	COA_MeasureQuantity = (COUNT[1] << 8) + COUNT[2];
+	//COA_MeasureQuantity = (COUNT[1] << 8) + COUNT[2];
 	uint8_t data[] = {COMMAND_COA_set_Quantity};
 	transmit(data,1);
 }
@@ -535,7 +503,6 @@ void RTC_delay()
 {
 	//ФУНКЦИЯ: RTC выполняет задержку между измерениями
 	RTC.CNT = 0;
-	RTC.PER = (COA_MeasureDelay);
 	RTC_Status = 2;
 	RTC.CTRL = RTC_PRESCALER_DIV1_gc;
 }
@@ -607,6 +574,7 @@ bool EVSYS_SetEventChannelFilter( uint8_t eventChannel,EVSYS_DIGFILT_t filterCoe
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
 {
+	//COA.set_MT(10);
 	board_init();						//Инициируем карту
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
@@ -622,6 +590,8 @@ int main(void)
 	//Инициировать двойные счётчики
 	EVSYS_SetEventSource(1, EVSYS_CHMUX_TCD0_OVF_gc);
 	EVSYS_SetEventChannelFilter( 1, EVSYS_DIGFILT_1SAMPLE_gc );
+	//COX
+	//COUNTER.State.Ready};
 	//Светопредставление для определения перезагрузки
 	for (uint16_t i = 1; i <129 ; i += i)
 	{
@@ -665,19 +635,19 @@ int main(void)
 						gpio_toggle_pin(LED_VD1);
 						delay_ms(50);
 					}
-					showMeByte(COA_Measurments[0] >> 24);
+					showMeByte(COA_Measurment >> 24);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_Measurments[0] >> 16);
+					showMeByte(COA_Measurment >> 16);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_Measurments[0] >> 8);
+					showMeByte(COA_Measurment >> 8);
 					delay_ms(2000);
 					showMeByte(0);
 					delay_ms(500);
-					showMeByte(COA_Measurments[0]);
+					showMeByte(COA_Measurment);
 					delay_ms(2000);
 
 				break;
