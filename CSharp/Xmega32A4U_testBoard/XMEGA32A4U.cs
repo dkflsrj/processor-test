@@ -39,34 +39,34 @@ namespace Xmega32A4U_testBoard
         struct Command
         {
             //СТРУКТУРА: Хранилище констант - кодов команд
-            public const byte MC_get_version =          1;
-            public const byte MC_get_birthday =         2;
-            public const byte MC_get_CPUfreq =          3;
-            public const byte MC_reset =                4;
-            public const byte MC_wait =                 5;
-            public const byte showTCD2_CNTl =           6;
-            public const byte showTCD2_CNTh =           7;
+            public const byte MC_get_version = 1;
+            public const byte MC_get_birthday = 2;
+            public const byte MC_get_CPUfreq = 3;
+            public const byte MC_reset = 4;
+            public const byte MC_wait = 5;
+            public const byte showTCD2_CNTl = 6;
+            public const byte showTCD2_CNTh = 7;
 
-            public const byte showMeByte =              10;
-            public const byte retransmitToTIC =         11;
-          
-            public const byte LOCK =                    13;
+            public const byte showMeByte = 10;
+            public const byte retransmitToTIC = 11;
 
-            public const byte MC_get_status =           20;
+            public const byte LOCK = 13;
 
-            public const byte COA_set_MeasureTime =     30;
-            public const byte COA_start =               31;
-            public const byte COA_get_count =           32;
-            public const byte COA_stop =                33;
-            public const byte RTC_set_prescaler =       34;
-            public const byte COA_getStatus =           35;
-            public const byte COA_setMeasureDelay =     36;
-            public const byte COA_setMeasureQuantity =  37;
+            public const byte MC_get_status = 20;
 
-            public const byte DAC_set_voltage =         40;
-            public const byte ADC_get_voltage =         41;
+            public const byte COA_set_MeasureTime = 30;
+            public const byte COA_start = 31;
+            public const byte COA_get_count = 32;
+            public const byte COA_stop = 33;
+            public const byte RTC_set_prescaler = 34;
+            public const byte COA_getStatus = 35;
+            public const byte COA_setMeasureDelay = 36;
+            public const byte COA_setMeasureQuantity = 37;
 
-            public const byte KEY =                     58;
+            public const byte DAC_set_voltage = 40;
+            public const byte ADC_get_voltage = 41;
+
+            public const byte KEY = 58;
         };
         public struct _RTC
         {

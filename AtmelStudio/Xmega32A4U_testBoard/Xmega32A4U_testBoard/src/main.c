@@ -1,7 +1,7 @@
 //================================================================================================
 //========================ТРЕНИРОВКА В ПРОГРАММИРОВАНИИ МИКРОКОНТРОЛЛЕРА==========================
 //================================================================================================
-//
+//Режимы выбираеются в conf_board.h
 //---------------------------------------ПОЯСНЕНИЯ------------------------------------------------
 //Микроконтроллер должен выполнять следующие функции:
 //	-
@@ -22,6 +22,8 @@
 //#include <stdio.h>
 //#include <conio.h>
 //
+
+
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 #define FATAL_ERROR						while(1){showMeByte(255);								\
 											delay_ms(50);}
@@ -121,6 +123,12 @@ struct spi_device DAC = {
 struct spi_device ADC = {
 	.id = IOPORT_CREATE_PIN(PORTC, 2)
 };
+struct COUNTER{
+	uint16_t MeasureTime;
+	uint8_t MeasureDelay;
+	uint16_t Measurment;
+	uint8_t Status;
+	}COA;
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 void showMeByte(uint8_t LED_BYTE);
 bool checkCommand(uint8_t data[], uint8_t data_length);
@@ -541,6 +549,8 @@ void TIC_transmit(uint8_t DATA[])
 		usart_putchar(USART_COMP,DATA[i]);				//USART_TIC
 		delay_us(usartCOMP_delay);
 	}
+	//ждём ответа от TIC
+	//Пересылаем ответ на ПК
 }
 //Прочие
 void ERROR_ASYNCHR(void)
@@ -595,7 +605,7 @@ bool EVSYS_SetEventChannelFilter( uint8_t eventChannel,EVSYS_DIGFILT_t filterCoe
 	}
 }
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
-int main (void)
+int main(void)
 {
 	board_init();						//Инициируем карту
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
