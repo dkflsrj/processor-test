@@ -301,6 +301,10 @@ namespace Xmega32A4U_testBoard
             {
                 trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.RTC.get_Ticks(TXB_COA_measureTime.Text, MC.RTC.get_Prescaler(TXB_COA_measureTime.Text)) + " тиков)");
             }
+            else
+            {
+                trace(true, "!");
+            }
             /*if (MC.COA.setMeasureDelay(TXB_COA_delay.Text))
             {
                 trace(true, "Задана пауза между измерениями: " + TXB_COA_delay.Text + "мс (" + MC.RTC.get_Ticks(TXB_COA_delay.Text,1) + " тиков)");
@@ -484,6 +488,14 @@ namespace Xmega32A4U_testBoard
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
             MC.sendToTIC();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            foreach(string error in MC.getErrorList().ToArray())
+            {
+                trace(true, error);
+            }
         }
 
 

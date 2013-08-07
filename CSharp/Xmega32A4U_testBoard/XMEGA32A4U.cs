@@ -26,7 +26,7 @@ namespace Xmega32A4U_testBoard
         static bool         tracer_log_enabled = false;
         static bool         ERROR = false;
         public static byte recived_error = 0;
-        
+        static List<string> ErrorList = new List<string>();
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
@@ -392,11 +392,12 @@ namespace Xmega32A4U_testBoard
                 ushort ticks = RTC_.get_Ticks(MILLISECONDS,RTC_prescaler);
                 byte[] bytes_ticks = BitConverter.GetBytes(ticks);
                 byte[] data = { bytes_ticks[1], bytes_ticks[0]};
-                if (transmit(Command.COA_set_MeasureTime, data)[0] == Command.COA_set_MeasureTime)
+                if (transmit(Command.COA_set_MeasureTime, data)[0] == 1)
                 {
-                    //trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
+                    trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
                     return true;
                 }
+                trace("Интервал не был задан! Счётчики считают!");
                 return false;
             }
                 public bool setMeasureTime(string MILLISECONDS)
@@ -668,6 +669,20 @@ namespace Xmega32A4U_testBoard
         {
             transmit(243);
         }
+        static void addError(string TEXT, byte[] rDATA)
+        {
+            string error = (ErrorList.Count + 1).ToString() + " [" + DateTime.Now.ToString("HH:mm:ss") + "] " + TEXT + " Получено: ";
+            foreach(byte b in rDATA)
+            {
+                error += b + " | ";
+            }
+            trace(error);
+            ErrorList.Add(error);
+        }
+        public List<string> getErrorList()
+        {
+            return ErrorList;
+        }
         static void defineError(byte[] DATA)
         {
             trace("---------------ОШИБКА-------------");
@@ -814,7 +829,7 @@ namespace Xmega32A4U_testBoard
             formedDATA.AddRange(DATA);
             return transmit(formedDATA.ToArray());
         }
-
+        
         //--------------------------------------ЗАМЕТКИ-------------------------------------------
         //public void AsyncEndable(bool enable)
         //{

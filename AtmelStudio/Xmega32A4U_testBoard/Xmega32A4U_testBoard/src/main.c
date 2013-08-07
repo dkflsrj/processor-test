@@ -31,9 +31,9 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 22
+#define version 23
 #define birthday 20130807
-#define usartCOMP_delay 1
+#define usartCOMP_delay 10
 #define usartTIC_delay 1
 //Счётчики
 #define COUNTER_state_ready						0		//Счётчик готов к работе
@@ -106,6 +106,7 @@ uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
 void transmit(uint8_t DATA[],uint8_t DATA_length);
 void transmit_byte(uint8_t DATA);
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2);
+void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3);
 void MC_transmit_Birthday(void);
 void COA_transmit_Result(void);
 void MC_transmit_CPUfreq(void);
@@ -210,6 +211,7 @@ void COA_Measure_done(void)
 	COA_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
 	RTC.CNT = 0;
+	RTC_Status = 0;
 	if (COA_Status == COUNTER_state_busy)
 	{
 		COA_setStatus_ready;
@@ -382,6 +384,22 @@ void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 	delay_us(usartCOMP_delay);
 	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
+void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
+{
+	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
+	delay_us(usartCOMP_delay);
+	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
+	delay_us(usartCOMP_delay);
+	usart_putchar(USART_COMP,DATA_1);
+	delay_us(usartCOMP_delay);
+	usart_putchar(USART_COMP,DATA_2);									//<data>
+	delay_us(usartCOMP_delay);
+	usart_putchar(USART_COMP,DATA_3);
+	delay_us(usartCOMP_delay);
+	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2 - DATA_3));		//<CS>
+	delay_us(usartCOMP_delay);
+	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
+}
 bool checkCommand(uint8_t data[], uint8_t data_length)
 {
 	//ФУНКЦИЯ: Сверяет контрольную сумму принятых данных
@@ -442,9 +460,18 @@ void COA_transmit_Result(void)
 void RTC_set_Period(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов
-	RTC.PER = (((uint16_t)DATA[1])<<8) + DATA[2];
-	uint8_t data[] = {COMMAND_RTC_set_Period};
-	transmit(data,1);
+	
+	if (RTC_Status == 0)
+	{
+		RTC.PER = (((uint16_t)DATA[1])<<8) + DATA[2];
+//  		uint8_t data[] = {COMMAND_RTC_set_Period, 1};
+//  		transmit(data, 2);	//Операция удалась
+		transmit_2bytes(COMMAND_RTC_set_Period,1);
+	}
+	else
+	{
+		transmit_2bytes(COMMAND_RTC_set_Period, 0);	//Операция не удалась - таймер считает. Остановите таймер! Кто-нибудь!!!
+	}
 }
 // void RTC_set_Delay(uint8_t DELAY)
 // {
