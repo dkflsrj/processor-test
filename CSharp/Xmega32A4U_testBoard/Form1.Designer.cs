@@ -49,6 +49,7 @@
             this.TABpanel_2 = new System.Windows.Forms.TabPage();
             this.button1 = new System.Windows.Forms.Button();
             this.GRB_TotalControl = new System.Windows.Forms.GroupBox();
+            this.button2 = new System.Windows.Forms.Button();
             this.LBL_TotalC_Status = new System.Windows.Forms.Label();
             this.LBL_error = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -95,13 +96,70 @@
             this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
             this.TABpanel3 = new System.Windows.Forms.TabPage();
             this.BTN_TIC = new System.Windows.Forms.Button();
+            this.TABpanel_4 = new System.Windows.Forms.TabPage();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.BTN_DETECTOR_EM3 = new System.Windows.Forms.Button();
+            this.BTN_DETECTOR_EM2 = new System.Windows.Forms.Button();
+            this.BTN_EM1 = new System.Windows.Forms.Button();
+            this.BTN_DETECTOR_reset = new System.Windows.Forms.Button();
+            this.BTN_DETECTOR_getDV3voltage = new System.Windows.Forms.Button();
+            this.CHB_DETECTOR_x2 = new System.Windows.Forms.CheckBox();
+            this.BTN_DETECTOR_getDV2voltage = new System.Windows.Forms.Button();
+            this.BTN_DETECTOR_getDV1voltage = new System.Windows.Forms.Button();
+            this.TXB_DETECTOR_setDV3voltage = new System.Windows.Forms.TextBox();
+            this.TXB_DETECTOR_setDV2voltage = new System.Windows.Forms.TextBox();
+            this.LBL_DETECTOR_getDV3voltage = new System.Windows.Forms.Label();
+            this.LBL_DETECTOR_getDV2voltage = new System.Windows.Forms.Label();
+            this.LBL_DETECTOR_getDV1voltage = new System.Windows.Forms.Label();
+            this.TXB_DETECTOR_setDV1voltage = new System.Windows.Forms.TextBox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.BTN_DETECTOR_setDV3voltage = new System.Windows.Forms.Button();
+            this.BTN_DETECTOR_setDV2voltage = new System.Windows.Forms.Button();
+            this.BTN_DETECTOR_setDV1voltage = new System.Windows.Forms.Button();
+            this.label13 = new System.Windows.Forms.Label();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.BTN_IonSOURCE_reset = new System.Windows.Forms.Button();
+            this.CHB_IonSOURCE_x2 = new System.Windows.Forms.CheckBox();
+            this.LBL_IonSOURCE_getF2voltage = new System.Windows.Forms.Label();
+            this.LBL_IonSOURCE_getF1voltage = new System.Windows.Forms.Label();
+            this.LBL_IonSOURCE_getIonizationVoltage = new System.Windows.Forms.Label();
+            this.LBL_IonSOURCE_getEmissionCurrentVoltage = new System.Windows.Forms.Label();
+            this.TXB_IonSOURCE_setF2voltage = new System.Windows.Forms.TextBox();
+            this.TXB_IonSOURCE_setF1voltage = new System.Windows.Forms.TextBox();
+            this.TXB_IonSOURCE_setIonizationVoltage = new System.Windows.Forms.TextBox();
+            this.TXB_IonSOURCE_setEmissionCurrentVoltage = new System.Windows.Forms.TextBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.BTN_IonSOURCE_setF2voltage = new System.Windows.Forms.Button();
+            this.BTN_IonSOURCE_setF1voltage = new System.Windows.Forms.Button();
+            this.BTN_IonSOURCE_setIonizationVoltage = new System.Windows.Forms.Button();
+            this.BTN_IonSOURCE_getF2voltage = new System.Windows.Forms.Button();
+            this.BTN_IonSOURCE_getF1voltage = new System.Windows.Forms.Button();
+            this.BTN_IonSOURCE_getIonizationVoltage = new System.Windows.Forms.Button();
+            this.BTN_IonSOURCE_getEmissionCurrentVoltage = new System.Windows.Forms.Button();
+            this.BTN_IonSOURCE_setEmissionCurrentVoltage = new System.Windows.Forms.Button();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.GPB_CONDER = new System.Windows.Forms.GroupBox();
+            this.GPB_Heater = new System.Windows.Forms.GroupBox();
+            this.BTN_HEATER_setVoltage = new System.Windows.Forms.Button();
+            this.CHB_HEATER_x2 = new System.Windows.Forms.CheckBox();
+            this.BTN_HEATER_reset = new System.Windows.Forms.Button();
+            this.LBL_HEATER_getVoltage = new System.Windows.Forms.Label();
+            this.TXB_HEATER_setVoltage = new System.Windows.Forms.TextBox();
+            this._BTN_HEATER_getVoltage = new System.Windows.Forms.Button();
+            this.GPB_Inlet = new System.Windows.Forms.GroupBox();
+            this.BTN_INLET_setVoltage = new System.Windows.Forms.Button();
+            this.CHB_INLET_x2 = new System.Windows.Forms.CheckBox();
+            this.BTN_INLET_reset = new System.Windows.Forms.Button();
+            this.LBL_INLET_getVoltage = new System.Windows.Forms.Label();
+            this.TXB_INLET_setVoltage = new System.Windows.Forms.TextBox();
+            this.BTN_INLET_getVoltage = new System.Windows.Forms.Button();
             this.Hinter = new System.Windows.Forms.ToolTip(this.components);
             this.CLK_timer = new System.Windows.Forms.Timer(this.components);
             this.CHB_enableSuperTracer = new System.Windows.Forms.CheckBox();
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.button2 = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -110,6 +168,11 @@
             this.GRB_SPI.SuspendLayout();
             this.GRB_MC.SuspendLayout();
             this.TABpanel3.SuspendLayout();
+            this.TABpanel_4.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            this.GPB_Heater.SuspendLayout();
+            this.GPB_Inlet.SuspendLayout();
             this.SuspendLayout();
             // 
             // Log
@@ -136,6 +199,7 @@
             this.TABpanel.Controls.Add(this.TABpanel_1);
             this.TABpanel.Controls.Add(this.TABpanel_2);
             this.TABpanel.Controls.Add(this.TABpanel3);
+            this.TABpanel.Controls.Add(this.TABpanel_4);
             this.TABpanel.Location = new System.Drawing.Point(12, 12);
             this.TABpanel.Name = "TABpanel";
             this.TABpanel.SelectedIndex = 0;
@@ -363,6 +427,16 @@
             this.GRB_TotalControl.TabIndex = 14;
             this.GRB_TotalControl.TabStop = false;
             this.GRB_TotalControl.Text = "Контроль";
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(253, 34);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(74, 31);
+            this.button2.TabIndex = 15;
+            this.button2.Text = "button2";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // LBL_TotalC_Status
             // 
@@ -847,6 +921,612 @@
             this.BTN_TIC.UseVisualStyleBackColor = true;
             this.BTN_TIC.Click += new System.EventHandler(this.BTN_TIC_Click);
             // 
+            // TABpanel_4
+            // 
+            this.TABpanel_4.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel_4.Controls.Add(this.groupBox2);
+            this.TABpanel_4.Controls.Add(this.groupBox4);
+            this.TABpanel_4.Controls.Add(this.groupBox3);
+            this.TABpanel_4.Controls.Add(this.groupBox1);
+            this.TABpanel_4.Controls.Add(this.GPB_CONDER);
+            this.TABpanel_4.Controls.Add(this.GPB_Heater);
+            this.TABpanel_4.Controls.Add(this.GPB_Inlet);
+            this.TABpanel_4.Location = new System.Drawing.Point(4, 22);
+            this.TABpanel_4.Name = "TABpanel_4";
+            this.TABpanel_4.Size = new System.Drawing.Size(652, 320);
+            this.TABpanel_4.TabIndex = 3;
+            this.TABpanel_4.Text = "Real";
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_EM3);
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_EM2);
+            this.groupBox2.Controls.Add(this.BTN_EM1);
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_reset);
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_getDV3voltage);
+            this.groupBox2.Controls.Add(this.CHB_DETECTOR_x2);
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_getDV2voltage);
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_getDV1voltage);
+            this.groupBox2.Controls.Add(this.TXB_DETECTOR_setDV3voltage);
+            this.groupBox2.Controls.Add(this.TXB_DETECTOR_setDV2voltage);
+            this.groupBox2.Controls.Add(this.LBL_DETECTOR_getDV3voltage);
+            this.groupBox2.Controls.Add(this.LBL_DETECTOR_getDV2voltage);
+            this.groupBox2.Controls.Add(this.LBL_DETECTOR_getDV1voltage);
+            this.groupBox2.Controls.Add(this.TXB_DETECTOR_setDV1voltage);
+            this.groupBox2.Controls.Add(this.textBox1);
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_setDV3voltage);
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_setDV2voltage);
+            this.groupBox2.Controls.Add(this.BTN_DETECTOR_setDV1voltage);
+            this.groupBox2.Controls.Add(this.label13);
+            this.groupBox2.Location = new System.Drawing.Point(249, 3);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(266, 150);
+            this.groupBox2.TabIndex = 5;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Детектор";
+            // 
+            // BTN_DETECTOR_EM3
+            // 
+            this.BTN_DETECTOR_EM3.Enabled = false;
+            this.BTN_DETECTOR_EM3.Location = new System.Drawing.Point(196, 87);
+            this.BTN_DETECTOR_EM3.Name = "BTN_DETECTOR_EM3";
+            this.BTN_DETECTOR_EM3.Size = new System.Drawing.Size(64, 28);
+            this.BTN_DETECTOR_EM3.TabIndex = 6;
+            this.BTN_DETECTOR_EM3.Text = "EM3";
+            this.BTN_DETECTOR_EM3.UseVisualStyleBackColor = true;
+            // 
+            // BTN_DETECTOR_EM2
+            // 
+            this.BTN_DETECTOR_EM2.Enabled = false;
+            this.BTN_DETECTOR_EM2.Location = new System.Drawing.Point(196, 53);
+            this.BTN_DETECTOR_EM2.Name = "BTN_DETECTOR_EM2";
+            this.BTN_DETECTOR_EM2.Size = new System.Drawing.Size(64, 28);
+            this.BTN_DETECTOR_EM2.TabIndex = 6;
+            this.BTN_DETECTOR_EM2.Text = "EM2";
+            this.BTN_DETECTOR_EM2.UseVisualStyleBackColor = true;
+            // 
+            // BTN_EM1
+            // 
+            this.BTN_EM1.Enabled = false;
+            this.BTN_EM1.Location = new System.Drawing.Point(196, 19);
+            this.BTN_EM1.Name = "BTN_EM1";
+            this.BTN_EM1.Size = new System.Drawing.Size(64, 28);
+            this.BTN_EM1.TabIndex = 6;
+            this.BTN_EM1.Text = "EM1";
+            this.BTN_EM1.UseVisualStyleBackColor = true;
+            // 
+            // BTN_DETECTOR_reset
+            // 
+            this.BTN_DETECTOR_reset.Location = new System.Drawing.Point(6, 121);
+            this.BTN_DETECTOR_reset.Name = "BTN_DETECTOR_reset";
+            this.BTN_DETECTOR_reset.Size = new System.Drawing.Size(91, 23);
+            this.BTN_DETECTOR_reset.TabIndex = 5;
+            this.BTN_DETECTOR_reset.Text = "Сброс";
+            this.BTN_DETECTOR_reset.UseVisualStyleBackColor = true;
+            this.BTN_DETECTOR_reset.Click += new System.EventHandler(this.BTN_DETECTOR_reset_Click);
+            // 
+            // BTN_DETECTOR_getDV3voltage
+            // 
+            this.BTN_DETECTOR_getDV3voltage.Location = new System.Drawing.Point(103, 93);
+            this.BTN_DETECTOR_getDV3voltage.Name = "BTN_DETECTOR_getDV3voltage";
+            this.BTN_DETECTOR_getDV3voltage.Size = new System.Drawing.Size(29, 23);
+            this.BTN_DETECTOR_getDV3voltage.TabIndex = 3;
+            this.BTN_DETECTOR_getDV3voltage.Text = "->";
+            this.BTN_DETECTOR_getDV3voltage.UseVisualStyleBackColor = true;
+            this.BTN_DETECTOR_getDV3voltage.Click += new System.EventHandler(this.BTN_DETECTOR_getDV3voltage_Click);
+            // 
+            // CHB_DETECTOR_x2
+            // 
+            this.CHB_DETECTOR_x2.AutoSize = true;
+            this.CHB_DETECTOR_x2.Location = new System.Drawing.Point(103, 125);
+            this.CHB_DETECTOR_x2.Name = "CHB_DETECTOR_x2";
+            this.CHB_DETECTOR_x2.Size = new System.Drawing.Size(37, 17);
+            this.CHB_DETECTOR_x2.TabIndex = 4;
+            this.CHB_DETECTOR_x2.Text = "x2";
+            this.CHB_DETECTOR_x2.UseVisualStyleBackColor = true;
+            // 
+            // BTN_DETECTOR_getDV2voltage
+            // 
+            this.BTN_DETECTOR_getDV2voltage.Location = new System.Drawing.Point(103, 64);
+            this.BTN_DETECTOR_getDV2voltage.Name = "BTN_DETECTOR_getDV2voltage";
+            this.BTN_DETECTOR_getDV2voltage.Size = new System.Drawing.Size(29, 23);
+            this.BTN_DETECTOR_getDV2voltage.TabIndex = 3;
+            this.BTN_DETECTOR_getDV2voltage.Text = "->";
+            this.BTN_DETECTOR_getDV2voltage.UseVisualStyleBackColor = true;
+            this.BTN_DETECTOR_getDV2voltage.Click += new System.EventHandler(this.BTN_DETECTOR_getDV2voltage_Click);
+            // 
+            // BTN_DETECTOR_getDV1voltage
+            // 
+            this.BTN_DETECTOR_getDV1voltage.Location = new System.Drawing.Point(103, 35);
+            this.BTN_DETECTOR_getDV1voltage.Name = "BTN_DETECTOR_getDV1voltage";
+            this.BTN_DETECTOR_getDV1voltage.Size = new System.Drawing.Size(29, 23);
+            this.BTN_DETECTOR_getDV1voltage.TabIndex = 3;
+            this.BTN_DETECTOR_getDV1voltage.Text = "->";
+            this.BTN_DETECTOR_getDV1voltage.UseVisualStyleBackColor = true;
+            this.BTN_DETECTOR_getDV1voltage.Click += new System.EventHandler(this.BTN_DETECTOR_getDV1voltage_Click);
+            // 
+            // TXB_DETECTOR_setDV3voltage
+            // 
+            this.TXB_DETECTOR_setDV3voltage.Location = new System.Drawing.Point(56, 95);
+            this.TXB_DETECTOR_setDV3voltage.Name = "TXB_DETECTOR_setDV3voltage";
+            this.TXB_DETECTOR_setDV3voltage.Size = new System.Drawing.Size(41, 20);
+            this.TXB_DETECTOR_setDV3voltage.TabIndex = 2;
+            this.TXB_DETECTOR_setDV3voltage.Text = "100";
+            // 
+            // TXB_DETECTOR_setDV2voltage
+            // 
+            this.TXB_DETECTOR_setDV2voltage.Location = new System.Drawing.Point(56, 66);
+            this.TXB_DETECTOR_setDV2voltage.Name = "TXB_DETECTOR_setDV2voltage";
+            this.TXB_DETECTOR_setDV2voltage.Size = new System.Drawing.Size(41, 20);
+            this.TXB_DETECTOR_setDV2voltage.TabIndex = 2;
+            this.TXB_DETECTOR_setDV2voltage.Text = "250";
+            // 
+            // LBL_DETECTOR_getDV3voltage
+            // 
+            this.LBL_DETECTOR_getDV3voltage.AutoSize = true;
+            this.LBL_DETECTOR_getDV3voltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_DETECTOR_getDV3voltage.Location = new System.Drawing.Point(138, 98);
+            this.LBL_DETECTOR_getDV3voltage.Name = "LBL_DETECTOR_getDV3voltage";
+            this.LBL_DETECTOR_getDV3voltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_DETECTOR_getDV3voltage.TabIndex = 3;
+            this.LBL_DETECTOR_getDV3voltage.Text = "?";
+            // 
+            // LBL_DETECTOR_getDV2voltage
+            // 
+            this.LBL_DETECTOR_getDV2voltage.AutoSize = true;
+            this.LBL_DETECTOR_getDV2voltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_DETECTOR_getDV2voltage.Location = new System.Drawing.Point(138, 69);
+            this.LBL_DETECTOR_getDV2voltage.Name = "LBL_DETECTOR_getDV2voltage";
+            this.LBL_DETECTOR_getDV2voltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_DETECTOR_getDV2voltage.TabIndex = 3;
+            this.LBL_DETECTOR_getDV2voltage.Text = "?";
+            // 
+            // LBL_DETECTOR_getDV1voltage
+            // 
+            this.LBL_DETECTOR_getDV1voltage.AutoSize = true;
+            this.LBL_DETECTOR_getDV1voltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_DETECTOR_getDV1voltage.Location = new System.Drawing.Point(138, 40);
+            this.LBL_DETECTOR_getDV1voltage.Name = "LBL_DETECTOR_getDV1voltage";
+            this.LBL_DETECTOR_getDV1voltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_DETECTOR_getDV1voltage.TabIndex = 3;
+            this.LBL_DETECTOR_getDV1voltage.Text = "?";
+            // 
+            // TXB_DETECTOR_setDV1voltage
+            // 
+            this.TXB_DETECTOR_setDV1voltage.Location = new System.Drawing.Point(56, 37);
+            this.TXB_DETECTOR_setDV1voltage.Name = "TXB_DETECTOR_setDV1voltage";
+            this.TXB_DETECTOR_setDV1voltage.Size = new System.Drawing.Size(41, 20);
+            this.TXB_DETECTOR_setDV1voltage.TabIndex = 2;
+            this.TXB_DETECTOR_setDV1voltage.Text = "380";
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(56, 37);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(41, 20);
+            this.textBox1.TabIndex = 2;
+            // 
+            // BTN_DETECTOR_setDV3voltage
+            // 
+            this.BTN_DETECTOR_setDV3voltage.Location = new System.Drawing.Point(6, 93);
+            this.BTN_DETECTOR_setDV3voltage.Name = "BTN_DETECTOR_setDV3voltage";
+            this.BTN_DETECTOR_setDV3voltage.Size = new System.Drawing.Size(44, 23);
+            this.BTN_DETECTOR_setDV3voltage.TabIndex = 0;
+            this.BTN_DETECTOR_setDV3voltage.Text = "DV3";
+            this.BTN_DETECTOR_setDV3voltage.UseVisualStyleBackColor = true;
+            this.BTN_DETECTOR_setDV3voltage.Click += new System.EventHandler(this.BTN_DETECTOR_setDV3voltage_Click);
+            // 
+            // BTN_DETECTOR_setDV2voltage
+            // 
+            this.BTN_DETECTOR_setDV2voltage.Location = new System.Drawing.Point(6, 64);
+            this.BTN_DETECTOR_setDV2voltage.Name = "BTN_DETECTOR_setDV2voltage";
+            this.BTN_DETECTOR_setDV2voltage.Size = new System.Drawing.Size(44, 23);
+            this.BTN_DETECTOR_setDV2voltage.TabIndex = 0;
+            this.BTN_DETECTOR_setDV2voltage.Text = "DV2";
+            this.BTN_DETECTOR_setDV2voltage.UseVisualStyleBackColor = true;
+            this.BTN_DETECTOR_setDV2voltage.Click += new System.EventHandler(this.BTN_DETECTOR_setDV2voltage_Click);
+            // 
+            // BTN_DETECTOR_setDV1voltage
+            // 
+            this.BTN_DETECTOR_setDV1voltage.Location = new System.Drawing.Point(6, 35);
+            this.BTN_DETECTOR_setDV1voltage.Name = "BTN_DETECTOR_setDV1voltage";
+            this.BTN_DETECTOR_setDV1voltage.Size = new System.Drawing.Size(44, 23);
+            this.BTN_DETECTOR_setDV1voltage.TabIndex = 0;
+            this.BTN_DETECTOR_setDV1voltage.Text = "DV1";
+            this.BTN_DETECTOR_setDV1voltage.UseVisualStyleBackColor = true;
+            this.BTN_DETECTOR_setDV1voltage.Click += new System.EventHandler(this.BTN_DETECTOR_setDV1voltage_Click);
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(6, 16);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(108, 13);
+            this.label13.TabIndex = 1;
+            this.label13.Text = "Задать напряжения";
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Location = new System.Drawing.Point(430, 289);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(219, 28);
+            this.groupBox4.TabIndex = 5;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Насос";
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_reset);
+            this.groupBox3.Controls.Add(this.CHB_IonSOURCE_x2);
+            this.groupBox3.Controls.Add(this.LBL_IonSOURCE_getF2voltage);
+            this.groupBox3.Controls.Add(this.LBL_IonSOURCE_getF1voltage);
+            this.groupBox3.Controls.Add(this.LBL_IonSOURCE_getIonizationVoltage);
+            this.groupBox3.Controls.Add(this.LBL_IonSOURCE_getEmissionCurrentVoltage);
+            this.groupBox3.Controls.Add(this.TXB_IonSOURCE_setF2voltage);
+            this.groupBox3.Controls.Add(this.TXB_IonSOURCE_setF1voltage);
+            this.groupBox3.Controls.Add(this.TXB_IonSOURCE_setIonizationVoltage);
+            this.groupBox3.Controls.Add(this.TXB_IonSOURCE_setEmissionCurrentVoltage);
+            this.groupBox3.Controls.Add(this.label12);
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_setF2voltage);
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_setF1voltage);
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_setIonizationVoltage);
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_getF2voltage);
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_getF1voltage);
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_getIonizationVoltage);
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_getEmissionCurrentVoltage);
+            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_setEmissionCurrentVoltage);
+            this.groupBox3.Location = new System.Drawing.Point(9, 3);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(234, 150);
+            this.groupBox3.TabIndex = 5;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Ионный источник";
+            // 
+            // BTN_IonSOURCE_reset
+            // 
+            this.BTN_IonSOURCE_reset.Location = new System.Drawing.Point(180, 11);
+            this.BTN_IonSOURCE_reset.Name = "BTN_IonSOURCE_reset";
+            this.BTN_IonSOURCE_reset.Size = new System.Drawing.Size(48, 23);
+            this.BTN_IonSOURCE_reset.TabIndex = 5;
+            this.BTN_IonSOURCE_reset.Text = "Сброс";
+            this.BTN_IonSOURCE_reset.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_reset.Click += new System.EventHandler(this.BTN_IonSOURCE_reset_Click);
+            // 
+            // CHB_IonSOURCE_x2
+            // 
+            this.CHB_IonSOURCE_x2.AutoSize = true;
+            this.CHB_IonSOURCE_x2.Location = new System.Drawing.Point(143, 15);
+            this.CHB_IonSOURCE_x2.Name = "CHB_IonSOURCE_x2";
+            this.CHB_IonSOURCE_x2.Size = new System.Drawing.Size(37, 17);
+            this.CHB_IonSOURCE_x2.TabIndex = 4;
+            this.CHB_IonSOURCE_x2.Text = "x2";
+            this.CHB_IonSOURCE_x2.UseVisualStyleBackColor = true;
+            // 
+            // LBL_IonSOURCE_getF2voltage
+            // 
+            this.LBL_IonSOURCE_getF2voltage.AutoSize = true;
+            this.LBL_IonSOURCE_getF2voltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_IonSOURCE_getF2voltage.Location = new System.Drawing.Point(182, 126);
+            this.LBL_IonSOURCE_getF2voltage.Name = "LBL_IonSOURCE_getF2voltage";
+            this.LBL_IonSOURCE_getF2voltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_IonSOURCE_getF2voltage.TabIndex = 3;
+            this.LBL_IonSOURCE_getF2voltage.Text = "?";
+            // 
+            // LBL_IonSOURCE_getF1voltage
+            // 
+            this.LBL_IonSOURCE_getF1voltage.AutoSize = true;
+            this.LBL_IonSOURCE_getF1voltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_IonSOURCE_getF1voltage.Location = new System.Drawing.Point(182, 98);
+            this.LBL_IonSOURCE_getF1voltage.Name = "LBL_IonSOURCE_getF1voltage";
+            this.LBL_IonSOURCE_getF1voltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_IonSOURCE_getF1voltage.TabIndex = 3;
+            this.LBL_IonSOURCE_getF1voltage.Text = "?";
+            // 
+            // LBL_IonSOURCE_getIonizationVoltage
+            // 
+            this.LBL_IonSOURCE_getIonizationVoltage.AutoSize = true;
+            this.LBL_IonSOURCE_getIonizationVoltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_IonSOURCE_getIonizationVoltage.Location = new System.Drawing.Point(182, 69);
+            this.LBL_IonSOURCE_getIonizationVoltage.Name = "LBL_IonSOURCE_getIonizationVoltage";
+            this.LBL_IonSOURCE_getIonizationVoltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_IonSOURCE_getIonizationVoltage.TabIndex = 3;
+            this.LBL_IonSOURCE_getIonizationVoltage.Text = "?";
+            // 
+            // LBL_IonSOURCE_getEmissionCurrentVoltage
+            // 
+            this.LBL_IonSOURCE_getEmissionCurrentVoltage.AutoSize = true;
+            this.LBL_IonSOURCE_getEmissionCurrentVoltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_IonSOURCE_getEmissionCurrentVoltage.Location = new System.Drawing.Point(182, 40);
+            this.LBL_IonSOURCE_getEmissionCurrentVoltage.Name = "LBL_IonSOURCE_getEmissionCurrentVoltage";
+            this.LBL_IonSOURCE_getEmissionCurrentVoltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_IonSOURCE_getEmissionCurrentVoltage.TabIndex = 3;
+            this.LBL_IonSOURCE_getEmissionCurrentVoltage.Text = "?";
+            // 
+            // TXB_IonSOURCE_setF2voltage
+            // 
+            this.TXB_IonSOURCE_setF2voltage.Location = new System.Drawing.Point(93, 123);
+            this.TXB_IonSOURCE_setF2voltage.Name = "TXB_IonSOURCE_setF2voltage";
+            this.TXB_IonSOURCE_setF2voltage.Size = new System.Drawing.Size(44, 20);
+            this.TXB_IonSOURCE_setF2voltage.TabIndex = 2;
+            this.TXB_IonSOURCE_setF2voltage.Text = "1500";
+            // 
+            // TXB_IonSOURCE_setF1voltage
+            // 
+            this.TXB_IonSOURCE_setF1voltage.Location = new System.Drawing.Point(93, 95);
+            this.TXB_IonSOURCE_setF1voltage.Name = "TXB_IonSOURCE_setF1voltage";
+            this.TXB_IonSOURCE_setF1voltage.Size = new System.Drawing.Size(44, 20);
+            this.TXB_IonSOURCE_setF1voltage.TabIndex = 2;
+            this.TXB_IonSOURCE_setF1voltage.Text = "2500";
+            // 
+            // TXB_IonSOURCE_setIonizationVoltage
+            // 
+            this.TXB_IonSOURCE_setIonizationVoltage.Location = new System.Drawing.Point(93, 66);
+            this.TXB_IonSOURCE_setIonizationVoltage.Name = "TXB_IonSOURCE_setIonizationVoltage";
+            this.TXB_IonSOURCE_setIonizationVoltage.Size = new System.Drawing.Size(44, 20);
+            this.TXB_IonSOURCE_setIonizationVoltage.TabIndex = 2;
+            this.TXB_IonSOURCE_setIonizationVoltage.Text = "3000";
+            // 
+            // TXB_IonSOURCE_setEmissionCurrentVoltage
+            // 
+            this.TXB_IonSOURCE_setEmissionCurrentVoltage.Location = new System.Drawing.Point(93, 37);
+            this.TXB_IonSOURCE_setEmissionCurrentVoltage.Name = "TXB_IonSOURCE_setEmissionCurrentVoltage";
+            this.TXB_IonSOURCE_setEmissionCurrentVoltage.Size = new System.Drawing.Size(44, 20);
+            this.TXB_IonSOURCE_setEmissionCurrentVoltage.TabIndex = 2;
+            this.TXB_IonSOURCE_setEmissionCurrentVoltage.Text = "3500";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(6, 16);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(108, 13);
+            this.label12.TabIndex = 1;
+            this.label12.Text = "Задать напряжения";
+            // 
+            // BTN_IonSOURCE_setF2voltage
+            // 
+            this.BTN_IonSOURCE_setF2voltage.Location = new System.Drawing.Point(6, 121);
+            this.BTN_IonSOURCE_setF2voltage.Name = "BTN_IonSOURCE_setF2voltage";
+            this.BTN_IonSOURCE_setF2voltage.Size = new System.Drawing.Size(82, 23);
+            this.BTN_IonSOURCE_setF2voltage.TabIndex = 0;
+            this.BTN_IonSOURCE_setF2voltage.Text = "Фокусное 2";
+            this.BTN_IonSOURCE_setF2voltage.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_setF2voltage.Click += new System.EventHandler(this.BTN_IonSOURCE_setF2voltage_Click);
+            // 
+            // BTN_IonSOURCE_setF1voltage
+            // 
+            this.BTN_IonSOURCE_setF1voltage.Location = new System.Drawing.Point(6, 93);
+            this.BTN_IonSOURCE_setF1voltage.Name = "BTN_IonSOURCE_setF1voltage";
+            this.BTN_IonSOURCE_setF1voltage.Size = new System.Drawing.Size(82, 23);
+            this.BTN_IonSOURCE_setF1voltage.TabIndex = 0;
+            this.BTN_IonSOURCE_setF1voltage.Text = "Фокусное 1";
+            this.BTN_IonSOURCE_setF1voltage.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_setF1voltage.Click += new System.EventHandler(this.BTN_IonSOURCE_setF1voltage_Click);
+            // 
+            // BTN_IonSOURCE_setIonizationVoltage
+            // 
+            this.BTN_IonSOURCE_setIonizationVoltage.Location = new System.Drawing.Point(6, 64);
+            this.BTN_IonSOURCE_setIonizationVoltage.Name = "BTN_IonSOURCE_setIonizationVoltage";
+            this.BTN_IonSOURCE_setIonizationVoltage.Size = new System.Drawing.Size(82, 23);
+            this.BTN_IonSOURCE_setIonizationVoltage.TabIndex = 0;
+            this.BTN_IonSOURCE_setIonizationVoltage.Text = "Ионизации";
+            this.BTN_IonSOURCE_setIonizationVoltage.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_setIonizationVoltage.Click += new System.EventHandler(this.BTN_IonSOURCE_setIonizationVoltage_Click);
+            // 
+            // BTN_IonSOURCE_getF2voltage
+            // 
+            this.BTN_IonSOURCE_getF2voltage.Location = new System.Drawing.Point(143, 121);
+            this.BTN_IonSOURCE_getF2voltage.Name = "BTN_IonSOURCE_getF2voltage";
+            this.BTN_IonSOURCE_getF2voltage.Size = new System.Drawing.Size(33, 23);
+            this.BTN_IonSOURCE_getF2voltage.TabIndex = 0;
+            this.BTN_IonSOURCE_getF2voltage.Text = "->";
+            this.BTN_IonSOURCE_getF2voltage.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_getF2voltage.Click += new System.EventHandler(this.BTN_IonSOURCE_getF2voltage_Click);
+            // 
+            // BTN_IonSOURCE_getF1voltage
+            // 
+            this.BTN_IonSOURCE_getF1voltage.Location = new System.Drawing.Point(143, 93);
+            this.BTN_IonSOURCE_getF1voltage.Name = "BTN_IonSOURCE_getF1voltage";
+            this.BTN_IonSOURCE_getF1voltage.Size = new System.Drawing.Size(33, 23);
+            this.BTN_IonSOURCE_getF1voltage.TabIndex = 0;
+            this.BTN_IonSOURCE_getF1voltage.Text = "->";
+            this.BTN_IonSOURCE_getF1voltage.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_getF1voltage.Click += new System.EventHandler(this.BTN_IonSOURCE_getF1voltage_Click);
+            // 
+            // BTN_IonSOURCE_getIonizationVoltage
+            // 
+            this.BTN_IonSOURCE_getIonizationVoltage.Location = new System.Drawing.Point(143, 64);
+            this.BTN_IonSOURCE_getIonizationVoltage.Name = "BTN_IonSOURCE_getIonizationVoltage";
+            this.BTN_IonSOURCE_getIonizationVoltage.Size = new System.Drawing.Size(33, 23);
+            this.BTN_IonSOURCE_getIonizationVoltage.TabIndex = 0;
+            this.BTN_IonSOURCE_getIonizationVoltage.Text = "->";
+            this.BTN_IonSOURCE_getIonizationVoltage.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_getIonizationVoltage.Click += new System.EventHandler(this.BTN_IonSOURCE_getIonizationVoltage_Click);
+            // 
+            // BTN_IonSOURCE_getEmissionCurrentVoltage
+            // 
+            this.BTN_IonSOURCE_getEmissionCurrentVoltage.Location = new System.Drawing.Point(143, 35);
+            this.BTN_IonSOURCE_getEmissionCurrentVoltage.Name = "BTN_IonSOURCE_getEmissionCurrentVoltage";
+            this.BTN_IonSOURCE_getEmissionCurrentVoltage.Size = new System.Drawing.Size(33, 23);
+            this.BTN_IonSOURCE_getEmissionCurrentVoltage.TabIndex = 0;
+            this.BTN_IonSOURCE_getEmissionCurrentVoltage.Text = "->";
+            this.BTN_IonSOURCE_getEmissionCurrentVoltage.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_getEmissionCurrentVoltage.Click += new System.EventHandler(this.BTN_IonSOURCE_getEmissionCurrentVoltage_Click);
+            // 
+            // BTN_IonSOURCE_setEmissionCurrentVoltage
+            // 
+            this.BTN_IonSOURCE_setEmissionCurrentVoltage.Location = new System.Drawing.Point(6, 35);
+            this.BTN_IonSOURCE_setEmissionCurrentVoltage.Name = "BTN_IonSOURCE_setEmissionCurrentVoltage";
+            this.BTN_IonSOURCE_setEmissionCurrentVoltage.Size = new System.Drawing.Size(82, 23);
+            this.BTN_IonSOURCE_setEmissionCurrentVoltage.TabIndex = 0;
+            this.BTN_IonSOURCE_setEmissionCurrentVoltage.Text = "Эмиссии";
+            this.BTN_IonSOURCE_setEmissionCurrentVoltage.UseVisualStyleBackColor = true;
+            this.BTN_IonSOURCE_setEmissionCurrentVoltage.Click += new System.EventHandler(this.BTN_IonSOURCE_setEmissionCurrentVoltage_Click);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Location = new System.Drawing.Point(258, 260);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(166, 24);
+            this.groupBox1.TabIndex = 5;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Сканер";
+            // 
+            // GPB_CONDER
+            // 
+            this.GPB_CONDER.Location = new System.Drawing.Point(258, 289);
+            this.GPB_CONDER.Name = "GPB_CONDER";
+            this.GPB_CONDER.Size = new System.Drawing.Size(166, 21);
+            this.GPB_CONDER.TabIndex = 5;
+            this.GPB_CONDER.TabStop = false;
+            this.GPB_CONDER.Text = "Конденсатор";
+            // 
+            // GPB_Heater
+            // 
+            this.GPB_Heater.Controls.Add(this.BTN_HEATER_setVoltage);
+            this.GPB_Heater.Controls.Add(this.CHB_HEATER_x2);
+            this.GPB_Heater.Controls.Add(this.BTN_HEATER_reset);
+            this.GPB_Heater.Controls.Add(this.LBL_HEATER_getVoltage);
+            this.GPB_Heater.Controls.Add(this.TXB_HEATER_setVoltage);
+            this.GPB_Heater.Controls.Add(this._BTN_HEATER_getVoltage);
+            this.GPB_Heater.Location = new System.Drawing.Point(3, 159);
+            this.GPB_Heater.Name = "GPB_Heater";
+            this.GPB_Heater.Size = new System.Drawing.Size(240, 76);
+            this.GPB_Heater.TabIndex = 4;
+            this.GPB_Heater.TabStop = false;
+            this.GPB_Heater.Text = "Нагреватель";
+            // 
+            // BTN_HEATER_setVoltage
+            // 
+            this.BTN_HEATER_setVoltage.Location = new System.Drawing.Point(6, 19);
+            this.BTN_HEATER_setVoltage.Name = "BTN_HEATER_setVoltage";
+            this.BTN_HEATER_setVoltage.Size = new System.Drawing.Size(118, 23);
+            this.BTN_HEATER_setVoltage.TabIndex = 0;
+            this.BTN_HEATER_setVoltage.Text = "Задать напряжение";
+            this.BTN_HEATER_setVoltage.UseVisualStyleBackColor = true;
+            this.BTN_HEATER_setVoltage.Click += new System.EventHandler(this.BTN_HEATER_setVoltage_Click);
+            // 
+            // CHB_HEATER_x2
+            // 
+            this.CHB_HEATER_x2.AutoSize = true;
+            this.CHB_HEATER_x2.Location = new System.Drawing.Point(194, 52);
+            this.CHB_HEATER_x2.Name = "CHB_HEATER_x2";
+            this.CHB_HEATER_x2.Size = new System.Drawing.Size(37, 17);
+            this.CHB_HEATER_x2.TabIndex = 1;
+            this.CHB_HEATER_x2.Text = "x2";
+            this.CHB_HEATER_x2.UseVisualStyleBackColor = true;
+            // 
+            // BTN_HEATER_reset
+            // 
+            this.BTN_HEATER_reset.Location = new System.Drawing.Point(180, 19);
+            this.BTN_HEATER_reset.Name = "BTN_HEATER_reset";
+            this.BTN_HEATER_reset.Size = new System.Drawing.Size(51, 23);
+            this.BTN_HEATER_reset.TabIndex = 0;
+            this.BTN_HEATER_reset.Text = "Сброс";
+            this.BTN_HEATER_reset.UseVisualStyleBackColor = true;
+            this.BTN_HEATER_reset.Click += new System.EventHandler(this.BTN_HEATER_reset_Click);
+            // 
+            // LBL_HEATER_getVoltage
+            // 
+            this.LBL_HEATER_getVoltage.AutoSize = true;
+            this.LBL_HEATER_getVoltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_HEATER_getVoltage.Location = new System.Drawing.Point(130, 53);
+            this.LBL_HEATER_getVoltage.Name = "LBL_HEATER_getVoltage";
+            this.LBL_HEATER_getVoltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_HEATER_getVoltage.TabIndex = 3;
+            this.LBL_HEATER_getVoltage.Text = "?";
+            // 
+            // TXB_HEATER_setVoltage
+            // 
+            this.TXB_HEATER_setVoltage.Location = new System.Drawing.Point(133, 21);
+            this.TXB_HEATER_setVoltage.Name = "TXB_HEATER_setVoltage";
+            this.TXB_HEATER_setVoltage.Size = new System.Drawing.Size(41, 20);
+            this.TXB_HEATER_setVoltage.TabIndex = 2;
+            this.TXB_HEATER_setVoltage.Text = "2000";
+            // 
+            // _BTN_HEATER_getVoltage
+            // 
+            this._BTN_HEATER_getVoltage.Location = new System.Drawing.Point(6, 48);
+            this._BTN_HEATER_getVoltage.Name = "_BTN_HEATER_getVoltage";
+            this._BTN_HEATER_getVoltage.Size = new System.Drawing.Size(118, 23);
+            this._BTN_HEATER_getVoltage.TabIndex = 0;
+            this._BTN_HEATER_getVoltage.Text = "Снять напряжение";
+            this._BTN_HEATER_getVoltage.UseVisualStyleBackColor = true;
+            this._BTN_HEATER_getVoltage.Click += new System.EventHandler(this._BTN_HEATER_getVoltage_Click);
+            // 
+            // GPB_Inlet
+            // 
+            this.GPB_Inlet.Controls.Add(this.BTN_INLET_setVoltage);
+            this.GPB_Inlet.Controls.Add(this.CHB_INLET_x2);
+            this.GPB_Inlet.Controls.Add(this.BTN_INLET_reset);
+            this.GPB_Inlet.Controls.Add(this.LBL_INLET_getVoltage);
+            this.GPB_Inlet.Controls.Add(this.TXB_INLET_setVoltage);
+            this.GPB_Inlet.Controls.Add(this.BTN_INLET_getVoltage);
+            this.GPB_Inlet.Location = new System.Drawing.Point(3, 241);
+            this.GPB_Inlet.Name = "GPB_Inlet";
+            this.GPB_Inlet.Size = new System.Drawing.Size(240, 76);
+            this.GPB_Inlet.TabIndex = 4;
+            this.GPB_Inlet.TabStop = false;
+            this.GPB_Inlet.Text = "Натекатель";
+            // 
+            // BTN_INLET_setVoltage
+            // 
+            this.BTN_INLET_setVoltage.Location = new System.Drawing.Point(6, 19);
+            this.BTN_INLET_setVoltage.Name = "BTN_INLET_setVoltage";
+            this.BTN_INLET_setVoltage.Size = new System.Drawing.Size(118, 23);
+            this.BTN_INLET_setVoltage.TabIndex = 0;
+            this.BTN_INLET_setVoltage.Text = "Задать напряжение";
+            this.BTN_INLET_setVoltage.UseVisualStyleBackColor = true;
+            this.BTN_INLET_setVoltage.Click += new System.EventHandler(this.BTN_INLET_setVoltage_Click);
+            // 
+            // CHB_INLET_x2
+            // 
+            this.CHB_INLET_x2.AutoSize = true;
+            this.CHB_INLET_x2.Location = new System.Drawing.Point(194, 52);
+            this.CHB_INLET_x2.Name = "CHB_INLET_x2";
+            this.CHB_INLET_x2.Size = new System.Drawing.Size(37, 17);
+            this.CHB_INLET_x2.TabIndex = 1;
+            this.CHB_INLET_x2.Text = "x2";
+            this.CHB_INLET_x2.UseVisualStyleBackColor = true;
+            // 
+            // BTN_INLET_reset
+            // 
+            this.BTN_INLET_reset.Location = new System.Drawing.Point(180, 18);
+            this.BTN_INLET_reset.Name = "BTN_INLET_reset";
+            this.BTN_INLET_reset.Size = new System.Drawing.Size(51, 23);
+            this.BTN_INLET_reset.TabIndex = 0;
+            this.BTN_INLET_reset.Text = "Сброс";
+            this.BTN_INLET_reset.UseVisualStyleBackColor = true;
+            this.BTN_INLET_reset.Click += new System.EventHandler(this.BTN_INLET_reset_Click);
+            // 
+            // LBL_INLET_getVoltage
+            // 
+            this.LBL_INLET_getVoltage.AutoSize = true;
+            this.LBL_INLET_getVoltage.ForeColor = System.Drawing.Color.Red;
+            this.LBL_INLET_getVoltage.Location = new System.Drawing.Point(130, 53);
+            this.LBL_INLET_getVoltage.Name = "LBL_INLET_getVoltage";
+            this.LBL_INLET_getVoltage.Size = new System.Drawing.Size(13, 13);
+            this.LBL_INLET_getVoltage.TabIndex = 3;
+            this.LBL_INLET_getVoltage.Text = "?";
+            // 
+            // TXB_INLET_setVoltage
+            // 
+            this.TXB_INLET_setVoltage.Location = new System.Drawing.Point(133, 21);
+            this.TXB_INLET_setVoltage.Name = "TXB_INLET_setVoltage";
+            this.TXB_INLET_setVoltage.Size = new System.Drawing.Size(41, 20);
+            this.TXB_INLET_setVoltage.TabIndex = 2;
+            this.TXB_INLET_setVoltage.Text = "1000";
+            // 
+            // BTN_INLET_getVoltage
+            // 
+            this.BTN_INLET_getVoltage.Location = new System.Drawing.Point(6, 48);
+            this.BTN_INLET_getVoltage.Name = "BTN_INLET_getVoltage";
+            this.BTN_INLET_getVoltage.Size = new System.Drawing.Size(118, 23);
+            this.BTN_INLET_getVoltage.TabIndex = 0;
+            this.BTN_INLET_getVoltage.Text = "Снять напряжение";
+            this.BTN_INLET_getVoltage.UseVisualStyleBackColor = true;
+            this.BTN_INLET_getVoltage.Click += new System.EventHandler(this.BTN_INLET_getVoltage_Click);
+            // 
             // CLK_timer
             // 
             this.CLK_timer.Tick += new System.EventHandler(this.CLK_timer_Tick);
@@ -890,16 +1570,6 @@
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(253, 34);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(74, 31);
-            this.button2.TabIndex = 15;
-            this.button2.Text = "button2";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -927,6 +1597,15 @@
             this.GRB_MC.ResumeLayout(false);
             this.GRB_MC.PerformLayout();
             this.TABpanel3.ResumeLayout(false);
+            this.TABpanel_4.ResumeLayout(false);
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
+            this.GPB_Heater.ResumeLayout(false);
+            this.GPB_Heater.PerformLayout();
+            this.GPB_Inlet.ResumeLayout(false);
+            this.GPB_Inlet.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1007,6 +1686,64 @@
         private System.Windows.Forms.TabPage TABpanel3;
         private System.Windows.Forms.Button BTN_TIC;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TabPage TABpanel_4;
+        private System.Windows.Forms.GroupBox GPB_Inlet;
+        private System.Windows.Forms.Button BTN_INLET_setVoltage;
+        private System.Windows.Forms.Label LBL_INLET_getVoltage;
+        private System.Windows.Forms.Button BTN_INLET_reset;
+        private System.Windows.Forms.TextBox TXB_INLET_setVoltage;
+        private System.Windows.Forms.Button BTN_INLET_getVoltage;
+        private System.Windows.Forms.CheckBox CHB_INLET_x2;
+        private System.Windows.Forms.GroupBox GPB_Heater;
+        private System.Windows.Forms.Button BTN_HEATER_setVoltage;
+        private System.Windows.Forms.CheckBox CHB_HEATER_x2;
+        private System.Windows.Forms.Button BTN_HEATER_reset;
+        private System.Windows.Forms.Label LBL_HEATER_getVoltage;
+        private System.Windows.Forms.TextBox TXB_HEATER_setVoltage;
+        private System.Windows.Forms.Button _BTN_HEATER_getVoltage;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox GPB_CONDER;
+        private System.Windows.Forms.TextBox TXB_IonSOURCE_setEmissionCurrentVoltage;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Button BTN_IonSOURCE_setF2voltage;
+        private System.Windows.Forms.Button BTN_IonSOURCE_setF1voltage;
+        private System.Windows.Forms.Button BTN_IonSOURCE_setIonizationVoltage;
+        private System.Windows.Forms.Button BTN_IonSOURCE_setEmissionCurrentVoltage;
+        private System.Windows.Forms.CheckBox CHB_IonSOURCE_x2;
+        private System.Windows.Forms.Label LBL_IonSOURCE_getF2voltage;
+        private System.Windows.Forms.Label LBL_IonSOURCE_getF1voltage;
+        private System.Windows.Forms.Label LBL_IonSOURCE_getIonizationVoltage;
+        private System.Windows.Forms.Label LBL_IonSOURCE_getEmissionCurrentVoltage;
+        private System.Windows.Forms.TextBox TXB_IonSOURCE_setF2voltage;
+        private System.Windows.Forms.TextBox TXB_IonSOURCE_setF1voltage;
+        private System.Windows.Forms.TextBox TXB_IonSOURCE_setIonizationVoltage;
+        private System.Windows.Forms.Button BTN_IonSOURCE_getF2voltage;
+        private System.Windows.Forms.Button BTN_IonSOURCE_getF1voltage;
+        private System.Windows.Forms.Button BTN_IonSOURCE_getIonizationVoltage;
+        private System.Windows.Forms.Button BTN_IonSOURCE_getEmissionCurrentVoltage;
+        private System.Windows.Forms.Button BTN_IonSOURCE_reset;
+        private System.Windows.Forms.Button BTN_DETECTOR_reset;
+        private System.Windows.Forms.Button BTN_DETECTOR_getDV3voltage;
+        private System.Windows.Forms.CheckBox CHB_DETECTOR_x2;
+        private System.Windows.Forms.Button BTN_DETECTOR_getDV2voltage;
+        private System.Windows.Forms.Button BTN_DETECTOR_getDV1voltage;
+        private System.Windows.Forms.TextBox TXB_DETECTOR_setDV3voltage;
+        private System.Windows.Forms.TextBox TXB_DETECTOR_setDV2voltage;
+        private System.Windows.Forms.Label LBL_DETECTOR_getDV3voltage;
+        private System.Windows.Forms.Label LBL_DETECTOR_getDV2voltage;
+        private System.Windows.Forms.Label LBL_DETECTOR_getDV1voltage;
+        private System.Windows.Forms.TextBox TXB_DETECTOR_setDV1voltage;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button BTN_DETECTOR_setDV3voltage;
+        private System.Windows.Forms.Button BTN_DETECTOR_setDV2voltage;
+        private System.Windows.Forms.Button BTN_DETECTOR_setDV1voltage;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Button BTN_DETECTOR_EM3;
+        private System.Windows.Forms.Button BTN_DETECTOR_EM2;
+        private System.Windows.Forms.Button BTN_EM1;
     }
 }
 
