@@ -41,7 +41,7 @@ namespace Xmega32A4U_testBoard
 
             MC.setUSART(COM_Port);
             MC.setTracer(Log);
-
+            
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
         }
@@ -187,7 +187,8 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_SPI_DAC_send_Click(object sender, EventArgs e)
         {
-            if(MC.DAC.setVoltage(TXB_DAC_channel.Text, TXB_DAC_voltage.Text))
+            //if(MC.DAC.setVoltage(TXB_DAC_channel.Text, TXB_DAC_voltage.Text))
+            if (MC.DDD.setVoltage(TXB_DAC_channel.Text, TXB_DAC_voltage.Text))
             {
             trace(true, "На канал "+ TXB_DAC_channel.Text+" выставлено напряжение: " + TXB_DAC_voltage.Text);
             }
@@ -198,12 +199,15 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_SPI_ADC_request_Click(object sender, EventArgs e)
         {
-            MC.ADC.DoubleRange = CHB_ADC_DoubleRange.Checked;
-            trace(true, "Напряжение на канале "+TXB_ADC_channel.Text+" : " + MC.ADC.getVoltage(TXB_ADC_channel.Text));
+            //MC.ADC.DoubledRange = CHB_ADC_DoubleRange.Checked;
+            MC.DDD.DoubleRange = CHB_ADC_DoubleRange.Checked;
+            //trace(true, "Напряжение на канале "+TXB_ADC_channel.Text+" : " + MC.ADC.getVoltage(TXB_ADC_channel.Text));
+            trace(true, "Напряжение на натекателе " + TXB_ADC_channel.Text + " : " + MC.DDD.getVoltage(TXB_ADC_channel.Text));
         }
         private void BTN_DAC_reset_Click(object sender, EventArgs e)
         {
-            if (MC.DAC.reset())
+            //if (MC.DAC.reset())
+            if (MC.DDD.reset())
             {
                 trace(true, "DAC сброшен!");
             }
@@ -230,7 +234,7 @@ namespace Xmega32A4U_testBoard
                 trace(true,"ОШИБКА! Неверный интервал!");
                 return;
             }
-            if (MC.COA.start())
+            if (MC.COUNTERS.startMeasure())
             {
                 trace(true,"COA начал счёт...");
                 PGB_COA_progress.Value = 0;
@@ -245,27 +249,12 @@ namespace Xmega32A4U_testBoard
         private void BTN_reqCount_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Проверям счётчик МК, если сосчитал, то принимаем результат
-            UInt32[] Result = MC.COA.getResult();
-            switch(Result[0])
+            string Counters_status = MC.COUNTERS.getResults();
+            trace(true, "Состояние счётчиков: " + Counters_status);
+            if(Counters_status == "Ready")
             {
-                case 0:
-                    //Счётчик готов (ОН НЕ СЧИТАЛ!)
-                    trace(true,"Счётчик готов к работе.");
-                    break;
-                case 1:
-                    //Счётчик был принудительно остановлен!
-                    trace(true,"Счётчик был принудительно остановлен!");
-                    return;
-                case 2:
-                    //Счётчик успешно завершил счёт, без переполнения
-                    trace(true,"Счётчик ещё считает!");
-                    return;
-                default:
-                    //Счётчик переполнился <state> раз
-                    trace(true, "Счётчик был переполнен! Количество переполнений: " + (Result[0] - 2).ToString());
-                    break;
+            trace(true, "   Счёт: " + MC.COUNTERS.COA_Result);
             }
-            trace(true, "   Счёт: " + Result[1]);
         }
         private void BTN_setInterval_Click(object sender, EventArgs e)
         {
@@ -297,13 +286,13 @@ namespace Xmega32A4U_testBoard
                 trace(true, "ОШИБКА! Неверное количество измерений!");
                 return;
             }
-            if (MC.COA.setMeasureTime(TXB_COA_measureTime.Text))
+            if (MC.COUNTERS.setMeasureTime(TXB_COA_measureTime.Text))
             {
-                trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.RTC.get_Ticks(TXB_COA_measureTime.Text, MC.RTC.get_Prescaler(TXB_COA_measureTime.Text)) + " тиков)");
+                trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.COUNTERS.get_Ticks(TXB_COA_measureTime.Text, MC.COUNTERS.get_Prescaler(TXB_COA_measureTime.Text)) + " тиков)");
             }
             else
             {
-                trace(true, "!");
+                trace(true, "Счётчик ещё считает!");
             }
             /*if (MC.COA.setMeasureDelay(TXB_COA_delay.Text))
             {
@@ -316,7 +305,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_stopCounter_Click(object sender, EventArgs e)
         {
-            if (MC.COA.stop())
+            if (MC.COUNTERS.stopMeasure())
             {
                 trace(true, "Счётчик был успешно остановлен!");
                 CLK_COA.Enabled = false;
@@ -398,11 +387,11 @@ namespace Xmega32A4U_testBoard
             }
             LBL_COA_ticks.Text = "";
             //LBL_COA_ticks.Text += "(";
-            LBL_COA_ticks.Text += MC.RTC.get_Ticks(TXB_COA_measureTime.Text, MC.RTC.get_Prescaler(TXB_COA_measureTime.Text)).ToString();
+            LBL_COA_ticks.Text += MC.COUNTERS.get_Ticks(TXB_COA_measureTime.Text, MC.COUNTERS.get_Prescaler(TXB_COA_measureTime.Text)).ToString();
             //LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
             //LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
-            LBL_COA_frequency.Text = MC.RTC.get_Freqency().ToString();
-            LBL_COA_prescaler.Text = MC.RTC.get_Prescaler(TXB_COA_measureTime.Text).ToString();
+            LBL_COA_frequency.Text = MC.COUNTERS.getRTCfreqency().ToString();
+            LBL_COA_prescaler.Text = MC.COUNTERS.get_Prescaler(TXB_COA_measureTime.Text).ToString();
         }
 
         private void CHB_enableSuperTracer_CheckedChanged(object sender, EventArgs e)
@@ -462,19 +451,19 @@ namespace Xmega32A4U_testBoard
 
         private void WATCHER_Counters_Tick(object sender, EventArgs e)
         {
-            byte COA_Status = MC.COA.getStatus();
-            switch (COA_Status)
+            
+            switch (MC.COUNTERS.getStatus())
             {
-                case 0: LBL_COA_status.Text = "Готов";
+                case "Ready": LBL_COA_status.Text = "Готов";
                     LBL_COA_status.ForeColor = System.Drawing.Color.Green;
                     break;
-                case 1: LBL_COA_status.Text = "Остановлен";
+                case "Stopped": LBL_COA_status.Text = "Остановлен";
                     LBL_COA_status.ForeColor = System.Drawing.Color.Orange;
                     break;
-                case 2: LBL_COA_status.Text = "Считает";
+                case "Busy": LBL_COA_status.Text = "Считает";
                     LBL_COA_status.ForeColor = System.Drawing.Color.Orange;
                     break;
-                default: LBL_COA_status.Text = "Переполнен " + COA_Status;
+                default: LBL_COA_status.Text = "Ошибка состояния!";
                     LBL_COA_status.ForeColor = System.Drawing.Color.Red;
                     break;
             }
@@ -497,7 +486,7 @@ namespace Xmega32A4U_testBoard
                 trace(true, error);
             }
         }
-
+        
 
         
     }
