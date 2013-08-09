@@ -31,10 +31,11 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 24
-#define birthday 20130808
+#define version 25
+#define birthday 20130809
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
+#define usartRX_delay 2										//Задержка приёма данных иначе разобьём команду на части
 //Счётчики
 #define RTC_Status_ready							0		//Счётчик готов к работе
 #define RTC_Status_stopped							1		//Счётчик был принудительно остановлен
@@ -67,8 +68,9 @@ uint8_t MC_MEM[] = {0,0,0,0,0,0,0,0,0};		//Восемь байт для всяких операций (вклю
 uint8_t USART_rDATA = 0;					//Последний принятый байт по USART
 uint8_t USART_nextByteIsData_count = 0;
 bool	USART_recieving = false;			//Можно пристыковать для экономии памяти к USART_MEM_length
-uint8_t USART_MEM[] = {0,0,0,0,0,0,0,0,0,0};
+uint8_t USART_MEM[10];						//10 байт памяти для приёма данных USART
 uint8_t USART_MEM_length = 0;
+uint8_t TR_COUNT = 0;
 //		SPI
 uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
 //		Измерения
@@ -101,7 +103,7 @@ struct spi_device ADC = {
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 void showMeByte(uint8_t LED_BYTE);
 
-bool checkCommand(uint8_t data[], uint8_t data_length);
+void checkCommand(uint8_t data[], uint8_t data_length);
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
 void transmit(uint8_t DATA[],uint8_t DATA_length);
 void transmit_byte(uint8_t DATA);
@@ -138,45 +140,165 @@ ISR(USARTE0_RXC_vect)
 {
 	//ПРЕРЫВАНИЕ: Пришёл байт данных по порту USART от компьютера
 	//ФУНКЦИЯ: Дешифрирование байта как команду или данные, выполнение предписанных действий
-	USART_rDATA = usart_getchar(USART_COMP);		//Получаем наш байт
-	if (USART_recieving)
+	//Принимаем байт
+	USART_MEM[USART_MEM_length] = usart_get(USART_COMP);
+	USART_MEM_length++;
+	//задержимя иначе сразу начнём интерпретировать недослушав оставшиеся байты (флаг RXIF сбрасывается после приёма)
+	delay_us(usartRX_delay);
+	//Есть ли RXIF? Есть ли данные на приём?
+	if ((*USART_COMP.STATUS >> 7) == 0)
 	{
-		//если мы уже получаем байты, то проверяем байт на закрытие передачи
-		if (USART_rDATA != COMMAND_LOCK)
+		//TR_COUNT++;	//тестовое, для учёта количества выполненных команд
+		//showMeByte(TR_COUNT);
+		//НЕТ! Данные закончились! Значит можно интерпретировать... Но сначала "орфография"...
+		//А пришёл ли ключ?
+		if(USART_MEM[0] == COMMAND_KEY)
 		{
-			//Передача не закрыта, продолжаем получать байты
-			USART_MEM[USART_MEM_length] = USART_rDATA;
-			USART_MEM_length++;
-		} 
-		else
-		{
-			//showMeByte(127);
-			//Пришёл затвор! Закрываем получение байтов, дешифрируем команду
-			if (checkCommand(USART_MEM,USART_MEM_length))
+			//Всё в порядке ключ есть, а есть ли замок?
+			if (USART_MEM[USART_MEM_length - 1] == COMMAND_LOCK)
 			{
-				Decode(USART_MEM);
+				//всё оk! Замок есть, а верна ли контрольная сумма?
+				uint8_t CheckSum = 0;
+				for (uint8_t i = 1; i < USART_MEM_length - 2; i++)
+				{
+					CheckSum -= USART_MEM[i];
+				}
+				
+				if (CheckSum == USART_MEM[USART_MEM_length - 2])
+				{
+					//всё супер, команда оформлена по протоколу, теперь её нужно переформатировать её (убрать ключ, замок и кс)
+					uint8_t command[USART_MEM_length - 2];
+					for (uint8_t i = 1; i < USART_MEM_length - 2; i++)
+					{
+						command[i-1] = USART_MEM[i];
+					}
+					TR_COUNT++;	//тестовое, для учёта количества выполненных команд
+					showMeByte(TR_COUNT);
+// 					for (uint8_t i = 0; i < USART_MEM_length -3; i++)
+// 					{
+// 						usart_putchar(USART_COMP,command[i]);							//<data>
+// 						delay_us(usartCOMP_delay);
+// 					}
+					Decode(command);
+				}
+				else
+				{
+					//ОШИБКА! НЕВЕРНАЯ КОНТРОЛЬНАЯ СУММА!
+					transmit_3bytes(ERROR_Token, ERROR_CheckSum, USART_MEM[USART_MEM_length - 2]);
+				}
 			}
 			else
 			{
-				//Надо послать ошибку
-				//FATAL_ERROR;
-				uint8_t data[] = {ERROR_Token, ERROR_Decoder, USART_MEM[0]};
-				transmit(data,3);
+				//ОШИБКА! ГДЕ ЗАМОК?
+				transmit_3bytes(ERROR_Token, ERROR_WhereIsLOCK,USART_MEM[USART_MEM_length - 1]);
 			}
-			
-			USART_recieving = false;
-			USART_MEM_length = 0;
+		}
+		else
+		{
+			//ОШИБКА! ГДЕ КЛЮЧ?
+			transmit_3bytes(ERROR_Token, ERROR_WhereIsKEY, USART_MEM[0]);
+		}
+		USART_MEM_length = 0;
+	}	
+	
+	//for (uint8_t i = 0; i < USART_MEM_length; i++)
+	//{
+	//	usart_putchar(USART_COMP,USART_MEM[i]);							//<data>
+	//	delay_us(usartCOMP_delay);
+	//}
+	
+	
+	//Проверяем команду на вшивость
+	/*if(USART_MEM[0] == COMMAND_KEY)
+	{
+		//Всё в порядке ключ есть, а есть ли замок?
+		if (USART_MEM[USART_MEM_length - 1] == COMMAND_LOCK)
+		{
+			//всё оk! Замок есть, а верна ли контрольная сумма?
+			uint8_t CheckSum = 0;
+			for (uint8_t i = 1; i < USART_MEM_length - 2; i++)
+			{
+				CheckSum -= USART_MEM[i];
+			}
+			if (CheckSum == USART_MEM[USART_MEM_length - 2])
+			{
+				//всё супер, команда оформлена по протоколу, теперь её нужно переформатировать её (убрать ключ, замок и кс)
+				uint8_t command[USART_MEM_length - 3];
+				for (uint8_t i = 0; i < USART_MEM_length - 3; i++)
+				{
+					command[i] = USART_MEM[i+1];
+				}
+				
+				for (uint8_t i = 0; i < USART_MEM_length-3; i++)
+				{
+					usart_putchar(USART_COMP,command[i]);							//<data>
+					delay_us(usartCOMP_delay);
+				}
+				//Decode(USART_MEM);
+			}
+			else
+			{
+				//ОШИБКА! НЕВЕРНАЯ КОНТРОЛЬНАЯ СУММА!
+				transmit_3bytes(ERROR_Token, ERROR_CheckSum, USART_MEM[USART_MEM_length - 2]);
+			}
+		}
+		else
+		{
+			//ОШИБКА! ГДЕ ЗАМОК?
+			transmit_3bytes(ERROR_Token, ERROR_WhereIsLOCK,USART_MEM[USART_MEM_length - 1]);
+		}
+		for (uint8_t i = 0; i < USART_MEM_length-1; i++)
+		{
+			usart_putchar(USART_COMP,USART_MEM[i]);							//<data>
+			delay_us(usartCOMP_delay);
 		}
 	}
 	else
 	{
-		//если мы не получали байты, то проверяем регистр на ключ
-		if (USART_rDATA == COMMAND_KEY)
-		{
-			//Пришёл ключ! Отпираем получение данных
-			USART_recieving = true;
-		}
-	}
+		//ОШИБКА! ГДЕ КЛЮЧ?
+		transmit_3bytes(ERROR_Token, ERROR_WhereIsKEY, USART_MEM[0]);
+	}*/
+	//обнуляемся, и готовимся к приёму следующей передачи
+	//USART_MEM_length = 0;
+	//usart_set_rx_interrupt_level(USART_COMP,USART_INT_LVL_MED);
+	
+// 	USART_rDATA = usart_getchar(USART_COMP);		//Получаем наш байт
+// 	if (USART_recieving)
+// 	{
+// 		//если мы уже получаем байты, то проверяем байт на закрытие передачи (<lock> + чистый регистр приёма)
+// 		if ((USART_rDATA == COMMAND_LOCK)&&(usart_rx_is_complete(USART_COMP)))
+// 		{
+// 			//Пришёл затвор! Проверяем контрольную сумму 
+// 			if (checkCommand(USART_MEM,USART_MEM_length))
+// 			{
+// 				//дешифрируем команду
+// 				Decode(USART_MEM);
+// 			}
+// 			else
+// 			{
+// 				//Надо послать ошибку контрольной суммы. Такой команды мы не знаем
+// 				uint8_t data[] = {ERROR_Token, ERROR_CheckSum, USART_MEM[0]};
+// 				transmit(data,3);
+// 			}
+// 			USART_recieving = false;
+// 			USART_MEM_length = 0;
+// 		} 
+// 		else
+// 		{
+// 			//Передача не закрыта, продолжаем получать байты
+// 			USART_MEM[USART_MEM_length] = USART_rDATA;
+// 			USART_MEM_length++;
+// 		}
+// 	}
+// 	else
+// 	{
+// 		//если мы не получали байты, то проверяем регистр на ключ
+// 		if (USART_rDATA == COMMAND_KEY)
+// 		{
+// 			//Пришёл ключ! Отпираем получение данных
+// 			USART_recieving = true;
+// 		}
+// 	}
 }
 ISR(RTC_OVF_vect)
 {
@@ -372,19 +494,22 @@ void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
 	delay_us(usartCOMP_delay);
 	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
-bool checkCommand(uint8_t data[], uint8_t data_length)
+void checkCommand(uint8_t data[], uint8_t data_length)
 {
 	//ФУНКЦИЯ: Сверяет контрольную сумму принятых данных
-	uint8_t CheckSum = 0;
-	for (uint8_t i = 0; i < data_length - 1; i++)
-	{
-		CheckSum -= data[i];
-	}
-	if (CheckSum == data[data_length - 1])
-	{
-		return true;
-	}
-	return false;
+	//Проверяем команду на ключ и замок
+	
+	
+// 	uint8_t CheckSum = 0;
+// 	for (uint8_t i = 0; i < data_length - 1; i++)
+// 	{
+// 		CheckSum -= data[i];
+// 	}
+// 	if (CheckSum == data[data_length - 1])
+// 	{
+// 		return true;
+// 	}
+// 	return false;
 }
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 {
@@ -623,7 +748,7 @@ int main(void)
 		switch (MC_status)
 		{
 			case 1: delay_ms(1000);
-					gpio_toggle_pin(LED_VD1);
+					//gpio_toggle_pin(LED_VD1);
 				break;
 			case 2: //showMeByte(duoByte);
 				break;

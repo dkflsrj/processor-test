@@ -30,9 +30,12 @@ namespace Xmega32A4U_testBoard
         {
             //СТРУКТУРА: Хранилище констант ошибок
             //ПОЯСНЕНИЯ: Ошибка приходит в формате <key><ERROR = 0><ErrorNum><data[]><CS><lock>
-            public const byte Token = 0;    //Есть ошибка
+            public const byte Token =           0;    //Есть ошибка
             //ErrorNums...
-            public const byte DecoderError = 1;       //Такое команды не существует
+            public const byte DecoderError =    1;       //Такое команды не существует
+            public const byte KeyError =        2;       //Не был получен ключ
+            public const byte LockError =       3;       //Не был получен замок
+            public const byte CheckSumError =   4;       //Неверная контрольная сумма
         }
         struct Command
         {
@@ -1113,6 +1116,15 @@ namespace Xmega32A4U_testBoard
                                 {
                                     case Error.DecoderError:
                                         trace("МК СООБЩАЕТ ОБ ОШИБКЕ ДЕКОДЕРА! Неизвестная команда: " + DATA[2]);
+                                        break;
+                                    case Error.KeyError:
+                                        trace("МК СООБЩАЕТ ОБ ОШИБКЕ! НЕ БЫЛ ПОЛУЧЕН КЛЮЧ! Ключ: " + DATA[2]);
+                                        break;
+                                    case Error.LockError:
+                                        trace("МК СООБЩАЕТ ОБ ОШИБКЕ! НЕ БЫЛ ПОЛУЧЕН ЗАМОК! Замок: " + DATA[2]);
+                                        break;
+                                    case Error.CheckSumError:
+                                        trace("МК СООБЩАЕТ ОБ ОШИБКЕ! Неверная контрольная сумма: " + DATA[2]);
                                         break;
                                     default:
                                         trace("МК сообщает о неизвестной ОШИБКЕ № " + DATA[1] + "!");

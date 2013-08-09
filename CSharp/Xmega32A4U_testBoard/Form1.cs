@@ -523,7 +523,8 @@ namespace Xmega32A4U_testBoard
         //-------------------------------Ионный источник--------------------------
         private void BTN_IonSOURCE_setEmissionCurrentVoltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.EC_setVoltage(TXB_IonSOURCE_setEmissionCurrentVoltage.Text);
+            //MC.IonSource.EC_setVoltage(TXB_IonSOURCE_setEmissionCurrentVoltage.Text);
+            MC.DAC.setVoltage((byte)1, Convert.ToUInt16(TXB_IonSOURCE_setEmissionCurrentVoltage.Text));
         }
 
         private void BTN_IonSOURCE_setIonizationVoltage_Click(object sender, EventArgs e)
