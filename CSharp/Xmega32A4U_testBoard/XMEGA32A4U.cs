@@ -25,6 +25,7 @@ namespace Xmega32A4U_testBoard
         static bool         tracer_log_enabled = false;
         static bool         ERROR = false;
         static List<string> ErrorList = new List<string>();
+        static byte CommandStack;
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
@@ -42,22 +43,22 @@ namespace Xmega32A4U_testBoard
             //СТРУКТУРА: Хранилище констант - кодов команд
             public struct MC
             {
-                public const byte get_version =         1;
-                public const byte get_birthday =        2;
-                public const byte get_CPUfreq =         3;
-                public const byte get_status =          20;
-                public const byte reset =               4;
-                public const byte wait =                5;
+                public const byte getVersion =         1;
+                public const byte getBirthday =        2;
+                public const byte getCPUfrequency =    3;
+                public const byte getStatus =          20;
+                public const byte reset =              4;
+                public const byte wait =               5;
                 
             }
             public struct RTC
             {
                 public const byte setMeasureTime =     30;
-                public const byte startMeasure =        31;
+                public const byte startMeasure =       31;
                 public const byte getResult =          32;
-                public const byte stopMeasure =         33;
+                public const byte stopMeasure =        33;
                 public const byte setPrescaler =       34;
-                public const byte getStatus =           35;
+                public const byte getStatus =          35;
             }
             //public struct COUNTER
             //{
@@ -66,21 +67,21 @@ namespace Xmega32A4U_testBoard
             //}
             public struct TIC
             {
-                public const byte transmit = 11;
+                public const byte sendToTIC = 11;
             }
             public struct SPI
             {
-                public const byte DAC_set_voltage = 40;
-                public const byte ADC_get_voltage = 41;
+                public const byte DAC_setVoltage = 40;
+                public const byte ADC_getVoltage = 41;
             }
             public const byte LOCK = 13;
             public const byte KEY = 58;
-
             public struct TEST
             {
-                public const byte showTCD2_CNTl = 6;
-                public const byte showTCD2_CNTh = 7;
+                //public const byte showTCD2_CNTl = 6;
+                //public const byte showTCD2_CNTh = 7;
                 public const byte showMeByte = 10;
+                public const byte checkCommandStack = 8;
             }
         }
         public struct SPI_ADC
@@ -136,7 +137,7 @@ namespace Xmega32A4U_testBoard
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_get_voltage, data);
+                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
                 if (!ERROR)
                 {
@@ -166,7 +167,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_set_voltage, data)[0] == Command.SPI.DAC_set_voltage)
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -204,7 +205,7 @@ namespace Xmega32A4U_testBoard
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                return (transmit(Command.SPI.DAC_set_voltage, data)[0] == Command.SPI.DAC_set_voltage);
+                return (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage);
             }
             public bool setVoltage(string CHANNEL, string VOLTAGE)
             {
@@ -253,8 +254,6 @@ namespace Xmega32A4U_testBoard
             byte prescaler; //1,2,3(8),4(16),5(64),6(256),7(1024)
             ushort prescaler_long;
 
-            
-            
             bool setPrescaler(ushort PRESCALER)
             {
                 switch (PRESCALER)
@@ -317,7 +316,7 @@ namespace Xmega32A4U_testBoard
                 }
                 return prescaler_long;
             }
-                public ushort get_Prescaler(string MILLISECONDS)
+                public ushort getRTCPrescaler(string MILLISECONDS)
             {
                 return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
             }
@@ -330,7 +329,7 @@ namespace Xmega32A4U_testBoard
                 ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / PRESCALER)));
                 return tiks;
             }
-                public ushort get_Ticks(string MILLISECONDS, string PRESCALER)
+                public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
             {
                 if ((MILLISECONDS != "") && (PRESCALER != ""))
                 {
@@ -341,7 +340,7 @@ namespace Xmega32A4U_testBoard
                     return 0;
                 }
             }
-                public ushort get_Ticks(string MILLISECONDS, ushort PRESCALER)
+                public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
             {
                 if ((MILLISECONDS != ""))
                 {
@@ -478,7 +477,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_set_voltage, data)[0] == Command.SPI.DAC_set_voltage)
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -491,7 +490,7 @@ namespace Xmega32A4U_testBoard
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_set_voltage, data);
+                transmit(Command.SPI.DAC_setVoltage, data);
             }
 
             //ADC AD7927
@@ -507,7 +506,7 @@ namespace Xmega32A4U_testBoard
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_get_voltage, data);
+                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
                 if (!ERROR)
                 {
@@ -548,7 +547,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_set_voltage, data)[0] == Command.SPI.DAC_set_voltage)
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -561,7 +560,7 @@ namespace Xmega32A4U_testBoard
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_set_voltage, data);
+                transmit(Command.SPI.DAC_setVoltage, data);
             }
 
             //ADC AD7927
@@ -577,7 +576,7 @@ namespace Xmega32A4U_testBoard
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_get_voltage, data);
+                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
                 if (!ERROR)
                 {
@@ -622,7 +621,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_set_voltage, data)[0] == Command.SPI.DAC_set_voltage)
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -635,7 +634,7 @@ namespace Xmega32A4U_testBoard
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_set_voltage, data);
+                transmit(Command.SPI.DAC_setVoltage, data);
             }
 
             //ADC AD7927
@@ -651,7 +650,7 @@ namespace Xmega32A4U_testBoard
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_get_voltage, data);
+                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
                 if (!ERROR)
                 {
@@ -749,7 +748,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_set_voltage, data)[0] == Command.SPI.DAC_set_voltage)
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -762,7 +761,7 @@ namespace Xmega32A4U_testBoard
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_set_voltage, data);
+                transmit(Command.SPI.DAC_setVoltage, data);
             }
 
             //ADC AD7927
@@ -778,7 +777,7 @@ namespace Xmega32A4U_testBoard
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_get_voltage, data);
+                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
                 if (!ERROR)
                 {
@@ -845,8 +844,177 @@ namespace Xmega32A4U_testBoard
                 return ADC_getVoltage(DV3_channel);
             }
         }
+        public struct SPI_SCANER
+        {
+            //СТРУКТУРА: Натекатель - используется канал А (один, второй - нагреватель)
+            //DAC AD5643BR
+            const byte Reset_Hbyte = 255;
+            const byte Reset_Lbyte = 255;
+            const byte DAC_ParentScan_Channel = 1;
+            const byte DAC_Scan_Channel = 2;
+            const byte ADC_ParentScan_Channel = 1;//3   -каналы DAC и ADC различны
+            const byte ADC_Scan_Channel = 2;//4
+
+            public bool reset()
+            {
+                byte[] data = { Reset_Hbyte, Reset_Lbyte };
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                {
+                    trace("Напряжения DAC'a сброшены");
+                    return true;
+                }
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                return false;
+            }
+            void DAC_setVoltage(byte CHANNEL, ushort VOLTAGE)
+            {
+                //Формируем данные на отправку
+                byte[] bytes = BitConverter.GetBytes(VOLTAGE);
+                byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
+                transmit(Command.SPI.DAC_setVoltage, data);
+            }
+
+            //ADC AD7927
+            const byte Hbyte = 127;
+            const byte Lbyte_DoubleRange = 16;
+            const byte Lbyte_NormalRange = 48;
+            const byte ChannelStep = 4;
+
+            public bool DoubleRange;
+
+            ushort ADC_getVoltage(byte CHANNEL)
+            {
+                byte Lbyte = 0;
+                if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
+                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
+                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                ushort voltage = 0;
+                if (!ERROR)
+                {
+                    byte adress = 1;
+                    adress += Convert.ToByte(rDATA[0] >> 4);
+                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                    trace("    Ответный адрес канала: " + adress);
+                    trace("    Напряжение: " + voltage);
+                }
+                return voltage;
+            }
+            //ParentScan
+            public void setParentScanVoltage(ushort VOLTAGE)
+            {
+                DAC_setVoltage(DAC_ParentScan_Channel, VOLTAGE);
+            }
+            public void setParentScanVoltage(string VOLTAGE)
+            {
+                DAC_setVoltage(DAC_ParentScan_Channel, Convert.ToUInt16(VOLTAGE));
+            }
+            public void setParentScanVoltage(int VOLTAGE)
+            {
+                DAC_setVoltage(DAC_ParentScan_Channel, Convert.ToUInt16(VOLTAGE));
+            }
+
+            public ushort getParentScanVoltage()
+            {
+                return ADC_getVoltage(ADC_ParentScan_Channel);
+            }
+            //Scan
+            public void setScanVoltage(ushort VOLTAGE)
+            {
+                DAC_setVoltage(DAC_Scan_Channel, VOLTAGE);
+            }
+            public void setScanVoltage(string VOLTAGE)
+            {
+                DAC_setVoltage(DAC_Scan_Channel, Convert.ToUInt16(VOLTAGE));
+            }
+            public void setScanVoltage(int VOLTAGE)
+            {
+                DAC_setVoltage(DAC_Scan_Channel, Convert.ToUInt16(VOLTAGE));
+            }
+
+            public ushort getScanVoltage()
+            {
+                return ADC_getVoltage(ADC_Scan_Channel);
+            }
+        }
+        public struct SPI_CONDENSATOR
+        {
+            //СТРУКТУРА: Натекатель - используется канал А (один, второй - нагреватель)
+            //DAC AD5643R
+            const byte Reset_Hbyte = 255;
+            const byte Reset_Lbyte = 255;
+            const byte DAC_Condensator_Channel = 1;
+            const byte ADC_Positive_Channel = 1;
+            const byte ADC_Negative_Channel = 2;
+
+            public bool reset()
+            {
+                byte[] data = { Reset_Hbyte, Reset_Lbyte };
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                {
+                    trace("Напряжения DAC'a сброшены");
+                    return true;
+                }
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                return false;
+            }
+            void DAC_setVoltage(byte CHANNEL, ushort VOLTAGE)
+            {
+                //Формируем данные на отправку
+                byte[] bytes = BitConverter.GetBytes(VOLTAGE);
+                byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
+                transmit(Command.SPI.DAC_setVoltage, data);
+            }
+
+            //ADC AD7927
+            const byte Hbyte = 127;
+            const byte Lbyte_DoubleRange = 16;
+            const byte Lbyte_NormalRange = 48;
+            const byte ChannelStep = 4;
+
+            public bool DoubleRange;
+
+            ushort ADC_getVoltage(byte CHANNEL)
+            {
+                byte Lbyte = 0;
+                if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
+                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
+                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                ushort voltage = 0;
+                if (!ERROR)
+                {
+                    byte adress = 1;
+                    adress += Convert.ToByte(rDATA[0] >> 4);
+                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                    trace("    Ответный адрес канала: " + adress);
+                    trace("    Напряжение: " + voltage);
+                }
+                return voltage;
+            }
+
+            public void setVoltage(ushort VOLTAGE)
+            {
+                DAC_setVoltage(DAC_Condensator_Channel, VOLTAGE);
+            }
+            public void setVoltage(string VOLTAGE)
+            {
+                DAC_setVoltage(DAC_Condensator_Channel, Convert.ToUInt16(VOLTAGE));
+            }
+            public void setVoltage(int VOLTAGE)
+            {
+                DAC_setVoltage(DAC_Condensator_Channel, Convert.ToUInt16(VOLTAGE));
+            }
+
+            public ushort getPositiveVoltage()
+            {
+                return ADC_getVoltage(ADC_Positive_Channel);
+            }
+            public ushort getNegativeVoltage()
+            {
+                return ADC_getVoltage(ADC_Negative_Channel);
+            }
+        }
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
-        public RealTimeCounterAndCO COUNTERS = new RealTimeCounterAndCO();
+        public RealTimeCounterAndCO Counters = new RealTimeCounterAndCO();
         public SPI_DAC DAC = new SPI_DAC();
         public SPI_ADC ADC = new SPI_ADC();
 
@@ -854,6 +1022,8 @@ namespace Xmega32A4U_testBoard
         public SPI_HEATER Heater = new SPI_HEATER();
         public SPI_IonSOURCE IonSource = new SPI_IonSOURCE();
         public SPI_DETECTOR Detector = new SPI_DETECTOR();
+        public SPI_SCANER Scaner = new SPI_SCANER();                    //DAC AD5643R
+        public SPI_CONDENSATOR Condensator = new SPI_CONDENSATOR();     //DAC AD5643R
         //--------------------------------------ФУНКЦИИ-------------------------------------------
         public void setTracer(RichTextBox TRACER)
         {
@@ -951,10 +1121,9 @@ namespace Xmega32A4U_testBoard
             USART.Write(Packet.ToArray(), 0, Packet.ToArray().Length);
             Thread.Sleep(delay);
             trace("     Передача завершена!");
+            CommandStack++;
             trace("     Приём...");                         //Приём-приём
             byte rBYTE;                                     //Принятый байт
-            bool lock_recieved = false;                     //Затвор ещё небыл получен
-            bool key_recived = false;                       //Ключ ещё не был получен
             byte BytesToReadQuantity = Convert.ToByte(USART.BytesToRead);
             trace("         Данные на приём:" + BytesToReadQuantity);
             if (BytesToReadQuantity == 0)
@@ -965,8 +1134,8 @@ namespace Xmega32A4U_testBoard
                 return new byte[] {0};
             }
             trace("             Принято:");
-            //Принимаем данные пока есть что принимать и пока не пришёл затвор
-            while ((USART.BytesToRead > 0) && (!lock_recieved))
+            //Принимаем данные пока есть что принимать
+            while (USART.BytesToRead > 0)
             {
                 try
                 {
@@ -980,30 +1149,20 @@ namespace Xmega32A4U_testBoard
                     ERROR = true;
                     return new byte[] {0};
                 }
-                switch (rBYTE)
-                {
-                    case Command.KEY:
-                        trace_attached(" - ключ!");
-                        key_recived = true;
-                        break;
-                    case Command.LOCK:
-                        trace_attached(" - затвор!");
-                        lock_recieved = true;
-                        break;
-                    default:
-                        rDATA.Add(rBYTE);
-                        break;
-                }
+                rDATA.Add(rBYTE);
             }
             USART.Close();
-            if (key_recived)
+            //Если последний байт затвор, то всё путём
+            if (rDATA.First<byte>() == Command.KEY)
             {
-                if (lock_recieved)
+                rDATA.RemoveAt(0);
+                if (rDATA.Last<byte>() == Command.LOCK)
                 {
+                    rDATA.RemoveAt(rDATA.Count - 1);
                     //Анализируем полученные данные
                     trace("     Анализ полученной команды...");
                     byte rCheckSum = rDATA.Last();                          //Полученная КС
-                    rDATA.RemoveAt(rDATA.ToArray().Length - 1); //Убираем КС из списка полученных данных
+                    rDATA.RemoveAt(rDATA.Count - 1); //Убираем КС из списка полученных данных
                     byte CheckSum = calcCheckSum(rDATA.ToArray());          //Подсчитанная КС
                     if (CheckSum == rCheckSum)
                     {
@@ -1148,20 +1307,30 @@ namespace Xmega32A4U_testBoard
                 trace("Слишком короткое сообщение. Вероятно, это отклик.");
             }
         }
-        public void     showMeByte(byte     BYTE)
+        public void showMeByte(byte     BYTE)
         {
             transmit(Command.TEST.showMeByte, BYTE);
         }
-            public void     showMeByte(string   BYTE)
+            public void showMeByte(string   BYTE)
         {
             showMeByte(Convert.ToByte(BYTE));
         }
-            public void     showMeByte(uint     BYTE)
+            public void showMeByte(uint     BYTE)
         {
             showMeByte(Convert.ToByte(BYTE));
+        }
+        public bool checkCommandStack()
+        {
+            if (transmit(Command.TEST.checkCommandStack)[0] == CommandStack)
+            {
+                trace("Команды идут синхронно");
+                return true;
+            }
+            trace("Команды НЕ синхронны!!!");
+            return false;
         }
 
-        public void     setMCwait()
+        void wait()
         {
             //ФУНКЦИЯ: Устанавливает статус МК
             byte[] wDATA = { Command.MC.wait };
@@ -1182,7 +1351,7 @@ namespace Xmega32A4U_testBoard
             }
             trace("--------------Конец ошибки---------------");
         }
-        public bool     reset()
+        bool reset()
         {
             //ФУНКЦИЯ: Програмная перезагрузка микроконтроллера
             return (transmit(Command.MC.reset)[0] == Command.MC.reset);
@@ -1190,19 +1359,19 @@ namespace Xmega32A4U_testBoard
         public byte     getStatus()
         {
             //ФУНКЦИЯ: Получает статус у МК
-            return transmit(Command.MC.get_status)[0];
+            return transmit(Command.MC.getStatus)[0];
         }
         public byte     getVersion()
         {
             //ФУНКЦИЯ: Получает статус у МК
-            return transmit(Command.MC.get_version)[0];
+            return transmit(Command.MC.getVersion)[0];
         }
         public string   getBirthday()
         {
             //ФУНКЦИЯ: Получает статус у МК
             UInt32 birthday = 0;
             string answer = "00000000";
-            byte[] recDATA = transmit(Command.MC.get_birthday);
+            byte[] recDATA = transmit(Command.MC.getBirthday);
             if (!ERROR)
             {
                 birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
@@ -1217,7 +1386,7 @@ namespace Xmega32A4U_testBoard
         public string   getCPUfrequency()
         {
             UInt32 frequency = 0;
-            byte[] recDATA = transmit(Command.MC.get_CPUfreq);
+            byte[] recDATA = transmit(Command.MC.getCPUfrequency);
             if (!ERROR)
             {
                 frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
@@ -1243,7 +1412,7 @@ namespace Xmega32A4U_testBoard
         byte[] transmit_toTIC(byte[] DATA)
         {
             List<byte> formedDATA = new List<byte>();
-            formedDATA.Add(Command.TIC.transmit);
+            formedDATA.Add(Command.TIC.sendToTIC);
             formedDATA.Add((byte)(DATA.Length+2)); //+2 для смещения относительно команды и байта длины
             formedDATA.AddRange(DATA);
             return transmit(formedDATA.ToArray());
