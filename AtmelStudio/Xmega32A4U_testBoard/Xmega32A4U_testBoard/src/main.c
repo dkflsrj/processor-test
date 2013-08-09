@@ -31,7 +31,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 25
+#define version 26
 #define birthday 20130809
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
@@ -70,7 +70,7 @@ uint8_t USART_nextByteIsData_count = 0;
 bool	USART_recieving = false;			//Можно пристыковать для экономии памяти к USART_MEM_length
 uint8_t USART_MEM[10];						//10 байт памяти для приёма данных USART
 uint8_t USART_MEM_length = 0;
-uint8_t TR_COUNT = 0;
+uint8_t CommandStack = 0;
 //		SPI
 uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
 //		Измерения
@@ -148,8 +148,8 @@ ISR(USARTE0_RXC_vect)
 	//Есть ли RXIF? Есть ли данные на приём?
 	if ((*USART_COMP.STATUS >> 7) == 0)
 	{
-		//TR_COUNT++;	//тестовое, для учёта количества выполненных команд
-		//showMeByte(TR_COUNT);
+		//CommandStack++;	//тестовое, для учёта количества выполненных команд
+		//showMeByte(CommandStack);
 		//НЕТ! Данные закончились! Значит можно интерпретировать... Но сначала "орфография"...
 		//А пришёл ли ключ?
 		if(USART_MEM[0] == COMMAND_KEY)
@@ -172,13 +172,8 @@ ISR(USARTE0_RXC_vect)
 					{
 						command[i-1] = USART_MEM[i];
 					}
-					TR_COUNT++;	//тестовое, для учёта количества выполненных команд
-					showMeByte(TR_COUNT);
-// 					for (uint8_t i = 0; i < USART_MEM_length -3; i++)
-// 					{
-// 						usart_putchar(USART_COMP,command[i]);							//<data>
-// 						delay_us(usartCOMP_delay);
-// 					}
+					CommandStack++;	//тестовое, для учёта количества выполненных команд
+					//showMeByte(CommandStack);
 					Decode(command);
 				}
 				else
@@ -408,7 +403,7 @@ void SPI_DAC_send(uint8_t DATA[])
 	spi_select_device(&SPIC, &DAC);
 	spi_write_packet(&SPIC, data, 2);
 	spi_deselect_device(&SPIC, &DAC);
-	uint8_t aswDATA[] = {COMMAND_DAC_set_voltage};
+	uint8_t aswDATA[] = {COMMAND_DAC_set_Voltage};
 	transmit(aswDATA, 1);
 }
 void SPI_ADC_send(uint8_t DATA[])
@@ -426,7 +421,7 @@ void SPI_ADC_send(uint8_t DATA[])
 	SPI_rDATA[1] = spi_get(&SPIC);
 	spi_deselect_device(&SPIC, &ADC);
 	//Передём ответ на ПК по USART
-	uint8_t aswDATA[] = {COMMAND_ADC_get_voltage,SPI_rDATA[0],SPI_rDATA[1]};
+	uint8_t aswDATA[] = {COMMAND_ADC_get_Voltage,SPI_rDATA[0],SPI_rDATA[1]};
 	transmit(aswDATA, 3);
 }
 //USART
@@ -597,12 +592,12 @@ void COUNTERS_start(void)
 		tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);	
 		RTC.CTRL = RTC_prescaler;
 		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
-		transmit_2bytes(COMMAND_COA_start, RTC_Status);
+		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 		RTC_setStatus_busy;
 	}
 	else
 	{
-		transmit_2bytes(COMMAND_COA_start, RTC_Status);
+		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 	}
 }
 void COUNTERS_stop(void)
@@ -615,7 +610,7 @@ void COUNTERS_stop(void)
 	TCD0.CNT = 0;
 	TCD1.CNT = 0;
 	RTC_setStatus_stopped;
-	transmit_byte(COMMAND_COA_stop);
+	transmit_byte(COMMAND_COUNTERS_stop);
 }
 //RTC
 void RTC_setPrescaler(uint8_t DATA[])
@@ -748,7 +743,7 @@ int main(void)
 		switch (MC_status)
 		{
 			case 1: delay_ms(1000);
-					//gpio_toggle_pin(LED_VD1);
+					gpio_toggle_pin(LED_VD1);
 				break;
 			case 2: //showMeByte(duoByte);
 				break;

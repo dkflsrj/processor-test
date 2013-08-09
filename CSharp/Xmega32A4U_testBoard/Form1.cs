@@ -179,7 +179,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_COM_setMCwait_Click(object sender, EventArgs e)
         {
-            MC.setMCwait();
+            //MC.setMCwait();
         }
         private void BTN_LEDbyte_Click(object sender, EventArgs e)
         {
@@ -231,7 +231,7 @@ namespace Xmega32A4U_testBoard
                 trace(true, "ОШИБКА! Неверный интервал!");
                 return;
             }
-            if (MC.COUNTERS.startMeasure())
+            if (MC.Counters.startMeasure())
             {
                 trace(true, "COA начал счёт...");
                 PGB_COA_progress.Value = 0;
@@ -246,11 +246,11 @@ namespace Xmega32A4U_testBoard
         private void BTN_reqCount_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Проверям счётчик МК, если сосчитал, то принимаем результат
-            string Counters_status = MC.COUNTERS.getResults();
+            string Counters_status = MC.Counters.getResults();
             trace(true, "Состояние счётчиков: " + Counters_status);
             if (Counters_status == "Ready")
             {
-                trace(true, "   Счёт: " + MC.COUNTERS.COA_Result);
+                trace(true, "   Счёт: " + MC.Counters.COA_Result);
             }
         }
         private void BTN_setInterval_Click(object sender, EventArgs e)
@@ -283,9 +283,9 @@ namespace Xmega32A4U_testBoard
                 trace(true, "ОШИБКА! Неверное количество измерений!");
                 return;
             }
-            if (MC.COUNTERS.setMeasureTime(TXB_COA_measureTime.Text))
+            if (MC.Counters.setMeasureTime(TXB_COA_measureTime.Text))
             {
-                trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.COUNTERS.get_Ticks(TXB_COA_measureTime.Text, MC.COUNTERS.get_Prescaler(TXB_COA_measureTime.Text)) + " тиков)");
+                trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCPrescaler(TXB_COA_measureTime.Text)) + " тиков)");
             }
             else
             {
@@ -302,7 +302,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_stopCounter_Click(object sender, EventArgs e)
         {
-            if (MC.COUNTERS.stopMeasure())
+            if (MC.Counters.stopMeasure())
             {
                 trace(true, "Счётчик был успешно остановлен!");
                 CLK_COA.Enabled = false;
@@ -384,11 +384,11 @@ namespace Xmega32A4U_testBoard
             }
             LBL_COA_ticks.Text = "";
             //LBL_COA_ticks.Text += "(";
-            LBL_COA_ticks.Text += MC.COUNTERS.get_Ticks(TXB_COA_measureTime.Text, MC.COUNTERS.get_Prescaler(TXB_COA_measureTime.Text)).ToString();
+            LBL_COA_ticks.Text += MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCPrescaler(TXB_COA_measureTime.Text)).ToString();
             //LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
             //LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
-            LBL_COA_frequency.Text = MC.COUNTERS.getRTCfreqency().ToString();
-            LBL_COA_prescaler.Text = MC.COUNTERS.get_Prescaler(TXB_COA_measureTime.Text).ToString();
+            LBL_COA_frequency.Text = MC.Counters.getRTCfreqency().ToString();
+            LBL_COA_prescaler.Text = MC.Counters.getRTCPrescaler(TXB_COA_measureTime.Text).ToString();
         }
 
         private void CHB_enableSuperTracer_CheckedChanged(object sender, EventArgs e)
@@ -420,13 +420,13 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_MC_Reset_Click(object sender, EventArgs e)
         {
-            CHB_TotalControl.Checked = false;
+            /*CHB_TotalControl.Checked = false;
             if (MC.reset())
             {
                 trace(true, "Производится перезагрузка микроконтроллера...");
                 return;
             }
-            trace(true, "ОШИБКА ОТКЛИКА! Вероятно перезагрузка не была выполнена!");
+            trace(true, "ОШИБКА ОТКЛИКА! Вероятно перезагрузка не была выполнена!");*/
         }
 
         private void BTN_openLog_Click(object sender, EventArgs e)
@@ -449,7 +449,7 @@ namespace Xmega32A4U_testBoard
         private void WATCHER_Counters_Tick(object sender, EventArgs e)
         {
 
-            switch (MC.COUNTERS.getStatus())
+            switch (MC.Counters.getStatus())
             {
                 case "Ready": LBL_COA_status.Text = "Готов";
                     LBL_COA_status.ForeColor = System.Drawing.Color.Green;
@@ -466,7 +466,7 @@ namespace Xmega32A4U_testBoard
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void BTN_sendSomething_Click(object sender, EventArgs e)
         {
             MC.sendSomething();
         }
@@ -476,7 +476,7 @@ namespace Xmega32A4U_testBoard
             MC.sendToTIC();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
             foreach (string error in MC.getErrorList().ToArray())
             {
@@ -510,7 +510,7 @@ namespace Xmega32A4U_testBoard
 
         private void _BTN_HEATER_getVoltage_Click(object sender, EventArgs e)
         {
-            MC.Heater.DoubleRange = CHB_HEATER_x2.Checked;
+            MC.Heater.DoubleRange = CHB_INLET_x2.Checked;
             LBL_HEATER_getVoltage.Text = MC.Heater.getVoltage().ToString();
         }
 
@@ -523,8 +523,8 @@ namespace Xmega32A4U_testBoard
         //-------------------------------Ионный источник--------------------------
         private void BTN_IonSOURCE_setEmissionCurrentVoltage_Click(object sender, EventArgs e)
         {
-            //MC.IonSource.EC_setVoltage(TXB_IonSOURCE_setEmissionCurrentVoltage.Text);
-            MC.DAC.setVoltage((byte)1, Convert.ToUInt16(TXB_IonSOURCE_setEmissionCurrentVoltage.Text));
+            MC.IonSource.EC_setVoltage(TXB_IonSOURCE_setEmissionCurrentVoltage.Text);
+            //MC.DAC.setVoltage((byte)1, Convert.ToUInt16(TXB_IonSOURCE_setEmissionCurrentVoltage.Text));
         }
 
         private void BTN_IonSOURCE_setIonizationVoltage_Click(object sender, EventArgs e)
@@ -607,5 +607,60 @@ namespace Xmega32A4U_testBoard
         {
             MC.Detector.reset();
         }
+
+        private void BTN_checkCommandStack_Click(object sender, EventArgs e)
+        {
+            MC.checkCommandStack();
+        }
+
+        private void BTN_SCANER_setParentScanVoltage_Click(object sender, EventArgs e)
+        {
+            MC.Scaner.setParentScanVoltage(TXB_SCANER_setParentScanVoltage.Text);
+        }
+
+        private void BTN_SCANER_setScanVoltage_Click(object sender, EventArgs e)
+        {
+            MC.Scaner.setScanVoltage(TXB_SCANER_setScanVoltage.Text);
+        }
+
+        private void BTN_SCANER_getParentScanVoltage_Click(object sender, EventArgs e)
+        {
+            MC.Scaner.DoubleRange = CHB_SCANER_x2.Checked;
+            LBL_SCANER_getParentScanVoltage.Text = MC.Scaner.getParentScanVoltage().ToString();
+        }
+
+        private void BTN_SCANER_getScanVoltage_Click(object sender, EventArgs e)
+        {
+            MC.Scaner.DoubleRange = CHB_SCANER_x2.Checked;
+            LBL_SCANER_getScanVoltage.Text = MC.Scaner.getScanVoltage().ToString();
+        }
+
+        private void BTN_SCANER_reset_Click(object sender, EventArgs e)
+        {
+            MC.Scaner.reset();
+        }
+
+        private void BTN_CONDENSATOR_setVoltage_Click(object sender, EventArgs e)
+        {
+            MC.Condensator.setVoltage(TXB_CONDENSATOR_setVoltage.Text);
+        }
+
+        private void BTN_CONDENSATOR_getPositiveVoltage_Click(object sender, EventArgs e)
+        {
+            MC.Condensator.DoubleRange = CHB_CONDENSATOR_x2.Checked;
+            LBL_CONDENSATOR_getPositiveVoltage.Text = MC.Condensator.getPositiveVoltage().ToString();
+        }
+
+        private void BTN_CONDENSATOR_getNegativeVoltage_Click(object sender, EventArgs e)
+        {
+            MC.Condensator.DoubleRange = CHB_CONDENSATOR_x2.Checked;
+            LBL_CONDENSATOR_getNegativeVoltage.Text = MC.Condensator.getNegativeVoltage().ToString();
+        }
+
+        private void BTN_CONDENSATOR_reset_Click(object sender, EventArgs e)
+        {
+            MC.Condensator.reset();
+        }
+
     }
 }
