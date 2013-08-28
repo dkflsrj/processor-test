@@ -899,39 +899,39 @@ namespace Xmega32A4U_testBoard
                 //}
                 return voltage;
             }
-            //ParentScan
-            public void setParentScanVoltage(ushort VOLTAGE)
+            //Parent
+            public void Parent_setVoltage(ushort VOLTAGE)
             {
                 DAC_setVoltage(DAC_ParentScan_Channel, VOLTAGE);
             }
-            public void setParentScanVoltage(string VOLTAGE)
+            public void Parent_setVoltage(string VOLTAGE)
             {
                 DAC_setVoltage(DAC_ParentScan_Channel, Convert.ToUInt16(VOLTAGE));
             }
-            public void setParentScanVoltage(int VOLTAGE)
+            public void Parent_setVoltage(int VOLTAGE)
             {
                 DAC_setVoltage(DAC_ParentScan_Channel, Convert.ToUInt16(VOLTAGE));
             }
 
-            public ushort getParentScanVoltage()
+            public ushort Parent_getVoltage()
             {
                 return ADC_getVoltage(ADC_ParentScan_Channel);
             }
             //Scan
-            public void setScanVoltage(ushort VOLTAGE)
+            public void Scan_setVoltage(ushort VOLTAGE)
             {
                 DAC_setVoltage(DAC_Scan_Channel, VOLTAGE);
             }
-            public void setScanVoltage(string VOLTAGE)
+            public void Scan_setVoltage(string VOLTAGE)
             {
                 DAC_setVoltage(DAC_Scan_Channel, Convert.ToUInt16(VOLTAGE));
             }
-            public void setScanVoltage(int VOLTAGE)
+            public void Scan_setVoltage(int VOLTAGE)
             {
                 DAC_setVoltage(DAC_Scan_Channel, Convert.ToUInt16(VOLTAGE));
             }
 
-            public ushort getScanVoltage()
+            public ushort Scan_getVoltage()
             {
                 return ADC_getVoltage(ADC_Scan_Channel);
             }
