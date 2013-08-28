@@ -152,8 +152,15 @@
             this.BTN_SCANER_setScanVoltage = new System.Windows.Forms.Button();
             this.label14 = new System.Windows.Forms.Label();
             this.GPB_CONDER = new System.Windows.Forms.GroupBox();
+            this.BTN_CONDENSATOR_reset = new System.Windows.Forms.Button();
+            this.BTN_CONDENSATOR_getNegativeVoltage = new System.Windows.Forms.Button();
+            this.BTN_CONDENSATOR_getPositiveVoltage = new System.Windows.Forms.Button();
+            this.BTN_CONDENSATOR_setVoltage = new System.Windows.Forms.Button();
             this.LBL_CONDENSATOR_getPositiveVoltage = new System.Windows.Forms.Label();
+            this.CHB_CONDENSATOR_x2 = new System.Windows.Forms.CheckBox();
             this.LBL_CONDENSATOR_getNegativeVoltage = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
+            this.TXB_CONDENSATOR_setVoltage = new System.Windows.Forms.TextBox();
             this.GPB_Heater = new System.Windows.Forms.GroupBox();
             this.BTN_HEATER_setVoltage = new System.Windows.Forms.Button();
             this.CHB_INLET_x2 = new System.Windows.Forms.CheckBox();
@@ -172,13 +179,6 @@
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.CHB_CONDENSATOR_x2 = new System.Windows.Forms.CheckBox();
-            this.BTN_CONDENSATOR_setVoltage = new System.Windows.Forms.Button();
-            this.label18 = new System.Windows.Forms.Label();
-            this.TXB_CONDENSATOR_setVoltage = new System.Windows.Forms.TextBox();
-            this.BTN_CONDENSATOR_getPositiveVoltage = new System.Windows.Forms.Button();
-            this.BTN_CONDENSATOR_getNegativeVoltage = new System.Windows.Forms.Button();
-            this.BTN_CONDENSATOR_reset = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -1536,6 +1536,46 @@
             this.GPB_CONDER.TabStop = false;
             this.GPB_CONDER.Text = "Конденсатор";
             // 
+            // BTN_CONDENSATOR_reset
+            // 
+            this.BTN_CONDENSATOR_reset.Location = new System.Drawing.Point(289, 8);
+            this.BTN_CONDENSATOR_reset.Name = "BTN_CONDENSATOR_reset";
+            this.BTN_CONDENSATOR_reset.Size = new System.Drawing.Size(48, 23);
+            this.BTN_CONDENSATOR_reset.TabIndex = 6;
+            this.BTN_CONDENSATOR_reset.Text = "Сброс";
+            this.BTN_CONDENSATOR_reset.UseVisualStyleBackColor = true;
+            this.BTN_CONDENSATOR_reset.Click += new System.EventHandler(this.BTN_CONDENSATOR_reset_Click);
+            // 
+            // BTN_CONDENSATOR_getNegativeVoltage
+            // 
+            this.BTN_CONDENSATOR_getNegativeVoltage.Location = new System.Drawing.Point(240, 29);
+            this.BTN_CONDENSATOR_getNegativeVoltage.Name = "BTN_CONDENSATOR_getNegativeVoltage";
+            this.BTN_CONDENSATOR_getNegativeVoltage.Size = new System.Drawing.Size(37, 23);
+            this.BTN_CONDENSATOR_getNegativeVoltage.TabIndex = 5;
+            this.BTN_CONDENSATOR_getNegativeVoltage.Text = "-> -";
+            this.BTN_CONDENSATOR_getNegativeVoltage.UseVisualStyleBackColor = true;
+            this.BTN_CONDENSATOR_getNegativeVoltage.Click += new System.EventHandler(this.BTN_CONDENSATOR_getNegativeVoltage_Click);
+            // 
+            // BTN_CONDENSATOR_getPositiveVoltage
+            // 
+            this.BTN_CONDENSATOR_getPositiveVoltage.Location = new System.Drawing.Point(143, 30);
+            this.BTN_CONDENSATOR_getPositiveVoltage.Name = "BTN_CONDENSATOR_getPositiveVoltage";
+            this.BTN_CONDENSATOR_getPositiveVoltage.Size = new System.Drawing.Size(37, 23);
+            this.BTN_CONDENSATOR_getPositiveVoltage.TabIndex = 5;
+            this.BTN_CONDENSATOR_getPositiveVoltage.Text = "-> +";
+            this.BTN_CONDENSATOR_getPositiveVoltage.UseVisualStyleBackColor = true;
+            this.BTN_CONDENSATOR_getPositiveVoltage.Click += new System.EventHandler(this.BTN_CONDENSATOR_getPositiveVoltage_Click);
+            // 
+            // BTN_CONDENSATOR_setVoltage
+            // 
+            this.BTN_CONDENSATOR_setVoltage.Location = new System.Drawing.Point(6, 30);
+            this.BTN_CONDENSATOR_setVoltage.Name = "BTN_CONDENSATOR_setVoltage";
+            this.BTN_CONDENSATOR_setVoltage.Size = new System.Drawing.Size(82, 23);
+            this.BTN_CONDENSATOR_setVoltage.TabIndex = 4;
+            this.BTN_CONDENSATOR_setVoltage.Text = "Конденсатор";
+            this.BTN_CONDENSATOR_setVoltage.UseVisualStyleBackColor = true;
+            this.BTN_CONDENSATOR_setVoltage.Click += new System.EventHandler(this.BTN_CONDENSATOR_setVoltage_Click);
+            // 
             // LBL_CONDENSATOR_getPositiveVoltage
             // 
             this.LBL_CONDENSATOR_getPositiveVoltage.AutoSize = true;
@@ -1546,6 +1586,16 @@
             this.LBL_CONDENSATOR_getPositiveVoltage.TabIndex = 3;
             this.LBL_CONDENSATOR_getPositiveVoltage.Text = "?";
             // 
+            // CHB_CONDENSATOR_x2
+            // 
+            this.CHB_CONDENSATOR_x2.AutoSize = true;
+            this.CHB_CONDENSATOR_x2.Location = new System.Drawing.Point(240, 12);
+            this.CHB_CONDENSATOR_x2.Name = "CHB_CONDENSATOR_x2";
+            this.CHB_CONDENSATOR_x2.Size = new System.Drawing.Size(37, 17);
+            this.CHB_CONDENSATOR_x2.TabIndex = 1;
+            this.CHB_CONDENSATOR_x2.Text = "x2";
+            this.CHB_CONDENSATOR_x2.UseVisualStyleBackColor = true;
+            // 
             // LBL_CONDENSATOR_getNegativeVoltage
             // 
             this.LBL_CONDENSATOR_getNegativeVoltage.AutoSize = true;
@@ -1555,6 +1605,23 @@
             this.LBL_CONDENSATOR_getNegativeVoltage.Size = new System.Drawing.Size(13, 13);
             this.LBL_CONDENSATOR_getNegativeVoltage.TabIndex = 3;
             this.LBL_CONDENSATOR_getNegativeVoltage.Text = "?";
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(6, 14);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(108, 13);
+            this.label18.TabIndex = 1;
+            this.label18.Text = "Задать напряжение";
+            // 
+            // TXB_CONDENSATOR_setVoltage
+            // 
+            this.TXB_CONDENSATOR_setVoltage.Location = new System.Drawing.Point(93, 32);
+            this.TXB_CONDENSATOR_setVoltage.Name = "TXB_CONDENSATOR_setVoltage";
+            this.TXB_CONDENSATOR_setVoltage.Size = new System.Drawing.Size(44, 20);
+            this.TXB_CONDENSATOR_setVoltage.TabIndex = 2;
+            this.TXB_CONDENSATOR_setVoltage.Text = "1250";
             // 
             // GPB_Heater
             // 
@@ -1618,6 +1685,7 @@
             // 
             // BTN_HEATER_reset
             // 
+            this.BTN_HEATER_reset.Enabled = false;
             this.BTN_HEATER_reset.Location = new System.Drawing.Point(180, 12);
             this.BTN_HEATER_reset.Name = "BTN_HEATER_reset";
             this.BTN_HEATER_reset.Size = new System.Drawing.Size(48, 23);
@@ -1723,73 +1791,6 @@
             // 
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
-            // 
-            // CHB_CONDENSATOR_x2
-            // 
-            this.CHB_CONDENSATOR_x2.AutoSize = true;
-            this.CHB_CONDENSATOR_x2.Location = new System.Drawing.Point(240, 12);
-            this.CHB_CONDENSATOR_x2.Name = "CHB_CONDENSATOR_x2";
-            this.CHB_CONDENSATOR_x2.Size = new System.Drawing.Size(37, 17);
-            this.CHB_CONDENSATOR_x2.TabIndex = 1;
-            this.CHB_CONDENSATOR_x2.Text = "x2";
-            this.CHB_CONDENSATOR_x2.UseVisualStyleBackColor = true;
-            // 
-            // BTN_CONDENSATOR_setVoltage
-            // 
-            this.BTN_CONDENSATOR_setVoltage.Location = new System.Drawing.Point(6, 30);
-            this.BTN_CONDENSATOR_setVoltage.Name = "BTN_CONDENSATOR_setVoltage";
-            this.BTN_CONDENSATOR_setVoltage.Size = new System.Drawing.Size(82, 23);
-            this.BTN_CONDENSATOR_setVoltage.TabIndex = 4;
-            this.BTN_CONDENSATOR_setVoltage.Text = "Конденсатор";
-            this.BTN_CONDENSATOR_setVoltage.UseVisualStyleBackColor = true;
-            this.BTN_CONDENSATOR_setVoltage.Click += new System.EventHandler(this.BTN_CONDENSATOR_setVoltage_Click);
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(6, 14);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(108, 13);
-            this.label18.TabIndex = 1;
-            this.label18.Text = "Задать напряжение";
-            // 
-            // TXB_CONDENSATOR_setVoltage
-            // 
-            this.TXB_CONDENSATOR_setVoltage.Location = new System.Drawing.Point(93, 32);
-            this.TXB_CONDENSATOR_setVoltage.Name = "TXB_CONDENSATOR_setVoltage";
-            this.TXB_CONDENSATOR_setVoltage.Size = new System.Drawing.Size(44, 20);
-            this.TXB_CONDENSATOR_setVoltage.TabIndex = 2;
-            this.TXB_CONDENSATOR_setVoltage.Text = "1250";
-            // 
-            // BTN_CONDENSATOR_getPositiveVoltage
-            // 
-            this.BTN_CONDENSATOR_getPositiveVoltage.Location = new System.Drawing.Point(143, 30);
-            this.BTN_CONDENSATOR_getPositiveVoltage.Name = "BTN_CONDENSATOR_getPositiveVoltage";
-            this.BTN_CONDENSATOR_getPositiveVoltage.Size = new System.Drawing.Size(37, 23);
-            this.BTN_CONDENSATOR_getPositiveVoltage.TabIndex = 5;
-            this.BTN_CONDENSATOR_getPositiveVoltage.Text = "-> +";
-            this.BTN_CONDENSATOR_getPositiveVoltage.UseVisualStyleBackColor = true;
-            this.BTN_CONDENSATOR_getPositiveVoltage.Click += new System.EventHandler(this.BTN_CONDENSATOR_getPositiveVoltage_Click);
-            // 
-            // BTN_CONDENSATOR_getNegativeVoltage
-            // 
-            this.BTN_CONDENSATOR_getNegativeVoltage.Location = new System.Drawing.Point(240, 29);
-            this.BTN_CONDENSATOR_getNegativeVoltage.Name = "BTN_CONDENSATOR_getNegativeVoltage";
-            this.BTN_CONDENSATOR_getNegativeVoltage.Size = new System.Drawing.Size(37, 23);
-            this.BTN_CONDENSATOR_getNegativeVoltage.TabIndex = 5;
-            this.BTN_CONDENSATOR_getNegativeVoltage.Text = "-> -";
-            this.BTN_CONDENSATOR_getNegativeVoltage.UseVisualStyleBackColor = true;
-            this.BTN_CONDENSATOR_getNegativeVoltage.Click += new System.EventHandler(this.BTN_CONDENSATOR_getNegativeVoltage_Click);
-            // 
-            // BTN_CONDENSATOR_reset
-            // 
-            this.BTN_CONDENSATOR_reset.Location = new System.Drawing.Point(289, 8);
-            this.BTN_CONDENSATOR_reset.Name = "BTN_CONDENSATOR_reset";
-            this.BTN_CONDENSATOR_reset.Size = new System.Drawing.Size(48, 23);
-            this.BTN_CONDENSATOR_reset.TabIndex = 6;
-            this.BTN_CONDENSATOR_reset.Text = "Сброс";
-            this.BTN_CONDENSATOR_reset.UseVisualStyleBackColor = true;
-            this.BTN_CONDENSATOR_reset.Click += new System.EventHandler(this.BTN_CONDENSATOR_reset_Click);
             // 
             // Form1
             // 
