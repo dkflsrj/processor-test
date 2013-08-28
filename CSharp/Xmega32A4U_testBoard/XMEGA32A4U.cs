@@ -155,139 +155,7 @@ namespace Xmega32A4U_testBoard
                 public const byte checkCommandStack = 8;
             }
         }
-        public struct SPI_ADC
-        {
-            //СТРУКТУРА: АЦП
-            const byte Hbyte = 127;
-            const byte Lbyte_DoubleRange = 16;
-            const byte Lbyte_NormalRange = 48;
-            const byte ChannelStep = 4;
 
-            public bool DoubleRange;
-
-            public ushort getVoltage(byte CHANNEL)
-            {
-                //Последовательность 11 битного слова, которое надо передать ADC'у: Или это просто регистр?
-                //+-------+-----+-------+------+------+------+-----+-----+--------+-------+-------+--------+
-                //| WRITE | SEQ | DONTC | ADD2 | ADD1 | ADD0 | PM1 | PM0 | SHADOW | DONTC | RANGE | CODING |
-                //+-------+-----+-------+------+------+------+-----+-----+--------+-------+-------+--------+
-                //
-                //WRITE - 1 - тогда ADC запишет следующие 11 бит. Иначе пропустит мимо ушей
-                //SEQ - ?
-                //DONTC - не парься
-                //         _______________________________________
-                //         |____Адрес__|_________________|       |
-                //         | 8 | 7 | 6 | Имя  | № вывода | Канал |  
-                //         |---+---+---+------+----------+-------|
-                //        | 0 | 0 | 0 | Vin0 |    16    |   1   |
-                //         | 0 | 0 | 1 | Vin1 |    15    |   2   |
-                //ADD2     | 0 | 1 | 0 | Vin2 |    14    |   3   |
-                //ADD1     | 0 | 1 | 1 | Vin3 |    13    |   4   |
-                //ADD0     | 1 | 0 | 0 | Vin4 |    12    |   5   |
-                //         | 1 | 0 | 1 | Vin5 |    11    |   6   |
-                //         | 1 | 1 | 0 | Vin6 |    10    |   7   |
-                //         | 1 | 1 | 1 | Vin7 |    9     |   8   |
-                //         |---+---+---+------+----------+-------| 
-                //
-                //PM1 и PM0 - управление питанием (1 1 - нормальный режим, самый быстрый)
-                //SHADOW - ?
-                //DONTC - не парься...
-                //RANGE - 1 - стандартный диапазон 0...REF | 0 - удвоенный 0...2xREF
-                //CODING - кодирует ответ ADC: 0 - the output coding for the part is twos complement | 
-                //                             1 - the output coding from the part is straight binary (for the next conversion).
-                //                             
-                //
-                //Сладкая парочка SEQ и SHADOW:
-                // 0 0 - Каналы оцифровываются независимо. Ни какой "последовательной функцией" тут не пахнет
-                // other - какая-то муть с "последовательными функциями" оцифровки и программированием shadow-регистра
-                //
-                //Составляем слово:
-                // 1 0 0 ххх 11 0 0 1 1 '0000'
-                // 131 + 16
-
-                byte Lbyte = 0;
-                if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
-                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
-                ushort voltage = 0;
-                //if (!ERROR)
-                //{
-                    byte adress = 1;
-                    adress += Convert.ToByte(rDATA[0] >> 4);
-                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                    trace("    Ответный адрес канала: " + adress);
-                    trace("    Напряжение: " + voltage);
-                //}
-                return voltage;
-            }
-            public ushort getVoltage(string CHANNEL)
-            {
-                return getVoltage(Convert.ToByte(CHANNEL));
-            }
-            public ushort getVoltage(int CHANNEL)
-            {
-                return getVoltage(Convert.ToByte(CHANNEL));
-            }
-        }
-        public struct SPI_DAC
-        {
-            //СТРУКТУРА: ЦАП
-            const byte Reset_Hbyte = 255;
-            const byte Reset_Lbyte = 255;
-
-            public bool reset()
-            {
-                byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
-                {
-                    trace("Напряжения DAC'a сброшены");
-                    return true;
-                }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
-                return false;
-            }
-            public bool setVoltage(byte CHANNEL, ushort VOLTAGE)
-            {
-                //ФУНКЦИЯ: Посылаем DAC'у адресс канала и напряжение на нём, получаем отклик
-                /*  ____________________________________________________________
-                 *  |_____Адрес____|__________________|       |    Диапазон    |
-                 *  | 14 | 13 | 12 |  Имя  | № вывода | Канал |ADRESS_and_Hbyte|  
-                 *  |----+----+----+-------+----------+-------+----------------|
-                 *  | 0  | 0  | 0  | DAC A |    4     |   1   |    0...15      |
-                 *  | 0  | 0  | 1  | DAC B |    5     |   2   |    16...31     |
-                 *  | 0  | 1  | 0  | DAC C |    6     |   3   |    32...47     |
-                 *  | 0  | 1  | 1  | DAC D |    7     |   4   |    48...63     |
-                 *  | 1  | 0  | 0  | DAC E |    10    |   5   |    64...79     |
-                 *  | 1  | 0  | 1  | DAC F |    11    |   6   |    80...95     |
-                 *  | 1  | 1  | 0  | DAC G |    12    |   7   |    96...111    |
-                 *  | 1  | 1  | 1  | DAC H |    13    |   8   |    112...127   |
-                 *  |----+----+----+-------+----------+-------+----------------| 
-                 * 
-                 *  ADRESS_and_Hbyte =  0      111         xxxx
-                 *                     D\C    адрес    Старший байт 
-                 *  Lbyte =   xxxx xxxx
-                 *          Младший байт
-                 * 
-                 * D\C -> 0 - адрес + напряжение | 1 - управляющий сигнал  (1111 1111 1111 1111 - полный сброс)
-                 * 
-                 * VOLTAGE = 0...4095 = 0_0 ... 15_255
-                 * 
-                 */
-                //Формируем данные на отправку
-                byte[] bytes = BitConverter.GetBytes(VOLTAGE);
-                byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                return (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage);
-            }
-            public bool setVoltage(string CHANNEL, string VOLTAGE)
-            {
-                return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
-            }
-            public bool setVoltage(int CHANNEL, int VOLTAGE)
-            {
-                return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
-            }
-        }
-        
         public struct RealTimeCounterAndCO
         {
             //СТРУКТУРА: Счётчик реального времени и счётчики импульсов
@@ -387,7 +255,7 @@ namespace Xmega32A4U_testBoard
                 }
                 return prescaler_long;
             }
-                public ushort getRTCPrescaler(string MILLISECONDS)
+                public ushort getRTCprescaler(string MILLISECONDS)
             {
                 return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
             }
@@ -534,6 +402,139 @@ namespace Xmega32A4U_testBoard
                         return "Ошибка! " + Status;
                 }
                 return answer;
+            }
+        }
+
+        public struct SPI_ADC
+        {
+            //СТРУКТУРА: АЦП
+            const byte Hbyte = 127;
+            const byte Lbyte_DoubleRange = 16;
+            const byte Lbyte_NormalRange = 48;
+            const byte ChannelStep = 4;
+
+            public bool DoubleRange;
+
+            public ushort getVoltage(byte CHANNEL)
+            {
+                //Последовательность 11 битного слова, которое надо передать ADC'у: Или это просто регистр?
+                //+-------+-----+-------+------+------+------+-----+-----+--------+-------+-------+--------+
+                //| WRITE | SEQ | DONTC | ADD2 | ADD1 | ADD0 | PM1 | PM0 | SHADOW | DONTC | RANGE | CODING |
+                //+-------+-----+-------+------+------+------+-----+-----+--------+-------+-------+--------+
+                //
+                //WRITE - 1 - тогда ADC запишет следующие 11 бит. Иначе пропустит мимо ушей
+                //SEQ - ?
+                //DONTC - не парься
+                //         _______________________________________
+                //         |____Адрес__|_________________|       |
+                //         | 8 | 7 | 6 | Имя  | № вывода | Канал |  
+                //         |---+---+---+------+----------+-------|
+                //        | 0 | 0 | 0 | Vin0 |    16    |   1   |
+                //         | 0 | 0 | 1 | Vin1 |    15    |   2   |
+                //ADD2     | 0 | 1 | 0 | Vin2 |    14    |   3   |
+                //ADD1     | 0 | 1 | 1 | Vin3 |    13    |   4   |
+                //ADD0     | 1 | 0 | 0 | Vin4 |    12    |   5   |
+                //         | 1 | 0 | 1 | Vin5 |    11    |   6   |
+                //         | 1 | 1 | 0 | Vin6 |    10    |   7   |
+                //         | 1 | 1 | 1 | Vin7 |    9     |   8   |
+                //         |---+---+---+------+----------+-------| 
+                //
+                //PM1 и PM0 - управление питанием (1 1 - нормальный режим, самый быстрый)
+                //SHADOW - ?
+                //DONTC - не парься...
+                //RANGE - 1 - стандартный диапазон 0...REF | 0 - удвоенный 0...2xREF
+                //CODING - кодирует ответ ADC: 0 - the output coding for the part is twos complement | 
+                //                             1 - the output coding from the part is straight binary (for the next conversion).
+                //                             
+                //
+                //Сладкая парочка SEQ и SHADOW:
+                // 0 0 - Каналы оцифровываются независимо. Ни какой "последовательной функцией" тут не пахнет
+                // other - какая-то муть с "последовательными функциями" оцифровки и программированием shadow-регистра
+                //
+                //Составляем слово:
+                // 1 0 0 ххх 11 0 0 1 1 '0000'
+                // 131 + 16
+
+                byte Lbyte = 0;
+                if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
+                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
+                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                ushort voltage = 0;
+                //if (!ERROR)
+                //{
+                    byte adress = 1;
+                    adress += Convert.ToByte(rDATA[0] >> 4);
+                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                    trace("    Ответный адрес канала: " + adress);
+                    trace("    Напряжение: " + voltage);
+                //}
+                return voltage;
+            }
+            public ushort getVoltage(string CHANNEL)
+            {
+                return getVoltage(Convert.ToByte(CHANNEL));
+            }
+            public ushort getVoltage(int CHANNEL)
+            {
+                return getVoltage(Convert.ToByte(CHANNEL));
+            }
+        }
+        public struct SPI_DAC
+        {
+            //СТРУКТУРА: ЦАП
+            const byte Reset_Hbyte = 255;
+            const byte Reset_Lbyte = 255;
+
+            public bool reset()
+            {
+                byte[] data = { Reset_Hbyte, Reset_Lbyte };
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                {
+                    trace("Напряжения DAC'a сброшены");
+                    return true;
+                }
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                return false;
+            }
+            public bool setVoltage(byte CHANNEL, ushort VOLTAGE)
+            {
+                //ФУНКЦИЯ: Посылаем DAC'у адресс канала и напряжение на нём, получаем отклик
+                /*  ____________________________________________________________
+                 *  |_____Адрес____|__________________|       |    Диапазон    |
+                 *  | 14 | 13 | 12 |  Имя  | № вывода | Канал |ADRESS_and_Hbyte|  
+                 *  |----+----+----+-------+----------+-------+----------------|
+                 *  | 0  | 0  | 0  | DAC A |    4     |   1   |    0...15      |
+                 *  | 0  | 0  | 1  | DAC B |    5     |   2   |    16...31     |
+                 *  | 0  | 1  | 0  | DAC C |    6     |   3   |    32...47     |
+                 *  | 0  | 1  | 1  | DAC D |    7     |   4   |    48...63     |
+                 *  | 1  | 0  | 0  | DAC E |    10    |   5   |    64...79     |
+                 *  | 1  | 0  | 1  | DAC F |    11    |   6   |    80...95     |
+                 *  | 1  | 1  | 0  | DAC G |    12    |   7   |    96...111    |
+                 *  | 1  | 1  | 1  | DAC H |    13    |   8   |    112...127   |
+                 *  |----+----+----+-------+----------+-------+----------------| 
+                 * 
+                 *  ADRESS_and_Hbyte =  0      111         xxxx
+                 *                     D\C    адрес    Старший байт 
+                 *  Lbyte =   xxxx xxxx
+                 *          Младший байт
+                 * 
+                 * D\C -> 0 - адрес + напряжение | 1 - управляющий сигнал  (1111 1111 1111 1111 - полный сброс)
+                 * 
+                 * VOLTAGE = 0...4095 = 0_0 ... 15_255
+                 * 
+                 */
+                //Формируем данные на отправку
+                byte[] bytes = BitConverter.GetBytes(VOLTAGE);
+                byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
+                return (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage);
+            }
+            public bool setVoltage(string CHANNEL, string VOLTAGE)
+            {
+                return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
+            }
+            public bool setVoltage(int CHANNEL, int VOLTAGE)
+            {
+                return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
             }
         }
 
@@ -1072,6 +1073,98 @@ namespace Xmega32A4U_testBoard
                 return ADC_getVoltage(Command.SPI.Condensator.getNegativeVoltage, ADC_Negative_Channel);
             }
         }
+
+        public class CHIP
+        {
+            public void setUSART(SerialPort COM_PORT)
+            {
+                //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
+                USART = COM_PORT;
+                trace("Инициализация " + DateTime.Now.ToString("dd MMMM yyyy"));
+            }
+            public bool checkCommandStack()
+            {
+                if (transmit(Command.TEST.checkCommandStack)[0] == CommandStack)
+                {
+                    trace("Команды идут синхронно");
+                    return true;
+                }
+                trace("Команды НЕ синхронны!!!");
+                return false;
+            }
+            public byte getStatus()
+            {
+                //ФУНКЦИЯ: Получает статус у МК
+                return transmit(Command.MC.getStatus)[0];
+            }
+            public byte getVersion()
+            {
+                //ФУНКЦИЯ: Получает статус у МК
+                return transmit(Command.MC.getVersion)[0];
+            }
+            public string getBirthday()
+            {
+                //ФУНКЦИЯ: Получает статус у МК
+                UInt32 birthday = 0;
+                string answer = "00000000";
+                byte[] recDATA = transmit(Command.MC.getBirthday);
+                //if (!ERROR)
+                //{
+                birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+
+                answer = birthday.ToString();
+                answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
+
+
+                //}
+                return answer;
+            }
+            public string getCPUfrequency()
+            {
+                UInt32 frequency = 0;
+                byte[] recDATA = transmit(Command.MC.getCPUfrequency);
+                //if (!ERROR)
+                //{
+                frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                return frequency.ToString() + " Гц";
+                //}
+                //return "0";
+            }
+        }
+        public class TEST
+        {
+            public void setTracer(RichTextBox TRACER)
+            {
+                //ФУНКЦИЯ: Задаём трэйсер для отладки\ответов
+                tracer = TRACER;
+                tracer_defined = true;
+            }
+            public void tracer_enable(bool enable)
+            {
+                tracer_enabled = enable;
+            }
+            public void log_enable(bool enable)
+            {
+                tracer_log_enabled = enable;
+            }
+            public void sendSomething()
+            {
+                transmit(243);
+            }
+            public void showMeByte(byte BYTE)
+            {
+                transmit(Command.TEST.showMeByte, BYTE);
+            }
+                public void showMeByte(string BYTE)
+            {
+                showMeByte(Convert.ToByte(BYTE));
+            }
+                public void showMeByte(uint BYTE)
+            {
+                showMeByte(Convert.ToByte(BYTE));
+            }
+        }
+
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
         public RealTimeCounterAndCO Counters = new RealTimeCounterAndCO();
         public SPI_DAC DAC = new SPI_DAC();
@@ -1083,15 +1176,12 @@ namespace Xmega32A4U_testBoard
         public SPI_DETECTOR Detector = new SPI_DETECTOR();
         public SPI_SCANER Scaner = new SPI_SCANER();                    //DAC AD5643R
         public SPI_CONDENSATOR Condensator = new SPI_CONDENSATOR();     //DAC AD5643R
+
+        public CHIP Chip = new CHIP();
+        public TEST Tester = new TEST();
         //--------------------------------------ФУНКЦИИ-------------------------------------------
-        public void setTracer(RichTextBox TRACER)
-        {
-            //ФУНКЦИЯ: Задаём трэйсер для отладки\ответов
-            tracer = TRACER;
-            tracer_defined = true;
-        }
         //ИНТЕРФЕЙСНЫЕ
-        static public void trace(string text)
+        static void trace(string text)
         {
             //ФУНКЦИЯ: Выводит text в RichTextBox и в файл
             string TEXT = Environment.NewLine + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text;
@@ -1105,7 +1195,7 @@ namespace Xmega32A4U_testBoard
                 System.IO.File.AppendAllText("Log.txt", TEXT);
             }
         }
-        static public void trace_attached(string text)
+        static void trace_attached(string text)
         {
             //ФУНКЦИЯ: Выводит text в RichTextBox
             string TEXT = text;
@@ -1118,25 +1208,6 @@ namespace Xmega32A4U_testBoard
             {
                 System.IO.File.AppendAllText("Log.txt", TEXT);
             }
-        }
-        public void tracer_enable(bool enable)
-        {
-            tracer_enabled = enable;
-        }
-        public void log_enable(bool enable)
-        {
-            tracer_log_enabled = enable;
-        }
-        //public bool checkErrors()
-        //{
-        //    return ERROR;
-        //}
-        //USART
-        public void setUSART(SerialPort COM_PORT)
-        {
-            //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
-            USART = COM_PORT;
-            trace("Инициализация " + DateTime.Now.ToString("dd MMMM yyyy"));
         }
         
         static byte calcCheckSum(byte[] data)
@@ -1293,10 +1364,6 @@ namespace Xmega32A4U_testBoard
             return transmit(DATA);
         }
         //ОТЛАДОЧНЫЕ
-        public void sendSomething()
-        {
-            transmit(243);
-        }
         static void addError(string TEXT, byte[] rDATA)
         {
             string error = (ErrorList.Count + 1).ToString() + " [" + DateTime.Now.ToString("HH:mm:ss") + "] " + TEXT + " Получено: ";
@@ -1366,28 +1433,6 @@ namespace Xmega32A4U_testBoard
                 trace("Слишком короткое сообщение. Вероятно, это отклик.");
             }
         }
-        public void showMeByte(byte     BYTE)
-        {
-            transmit(Command.TEST.showMeByte, BYTE);
-        }
-            public void showMeByte(string   BYTE)
-        {
-            showMeByte(Convert.ToByte(BYTE));
-        }
-            public void showMeByte(uint     BYTE)
-        {
-            showMeByte(Convert.ToByte(BYTE));
-        }
-        public bool checkCommandStack()
-        {
-            if (transmit(Command.TEST.checkCommandStack)[0] == CommandStack)
-            {
-                trace("Команды идут синхронно");
-                return true;
-            }
-            trace("Команды НЕ синхронны!!!");
-            return false;
-        }
 
         void wait()
         {
@@ -1414,44 +1459,6 @@ namespace Xmega32A4U_testBoard
         {
             //ФУНКЦИЯ: Програмная перезагрузка микроконтроллера
             return (transmit(Command.MC.reset)[0] == Command.MC.reset);
-        }
-        public byte     getStatus()
-        {
-            //ФУНКЦИЯ: Получает статус у МК
-            return transmit(Command.MC.getStatus)[0];
-        }
-        public byte     getVersion()
-        {
-            //ФУНКЦИЯ: Получает статус у МК
-            return transmit(Command.MC.getVersion)[0];
-        }
-        public string   getBirthday()
-        {
-            //ФУНКЦИЯ: Получает статус у МК
-            UInt32 birthday = 0;
-            string answer = "00000000";
-            byte[] recDATA = transmit(Command.MC.getBirthday);
-            //if (!ERROR)
-            //{
-                birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
-
-                answer = birthday.ToString();
-                answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
-
-                
-            //}
-            return answer;
-        }
-        public string   getCPUfrequency()
-        {
-            UInt32 frequency = 0;
-            byte[] recDATA = transmit(Command.MC.getCPUfrequency);
-            //if (!ERROR)
-            //{
-                frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
-                return frequency.ToString() + " Гц";
-            //}
-            //return "0";
         }
 
         //TIC

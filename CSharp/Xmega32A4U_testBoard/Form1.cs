@@ -39,8 +39,8 @@ namespace Xmega32A4U_testBoard
             setCOMparams();
             TABpanel.SelectedIndex = 1;
 
-            MC.setUSART(COM_Port);
-            MC.setTracer(Log);
+            MC.Chip.setUSART(COM_Port);
+            MC.Tester.setTracer(Log);
 
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
@@ -165,17 +165,17 @@ namespace Xmega32A4U_testBoard
         //Функции МК
         private void BTN_MCstatus_Click(object sender, EventArgs e)
         {
-            trace(true, "Статус: " + MC.getStatus().ToString());
+            trace(true, "Статус: " + MC.Chip.getStatus().ToString());
         }
         private void BTN_COM_getMCversion_Click(object sender, EventArgs e)
         {
             trace(true, "Запрос информации о прошивке у МК...");
-            trace(true, "   Дата создания: " + MC.getBirthday());
-            trace(true, "   Версия: " + MC.getVersion().ToString());
+            trace(true, "   Дата создания: " + MC.Chip.getBirthday());
+            trace(true, "   Версия: " + MC.Chip.getVersion().ToString());
         }
         private void BTN_COM_getCPUfreq_Click(object sender, EventArgs e)
         {
-            trace(true, "Частота CPU: " + MC.getCPUfrequency());
+            trace(true, "Частота CPU: " + MC.Chip.getCPUfrequency());
         }
         private void BTN_COM_setMCwait_Click(object sender, EventArgs e)
         {
@@ -183,7 +183,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_LEDbyte_Click(object sender, EventArgs e)
         {
-            MC.showMeByte(TXB_LEDbyte.Text);
+            MC.Tester.showMeByte(TXB_LEDbyte.Text);
         }
         private void BTN_SPI_DAC_send_Click(object sender, EventArgs e)
         {
@@ -285,7 +285,7 @@ namespace Xmega32A4U_testBoard
             }
             if (MC.Counters.setMeasureTime(TXB_COA_measureTime.Text))
             {
-                trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCPrescaler(TXB_COA_measureTime.Text)) + " тиков)");
+                trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
             }
             else
             {
@@ -317,7 +317,7 @@ namespace Xmega32A4U_testBoard
         {
             if (CHB_TotalControl.Checked)
             {
-                switch (MC.getStatus())
+                switch (MC.Chip.getStatus())
                 {
                     case 0: LBL_TotalC_Status.Text = "Неинициализирован!";
                         LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
@@ -384,22 +384,22 @@ namespace Xmega32A4U_testBoard
             }
             LBL_COA_ticks.Text = "";
             //LBL_COA_ticks.Text += "(";
-            LBL_COA_ticks.Text += MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCPrescaler(TXB_COA_measureTime.Text)).ToString();
+            LBL_COA_ticks.Text += MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)).ToString();
             //LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
             //LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
             LBL_COA_frequency.Text = MC.Counters.getRTCfreqency().ToString();
-            LBL_COA_prescaler.Text = MC.Counters.getRTCPrescaler(TXB_COA_measureTime.Text).ToString();
+            LBL_COA_prescaler.Text = MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text).ToString();
         }
 
         private void CHB_enableSuperTracer_CheckedChanged(object sender, EventArgs e)
         {
             if (CHB_enableSuperTracer.Checked)
             {
-                MC.tracer_enable(true);
+                MC.Tester.tracer_enable(true);
             }
             else
             {
-                MC.tracer_enable(false);
+                MC.Tester.tracer_enable(false);
             }
         }
 
@@ -438,11 +438,11 @@ namespace Xmega32A4U_testBoard
         {
             if (CHB_traceLog.Checked)
             {
-                MC.log_enable(true);
+                MC.Tester.log_enable(true);
             }
             else
             {
-                MC.log_enable(false);
+                MC.Tester.log_enable(false);
             }
         }
 
@@ -468,7 +468,7 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_sendSomething_Click(object sender, EventArgs e)
         {
-            MC.sendSomething();
+            MC.Tester.sendSomething();
         }
 
         private void BTN_TIC_Click(object sender, EventArgs e)
@@ -610,7 +610,7 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_checkCommandStack_Click(object sender, EventArgs e)
         {
-            MC.checkCommandStack();
+            MC.Chip.checkCommandStack();
         }
 
         private void BTN_SCANER_setParentScanVoltage_Click(object sender, EventArgs e)
