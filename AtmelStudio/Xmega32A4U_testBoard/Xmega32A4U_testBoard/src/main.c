@@ -100,6 +100,62 @@ struct spi_device DAC = {
 struct spi_device ADC = {
 	.id = IOPORT_CREATE_PIN(PORTC, 2)
 };
+
+struct spi_device DAC_IonSource = {
+	.id = IOPORT_CREATE_PIN(PORTC, 1)
+};
+struct spi_device DAC_Detector = {
+	.id = IOPORT_CREATE_PIN(PORTC, 1)
+};
+struct spi_device DAC_Inlet = {
+	.id = IOPORT_CREATE_PIN(PORTC, 1)
+};
+struct spi_device DAC_Scaner = {
+	.id = IOPORT_CREATE_PIN(PORTC, 1)
+};
+struct spi_device DAC_Condensator = {
+	.id = IOPORT_CREATE_PIN(PORTC, 1)
+};
+struct spi_device ADC_IonSource = {
+	.id = IOPORT_CREATE_PIN(PORTC, 2)
+};
+struct spi_device ADC_Detector = {
+	.id = IOPORT_CREATE_PIN(PORTC, 2)
+};
+struct spi_device ADC_Inlet = {
+	.id = IOPORT_CREATE_PIN(PORTC, 2)
+};
+struct spi_device ADC_Scaner = {
+	.id = IOPORT_CREATE_PIN(PORTC, 2)
+};
+/*struct spi_device DAC_IonSource = {
+	.id = pin_iWRIS
+};
+struct spi_device DAC_Detector = {
+	.id = pin_iWRVD
+};
+struct spi_device DAC_Inlet = {
+	.id = pin_iWINL
+};
+struct spi_device DAC_Scaner = {
+	.id = pin_iWRSV
+};
+struct spi_device DAC_Condensator = {
+	.id = pin_iWRCV
+};
+struct spi_device ADC_IonSource = {
+	.id = pin_iECIS
+};
+struct spi_device ADC_Detector = {
+	.id = pin_iECVD
+};
+struct spi_device ADC_Inlet = {
+	.id = pin_iECINL
+};
+struct spi_device ADC_Scaner = {
+	.id = pin_iECSV
+};*/
+//ADC у конденсатора тот же что и у сканера
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 void showMeByte(uint8_t LED_BYTE);
 
@@ -135,6 +191,8 @@ void ERROR_ASYNCHR(void);
 
 //void RTC_delay(void);
 void TIC_transmit(uint8_t DATA[]);
+
+void SPI_send(uint8_t DEVICE_Number, uint8_t data[]);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTE0_RXC_vect)
 {
@@ -690,6 +748,78 @@ bool EVSYS_SetEventChannelFilter( uint8_t eventChannel,EVSYS_DIGFILT_t filterCoe
 	} else {
 		return false;
 	}
+}
+
+void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
+{
+	//ФУНКЦИЯ: Посылает данные указанному SPI-устройству будь то DAC или ADC
+	//	Список устройств:
+	//		DEVICE_Number		NAME		TYPE
+	//			1			 IonSource		DAC
+	//			2			 Detector		DAC
+	//			3			 Inlet			DAC
+	//			4			 Scaner			DAC
+	//			5			 Condensator	DAC
+	//			6			 IonSource		ADC
+	//			7			 Detector		ADC
+	//			8			 Inlet			ADC
+	//			9			 Scaner			ADC
+	//			10			 Condensator	ADC
+	//Создадим виртульное устройство
+	bool DEVICE_is_DAC = true;
+	struct spi_device SPI_DEVICE = {
+		.id = 0
+	};
+	switch(DEVICE_Number)
+	{
+		case 1: SPI_DEVICE = DAC_IonSource;
+			break;
+		case 2: SPI_DEVICE = DAC_Detector;
+			break;
+		case 3:	SPI_DEVICE = DAC_Inlet;
+			break;
+		case 4: SPI_DEVICE = DAC_Scaner;
+			break;
+		case 5: SPI_DEVICE = DAC_Condensator;
+			break;
+		case 6:	SPI_DEVICE = ADC_IonSource;
+			DEVICE_is_DAC = false;
+			break;
+		case 7:	SPI_DEVICE = ADC_Detector;
+			DEVICE_is_DAC = false;
+			break;
+		case 8: SPI_DEVICE = ADC_Inlet;
+			DEVICE_is_DAC = false;
+			break;
+		case 9: //Сканер и Конденсатор на одном АЦП
+		case 10: SPI_DEVICE = ADC_Scaner;
+			DEVICE_is_DAC = false;
+			break;
+		default:
+			transmit_3bytes(ERROR_Token, ERROR_wrong_SPI_DEVICE_Number, DEVICE_Number);
+			return;
+	}
+	uint8_t sdata[] = {data[1], data[2]};
+	spi_select_device(&SPIC, &SPI_DEVICE);
+	spi_write_packet(&SPIC, sdata, 2);
+	spi_deselect_device(&SPIC, &SPI_DEVICE);
+	//Если SPI-устройство - ЦАП, то откликаемся и выходим. 
+	if(DEVICE_is_DAC)
+	{
+		uint8_t aswDATA[] = {data[0]};
+		transmit(aswDATA, 1);
+		return;
+	}
+	//Если SPI-устройство - АЦП, то получаем ответ, отсылаем ответ.
+	spi_select_device(&SPIC, &SPI_DEVICE);
+	spi_put(&SPIC, 0);
+	SPI_rDATA[0] = spi_get(&SPIC);
+	spi_put(&SPIC, 0);
+	SPI_rDATA[1] = spi_get(&SPIC);
+	spi_deselect_device(&SPIC, &SPI_DEVICE);
+	//Передём ответ на ПК по USART
+	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
+	transmit(aswDATA, 3);
 }
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
