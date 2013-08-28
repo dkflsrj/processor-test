@@ -492,14 +492,11 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_INLET_getVoltage_Click(object sender, EventArgs e)
         {
-            MC.Inlet.DoubleRange = CHB_INLET_x2.Checked;
+            MC.Inlet.enableDoubleRange(CHB_INLET_x2.Checked);
             LBL_INLET_getVoltage.Text = MC.Inlet.getVoltage().ToString();
         }
 
-        private void BTN_INLET_reset_Click(object sender, EventArgs e)
-        {
-            MC.Inlet.reset();
-        }
+        
 
 
         //-------------------------------Нагреватель------------------------------
@@ -510,60 +507,60 @@ namespace Xmega32A4U_testBoard
 
         private void _BTN_HEATER_getVoltage_Click(object sender, EventArgs e)
         {
-            MC.Heater.DoubleRange = CHB_INLET_x2.Checked;
+            MC.Heater.enableDoubleRange(CHB_INLET_x2.Checked);
             LBL_HEATER_getVoltage.Text = MC.Heater.getVoltage().ToString();
         }
 
         private void BTN_HEATER_reset_Click(object sender, EventArgs e)
         {
-            MC.Heater.reset();
+            //MC.Inlet.reset();
+            //Наследование в студию!
         }
 
         
         //-------------------------------Ионный источник--------------------------
         private void BTN_IonSOURCE_setEmissionCurrentVoltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.EC_setVoltage(TXB_IonSOURCE_setEmissionCurrentVoltage.Text);
-            //MC.DAC.setVoltage((byte)1, Convert.ToUInt16(TXB_IonSOURCE_setEmissionCurrentVoltage.Text));
+            MC.IonSource.EmissionCurrent.setVoltage(TXB_IonSOURCE_setEmissionCurrentVoltage.Text);
         }
 
         private void BTN_IonSOURCE_setIonizationVoltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.Ion_setVoltage(TXB_IonSOURCE_setIonizationVoltage.Text);
+            MC.IonSource.Ionization.setVoltage(TXB_IonSOURCE_setIonizationVoltage.Text);
         }
 
         private void BTN_IonSOURCE_setF1voltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.F1_setVoltage(TXB_IonSOURCE_setF1voltage.Text);
+            MC.IonSource.F1.setVoltage(TXB_IonSOURCE_setF1voltage.Text);
         }
 
         private void BTN_IonSOURCE_setF2voltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.F2_setVoltage(TXB_IonSOURCE_setF2voltage.Text);
+            MC.IonSource.F2.setVoltage(TXB_IonSOURCE_setF2voltage.Text);
         }
 
         private void BTN_IonSOURCE_getEmissionCurrentVoltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.DoubleRange = CHB_IonSOURCE_x2.Checked;
-            LBL_IonSOURCE_getEmissionCurrentVoltage.Text = MC.IonSource.EC_getVoltage().ToString();
+            MC.IonSource.EmissionCurrent.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
+            LBL_IonSOURCE_getEmissionCurrentVoltage.Text = MC.IonSource.EmissionCurrent.getVoltage().ToString();
         }
 
         private void BTN_IonSOURCE_getIonizationVoltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.DoubleRange = CHB_IonSOURCE_x2.Checked;
-            LBL_IonSOURCE_getIonizationVoltage.Text = MC.IonSource.Ion_getVoltage().ToString();
+            MC.IonSource.Ionization.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
+            LBL_IonSOURCE_getIonizationVoltage.Text = MC.IonSource.Ionization.getVoltage().ToString();
         }
 
         private void BTN_IonSOURCE_getF1voltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.DoubleRange = CHB_IonSOURCE_x2.Checked;
-            LBL_IonSOURCE_getF1voltage.Text = MC.IonSource.F1_getVoltage().ToString();
+            MC.IonSource.F1.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
+            LBL_IonSOURCE_getF1voltage.Text = MC.IonSource.F1.getVoltage().ToString();
         }
 
         private void BTN_IonSOURCE_getF2voltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.DoubleRange = CHB_IonSOURCE_x2.Checked;
-            LBL_IonSOURCE_getF2voltage.Text = MC.IonSource.F2_getVoltage().ToString();
+            MC.IonSource.F2.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
+            LBL_IonSOURCE_getF2voltage.Text = MC.IonSource.F2.getVoltage().ToString();
         }
 
         private void BTN_IonSOURCE_reset_Click(object sender, EventArgs e)
@@ -573,34 +570,34 @@ namespace Xmega32A4U_testBoard
         //------------------------------------Детектор------------------------------------------
         private void BTN_DETECTOR_setDV1voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DV1_setVoltage(TXB_DETECTOR_setDV1voltage.Text);
+            MC.Detector.DV1.setVoltage(TXB_DETECTOR_setDV1voltage.Text);
         }
         private void BTN_DETECTOR_setDV2voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DV2_setVoltage(TXB_DETECTOR_setDV2voltage.Text);
+            MC.Detector.DV2.setVoltage(TXB_DETECTOR_setDV2voltage.Text);
         }
 
         private void BTN_DETECTOR_setDV3voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DV3_setVoltage(TXB_DETECTOR_setDV3voltage.Text);
+            MC.Detector.DV3.setVoltage(TXB_DETECTOR_setDV3voltage.Text);
         }
 
         private void BTN_DETECTOR_getDV1voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DoubleRange = CHB_DETECTOR_x2.Checked;
-            LBL_DETECTOR_getDV1voltage.Text = MC.Detector.DV1_getVoltage().ToString();
+            MC.Detector.DV1.enableDoubleRange(CHB_DETECTOR_x2.Checked);
+            LBL_DETECTOR_getDV1voltage.Text = MC.Detector.DV1.getVoltage().ToString();
         }
 
         private void BTN_DETECTOR_getDV2voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DoubleRange = CHB_DETECTOR_x2.Checked;
-            LBL_DETECTOR_getDV2voltage.Text = MC.Detector.DV2_getVoltage().ToString();
+            MC.Detector.DV2.enableDoubleRange(CHB_DETECTOR_x2.Checked);
+            LBL_DETECTOR_getDV2voltage.Text = MC.Detector.DV2.getVoltage().ToString();
         }
 
         private void BTN_DETECTOR_getDV3voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DoubleRange = CHB_DETECTOR_x2.Checked;
-            LBL_DETECTOR_getDV3voltage.Text = MC.Detector.DV3_getVoltage().ToString();
+            MC.Detector.DV3.enableDoubleRange(CHB_DETECTOR_x2.Checked);
+            LBL_DETECTOR_getDV3voltage.Text = MC.Detector.DV3.getVoltage().ToString();
         }
 
         private void BTN_DETECTOR_reset_Click(object sender, EventArgs e)
@@ -615,24 +612,24 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_SCANER_setParentScanVoltage_Click(object sender, EventArgs e)
         {
-            MC.Scaner.ParentScan_setVoltage(TXB_SCANER_setParentScanVoltage.Text);
+            MC.Scaner.ParentScan.setVoltage(TXB_SCANER_setParentScanVoltage.Text);
         }
 
         private void BTN_SCANER_setScanVoltage_Click(object sender, EventArgs e)
         {
-            MC.Scaner.Scan_setVoltage(TXB_SCANER_setScanVoltage.Text);
+            MC.Scaner.Scan.setVoltage(TXB_SCANER_setScanVoltage.Text);
         }
 
         private void BTN_SCANER_getParentScanVoltage_Click(object sender, EventArgs e)
         {
-            MC.Scaner.DoubleRange = CHB_SCANER_x2.Checked;
-            LBL_SCANER_getParentScanVoltage.Text = MC.Scaner.ParentScan_getVoltage().ToString();
+            MC.Scaner.ParentScan.enableDoubleRange(CHB_SCANER_x2.Checked);
+            LBL_SCANER_getParentScanVoltage.Text = MC.Scaner.ParentScan.getVoltage().ToString();
         }
 
         private void BTN_SCANER_getScanVoltage_Click(object sender, EventArgs e)
         {
-            MC.Scaner.DoubleRange = CHB_SCANER_x2.Checked;
-            LBL_SCANER_getScanVoltage.Text = MC.Scaner.Scan_getVoltage().ToString();
+            MC.Scaner.Scan.enableDoubleRange(CHB_SCANER_x2.Checked);
+            LBL_SCANER_getScanVoltage.Text = MC.Scaner.Scan.getVoltage().ToString();
         }
 
         private void BTN_SCANER_reset_Click(object sender, EventArgs e)
