@@ -615,24 +615,24 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_SCANER_setParentScanVoltage_Click(object sender, EventArgs e)
         {
-            MC.Scaner.setParentScanVoltage(TXB_SCANER_setParentScanVoltage.Text);
+            MC.Scaner.Parent_setVoltage(TXB_SCANER_setParentScanVoltage.Text);
         }
 
         private void BTN_SCANER_setScanVoltage_Click(object sender, EventArgs e)
         {
-            MC.Scaner.setScanVoltage(TXB_SCANER_setScanVoltage.Text);
+            MC.Scaner.Scan_setVoltage(TXB_SCANER_setScanVoltage.Text);
         }
 
         private void BTN_SCANER_getParentScanVoltage_Click(object sender, EventArgs e)
         {
             MC.Scaner.DoubleRange = CHB_SCANER_x2.Checked;
-            LBL_SCANER_getParentScanVoltage.Text = MC.Scaner.getParentScanVoltage().ToString();
+            LBL_SCANER_getParentScanVoltage.Text = MC.Scaner.Parent_getVoltage().ToString();
         }
 
         private void BTN_SCANER_getScanVoltage_Click(object sender, EventArgs e)
         {
             MC.Scaner.DoubleRange = CHB_SCANER_x2.Checked;
-            LBL_SCANER_getScanVoltage.Text = MC.Scaner.getScanVoltage().ToString();
+            LBL_SCANER_getScanVoltage.Text = MC.Scaner.Scan_getVoltage().ToString();
         }
 
         private void BTN_SCANER_reset_Click(object sender, EventArgs e)
