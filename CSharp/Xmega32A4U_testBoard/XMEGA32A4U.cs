@@ -71,8 +71,79 @@ namespace Xmega32A4U_testBoard
             }
             public struct SPI
             {
-                public const byte DAC_setVoltage = 40;
-                public const byte ADC_getVoltage = 41;
+                
+                public const byte DAC_setVoltage =                      40;
+                public const byte ADC_getVoltage =                      41;
+                public struct IonSource
+                {
+                    public struct EmissionCurrent
+                    {
+                        public const byte setVoltage = 42;
+                        public const byte getVoltage = 60;
+                    }
+                    public struct Ionization
+                    {
+                        public const byte setVoltage = 43;
+                        public const byte getVoltage = 61;
+                    }
+                    public struct F1
+                    {
+                        public const byte setVoltage = 44;
+                        public const byte getVoltage = 62;
+                    }
+                    public struct F2
+                    {
+                        public const byte setVoltage = 45;
+                        public const byte getVoltage = 63;
+                    }
+                }
+                public struct Detector
+                {
+                    public struct DV1
+                    {
+                        public const byte setVoltage = 46;
+                        public const byte getVoltage = 64;
+                    }
+                    public struct DV2
+                    {
+                        public const byte setVoltage = 47;
+                        public const byte getVoltage = 65;
+                    }
+                    public struct DV3
+                    {
+                        public const byte setVoltage = 48;
+                        public const byte getVoltage = 66;
+                    }
+                }
+                public struct Inlet
+                {
+                    public const byte setVoltage = 49;
+                    public const byte getVoltage = 67;
+                }
+                public struct Heater
+                {
+                    public const byte setVoltage = 50;
+                    public const byte getVoltage = 68;
+                }
+                public struct Scaner
+                {
+                    public struct ParentScan
+                    {
+                        public const byte setVoltage = 51;
+                        public const byte getVoltage = 69;
+                    }
+                    public struct Scan
+                    {
+                        public const byte setVoltage = 52;
+                        public const byte getVoltage = 70;
+                    }
+                }
+                public struct Condensator
+                {
+                    public const byte setVoltage = 53;
+                    public const byte getPositiveVoltage = 71;
+                    public const byte getNegativeVoltage = 72;
+                }
             }
             public const byte LOCK = 13;
             public const byte KEY = 58;
@@ -477,7 +548,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                if (transmit(Command.SPI.Inlet.setVoltage, data)[0] == Command.SPI.Inlet.setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -485,14 +556,14 @@ namespace Xmega32A4U_testBoard
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
                 return false;
             }
-            void DAC_setVoltage(byte CHANNEL, ushort VOLTAGE)
+            void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_setVoltage, data);
+                transmit(command, data);
             }
-
+            
             //ADC AD7927
             const byte Hbyte = 127;
             const byte Lbyte_DoubleRange = 16;
@@ -501,40 +572,37 @@ namespace Xmega32A4U_testBoard
 
             public bool DoubleRange;
 
-            ushort ADC_getVoltage(byte CHANNEL)
+            ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
-                //if (!ERROR)
-                //{
-                    byte adress = 1;
-                    adress += Convert.ToByte(rDATA[0] >> 4);
-                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                    trace("    Ответный адрес канала: " + adress);
-                    trace("    Напряжение: " + voltage);
-                //}
+                byte adress = 1;
+                adress += Convert.ToByte(rDATA[0] >> 4);
+                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                trace("    Ответный адрес канала: " + adress);
+                trace("    Напряжение: " + voltage);
                 return voltage;
             }
 
             public void setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(Inlet_Channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.Inlet.setVoltage, Inlet_Channel, VOLTAGE);
             }
-            public void setVoltage(string VOLTAGE)
+                public void setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(Inlet_Channel, Convert.ToUInt16(VOLTAGE));
+                setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void setVoltage(int VOLTAGE)
+                public void setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(Inlet_Channel, Convert.ToUInt16(VOLTAGE));
+                setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort getVoltage()
             {
-                return ADC_getVoltage(Inlet_Channel);
+                return ADC_getVoltage(Command.SPI.Inlet.getVoltage, Inlet_Channel);
             }
         }
         public struct SPI_HEATER
@@ -547,7 +615,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                if (transmit(Command.SPI.Heater.setVoltage, data)[0] == Command.SPI.Heater.setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -555,12 +623,12 @@ namespace Xmega32A4U_testBoard
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
                 return false;
             }
-            void DAC_setVoltage(byte CHANNEL, ushort VOLTAGE)
+            void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_setVoltage, data);
+                transmit(command, data);
             }
 
             //ADC AD7927
@@ -571,40 +639,37 @@ namespace Xmega32A4U_testBoard
 
             public bool DoubleRange;
 
-            ushort ADC_getVoltage(byte CHANNEL)
+            ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
-                //if (!ERROR)
-                //{
-                    byte adress = 1;
-                    adress += Convert.ToByte(rDATA[0] >> 4);
-                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                    trace("    Ответный адрес канала: " + adress);
-                    trace("    Напряжение: " + voltage);
-                //}
+                byte adress = 1;
+                adress += Convert.ToByte(rDATA[0] >> 4);
+                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                trace("    Ответный адрес канала: " + adress);
+                trace("    Напряжение: " + voltage);
                 return voltage;
             }
 
             public void setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(Heater_Channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.Heater.setVoltage, Heater_Channel, VOLTAGE);
             }
-            public void setVoltage(string VOLTAGE)
+                public void setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(Heater_Channel, Convert.ToUInt16(VOLTAGE));
+                setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void setVoltage(int VOLTAGE)
+                public void setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(Heater_Channel, Convert.ToUInt16(VOLTAGE));
+                setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort getVoltage()
             {
-                return ADC_getVoltage(Heater_Channel);
+                return ADC_getVoltage(Command.SPI.Heater.getVoltage, Heater_Channel);
             }
         }
         public struct SPI_IonSOURCE
@@ -621,7 +686,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                if (transmit(Command.SPI.IonSource.EmissionCurrent.setVoltage, data)[0] == Command.SPI.IonSource.EmissionCurrent.setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -629,12 +694,12 @@ namespace Xmega32A4U_testBoard
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
                 return false;
             }
-            void DAC_setVoltage(byte CHANNEL, ushort VOLTAGE)
+            void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_setVoltage, data);
+                transmit(command, data);
             }
 
             //ADC AD7927
@@ -645,94 +710,91 @@ namespace Xmega32A4U_testBoard
 
             public bool DoubleRange;
 
-            ushort ADC_getVoltage(byte CHANNEL)
+            ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
-               //if (!ERROR)
-                //{
-                    byte adress = 1;
-                    adress += Convert.ToByte(rDATA[0] >> 4);
-                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                    trace("    Ответный адрес канала: " + adress);
-                    trace("    Напряжение: " + voltage);
-                //}
+                byte adress = 1;
+                adress += Convert.ToByte(rDATA[0] >> 4);
+                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                trace("    Ответный адрес канала: " + adress);
+                trace("    Напряжение: " + voltage);
                 return voltage;
             }
             //EmissionCurrent
             public void EC_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(EmissionCurrent_channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.IonSource.EmissionCurrent.setVoltage, EmissionCurrent_channel, VOLTAGE);
             }
-            public void EC_setVoltage(string VOLTAGE)
+                public void EC_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(EmissionCurrent_channel, Convert.ToUInt16(VOLTAGE));
+                EC_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void EC_setVoltage(int VOLTAGE)
+                public void EC_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(EmissionCurrent_channel, Convert.ToUInt16(VOLTAGE));
+                EC_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort EC_getVoltage()
             {
-                return ADC_getVoltage(EmissionCurrent_channel);
+                return ADC_getVoltage(Command.SPI.IonSource.EmissionCurrent.getVoltage, EmissionCurrent_channel);
             }
             //Ionization
             public void Ion_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(Ionization_channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.IonSource.Ionization.setVoltage, Ionization_channel, VOLTAGE);
             }
-            public void Ion_setVoltage(string VOLTAGE)
+                public void Ion_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(Ionization_channel, Convert.ToUInt16(VOLTAGE));
+                Ion_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void Ion_setVoltage(int VOLTAGE)
+                public void Ion_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(Ionization_channel, Convert.ToUInt16(VOLTAGE));
+                Ion_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort Ion_getVoltage()
             {
-                return ADC_getVoltage(Ionization_channel);
+                return ADC_getVoltage(Command.SPI.IonSource.Ionization.getVoltage, Ionization_channel);
             }
             //Focus1
             public void F1_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(F1_channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.IonSource.F1.setVoltage, F1_channel, VOLTAGE);
             }
-            public void F1_setVoltage(string VOLTAGE)
+                public void F1_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(F1_channel, Convert.ToUInt16(VOLTAGE));
+                F1_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void F1_setVoltage(int VOLTAGE)
+                public void F1_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(F1_channel, Convert.ToUInt16(VOLTAGE));
+                F1_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort F1_getVoltage()
             {
-                return ADC_getVoltage(F1_channel);
+                return ADC_getVoltage(Command.SPI.IonSource.F1.getVoltage, F1_channel);
             }
             //Focus2
             public void F2_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(F2_channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.IonSource.F2.setVoltage, F2_channel, VOLTAGE);
             }
-            public void F2_setVoltage(string VOLTAGE)
+                public void F2_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(F2_channel, Convert.ToUInt16(VOLTAGE));
+                F2_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void F2_setVoltage(int VOLTAGE)
+                public void F2_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(F2_channel, Convert.ToUInt16(VOLTAGE));
+                F2_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort F2_getVoltage()
             {
-                return ADC_getVoltage(F2_channel);
+                return ADC_getVoltage(Command.SPI.IonSource.F2.getVoltage, F2_channel);
             }
         }
         public struct SPI_DETECTOR
@@ -748,7 +810,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                if (transmit(Command.SPI.Detector.DV1.setVoltage, data)[0] == Command.SPI.Detector.DV1.setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -756,12 +818,12 @@ namespace Xmega32A4U_testBoard
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
                 return false;
             }
-            void DAC_setVoltage(byte CHANNEL, ushort VOLTAGE)
+            void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_setVoltage, data);
+                transmit(command, data);
             }
 
             //ADC AD7927
@@ -772,12 +834,12 @@ namespace Xmega32A4U_testBoard
 
             public bool DoubleRange;
 
-            ushort ADC_getVoltage(byte CHANNEL)
+            ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
                 //if (!ERROR)
                 //{
@@ -792,56 +854,56 @@ namespace Xmega32A4U_testBoard
             //DV1
             public void DV1_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(DV1_channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.Detector.DV1.setVoltage, DV1_channel, VOLTAGE);
             }
-            public void DV1_setVoltage(string VOLTAGE)
+                public void DV1_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(DV1_channel, Convert.ToUInt16(VOLTAGE));
+                DV1_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void DV1_setVoltage(int VOLTAGE)
+                public void DV1_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(DV1_channel, Convert.ToUInt16(VOLTAGE));
+                DV1_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort DV1_getVoltage()
             {
-                return ADC_getVoltage(DV1_channel);
+                return ADC_getVoltage(Command.SPI.Detector.DV1.getVoltage, DV1_channel);
             }
             //DV2
             public void DV2_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(DV2_channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.Detector.DV2.setVoltage, DV2_channel, VOLTAGE);
             }
-            public void DV2_setVoltage(string VOLTAGE)
+                public void DV2_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(DV2_channel, Convert.ToUInt16(VOLTAGE));
+                DV2_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void DV2_setVoltage(int VOLTAGE)
+                public void DV2_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(DV2_channel, Convert.ToUInt16(VOLTAGE));
+                DV2_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort DV2_getVoltage()
             {
-                return ADC_getVoltage(DV2_channel);
+                return ADC_getVoltage(Command.SPI.Detector.DV2.getVoltage, DV2_channel);
             }
             //DV3
             public void DV3_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(DV3_channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.Detector.DV3.setVoltage, DV3_channel, VOLTAGE);
             }
-            public void DV3_setVoltage(string VOLTAGE)
+                public void DV3_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(DV3_channel, Convert.ToUInt16(VOLTAGE));
+                DV3_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void DV3_setVoltage(int VOLTAGE)
+                public void DV3_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(DV3_channel, Convert.ToUInt16(VOLTAGE));
+                DV3_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort DV3_getVoltage()
             {
-                return ADC_getVoltage(DV3_channel);
+                return ADC_getVoltage(Command.SPI.Detector.DV3.getVoltage, DV3_channel);
             }
         }
         public struct SPI_SCANER
@@ -858,7 +920,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                if (transmit(Command.SPI.Scaner.Scan.setVoltage, data)[0] == Command.SPI.Scaner.Scan.setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -866,12 +928,12 @@ namespace Xmega32A4U_testBoard
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
                 return false;
             }
-            void DAC_setVoltage(byte CHANNEL, ushort VOLTAGE)
+            void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_setVoltage, data);
+                transmit(command, data);
             }
 
             //ADC AD7927
@@ -882,12 +944,12 @@ namespace Xmega32A4U_testBoard
 
             public bool DoubleRange;
 
-            ushort ADC_getVoltage(byte CHANNEL)
+            ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
                 //if (!ERROR)
                 //{
@@ -900,40 +962,40 @@ namespace Xmega32A4U_testBoard
                 return voltage;
             }
             //Parent
-            public void Parent_setVoltage(ushort VOLTAGE)
+            public void ParentScan_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(DAC_ParentScan_Channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.Scaner.ParentScan.setVoltage, DAC_ParentScan_Channel, VOLTAGE);
             }
-            public void Parent_setVoltage(string VOLTAGE)
+            public void ParentScan_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(DAC_ParentScan_Channel, Convert.ToUInt16(VOLTAGE));
+                ParentScan_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void Parent_setVoltage(int VOLTAGE)
+            public void ParentScan_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(DAC_ParentScan_Channel, Convert.ToUInt16(VOLTAGE));
+                ParentScan_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
-            public ushort Parent_getVoltage()
+            public ushort ParentScan_getVoltage()
             {
-                return ADC_getVoltage(ADC_ParentScan_Channel);
+                return ADC_getVoltage(Command.SPI.Scaner.ParentScan.getVoltage, ADC_ParentScan_Channel);
             }
             //Scan
             public void Scan_setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(DAC_Scan_Channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.Scaner.Scan.setVoltage, DAC_Scan_Channel, VOLTAGE);
             }
             public void Scan_setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(DAC_Scan_Channel, Convert.ToUInt16(VOLTAGE));
+                Scan_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
             public void Scan_setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(DAC_Scan_Channel, Convert.ToUInt16(VOLTAGE));
+                Scan_setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort Scan_getVoltage()
             {
-                return ADC_getVoltage(ADC_Scan_Channel);
+                return ADC_getVoltage(Command.SPI.Scaner.Scan.getVoltage, ADC_Scan_Channel);
             }
         }
         public struct SPI_CONDENSATOR
@@ -949,7 +1011,7 @@ namespace Xmega32A4U_testBoard
             public bool reset()
             {
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
                 {
                     trace("Напряжения DAC'a сброшены");
                     return true;
@@ -957,12 +1019,12 @@ namespace Xmega32A4U_testBoard
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
                 return false;
             }
-            void DAC_setVoltage(byte CHANNEL, ushort VOLTAGE)
+            void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(Command.SPI.DAC_setVoltage, data);
+                transmit(command, data);
             }
 
             //ADC AD7927
@@ -973,44 +1035,41 @@ namespace Xmega32A4U_testBoard
 
             public bool DoubleRange;
 
-            ushort ADC_getVoltage(byte CHANNEL)
+            ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
+                byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
-                //if (!ERROR)
-                //{
-                    byte adress = 1;
-                    adress += Convert.ToByte(rDATA[0] >> 4);
-                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                    trace("    Ответный адрес канала: " + adress);
-                    trace("    Напряжение: " + voltage);
-                //}
+                byte adress = 1;
+                adress += Convert.ToByte(rDATA[0] >> 4);
+                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                trace("    Ответный адрес канала: " + adress);
+                trace("    Напряжение: " + voltage);
                 return voltage;
             }
 
             public void setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(DAC_Condensator_Channel, VOLTAGE);
+                DAC_setVoltage(Command.SPI.Condensator.setVoltage, DAC_Condensator_Channel, VOLTAGE);
             }
-            public void setVoltage(string VOLTAGE)
+                public void setVoltage(string VOLTAGE)
             {
-                DAC_setVoltage(DAC_Condensator_Channel, Convert.ToUInt16(VOLTAGE));
+                setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-            public void setVoltage(int VOLTAGE)
+                public void setVoltage(int VOLTAGE)
             {
-                DAC_setVoltage(DAC_Condensator_Channel, Convert.ToUInt16(VOLTAGE));
+                setVoltage(Convert.ToUInt16(VOLTAGE));
             }
 
             public ushort getPositiveVoltage()
             {
-                return ADC_getVoltage(ADC_Positive_Channel);
+                return ADC_getVoltage(Command.SPI.Condensator.getPositiveVoltage, ADC_Positive_Channel);
             }
             public ushort getNegativeVoltage()
             {
-                return ADC_getVoltage(ADC_Negative_Channel);
+                return ADC_getVoltage(Command.SPI.Condensator.getNegativeVoltage, ADC_Negative_Channel);
             }
         }
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
