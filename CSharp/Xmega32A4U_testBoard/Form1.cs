@@ -338,17 +338,17 @@ namespace Xmega32A4U_testBoard
                         LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
                         break;
                 }
-                if (MC.checkErrors())
-                {
-                    LBL_error.Text = "Есть ошибки!";
-                    LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
-                }
-                else
-                {
+                //if (MC.checkErrors())
+                //{
+                //    LBL_error.Text = "Есть ошибки!";
+                //    LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
+                //}
+                //else
+                //{
 
-                    LBL_error.Text = "Ошибок нет";
-                    LBL_error.ForeColor = System.Drawing.Color.Green;
-                }
+                //    LBL_error.Text = "Ошибок нет";
+                //    LBL_error.ForeColor = System.Drawing.Color.Green;
+                //}
             }
         }
         private void CHB_TotalControl_CheckedChanged(object sender, EventArgs e)
