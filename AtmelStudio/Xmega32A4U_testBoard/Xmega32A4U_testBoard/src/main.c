@@ -31,8 +31,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 26
-#define birthday 20130809
+#define version 27
+#define birthday 20130828
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
 #define usartRX_delay 2										//Задержка приёма данных иначе разобьём команду на части

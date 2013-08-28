@@ -23,7 +23,7 @@ namespace Xmega32A4U_testBoard
         static bool         tracer_defined = false;
         static bool         tracer_enabled = true;
         static bool         tracer_log_enabled = false;
-        static bool         ERROR = false;
+        //static bool         ERROR = false;
         static List<string> ErrorList = new List<string>();
         static byte CommandStack;
         //-------------------------------------СТРУКТУРЫ------------------------------------------
@@ -139,14 +139,14 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
-                if (!ERROR)
-                {
+                //if (!ERROR)
+                //{
                     byte adress = 1;
                     adress += Convert.ToByte(rDATA[0] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
                     trace("    Ответный адрес канала: " + adress);
                     trace("    Напряжение: " + voltage);
-                }
+                //}
                 return voltage;
             }
             public ushort getVoltage(string CHANNEL)
@@ -508,14 +508,14 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
-                if (!ERROR)
-                {
+                //if (!ERROR)
+                //{
                     byte adress = 1;
                     adress += Convert.ToByte(rDATA[0] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
                     trace("    Ответный адрес канала: " + adress);
                     trace("    Напряжение: " + voltage);
-                }
+                //}
                 return voltage;
             }
 
@@ -578,14 +578,14 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
-                if (!ERROR)
-                {
+                //if (!ERROR)
+                //{
                     byte adress = 1;
                     adress += Convert.ToByte(rDATA[0] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
                     trace("    Ответный адрес канала: " + adress);
                     trace("    Напряжение: " + voltage);
-                }
+                //}
                 return voltage;
             }
 
@@ -652,14 +652,14 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
-                if (!ERROR)
-                {
+               //if (!ERROR)
+                //{
                     byte adress = 1;
                     adress += Convert.ToByte(rDATA[0] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
                     trace("    Ответный адрес канала: " + adress);
                     trace("    Напряжение: " + voltage);
-                }
+                //}
                 return voltage;
             }
             //EmissionCurrent
@@ -779,14 +779,14 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
-                if (!ERROR)
-                {
+                //if (!ERROR)
+                //{
                     byte adress = 1;
                     adress += Convert.ToByte(rDATA[0] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
                     trace("    Ответный адрес канала: " + adress);
                     trace("    Напряжение: " + voltage);
-                }
+                //}
                 return voltage;
             }
             //DV1
@@ -889,14 +889,14 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
-                if (!ERROR)
-                {
+                //if (!ERROR)
+                //{
                     byte adress = 1;
                     adress += Convert.ToByte(rDATA[0] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
                     trace("    Ответный адрес канала: " + adress);
                     trace("    Напряжение: " + voltage);
-                }
+                //}
                 return voltage;
             }
             //ParentScan
@@ -980,14 +980,14 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
-                if (!ERROR)
-                {
+                //if (!ERROR)
+                //{
                     byte adress = 1;
                     adress += Convert.ToByte(rDATA[0] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
                     trace("    Ответный адрес канала: " + adress);
                     trace("    Напряжение: " + voltage);
-                }
+                //}
                 return voltage;
             }
 
@@ -1068,10 +1068,10 @@ namespace Xmega32A4U_testBoard
         {
             tracer_log_enabled = enable;
         }
-        public bool checkErrors()
-        {
-            return ERROR;
-        }
+        //public bool checkErrors()
+        //{
+        //    return ERROR;
+        //}
         //USART
         public void setUSART(SerialPort COM_PORT)
         {
@@ -1130,7 +1130,7 @@ namespace Xmega32A4U_testBoard
             {
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не было получено никаких данных!");
                 USART.Close();
-                ERROR = true;
+                //ERROR = true;
                 return new byte[] {0};
             }
             trace("             Принято:");
@@ -1146,7 +1146,7 @@ namespace Xmega32A4U_testBoard
                 {
                     trace("ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
                     USART.Close();
-                    ERROR = true;
+                    //ERROR = true;
                     return new byte[] {0};
                 }
                 rDATA.Add(rBYTE);
@@ -1173,7 +1173,7 @@ namespace Xmega32A4U_testBoard
                         trace("         Несовпадает контрольная сумма!");
                         trace("             Получено:" + rCheckSum);
                         trace("             Подсчитано:" + CheckSum);
-                        ERROR = true;
+                        //ERROR = true;
                         return new byte[] { 0 };
                     }
                     //Проверяем данные на отклик
@@ -1194,7 +1194,7 @@ namespace Xmega32A4U_testBoard
                             trace("ОШИБКА ОТКЛИКА!");
                             trace("     Ожидалось: " + command);
                             trace("     Получено: " + rDATA[0]);
-                            ERROR = true;
+                            //ERROR = true;
                             defineError(rDATA.ToArray());
                             return new byte[] { 0 };
                         }
@@ -1202,10 +1202,10 @@ namespace Xmega32A4U_testBoard
                     return rDATA.ToArray();
                 }
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен затвор!");
-                ERROR = true;
+                //ERROR = true;
             }
             trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен ключ!");
-            ERROR = true;
+            //ERROR = true;
             return new byte[] { 0 };
         }
             static byte[] transmit(byte[] DATA)
@@ -1372,27 +1372,27 @@ namespace Xmega32A4U_testBoard
             UInt32 birthday = 0;
             string answer = "00000000";
             byte[] recDATA = transmit(Command.MC.getBirthday);
-            if (!ERROR)
-            {
+            //if (!ERROR)
+            //{
                 birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
 
                 answer = birthday.ToString();
                 answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
 
                 
-            }
+            //}
             return answer;
         }
         public string   getCPUfrequency()
         {
             UInt32 frequency = 0;
             byte[] recDATA = transmit(Command.MC.getCPUfrequency);
-            if (!ERROR)
-            {
+            //if (!ERROR)
+            //{
                 frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
                 return frequency.ToString() + " Гц";
-            }
-            return "0";
+            //}
+            //return "0";
         }
 
         //TIC
