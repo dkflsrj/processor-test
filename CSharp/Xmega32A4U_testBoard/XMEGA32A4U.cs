@@ -537,36 +537,54 @@ namespace Xmega32A4U_testBoard
                 return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
             }
         }
-
-        public class SPI_DEVICE_CHANNEL
+        //Класс для отдельных каналов отдельных DAC'ов
+        public class SPI_DEVICE_DAC_CHANNEL
         {
-            public SPI_DEVICE_CHANNEL(byte DAC_CHANNEL,byte DAC_COMMAND, byte ADC_CHANNEL, byte ADC_COMMAND)
-            {
-                DAC_channel = DAC_CHANNEL;
-                ADC_channel = ADC_CHANNEL;
-                DAC_command = DAC_COMMAND;
-                ADC_command = ADC_COMMAND;
-            }
-
-            byte DAC_channel;
-            byte ADC_channel;
-            byte DAC_command;
-            byte ADC_command;
-            //ADC
-            const byte Hbyte = 127;
-            const byte Lbyte_DoubleRange = 16;
-            const byte Lbyte_NormalRange = 48;
-            const byte ChannelStep = 4;
-
-            bool DoubleRange = false;
-
-            void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
+            protected byte DAC_channel;
+            protected byte DAC_command;
+            protected void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //Формируем данные на отправку
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
                 transmit(command, data);
             }
+            public void setVoltage(ushort VOLTAGE)
+            {
+                DAC_setVoltage(DAC_command, DAC_channel, VOLTAGE);
+            }
+                public void setVoltage(string VOLTAGE)
+            {
+                setVoltage(Convert.ToUInt16(VOLTAGE));
+            }
+                public void setVoltage(int VOLTAGE)
+            {
+                setVoltage(Convert.ToUInt16(VOLTAGE));
+            }
+        }
+        //Класс для отдельных каналов DAC'ов и ADC'ов
+        public class SPI_DEVICE_CHANNEL : SPI_DEVICE_DAC_CHANNEL
+        {
+            protected byte ADC_channel;
+            protected byte ADC_command;
+            //Конструктор
+            public SPI_DEVICE_CHANNEL(byte DAC_CHANNEL, byte DAC_COMMAND, byte ADC_CHANNEL, byte ADC_COMMAND)
+            {
+                DAC_channel = DAC_CHANNEL;
+                ADC_channel = ADC_CHANNEL;
+                DAC_command = DAC_COMMAND;
+                ADC_command = ADC_COMMAND;
+            }
+            public SPI_DEVICE_CHANNEL()
+            {
+                //Пустышка для наследника
+            }
+            //ADC
+            const byte Hbyte = 127;
+            const byte Lbyte_DoubleRange = 16;
+            const byte Lbyte_NormalRange = 48;
+            const byte ChannelStep = 4;
+            bool DoubleRange = false;
             ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
@@ -581,19 +599,7 @@ namespace Xmega32A4U_testBoard
                 trace("    Напряжение: " + voltage);
                 return voltage;
             }
-
-            public void setVoltage(ushort VOLTAGE)
-            {
-                DAC_setVoltage(DAC_command, DAC_channel, VOLTAGE);
-            }
-                public void setVoltage(string VOLTAGE)
-            {
-                setVoltage(Convert.ToUInt16(VOLTAGE));
-            }
-                public void setVoltage(int VOLTAGE)
-            {
-                setVoltage(Convert.ToUInt16(VOLTAGE));
-            }
+            //Видимые функции
             public ushort getVoltage()
             {
                 return ADC_getVoltage(ADC_command, ADC_channel);
@@ -603,142 +609,97 @@ namespace Xmega32A4U_testBoard
                 DoubleRange = enable;
             }
         }
+        //Класс для отдельных каналов DAC'ов и ADC'ов с reset()'ом (для Inlet и Heater)
+        public class SPI_DEVICE_CHANNEL_withReset : SPI_DEVICE_CHANNEL
+        {
+            const byte Reset_Hbyte = 255;
+            const byte Reset_Lbyte = 255;
 
-        //public struct SPI_INLET
-        //{
-        //    //СТРУКТУРА: Натекатель - используется канал А (один, второй - нагреватель)
-        //    //DAC AD5328BR
-        //    const byte Reset_Hbyte = 255;
-        //    const byte Reset_Lbyte = 255;
-        //    const byte Inlet_Channel = 1;
-
-        //    public bool reset()
-        //    {
-        //        byte[] data = { Reset_Hbyte, Reset_Lbyte };
-        //        if (transmit(Command.SPI.Inlet.setVoltage, data)[0] == Command.SPI.Inlet.setVoltage)
-        //        {
-        //            trace("Напряжения DAC'a сброшены");
-        //            return true;
-        //        }
-        //        trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
-        //        return false;
-        //    }
-        //    void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
-        //    {
-        //        //Формируем данные на отправку
-        //        byte[] bytes = BitConverter.GetBytes(VOLTAGE);
-        //        byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-        //        transmit(command, data);
-        //    }
-            
-        //    //ADC AD7927
-        //    const byte Hbyte = 127;
-        //    const byte Lbyte_DoubleRange = 16;
-        //    const byte Lbyte_NormalRange = 48;
-        //    const byte ChannelStep = 4;
-
-        //    public bool DoubleRange;
-
-        //    ushort ADC_getVoltage(byte command, byte CHANNEL)
-        //    {
-        //        byte Lbyte = 0;
-        //        if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
-        //        byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-        //        byte[] rDATA = transmit(command, data);
-        //        ushort voltage = 0;
-        //        byte adress = 1;
-        //        adress += Convert.ToByte(rDATA[0] >> 4);
-        //        voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-        //        trace("    Ответный адрес канала: " + adress);
-        //        trace("    Напряжение: " + voltage);
-        //        return voltage;
-        //    }
-
-        //    public void setVoltage(ushort VOLTAGE)
-        //    {
-        //        DAC_setVoltage(Command.SPI.Inlet.setVoltage, Inlet_Channel, VOLTAGE);
-        //    }
-        //        public void setVoltage(string VOLTAGE)
-        //    {
-        //        setVoltage(Convert.ToUInt16(VOLTAGE));
-        //    }
-        //        public void setVoltage(int VOLTAGE)
-        //    {
-        //        setVoltage(Convert.ToUInt16(VOLTAGE));
-        //    }
-
-        //    public ushort getVoltage()
-        //    {
-        //        return ADC_getVoltage(Command.SPI.Inlet.getVoltage, Inlet_Channel);
-        //    }
-        //}
-        //public struct SPI_HEATER
-        //{
-        //    //СТРУКТУРА: Нагреватель - используется канал B
-        //    //DAC AD5328BR
-        //    const byte Reset_Hbyte = 255;
-        //    const byte Reset_Lbyte = 255;
-        //    const byte Heater_Channel = 2;
-        //    public bool reset()
-        //    {
-        //        byte[] data = { Reset_Hbyte, Reset_Lbyte };
-        //        if (transmit(Command.SPI.Heater.setVoltage, data)[0] == Command.SPI.Heater.setVoltage)
-        //        {
-        //            trace("Напряжения DAC'a сброшены");
-        //            return true;
-        //        }
-        //        trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
-        //        return false;
-        //    }
-        //    void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
-        //    {
-        //        //Формируем данные на отправку
-        //        byte[] bytes = BitConverter.GetBytes(VOLTAGE);
-        //        byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-        //        transmit(command, data);
-        //    }
-
-        //    //ADC AD7927
-        //    const byte Hbyte = 127;
-        //    const byte Lbyte_DoubleRange = 16;
-        //    const byte Lbyte_NormalRange = 48;
-        //    const byte ChannelStep = 4;
-
-        //    public bool DoubleRange;
-
-        //    ushort ADC_getVoltage(byte command, byte CHANNEL)
-        //    {
-        //        byte Lbyte = 0;
-        //        if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
-        //        byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-        //        byte[] rDATA = transmit(command, data);
-        //        ushort voltage = 0;
-        //        byte adress = 1;
-        //        adress += Convert.ToByte(rDATA[0] >> 4);
-        //        voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-        //        trace("    Ответный адрес канала: " + adress);
-        //        trace("    Напряжение: " + voltage);
-        //        return voltage;
-        //    }
-
-        //    public void setVoltage(ushort VOLTAGE)
-        //    {
-        //        DAC_setVoltage(Command.SPI.Heater.setVoltage, Heater_Channel, VOLTAGE);
-        //    }
-        //        public void setVoltage(string VOLTAGE)
-        //    {
-        //        setVoltage(Convert.ToUInt16(VOLTAGE));
-        //    }
-        //        public void setVoltage(int VOLTAGE)
-        //    {
-        //        setVoltage(Convert.ToUInt16(VOLTAGE));
-        //    }
-
-        //    public ushort getVoltage()
-        //    {
-        //        return ADC_getVoltage(Command.SPI.Heater.getVoltage, Heater_Channel);
-        //    }
-        //}
+            public SPI_DEVICE_CHANNEL_withReset(byte DAC_CHANNEL, byte DAC_COMMAND, byte ADC_CHANNEL, byte ADC_COMMAND)
+            {
+                DAC_channel = DAC_CHANNEL;
+                ADC_channel = ADC_CHANNEL;
+                DAC_command = DAC_COMMAND;
+                ADC_command = ADC_COMMAND;
+            }
+            public bool reset()
+            {
+                byte[] data = { Reset_Hbyte, Reset_Lbyte };
+                if (transmit(DAC_command, data)[0] == DAC_command)
+                {
+                    trace("Напряжения DAC'a сброшены");
+                    return true;
+                }
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                return false;
+            }
+        }
+        //Класс для конденсатора
+        public class SPI_DEVICE_CHANNEL_CONDENSATOR : SPI_DEVICE_DAC_CHANNEL
+        {
+            byte ADC_positive_channel;
+            byte ADC_negative_channel;
+            byte ADC_positive_command;
+            byte ADC_negative_command;
+            //Конструктор
+            public SPI_DEVICE_CHANNEL_CONDENSATOR(byte DAC_CHANNEL, byte DAC_COMMAND, byte ADC_POSITIVE_CHANNEL, byte ADC_POSITIVE_COMMAND, byte ADC_NEGATIVE_CHANNEL, byte ADC_NEGATIVE_COMMAND)
+            {
+                DAC_channel = DAC_CHANNEL;
+                ADC_positive_channel = ADC_POSITIVE_CHANNEL;
+                ADC_negative_channel = ADC_NEGATIVE_CHANNEL;
+                DAC_command = DAC_COMMAND;
+                ADC_positive_command = ADC_POSITIVE_COMMAND;
+                ADC_negative_command = ADC_NEGATIVE_COMMAND;
+            }
+            //DAC
+            const byte Reset_Hbyte = 255;
+            const byte Reset_Lbyte = 255;
+            //ADC
+            const byte Hbyte = 127;
+            const byte Lbyte_DoubleRange = 16;
+            const byte Lbyte_NormalRange = 48;
+            const byte ChannelStep = 4;
+            bool DoubleRange = false;
+            ushort ADC_getVoltage(byte command, byte CHANNEL)
+            {
+                byte Lbyte = 0;
+                if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
+                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
+                byte[] rDATA = transmit(command, data);
+                ushort voltage = 0;
+                byte adress = 1;
+                adress += Convert.ToByte(rDATA[0] >> 4);
+                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                trace("    Ответный адрес канала: " + adress);
+                trace("    Напряжение: " + voltage);
+                return voltage;
+            }
+            //Видимые функции
+            public ushort getPositiveVoltage()
+            {
+                return ADC_getVoltage(ADC_positive_command, ADC_positive_channel);
+            }
+            public ushort getNegativeVoltage()
+            {
+                return ADC_getVoltage(ADC_negative_command, ADC_negative_channel);
+            }
+            public void enableDoubleRange(bool enable)
+            {
+                DoubleRange = enable;
+            }
+            public bool reset()
+            {
+                byte[] data = { Reset_Hbyte, Reset_Lbyte };
+                if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
+                {
+                    trace("Напряжения DAC'a сброшены");
+                    return true;
+                }
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                return false;
+            }
+        }
+        
         public class SPI_IonSOURCE
         {
             //СТРУКТУРА: Ионный источник - используется каналы А,B,C,D
@@ -766,11 +727,12 @@ namespace Xmega32A4U_testBoard
             public SPI_DEVICE_CHANNEL Ionization = new SPI_DEVICE_CHANNEL(Ionization_channel, Command.SPI.IonSource.Ionization.setVoltage, Ionization_channel, Command.SPI.IonSource.Ionization.getVoltage);
             public SPI_DEVICE_CHANNEL F1 = new SPI_DEVICE_CHANNEL(F1_channel, Command.SPI.IonSource.F1.setVoltage, F1_channel, Command.SPI.IonSource.F1.getVoltage);
             public SPI_DEVICE_CHANNEL F2 = new SPI_DEVICE_CHANNEL(F2_channel, Command.SPI.IonSource.F2.setVoltage, F2_channel, Command.SPI.IonSource.F2.getVoltage);
-
+            
             //public void enableDoubleRange(bool enable)
             //{
+                
             //    EmissionCurrent.enableDoubleRange(enable);
-            //ПОПРОБУЙ ДЕЛЕГАТОМ. Хотя... сначала пойми что такое делегат...
+            //Делегатом?
             //}
         }
         public class SPI_DETECTOR
@@ -825,81 +787,7 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
         }
-        public struct SPI_CONDENSATOR
-        {
-            //СТРУКТУРА: Натекатель - используется канал А (один, второй - нагреватель)
-            //DAC AD5643R
-            const byte Reset_Hbyte = 255;
-            const byte Reset_Lbyte = 255;
-            const byte DAC_Condensator_Channel = 1;
-            const byte ADC_Positive_Channel = 1;
-            const byte ADC_Negative_Channel = 2;
-
-            public bool reset()
-            {
-                byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
-                {
-                    trace("Напряжения DAC'a сброшены");
-                    return true;
-                }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
-                return false;
-            }
-            void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
-            {
-                //Формируем данные на отправку
-                byte[] bytes = BitConverter.GetBytes(VOLTAGE);
-                byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(command, data);
-            }
-
-            //ADC AD7927
-            const byte Hbyte = 127;
-            const byte Lbyte_DoubleRange = 16;
-            const byte Lbyte_NormalRange = 48;
-            const byte ChannelStep = 4;
-
-            public bool DoubleRange;
-
-            ushort ADC_getVoltage(byte command, byte CHANNEL)
-            {
-                byte Lbyte = 0;
-                if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
-                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(command, data);
-                ushort voltage = 0;
-                byte adress = 1;
-                adress += Convert.ToByte(rDATA[0] >> 4);
-                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                trace("    Ответный адрес канала: " + adress);
-                trace("    Напряжение: " + voltage);
-                return voltage;
-            }
-
-            public void setVoltage(ushort VOLTAGE)
-            {
-                DAC_setVoltage(Command.SPI.Condensator.setVoltage, DAC_Condensator_Channel, VOLTAGE);
-            }
-                public void setVoltage(string VOLTAGE)
-            {
-                setVoltage(Convert.ToUInt16(VOLTAGE));
-            }
-                public void setVoltage(int VOLTAGE)
-            {
-                setVoltage(Convert.ToUInt16(VOLTAGE));
-            }
-
-            public ushort getPositiveVoltage()
-            {
-                return ADC_getVoltage(Command.SPI.Condensator.getPositiveVoltage, ADC_Positive_Channel);
-            }
-            public ushort getNegativeVoltage()
-            {
-                return ADC_getVoltage(Command.SPI.Condensator.getNegativeVoltage, ADC_Negative_Channel);
-            }
-        }
-
+        
         public class CHIP
         {
             public void setUSART(SerialPort COM_PORT)
@@ -996,12 +884,13 @@ namespace Xmega32A4U_testBoard
         public SPI_DAC DAC = new SPI_DAC();
         public SPI_ADC ADC = new SPI_ADC();
 
-        public SPI_DEVICE_CHANNEL Inlet = new SPI_DEVICE_CHANNEL(1, Command.SPI.Inlet.setVoltage, 1, Command.SPI.Inlet.getVoltage);
-        public SPI_DEVICE_CHANNEL Heater = new SPI_DEVICE_CHANNEL(2, Command.SPI.Heater.setVoltage, 2, Command.SPI.Heater.getVoltage);
+        public SPI_DEVICE_CHANNEL_withReset Inlet = new SPI_DEVICE_CHANNEL_withReset(1, Command.SPI.Inlet.setVoltage, 1, Command.SPI.Inlet.getVoltage);
+        public SPI_DEVICE_CHANNEL_withReset Heater = new SPI_DEVICE_CHANNEL_withReset(2, Command.SPI.Heater.setVoltage, 2, Command.SPI.Heater.getVoltage);
         public SPI_IonSOURCE IonSource = new SPI_IonSOURCE();
         public SPI_DETECTOR Detector = new SPI_DETECTOR();
-        public SPI_SCANER Scaner = new SPI_SCANER();                    //DAC AD5643R
-        public SPI_CONDENSATOR Condensator = new SPI_CONDENSATOR();     //DAC AD5643R
+        public SPI_SCANER Scaner = new SPI_SCANER();//У Сканера DAC AD5643R
+        //У Конденсатора DAC AD5643R
+        public SPI_DEVICE_CHANNEL_CONDENSATOR Condensator = new SPI_DEVICE_CHANNEL_CONDENSATOR(1, Command.SPI.Condensator.setVoltage, 1, Command.SPI.Condensator.getPositiveVoltage, 2, Command.SPI.Condensator.getNegativeVoltage);
 
         public CHIP Chip = new CHIP();
         public TEST Tester = new TEST();
