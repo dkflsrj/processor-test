@@ -1685,7 +1685,6 @@
             // 
             // BTN_HEATER_reset
             // 
-            this.BTN_HEATER_reset.Enabled = false;
             this.BTN_HEATER_reset.Location = new System.Drawing.Point(180, 12);
             this.BTN_HEATER_reset.Name = "BTN_HEATER_reset";
             this.BTN_HEATER_reset.Size = new System.Drawing.Size(48, 23);

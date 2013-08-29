@@ -513,8 +513,7 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_HEATER_reset_Click(object sender, EventArgs e)
         {
-            //MC.Inlet.reset();
-            //Наследование в студию!
+            MC.Inlet.reset();
         }
 
         
@@ -644,19 +643,20 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_CONDENSATOR_getPositiveVoltage_Click(object sender, EventArgs e)
         {
-            MC.Condensator.DoubleRange = CHB_CONDENSATOR_x2.Checked;
+            MC.Condensator.enableDoubleRange(CHB_CONDENSATOR_x2.Checked);
             LBL_CONDENSATOR_getPositiveVoltage.Text = MC.Condensator.getPositiveVoltage().ToString();
         }
 
         private void BTN_CONDENSATOR_getNegativeVoltage_Click(object sender, EventArgs e)
         {
-            MC.Condensator.DoubleRange = CHB_CONDENSATOR_x2.Checked;
+            MC.Condensator.enableDoubleRange(CHB_CONDENSATOR_x2.Checked);
             LBL_CONDENSATOR_getNegativeVoltage.Text = MC.Condensator.getNegativeVoltage().ToString();
         }
 
         private void BTN_CONDENSATOR_reset_Click(object sender, EventArgs e)
         {
             MC.Condensator.reset();
+            
         }
 
     }
