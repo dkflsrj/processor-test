@@ -246,11 +246,11 @@ namespace Xmega32A4U_testBoard
         private void BTN_reqCount_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Проверям счётчик МК, если сосчитал, то принимаем результат
-            string Counters_status = MC.Counters.getResults();
+            string Counters_status = MC.Counters.receiveResults();
             trace(true, "Состояние счётчиков: " + Counters_status);
             if (Counters_status == "Ready")
             {
-                trace(true, "   Счёт: " + MC.Counters.COA_Result);
+                trace(true, "   Счёт: " + MC.Counters.COA.Result);
             }
         }
         private void BTN_setInterval_Click(object sender, EventArgs e)
@@ -387,7 +387,7 @@ namespace Xmega32A4U_testBoard
             LBL_COA_ticks.Text += MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)).ToString();
             //LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
             //LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
-            LBL_COA_frequency.Text = MC.Counters.getRTCfreqency().ToString();
+            LBL_COA_frequency.Text = MC.Counters.getRTCfrequency().ToString();
             LBL_COA_prescaler.Text = MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text).ToString();
         }
 
@@ -395,11 +395,11 @@ namespace Xmega32A4U_testBoard
         {
             if (CHB_enableSuperTracer.Checked)
             {
-                MC.Tester.tracer_enable(true);
+                MC.Tester.enableTracer(true);
             }
             else
             {
-                MC.Tester.tracer_enable(false);
+                MC.Tester.enableTracer(false);
             }
         }
 
@@ -438,11 +438,11 @@ namespace Xmega32A4U_testBoard
         {
             if (CHB_traceLog.Checked)
             {
-                MC.Tester.log_enable(true);
+                MC.Tester.enableLog(true);
             }
             else
             {
-                MC.Tester.log_enable(false);
+                MC.Tester.enableLog(false);
             }
         }
 
@@ -473,7 +473,7 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
-            MC.sendToTIC();
+            MC.TIC.send();
         }
 
         private void BTN_traceErrorList_Click(object sender, EventArgs e)

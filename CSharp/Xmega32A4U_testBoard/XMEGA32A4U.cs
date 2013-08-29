@@ -16,21 +16,20 @@ namespace Xmega32A4U_testBoard
         //
         //-------------------------------------ПОЯСНЕНИЯ------------------------------------------
         //
-        const byte delay = 3;        //Задержка при приёме данных (см. transmit())
         //-------------------------------------ПЕРЕМЕННЫЕ-----------------------------------------
-        static SerialPort   USART;
-        static RichTextBox  tracer;
-        static bool         tracer_defined = false;
-        static bool         tracer_enabled = true;
-        static bool         tracer_log_enabled = false;
-        //static bool         ERROR = false;
-        static List<string> ErrorList = new List<string>();
-        static byte CommandStack;
+        static SerialPort USART;        //COM порт, его необходимо задать .Chip.setUSART(SerialPort)
+        static RichTextBox tracer;      //Трэйсер отладочных сообщений, задаётся .Tester.setTracer(RichTextBox)
+        static bool tracer_defined = false;  //Трэйсер не задан. 
+        static bool tracer_enabled = true;   //Трэйсер включен. .Tester.enableTracer(bool) - для вкл\выкл
+        static bool tracer_log_enabled = false;     //Ведение лога в Log.txt отключено. .Tester.enableLog(bool) - для вкл\выкл
+        static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
+        static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
+        const byte delay = 3;           //Задержка при приёме данных (см. transmit())
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
-            //СТРУКТУРА: Хранилище констант ошибок
-            //ПОЯСНЕНИЯ: Ошибка приходит в формате <key><ERROR = 0><ErrorNum><data[]><CS><lock>
+            //СТРУКТУРА: Хранилище констант - кодов ошибок
+            //ПОЯСНЕНИЯ: Ошибка приходит в формате <key><Error.Token><ErrorNum><data[]><CS><lock>
             public const byte Token =           0;    //Есть ошибка
             //ErrorNums...
             public const byte DecoderError =    1;       //Такое команды не существует
@@ -41,8 +40,9 @@ namespace Xmega32A4U_testBoard
         struct Command
         {
             //СТРУКТУРА: Хранилище констант - кодов команд
-            public struct MC
+            public struct Chip
             {
+                //Коды команд микросхемы микроконтроллера
                 public const byte getVersion =         1;
                 public const byte getBirthday =        2;
                 public const byte getCPUfrequency =    3;
@@ -53,6 +53,7 @@ namespace Xmega32A4U_testBoard
             }
             public struct RTC
             {
+                //Коды команд счётчиков
                 public const byte setMeasureTime =     30;
                 public const byte startMeasure =       31;
                 public const byte getResult =          32;
@@ -60,22 +61,19 @@ namespace Xmega32A4U_testBoard
                 public const byte setPrescaler =       34;
                 public const byte getStatus =          35;
             }
-            //public struct COUNTER
-            //{
-            //    //public const byte setMeasureDelay =     36;
-            //    //public const byte setMeasureQuantity =  37;
-            //}
             public struct TIC
             {
+                //Коды команд для микроконтроллера насоса
                 public const byte sendToTIC = 11;
             }
             public struct SPI
             {
-                
+                //Коды команд для SPI устройств
                 public const byte DAC_setVoltage =                      40;
                 public const byte ADC_getVoltage =                      41;
                 public struct IonSource
                 {
+                    //Коды команд Ионного Источника
                     public struct EmissionCurrent
                     {
                         public const byte setVoltage = 42;
@@ -99,6 +97,7 @@ namespace Xmega32A4U_testBoard
                 }
                 public struct Detector
                 {
+                    //Коды команд Детектора
                     public struct DV1
                     {
                         public const byte setVoltage = 46;
@@ -117,16 +116,19 @@ namespace Xmega32A4U_testBoard
                 }
                 public struct Inlet
                 {
+                    //Коды команд Натекателя
                     public const byte setVoltage = 49;
                     public const byte getVoltage = 67;
                 }
                 public struct Heater
                 {
+                    //Коды команд Нагревателя
                     public const byte setVoltage = 50;
                     public const byte getVoltage = 68;
                 }
                 public struct Scaner
                 {
+                    //Коды команд Сканера
                     public struct ParentScan
                     {
                         public const byte setVoltage = 51;
@@ -140,6 +142,7 @@ namespace Xmega32A4U_testBoard
                 }
                 public struct Condensator
                 {
+                    //Коды команд Конденсатора
                     public const byte setVoltage = 53;
                     public const byte getPositiveVoltage = 71;
                     public const byte getNegativeVoltage = 72;
@@ -149,509 +152,15 @@ namespace Xmega32A4U_testBoard
             public const byte KEY = 58;
             public struct TEST
             {
-                //public const byte showTCD2_CNTl = 6;
-                //public const byte showTCD2_CNTh = 7;
+                //Кооды команд отладки
                 public const byte showMeByte = 10;
                 public const byte checkCommandStack = 8;
             }
         }
 
-        public struct RealTimeCounterAndCO
-        {
-            //СТРУКТУРА: Счётчик реального времени и счётчики импульсов
-            struct Constants
-            {
-                public const double sourceFrequency = 32.768;//кГц - опорная частота таймера
-                public const ushort maxCount = 65535;
-                //состояния
-                public const byte Status_ready = 0;
-                public const byte Status_stopped = 1;
-                public const byte Status_busy = 2;
-                //интервалы для делителей
-                public const int min_ms_div1 = 0;
-                public const int min_ms_div2 = 2000;
-                public const int min_ms_div8 = 4000;
-                public const int min_ms_div16 = 16000;
-                public const int min_ms_div64 = 32000;
-                public const int min_ms_div256 = 127996;
-                public const int min_ms_div1024 = 511981;
-                public const int max_ms_div1024 = 2047925;
-            }
-            //Результаты измерений
-            UInt32 COA_Results;
-            public UInt32 COA_Result
-            {
-                get { return COA_Results; }
-            }
-            //Переполнения
-            byte COA_ovf;
-            public byte COA_overflowed
-            {
-                get { return COA_ovf;}
-            }
-            //предделители частоты
-            byte prescaler; //1,2,3(8),4(16),5(64),6(256),7(1024)
-            ushort prescaler_long;
-
-            bool setPrescaler(ushort PRESCALER)
-            {
-                switch (PRESCALER)
-                {
-                    case 1: prescaler = 1;
-                        break;
-                    case 2: prescaler = 2;
-                        break;
-                    case 8: prescaler = 3;
-                        break;
-                    case 16: prescaler = 4;
-                        break;
-                    case 64: prescaler = 5;
-                        break;
-                    case 256: prescaler = 6;
-                        break;
-                    case 1024: prescaler = 7;
-                        break;
-                    default: trace("ОШИБКА! Неверный предделитель!");
-                        prescaler = 0;
-                        return false;
-                }
-                return (transmit(Command.RTC.setPrescaler, prescaler)[0] == Command.RTC.setPrescaler);
-            }
-            public ushort getRTCprescaler(uint MILLISECONDS)
-            {
-                if ((MILLISECONDS >= Constants.min_ms_div1) && (MILLISECONDS < Constants.min_ms_div2))
-                {
-                    prescaler_long = 1;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div2) && (MILLISECONDS < Constants.min_ms_div8))
-                {
-                    prescaler_long = 2;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div8) && (MILLISECONDS < Constants.min_ms_div16))
-                {
-                    prescaler_long = 8;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div16) && (MILLISECONDS < Constants.min_ms_div64))
-                {
-                    prescaler_long = 16;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div64) && (MILLISECONDS < Constants.min_ms_div256))
-                {
-                    prescaler_long = 64;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div256) && (MILLISECONDS < Constants.min_ms_div1024))
-                {
-                    prescaler_long = 256;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div1024) && (MILLISECONDS < Constants.max_ms_div1024))
-                {
-                    prescaler_long = 1024;
-                }
-                else
-                {
-                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MILLISECONDS < 2047967; Получено: " + MILLISECONDS);
-                    prescaler_long = 0;
-                    return 0;
-                }
-                return prescaler_long;
-            }
-                public ushort getRTCprescaler(string MILLISECONDS)
-            {
-                return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
-            }
-            public double getRTCfreqency()
-            {
-                return (Constants.sourceFrequency / prescaler_long);
-            }
-            public ushort getRTCticks(uint MILLISECONDS, ushort PRESCALER)
-            {
-                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / PRESCALER)));
-                return tiks;
-            }
-                public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
-            {
-                if ((MILLISECONDS != "") && (PRESCALER != ""))
-                {
-                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), Convert.ToUInt16(PRESCALER));
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-                public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
-            {
-                if ((MILLISECONDS != ""))
-                {
-                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), PRESCALER);
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-            
-            public bool setMeasureTime(uint MILLISECONDS)
-            {
-                //ФУНКЦИЯ: Задаёт количество тиков для RTC через интервал в миллисекундах
-                ushort RTC_prescaler = getRTCprescaler(MILLISECONDS);
-                setPrescaler(RTC_prescaler);
-                ushort ticks = getRTCticks(MILLISECONDS, RTC_prescaler);
-                byte[] bytes_ticks = BitConverter.GetBytes(ticks);
-                byte[] data = { bytes_ticks[1], bytes_ticks[0] };
-                if (transmit(Command.RTC.setMeasureTime, data)[0] == 1)
-                {
-                    trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
-                    return true;
-                }
-                trace("Интервал не был задан! Счётчики считают!");
-                return false;
-            }
-                public bool setMeasureTime(string MILLISECONDS)
-            {
-                if (MILLISECONDS != "")
-                {
-                    return setMeasureTime(Convert.ToUInt32(MILLISECONDS));
-                }
-                return false;
-            }
-            public bool startMeasure()
-                {
-                    //ФУНКЦИЯ: Запускаем счётчик, возвращаем состояние счётчика на момент запуска.
-                    byte[] answer = transmit(Command.RTC.startMeasure);
-                    if (answer[0] != Constants.Status_busy)
-                    {
-                        trace("Счётчик начал счёт...");
-                        return true;
-                    }
-                    else
-                    {
-                        trace("Счётчики уже считают! Вы можите остановить счёт командой stopMeasure()");
-                        return false;
-                    }
-                }
-            public bool stopMeasure()
-            {
-                //ФУНКЦИЯ: Останавливаем счётчик
-                return (transmit(Command.RTC.stopMeasure)[0] == Command.RTC.stopMeasure);
-            }
-            public string getResults()
-            {
-                //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам,
-                byte[] rDATA = transmit(Command.RTC.getResult);
-                byte Status = rDATA[0];
-                
-                //COB_overflowed = rDATA[6];
-                switch (Status)
-                {
-                    case Constants.Status_ready:
-                        //Счётчик готов
-                        trace("Счётчик готов к работе.");
-                        COA_ovf = rDATA[1];
-                        COA_Results = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
-                        
-                        break;
-                    case Constants.Status_stopped:
-                        //Счётчик был принудительно остановлен!
-                        trace("Счётчик был принудительно остановлен!");
-                        break;
-                    case Constants.Status_busy:
-                        //Счётчик успешно завершил счёт, без переполнения
-                        trace("Счётчик ещё считает!");
-                        break;
-                    default:
-                        //Счётчик переполнился <state> раз
-                        trace("ОШИБКА! Неизвестное состояние RTC: " + Status + " !!!");
-                        break;
-                }
-                string answer = "";
-                switch (Status)
-                {
-                    case Constants.Status_busy:
-                        answer = "Busy";
-                        break;
-                    case Constants.Status_ready:
-                        answer = "Ready";
-                        break;
-                    case Constants.Status_stopped:
-                        answer = "Stopped";
-                        break;
-                    default:
-                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКА! Состояние:" + Status);
-                        return "Ошибка! " + Status;
-                }
-                return answer;
-            }
-            public string getStatus()
-            {
-                string answer = "";
-                byte Status = transmit(Command.RTC.getStatus)[0];
-                switch (Status)
-                {
-                    case Constants.Status_busy:
-                        answer = "Busy";
-                        break;
-                    case Constants.Status_ready:
-                        answer = "Ready";
-                        break;
-                    case Constants.Status_stopped:
-                        answer = "Stopped";
-                        break;
-                    default:
-                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКА! Состояние:" + Status);
-                        return "Ошибка! " + Status;
-                }
-                return answer;
-            }
-        }
-        public class RTCounterAndCO
-        {
-            //Класс: Счётчик реального времени и счётчики импульсов
-            struct Constants
-            {
-                public const double sourceFrequency = 32.768;//кГц - опорная частота таймера
-                public const ushort maxCount = 65535;
-                //состояния
-                public const byte Status_ready = 0;
-                public const byte Status_stopped = 1;
-                public const byte Status_busy = 2;
-                //интервалы для делителей
-                public const int min_ms_div1 = 0;
-                public const int min_ms_div2 = 2000;
-                public const int min_ms_div8 = 4000;
-                public const int min_ms_div16 = 16000;
-                public const int min_ms_div64 = 32000;
-                public const int min_ms_div256 = 127996;
-                public const int min_ms_div1024 = 511981;
-                public const int max_ms_div1024 = 2047925;
-            }
-            //Счётчики
-            public class counter
-            {
-                public byte overflows;
-                public UInt32 Result;
-            }
-            public counter COA = new counter();
-            public counter COB = new counter();
-            public counter COC = new counter();
-            //предделители частоты
-            byte prescaler; //1,2,3(8),4(16),5(64),6(256),7(1024)
-            ushort prescaler_long;
-
-            bool setPrescaler(ushort PRESCALER)
-            {
-                switch (PRESCALER)
-                {
-                    case 1: prescaler = 1;
-                        break;
-                    case 2: prescaler = 2;
-                        break;
-                    case 8: prescaler = 3;
-                        break;
-                    case 16: prescaler = 4;
-                        break;
-                    case 64: prescaler = 5;
-                        break;
-                    case 256: prescaler = 6;
-                        break;
-                    case 1024: prescaler = 7;
-                        break;
-                    default: trace("ОШИБКА! Неверный предделитель!");
-                        prescaler = 0;
-                        return false;
-                }
-                return (transmit(Command.RTC.setPrescaler, prescaler)[0] == Command.RTC.setPrescaler);
-            }
-            public ushort getRTCprescaler(uint MILLISECONDS)
-            {
-                if ((MILLISECONDS >= Constants.min_ms_div1) && (MILLISECONDS < Constants.min_ms_div2))
-                {
-                    prescaler_long = 1;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div2) && (MILLISECONDS < Constants.min_ms_div8))
-                {
-                    prescaler_long = 2;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div8) && (MILLISECONDS < Constants.min_ms_div16))
-                {
-                    prescaler_long = 8;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div16) && (MILLISECONDS < Constants.min_ms_div64))
-                {
-                    prescaler_long = 16;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div64) && (MILLISECONDS < Constants.min_ms_div256))
-                {
-                    prescaler_long = 64;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div256) && (MILLISECONDS < Constants.min_ms_div1024))
-                {
-                    prescaler_long = 256;
-                }
-                else if ((MILLISECONDS >= Constants.min_ms_div1024) && (MILLISECONDS < Constants.max_ms_div1024))
-                {
-                    prescaler_long = 1024;
-                }
-                else
-                {
-                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MILLISECONDS < 2047967; Получено: " + MILLISECONDS);
-                    prescaler_long = 0;
-                    return 0;
-                }
-                return prescaler_long;
-            }
-                public ushort getRTCprescaler(string MILLISECONDS)
-            {
-                return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
-            }
-            public double getRTCfrequency()
-            {
-                return (Constants.sourceFrequency / prescaler_long);
-            }
-            public ushort getRTCticks(uint MILLISECONDS, ushort PRESCALER)
-            {
-                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / PRESCALER)));
-                return tiks;
-            }
-                public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
-            {
-                if ((MILLISECONDS != "") && (PRESCALER != ""))
-                {
-                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), Convert.ToUInt16(PRESCALER));
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-                public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
-            {
-                if ((MILLISECONDS != ""))
-                {
-                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), PRESCALER);
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-
-            public bool setMeasureTime(uint MILLISECONDS)
-            {
-                //ФУНКЦИЯ: Задаёт количество тиков для RTC через интервал в миллисекундах
-                ushort RTC_prescaler = getRTCprescaler(MILLISECONDS);
-                setPrescaler(RTC_prescaler);
-                ushort ticks = getRTCticks(MILLISECONDS, RTC_prescaler);
-                byte[] bytes_ticks = BitConverter.GetBytes(ticks);
-                byte[] data = { bytes_ticks[1], bytes_ticks[0] };
-                if (transmit(Command.RTC.setMeasureTime, data)[0] == 1)
-                {
-                    trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
-                    return true;
-                }
-                trace("Интервал не был задан! Счётчики считают!");
-                return false;
-            }
-                public bool setMeasureTime(string MILLISECONDS)
-            {
-                if (MILLISECONDS != "")
-                {
-                    return setMeasureTime(Convert.ToUInt32(MILLISECONDS));
-                }
-                return false;
-            }
-            public bool startMeasure()
-            {
-                //ФУНКЦИЯ: Запускаем счётчик, возвращаем состояние счётчика на момент запуска.
-                byte[] answer = transmit(Command.RTC.startMeasure);
-                if (answer[0] != Constants.Status_busy)
-                {
-                    trace("Счётчик начал счёт...");
-                    return true;
-                }
-                else
-                {
-                    trace("Счётчики уже считают! Вы можите остановить счёт командой stopMeasure()");
-                    return false;
-                }
-            }
-            public bool stopMeasure()
-            {
-                //ФУНКЦИЯ: Останавливаем счётчик
-                return (transmit(Command.RTC.stopMeasure)[0] == Command.RTC.stopMeasure);
-            }
-            public string receiveResults()
-            {
-                //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам,
-                byte[] rDATA = transmit(Command.RTC.getResult);
-                byte Status = rDATA[0];
-
-                //COB_overflowed = rDATA[6];
-                switch (Status)
-                {
-                    case Constants.Status_ready:
-                        //Счётчик готов
-                        trace("Счётчики готовы к работе.");
-                        COA.overflows = rDATA[1];
-                        COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
-
-                        break;
-                    case Constants.Status_stopped:
-                        //Счётчик был принудительно остановлен!
-                        trace("Счётчики были принудительно остановлеын!");
-                        break;
-                    case Constants.Status_busy:
-                        //Счётчик успешно завершил счёт, без переполнения
-                        trace("Счётчики ещё считают!");
-                        break;
-                    default:
-                        //Счётчик переполнился <state> раз
-                        trace("ОШИБКА! Неизвестное состояние RTC: " + Status + " !!!");
-                        break;
-                }
-                string answer = "";
-                switch (Status)
-                {
-                    case Constants.Status_busy:
-                        answer = "Busy";
-                        break;
-                    case Constants.Status_ready:
-                        answer = "Ready";
-                        break;
-                    case Constants.Status_stopped:
-                        answer = "Stopped";
-                        break;
-                    default:
-                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКОВ! Состояние:" + Status);
-                        return "Ошибка! " + Status;
-                }
-                return answer;
-            }
-            public string getStatus()
-            {
-                string answer = "";
-                byte Status = transmit(Command.RTC.getStatus)[0];
-                switch (Status)
-                {
-                    case Constants.Status_busy:
-                        answer = "Busy";
-                        break;
-                    case Constants.Status_ready:
-                        answer = "Ready";
-                        break;
-                    case Constants.Status_stopped:
-                        answer = "Stopped";
-                        break;
-                    default:
-                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКА! Состояние:" + Status);
-                        return "Ошибка! " + Status;
-                }
-                return answer;
-            }
-        }
         public struct SPI_ADC
         {
-            //СТРУКТУРА: АЦП
+            //СТРУКТУРА: АЦП. Тестовая
             const byte Hbyte = 127;
             const byte Lbyte_DoubleRange = 16;
             const byte Lbyte_NormalRange = 48;
@@ -725,7 +234,7 @@ namespace Xmega32A4U_testBoard
         }
         public struct SPI_DAC
         {
-            //СТРУКТУРА: ЦАП
+            //СТРУКТУРА: ЦАП. Тестовая
             const byte Reset_Hbyte = 255;
             const byte Reset_Lbyte = 255;
 
@@ -781,18 +290,267 @@ namespace Xmega32A4U_testBoard
                 return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
             }
         }
-        //Класс для отдельных каналов отдельных DAC'ов
+
+        public class RTCounterAndCO
+        {
+            //КЛАСС: Счётчик реального времени и счётчики импульсов
+            struct Constants
+            {
+                //СТРУКТУРА: Хранилище констант.
+                public const double sourceFrequency = 32.768;//кГц - опорная частота таймера
+                //Коды состояний
+                public const byte Status_ready = 0;     //Готов
+                public const byte Status_stopped = 1;   //Остановлен
+                public const byte Status_busy = 2;      //Считает
+                //интервалы для предделителей
+                public const int min_ms_div1 = 0;
+                public const int min_ms_div2 = 2000;
+                public const int min_ms_div8 = 4000;
+                public const int min_ms_div16 = 16000;
+                public const int min_ms_div64 = 32000;
+                public const int min_ms_div256 = 127996;
+                public const int min_ms_div1024 = 511981;
+                public const int max_ms_div1024 = 2047925;
+            }
+            public class counter
+            {
+                //КЛАСС: Счётчик. Только хранит значения.
+                public byte overflows;  //Количество переполений счётчика
+                public UInt32 Result;   //Сосчитанный результат
+            }
+            public counter COA = new counter();
+            public counter COB = new counter();
+            public counter COC = new counter();
+            byte prescaler; //Предделитель в byte : 1,2,3(8),4(16),5(64),6(256),7(1024)
+            ushort prescaler_long; //Предделитель в реальном коэффициенте деления (см. prescaler цифры в скобках)
+            bool setPrescaler(ushort PRESCALER)
+            {
+                //ФУНКЦИЯ: Устанавливает предделитель (в МК)
+                switch (PRESCALER)
+                {
+                    case 1: prescaler = 1;
+                        break;
+                    case 2: prescaler = 2;
+                        break;
+                    case 8: prescaler = 3;
+                        break;
+                    case 16: prescaler = 4;
+                        break;
+                    case 64: prescaler = 5;
+                        break;
+                    case 256: prescaler = 6;
+                        break;
+                    case 1024: prescaler = 7;
+                        break;
+                    default: trace("ОШИБКА! Неверный предделитель!");
+                        prescaler = 0;
+                        return false;
+                }
+                return (transmit(Command.RTC.setPrescaler, prescaler)[0] == Command.RTC.setPrescaler);
+            }
+            //Видимые функции
+            public ushort getRTCprescaler(uint MILLISECONDS)
+            {
+                //ФУНКЦИЯ: Вычисляет, сохраняет и возвращает предделитель.
+                if ((MILLISECONDS >= Constants.min_ms_div1) && (MILLISECONDS < Constants.min_ms_div2))
+                {
+                    prescaler_long = 1;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div2) && (MILLISECONDS < Constants.min_ms_div8))
+                {
+                    prescaler_long = 2;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div8) && (MILLISECONDS < Constants.min_ms_div16))
+                {
+                    prescaler_long = 8;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div16) && (MILLISECONDS < Constants.min_ms_div64))
+                {
+                    prescaler_long = 16;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div64) && (MILLISECONDS < Constants.min_ms_div256))
+                {
+                    prescaler_long = 64;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div256) && (MILLISECONDS < Constants.min_ms_div1024))
+                {
+                    prescaler_long = 256;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div1024) && (MILLISECONDS < Constants.max_ms_div1024))
+                {
+                    prescaler_long = 1024;
+                }
+                else
+                {
+                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MILLISECONDS < 2047967; Получено: " + MILLISECONDS);
+                    prescaler_long = 0;
+                    return 0;
+                }
+                return prescaler_long;
+            }
+            public ushort getRTCprescaler(string MILLISECONDS)
+            {
+                return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
+            }
+            public double getRTCfrequency()
+            {
+                //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
+                return (Constants.sourceFrequency / prescaler_long);
+            }
+            public ushort getRTCticks(uint MILLISECONDS, ushort PRESCALER)
+            {
+                //ФУНКЦИЯ: Вычисляет количество тиков в соответствии с временем и предделителем. Возвращает количество тиков
+                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / PRESCALER)));
+                return tiks;
+            }
+            public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
+            {
+                if ((MILLISECONDS != "") && (PRESCALER != ""))
+                {
+                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), Convert.ToUInt16(PRESCALER));
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
+            {
+                if ((MILLISECONDS != ""))
+                {
+                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), PRESCALER);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            public bool setMeasureTime(uint MILLISECONDS)
+            {
+                //ФУНКЦИЯ: Вычисляет, сохраняет и устанавливает предделитель, вычисляет и устанавливает количество тиков для RTC через интервал в миллисекундах
+                ushort RTC_prescaler = getRTCprescaler(MILLISECONDS);
+                setPrescaler(RTC_prescaler);
+                ushort ticks = getRTCticks(MILLISECONDS, RTC_prescaler);
+                byte[] bytes_ticks = BitConverter.GetBytes(ticks);
+                byte[] data = { bytes_ticks[1], bytes_ticks[0] };
+                if (transmit(Command.RTC.setMeasureTime, data)[0] == 1)
+                {
+                    trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
+                    return true;
+                }
+                trace("Интервал не был задан! Счётчики считают!");
+                return false;
+            }
+            public bool setMeasureTime(string MILLISECONDS)
+            {
+                if (MILLISECONDS != "")
+                {
+                    return setMeasureTime(Convert.ToUInt32(MILLISECONDS));
+                }
+                return false;
+            }
+            public bool startMeasure()
+            {
+                //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
+                byte[] answer = transmit(Command.RTC.startMeasure);
+                if (answer[0] != Constants.Status_busy)
+                {
+                    trace("Счётчик начал счёт...");
+                    return true;
+                }
+                else
+                {
+                    trace("Счётчики уже считают! Вы можите остановить счёт командой stopMeasure()");
+                    return false;
+                }
+            }
+            public bool stopMeasure()
+            {
+                //ФУНКЦИЯ: Останавливает счётчик. Всегда возвращает true. false - ошибка отклика!
+                return (transmit(Command.RTC.stopMeasure)[0] == Command.RTC.stopMeasure);
+            }
+            public string receiveResults()
+            {
+                //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам. Возвращает состояние счётчика.
+                byte[] rDATA = transmit(Command.RTC.getResult);
+                byte Status = rDATA[0];
+                switch (Status)
+                {
+                    case Constants.Status_ready:
+                        //Счётчик готов. Сохраняем результаты.
+                        trace("Счётчики готовы к работе.");
+                        COA.overflows = rDATA[1];
+                        COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
+                        //COB.overflows = rDATA[?];
+                        //COB.Result = Convert.ToUInt32(rDATA[?] * 16777216 + rDATA[?] * 65536 + rDATA[?] * 256 + rDATA[?]);
+                        //COC.overflows = rDATA[?];
+                        //COC.Result = Convert.ToUInt32(rDATA[?] * 16777216 + rDATA[?] * 65536 + rDATA[?] * 256 + rDATA[?]);
+                        break;
+                    case Constants.Status_stopped:
+                        trace("Счётчики были принудительно остановлены!");
+                        break;
+                    case Constants.Status_busy:
+                        trace("Счётчики ещё считают!");
+                        break;
+                    default:
+                        trace("ОШИБКА! Неизвестное состояние RTC: " + Status + " !!!");
+                        break;
+                }
+                string answer = "";
+                switch (Status)
+                {
+                    case Constants.Status_busy:
+                        answer = "Busy";
+                        break;
+                    case Constants.Status_ready:
+                        answer = "Ready";
+                        break;
+                    case Constants.Status_stopped:
+                        answer = "Stopped";
+                        break;
+                    default:
+                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКОВ! Состояние:" + Status);
+                        return "Ошибка! " + Status;
+                }
+                return answer;
+            }
+            public string getStatus()
+            {
+                //ФУНКЦИЯ: Возвращает статус счётчиков
+                string answer = "";
+                byte Status = transmit(Command.RTC.getStatus)[0];
+                switch (Status)
+                {
+                    case Constants.Status_busy:
+                        answer = "Busy";
+                        break;
+                    case Constants.Status_ready:
+                        answer = "Ready";
+                        break;
+                    case Constants.Status_stopped:
+                        answer = "Stopped";
+                        break;
+                    default:
+                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКА! Состояние:" + Status);
+                        return "Ошибка! " + Status;
+                }
+                return answer;
+            }
+        }
         public class SPI_DEVICE_DAC_CHANNEL
         {
-            protected byte DAC_channel;
-            protected byte DAC_command;
+            //КЛАСС:Отдельнй канал отдельного DAC'а. 
+            //Сам по себе не используется, используются только наследники
+            protected byte DAC_channel; //Канал DAC'а
+            protected byte DAC_command; //Команда обращения к конкретному DAC'у
             protected void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
-                //Формируем данные на отправку
+                //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
                 transmit(command, data);
             }
+            //Видимые функции
             public void setVoltage(ushort VOLTAGE)
             {
                 DAC_setVoltage(DAC_command, DAC_channel, VOLTAGE);
@@ -806,14 +564,14 @@ namespace Xmega32A4U_testBoard
                 setVoltage(Convert.ToUInt16(VOLTAGE));
             }
         }
-        //Класс для отдельных каналов DAC'ов и ADC'ов
         public class SPI_DEVICE_CHANNEL : SPI_DEVICE_DAC_CHANNEL
         {
-            protected byte ADC_channel;
-            protected byte ADC_command;
-            //Конструктор
+            //КЛАСС: Два канала: DAC и ADC. Используется. Кроме Натекателя, Нагревателя и Конденсатора.
+            protected byte ADC_channel;     //Канал ADC
+            protected byte ADC_command;     //Команда для канала ADC
             public SPI_DEVICE_CHANNEL(byte DAC_CHANNEL, byte DAC_COMMAND, byte ADC_CHANNEL, byte ADC_COMMAND)
             {
+                //КОНСТРУКТОР: Запоминаем номера команд и каналов
                 DAC_channel = DAC_CHANNEL;
                 ADC_channel = ADC_CHANNEL;
                 DAC_command = DAC_COMMAND;
@@ -821,7 +579,7 @@ namespace Xmega32A4U_testBoard
             }
             public SPI_DEVICE_CHANNEL()
             {
-                //Пустышка для наследника
+                //КОНСТРУКТОР: Пустышка для наследника
             }
             //ADC
             const byte Hbyte = 127;
@@ -853,9 +611,9 @@ namespace Xmega32A4U_testBoard
                 DoubleRange = enable;
             }
         }
-        //Класс для отдельных каналов DAC'ов и ADC'ов с reset()'ом (для Inlet и Heater)
         public class SPI_DEVICE_CHANNEL_withReset : SPI_DEVICE_CHANNEL
         {
+            //КЛАСС: Класс для каналов с reset()'ом для Натекателя и Нагревателя
             const byte Reset_Hbyte = 255;
             const byte Reset_Lbyte = 255;
 
@@ -878,9 +636,9 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
         }
-        //Класс для конденсатора
         public class SPI_DEVICE_CHANNEL_CONDENSATOR : SPI_DEVICE_DAC_CHANNEL
         {
+            //КЛАСС: Каналы для конденсатора (+\-) с reset()'ом
             byte ADC_positive_channel;
             byte ADC_negative_channel;
             byte ADC_positive_command;
@@ -895,7 +653,7 @@ namespace Xmega32A4U_testBoard
                 ADC_positive_command = ADC_POSITIVE_COMMAND;
                 ADC_negative_command = ADC_NEGATIVE_COMMAND;
             }
-            //DAC
+            //DAC AD5643R
             const byte Reset_Hbyte = 255;
             const byte Reset_Lbyte = 255;
             //ADC
@@ -943,10 +701,9 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
         }
-        
         public class SPI_IonSOURCE
         {
-            //СТРУКТУРА: Ионный источник - используется каналы А,B,C,D
+            //КЛАСС: Ионный источник - используется каналы А,B,C,D
             //DAC AD5328BR
             const byte Reset_Hbyte = 255;
             const byte Reset_Lbyte = 255;
@@ -966,7 +723,7 @@ namespace Xmega32A4U_testBoard
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Ионного Источника вероятно не сброшены!");
                 return false;
             }
-
+            //Каналы
             public SPI_DEVICE_CHANNEL EmissionCurrent = new SPI_DEVICE_CHANNEL(EmissionCurrent_channel, Command.SPI.IonSource.EmissionCurrent.setVoltage, EmissionCurrent_channel,Command.SPI.IonSource.EmissionCurrent.getVoltage);
             public SPI_DEVICE_CHANNEL Ionization = new SPI_DEVICE_CHANNEL(Ionization_channel, Command.SPI.IonSource.Ionization.setVoltage, Ionization_channel, Command.SPI.IonSource.Ionization.getVoltage);
             public SPI_DEVICE_CHANNEL F1 = new SPI_DEVICE_CHANNEL(F1_channel, Command.SPI.IonSource.F1.setVoltage, F1_channel, Command.SPI.IonSource.F1.getVoltage);
@@ -982,14 +739,14 @@ namespace Xmega32A4U_testBoard
         }
         public class SPI_DETECTOR
         {
-            //СТРУКТУРА: Ионный источник - используется каналы А,B,C,D
+            //КЛАСС: Ионный источник - используется каналы А,B,C,D
             //DAC AD5328BR
             const byte Reset_Hbyte = 255;
             const byte Reset_Lbyte = 255;
             const byte DV1_channel = 1;
             const byte DV2_channel = 2;
             const byte DV3_channel = 3;
-
+            //Каналы
             public SPI_DEVICE_CHANNEL DV1 = new SPI_DEVICE_CHANNEL(DV1_channel, Command.SPI.Detector.DV1.setVoltage, DV1_channel, Command.SPI.Detector.DV1.getVoltage);
             public SPI_DEVICE_CHANNEL DV2 = new SPI_DEVICE_CHANNEL(DV2_channel, Command.SPI.Detector.DV2.setVoltage, DV2_channel, Command.SPI.Detector.DV2.getVoltage);
             public SPI_DEVICE_CHANNEL DV3 = new SPI_DEVICE_CHANNEL(DV3_channel, Command.SPI.Detector.DV3.setVoltage, DV3_channel, Command.SPI.Detector.DV3.getVoltage);
@@ -1014,15 +771,15 @@ namespace Xmega32A4U_testBoard
         }
         public class SPI_SCANER
         {
-            //СТРУКТУРА: Натекатель - используется канал А (один, второй - нагреватель)
+            //КЛАСС: Сканер (Сканирющее напряжение).
             //DAC AD5643BR
             const byte Reset_Hbyte = 255;
             const byte Reset_Lbyte = 255;
             const byte DAC_ParentScan_Channel = 1;
             const byte DAC_Scan_Channel = 2;
-            const byte ADC_ParentScan_Channel = 1;//3   -каналы DAC и ADC различны
+            const byte ADC_ParentScan_Channel = 1;//3   -каналы DAC и ADC различны (закоментированы реальные)
             const byte ADC_Scan_Channel = 2;//4
-
+            //Каналы
             public SPI_DEVICE_CHANNEL ParentScan = new SPI_DEVICE_CHANNEL(DAC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.setVoltage, ADC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.getVoltage);
             public SPI_DEVICE_CHANNEL Scan = new SPI_DEVICE_CHANNEL(DAC_Scan_Channel, Command.SPI.Scaner.Scan.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.Scan.getVoltage);
             
@@ -1043,9 +800,9 @@ namespace Xmega32A4U_testBoard
                 Scan.enableDoubleRange(enable);
             }
         }
-        
         public class CHIP
         {
+            //КЛАСС: Микросхема, сам микроконтроллер.
             public void setUSART(SerialPort COM_PORT)
             {
                 //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
@@ -1054,75 +811,72 @@ namespace Xmega32A4U_testBoard
             }
             public bool checkCommandStack()
             {
+                //ФУНКЦИЯ: При общении ПК-МК, они считаю выполненные команды (byte). Это функция сверяет номер команды.
                 if (transmit(Command.TEST.checkCommandStack)[0] == CommandStack)
                 {
                     trace("Команды идут синхронно");
                     return true;
                 }
-                trace("Команды НЕ синхронны!!!");
+                trace("Команды НЕ синхронны!");
                 return false;
             }
             public byte getStatus()
             {
-                //ФУНКЦИЯ: Получает статус у МК
-                return transmit(Command.MC.getStatus)[0];
+                //ФУНКЦИЯ: Возвращает статус самого микроконтроллера
+                return transmit(Command.Chip.getStatus)[0];
             }
             public byte getVersion()
             {
-                //ФУНКЦИЯ: Получает статус у МК
-                return transmit(Command.MC.getVersion)[0];
+                //ФУНКЦИЯ: Возвращает версию прошивки микроконтроллера
+                return transmit(Command.Chip.getVersion)[0];
             }
             public string getBirthday()
             {
-                //ФУНКЦИЯ: Получает статус у МК
+                //ФУНКЦИЯ: Возвращает дату создания прошивки микроконтроллера
                 UInt32 birthday = 0;
                 string answer = "00000000";
-                byte[] recDATA = transmit(Command.MC.getBirthday);
-                //if (!ERROR)
-                //{
+                byte[] recDATA = transmit(Command.Chip.getBirthday);
                 birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
-
                 answer = birthday.ToString();
                 answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
-
-
-                //}
                 return answer;
             }
             public string getCPUfrequency()
             {
+                //ФУНКЦИЯ: Возвращает частоту процессора микроконтроллера (не вычисляется)
                 UInt32 frequency = 0;
-                byte[] recDATA = transmit(Command.MC.getCPUfrequency);
-                //if (!ERROR)
-                //{
+                byte[] recDATA = transmit(Command.Chip.getCPUfrequency);
                 frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
                 return frequency.ToString() + " Гц";
-                //}
-                //return "0";
             }
         }
         public class TEST
         {
+            //КЛАСС: Класс для тестовых функций и отладки.
             public void setTracer(RichTextBox TRACER)
             {
-                //ФУНКЦИЯ: Задаём трэйсер для отладки\ответов
+                //ФУНКЦИЯ: Задаём трэйсер для отладки
                 tracer = TRACER;
                 tracer_defined = true;
             }
-            public void tracer_enable(bool enable)
+            public void enableTracer(bool enable)
             {
+                //ФУНКЦИЯ: Включает\выключает трэйсер
                 tracer_enabled = enable;
             }
-            public void log_enable(bool enable)
+            public void enableLog(bool enable)
             {
+                //ФУНКЦИЯ: Включает\выключает ведение лога (сохранение отладочных сообщений в Log.txt)
                 tracer_log_enabled = enable;
             }
             public void sendSomething()
             {
+                //ФУНКЦИЯ: Просто посылает число микроконтроллеру.
                 transmit(243);
             }
             public void showMeByte(byte BYTE)
             {
+                //ФУНКЦИЯ: МК высвечивает на светодиодах BYTE
                 transmit(Command.TEST.showMeByte, BYTE);
             }
                 public void showMeByte(string BYTE)
@@ -1134,62 +888,93 @@ namespace Xmega32A4U_testBoard
                 showMeByte(Convert.ToByte(BYTE));
             }
         }
-
+        public class TIC_PUMP
+        {
+            //КЛАСС: Микроконтроллер насоса
+            byte[] transmit_toTIC(byte[] DATA)
+            {
+                //ФУНКЦИЯ: Посылает данные TIC контроллеру
+                //ПОЯСНЕНИЯ: ПК->МК: <key><Command.retransmitToTIC><lengthOfMessage><MessageToTIC><CS><lock>
+                //           МК->TIC: <MessageToTIC>
+                List<byte> formedDATA = new List<byte>();
+                formedDATA.Add(Command.TIC.sendToTIC);
+                formedDATA.Add((byte)(DATA.Length + 2)); //+2 для смещения относительно команды и байта длины
+                formedDATA.AddRange(DATA);
+                return transmit(formedDATA.ToArray());
+            }
+            //Видимые функции
+            public void send()
+            {
+                //ФУНКЦИЯ: Посылает данные TIC'у
+                byte[] msg = { 45, 76, 78, 34 };
+                byte[] data = transmit_toTIC(msg);
+                trace("Получено от TIC'а: (пока отражение)");
+                foreach (byte b in data)
+                {
+                    trace("     " + b);
+                }
+            }
+        }
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
-        public RealTimeCounterAndCO Counters = new RealTimeCounterAndCO();
-        public RTCounterAndCO Cs = new RTCounterAndCO();
-        public SPI_DAC DAC = new SPI_DAC();
-        public SPI_ADC ADC = new SPI_ADC();
-
+        public RTCounterAndCO Counters = new RTCounterAndCO();
+        public SPI_DAC DAC = new SPI_DAC();     //ТЕСТОВЫЙ
+        public SPI_ADC ADC = new SPI_ADC();     //ТЕСТОВЫЙ
         public SPI_DEVICE_CHANNEL_withReset Inlet = new SPI_DEVICE_CHANNEL_withReset(1, Command.SPI.Inlet.setVoltage, 1, Command.SPI.Inlet.getVoltage);
         public SPI_DEVICE_CHANNEL_withReset Heater = new SPI_DEVICE_CHANNEL_withReset(2, Command.SPI.Heater.setVoltage, 2, Command.SPI.Heater.getVoltage);
         public SPI_IonSOURCE IonSource = new SPI_IonSOURCE();
         public SPI_DETECTOR Detector = new SPI_DETECTOR();
-        public SPI_SCANER Scaner = new SPI_SCANER();//У Сканера DAC AD5643R
-        //У Конденсатора DAC AD5643R
+        public SPI_SCANER Scaner = new SPI_SCANER();//У Сканера и Конденсатора DAC'и AD5643R и один общий ADC
         public SPI_DEVICE_CHANNEL_CONDENSATOR Condensator = new SPI_DEVICE_CHANNEL_CONDENSATOR(1, Command.SPI.Condensator.setVoltage, 1, Command.SPI.Condensator.getPositiveVoltage, 2, Command.SPI.Condensator.getNegativeVoltage);
-
         public CHIP Chip = new CHIP();
         public TEST Tester = new TEST();
-        //--------------------------------------ФУНКЦИИ-------------------------------------------
+        public TIC_PUMP TIC = new TIC_PUMP();
+        //--------------------------------------ВИДИМЫЕ ФУНКЦИИ-------------------------------------------
+        public List<string> getErrorList()
+        {
+            //ФУНКЦИЯ: Возвращает лист ошибок, которые произошли во время сеанса.
+            return ErrorList;
+        }
+        //--------------------------------------ВНУТРЕННИЕ ФУНКЦИИ-------------------------------------------
         //ИНТЕРФЕЙСНЫЕ
         static void trace(string text)
         {
-            //ФУНКЦИЯ: Выводит text в RichTextBox и в файл
+            //ФУНКЦИЯ: Выводит text новой строкой с датой в RichTextBox и в файл, если эти действия разарешены
             string TEXT = Environment.NewLine + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text;
             if (tracer_defined && tracer_enabled)
             {
+                //Трэйсер определён и разрешён
                 tracer.AppendText(TEXT);
                 tracer.ScrollToCaret();
             }
             if (tracer_log_enabled)
             {
+                //Вывод в файл разрешён
                 System.IO.File.AppendAllText("Log.txt", TEXT);
             }
         }
         static void trace_attached(string text)
         {
-            //ФУНКЦИЯ: Выводит text в RichTextBox
+            //ФУНКЦИЯ: Выводит text, прикрепляя к старой строке, в RichTextBox и в файл, если эти действия разарешены
             string TEXT = text;
             if (tracer_defined && tracer_enabled)
             {
+                //Трэйсер определён и разрешён
                 tracer.AppendText(TEXT);
                 tracer.ScrollToCaret();
             }
             if (tracer_log_enabled)
             {
+                //Вывод в файл разрешён
                 System.IO.File.AppendAllText("Log.txt", TEXT);
             }
         }
-        
+        //USART
         static byte calcCheckSum(byte[] data)
         {
             //ФУНКЦИЯ: Вычисление контрольной суммы для верификации данных
             byte CheckSum = 0;
-            //trace("Составление контрольной суммы: ");
             for (int i = 0; i < data.Length; i++)
             {
-                //trace("    " + data[i]);
                 CheckSum -= data[i];
             }
             trace("         Контрольная сумма: " + CheckSum);
@@ -1221,9 +1006,9 @@ namespace Xmega32A4U_testBoard
             //Выполняем передачу и приём
             USART.Open();
             USART.Write(Packet.ToArray(), 0, Packet.ToArray().Length);
-            Thread.Sleep(delay);
+            Thread.Sleep(delay);                            //Задерживаемся, потом принимаем данные
             trace("     Передача завершена!");
-            CommandStack++;
+            CommandStack++;                                 //Увеличиваем счётчик команд (команда ушла)
             trace("     Приём...");                         //Приём-приём
             byte rBYTE;                                     //Принятый байт
             byte BytesToReadQuantity = Convert.ToByte(USART.BytesToRead);
@@ -1232,7 +1017,6 @@ namespace Xmega32A4U_testBoard
             {
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не было получено никаких данных!");
                 USART.Close();
-                //ERROR = true;
                 return new byte[] {0};
             }
             trace("             Принято:");
@@ -1248,7 +1032,6 @@ namespace Xmega32A4U_testBoard
                 {
                     trace("ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
                     USART.Close();
-                    //ERROR = true;
                     return new byte[] {0};
                 }
                 rDATA.Add(rBYTE);
@@ -1275,7 +1058,6 @@ namespace Xmega32A4U_testBoard
                         trace("         Несовпадает контрольная сумма!");
                         trace("             Получено:" + rCheckSum);
                         trace("             Подсчитано:" + CheckSum);
-                        //ERROR = true;
                         return new byte[] { 0 };
                     }
                     //Проверяем данные на отклик
@@ -1296,7 +1078,6 @@ namespace Xmega32A4U_testBoard
                             trace("ОШИБКА ОТКЛИКА!");
                             trace("     Ожидалось: " + command);
                             trace("     Получено: " + rDATA[0]);
-                            //ERROR = true;
                             defineError(rDATA.ToArray());
                             return new byte[] { 0 };
                         }
@@ -1304,10 +1085,8 @@ namespace Xmega32A4U_testBoard
                     return rDATA.ToArray();
                 }
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен затвор!");
-                //ERROR = true;
             }
             trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен ключ!");
-            //ERROR = true;
             return new byte[] { 0 };
         }
             static byte[] transmit(byte[] DATA)
@@ -1335,23 +1114,11 @@ namespace Xmega32A4U_testBoard
             DATA.Insert(0, COMMAND);
             return transmit(DATA);
         }
+
         //ОТЛАДОЧНЫЕ
-        static void addError(string TEXT, byte[] rDATA)
-        {
-            string error = (ErrorList.Count + 1).ToString() + " [" + DateTime.Now.ToString("HH:mm:ss") + "] " + TEXT + " Получено: ";
-            foreach(byte b in rDATA)
-            {
-                error += b + " | ";
-            }
-            trace(error);
-            ErrorList.Add(error);
-        }
-        public List<string> getErrorList()
-        {
-            return ErrorList;
-        }
         static void defineError(byte[] DATA)
         {
+            //ФУНКЦИЯ: Дешефрирует ошибку
             trace("---------------ОШИБКА-------------");
             trace("Принятые данные:");
             foreach (byte b in DATA)
@@ -1406,15 +1173,7 @@ namespace Xmega32A4U_testBoard
             }
         }
 
-        void wait()
-        {
-            //ФУНКЦИЯ: Устанавливает статус МК
-            byte[] wDATA = { Command.MC.wait };
-            USART.Open();
-            USART.Write(wDATA, 0, 1);
-            USART.Close();
-        }
-        //ФУНКЦИИ МИКРОКОНТРОЛЛЕРА
+        //   ! Р А З О Б Р А Т Ь ! Неиспользуемые функции
         void trace_error(byte[] DATA)
         {
             //ФУНКЦИЯ: Определение что за неверные данные такие пришли, и что нужно делать
@@ -1427,35 +1186,29 @@ namespace Xmega32A4U_testBoard
             }
             trace("--------------Конец ошибки---------------");
         }
+        static void addError(string TEXT, byte[] rDATA)
+        {
+            string error = (ErrorList.Count + 1).ToString() + " [" + DateTime.Now.ToString("HH:mm:ss") + "] " + TEXT + " Получено: ";
+            foreach(byte b in rDATA)
+            {
+                error += b + " | ";
+            }
+            trace(error);
+            ErrorList.Add(error);
+        }
+        void wait()
+        {
+            //ФУНКЦИЯ: Устанавливает статус МК
+            byte[] wDATA = { Command.Chip.wait };
+            USART.Open();
+            USART.Write(wDATA, 0, 1);
+            USART.Close();
+        }
         bool reset()
         {
             //ФУНКЦИЯ: Програмная перезагрузка микроконтроллера
-            return (transmit(Command.MC.reset)[0] == Command.MC.reset);
+            return (transmit(Command.Chip.reset)[0] == Command.Chip.reset);
         }
-
-        //TIC
-        public void sendToTIC()
-        {
-            //ФУНКЦИЯ: Посылает данные TIC контроллеру
-            //ПОЯСНЕНИЯ: ПК->МК: <key><Command.retransmitToTIC><lengthOfMessage><MessageToTIC><CS><lock>
-            //           МК->TIC: <MessageToTIC>
-            byte[] msg = { 45,76,78,34};
-            byte[] data = transmit_toTIC(msg);
-            trace("Получено от TIC'а: (пока отражение)");
-            foreach (byte b in data)
-            {
-                trace("     " + b);
-            }
-        }
-        byte[] transmit_toTIC(byte[] DATA)
-        {
-            List<byte> formedDATA = new List<byte>();
-            formedDATA.Add(Command.TIC.sendToTIC);
-            formedDATA.Add((byte)(DATA.Length+2)); //+2 для смещения относительно команды и байта длины
-            formedDATA.AddRange(DATA);
-            return transmit(formedDATA.ToArray());
-        }
-
         //--------------------------------------ЗАМЕТКИ-------------------------------------------
         //public void AsyncEndable(bool enable)
         //{
