@@ -654,7 +654,6 @@ namespace Xmega32A4U_testBoard
         private void BTN_CONDENSATOR_reset_Click(object sender, EventArgs e)
         {
             MC.Condensator.reset();
-            
         }
 
     }
