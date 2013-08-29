@@ -538,25 +538,25 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_IonSOURCE_getEmissionCurrentVoltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.EmissionCurrent.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
+            MC.IonSource.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
             LBL_IonSOURCE_getEmissionCurrentVoltage.Text = MC.IonSource.EmissionCurrent.getVoltage().ToString();
         }
 
         private void BTN_IonSOURCE_getIonizationVoltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.Ionization.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
+            MC.IonSource.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
             LBL_IonSOURCE_getIonizationVoltage.Text = MC.IonSource.Ionization.getVoltage().ToString();
         }
 
         private void BTN_IonSOURCE_getF1voltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.F1.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
+            MC.IonSource.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
             LBL_IonSOURCE_getF1voltage.Text = MC.IonSource.F1.getVoltage().ToString();
         }
 
         private void BTN_IonSOURCE_getF2voltage_Click(object sender, EventArgs e)
         {
-            MC.IonSource.F2.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
+            MC.IonSource.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
             LBL_IonSOURCE_getF2voltage.Text = MC.IonSource.F2.getVoltage().ToString();
         }
 
@@ -581,19 +581,19 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_DETECTOR_getDV1voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DV1.enableDoubleRange(CHB_DETECTOR_x2.Checked);
+            MC.Detector.enableDoubleRange(CHB_DETECTOR_x2.Checked);
             LBL_DETECTOR_getDV1voltage.Text = MC.Detector.DV1.getVoltage().ToString();
         }
 
         private void BTN_DETECTOR_getDV2voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DV2.enableDoubleRange(CHB_DETECTOR_x2.Checked);
+            MC.Detector.enableDoubleRange(CHB_DETECTOR_x2.Checked);
             LBL_DETECTOR_getDV2voltage.Text = MC.Detector.DV2.getVoltage().ToString();
         }
 
         private void BTN_DETECTOR_getDV3voltage_Click(object sender, EventArgs e)
         {
-            MC.Detector.DV3.enableDoubleRange(CHB_DETECTOR_x2.Checked);
+            MC.Detector.enableDoubleRange(CHB_DETECTOR_x2.Checked);
             LBL_DETECTOR_getDV3voltage.Text = MC.Detector.DV3.getVoltage().ToString();
         }
 
@@ -619,13 +619,13 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_SCANER_getParentScanVoltage_Click(object sender, EventArgs e)
         {
-            MC.Scaner.ParentScan.enableDoubleRange(CHB_SCANER_x2.Checked);
+            MC.Scaner.enableDoubleRange(CHB_SCANER_x2.Checked);
             LBL_SCANER_getParentScanVoltage.Text = MC.Scaner.ParentScan.getVoltage().ToString();
         }
 
         private void BTN_SCANER_getScanVoltage_Click(object sender, EventArgs e)
         {
-            MC.Scaner.Scan.enableDoubleRange(CHB_SCANER_x2.Checked);
+            MC.Scaner.enableDoubleRange(CHB_SCANER_x2.Checked);
             LBL_SCANER_getScanVoltage.Text = MC.Scaner.Scan.getVoltage().ToString();
         }
 

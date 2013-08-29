@@ -1048,6 +1048,8 @@
             // CHB_DETECTOR_x2
             // 
             this.CHB_DETECTOR_x2.AutoSize = true;
+            this.CHB_DETECTOR_x2.Checked = true;
+            this.CHB_DETECTOR_x2.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CHB_DETECTOR_x2.Location = new System.Drawing.Point(115, 13);
             this.CHB_DETECTOR_x2.Name = "CHB_DETECTOR_x2";
             this.CHB_DETECTOR_x2.Size = new System.Drawing.Size(37, 17);
@@ -1225,6 +1227,8 @@
             // CHB_IonSOURCE_x2
             // 
             this.CHB_IonSOURCE_x2.AutoSize = true;
+            this.CHB_IonSOURCE_x2.Checked = true;
+            this.CHB_IonSOURCE_x2.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CHB_IonSOURCE_x2.Location = new System.Drawing.Point(143, 15);
             this.CHB_IonSOURCE_x2.Name = "CHB_IonSOURCE_x2";
             this.CHB_IonSOURCE_x2.Size = new System.Drawing.Size(37, 17);
@@ -1456,6 +1460,8 @@
             // CHB_SCANER_x2
             // 
             this.CHB_SCANER_x2.AutoSize = true;
+            this.CHB_SCANER_x2.Checked = true;
+            this.CHB_SCANER_x2.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CHB_SCANER_x2.Location = new System.Drawing.Point(149, 16);
             this.CHB_SCANER_x2.Name = "CHB_SCANER_x2";
             this.CHB_SCANER_x2.Size = new System.Drawing.Size(37, 17);
@@ -1589,6 +1595,8 @@
             // CHB_CONDENSATOR_x2
             // 
             this.CHB_CONDENSATOR_x2.AutoSize = true;
+            this.CHB_CONDENSATOR_x2.Checked = true;
+            this.CHB_CONDENSATOR_x2.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CHB_CONDENSATOR_x2.Location = new System.Drawing.Point(240, 12);
             this.CHB_CONDENSATOR_x2.Name = "CHB_CONDENSATOR_x2";
             this.CHB_CONDENSATOR_x2.Size = new System.Drawing.Size(37, 17);
@@ -1656,6 +1664,8 @@
             // CHB_INLET_x2
             // 
             this.CHB_INLET_x2.AutoSize = true;
+            this.CHB_INLET_x2.Checked = true;
+            this.CHB_INLET_x2.CheckState = System.Windows.Forms.CheckState.Checked;
             this.CHB_INLET_x2.Location = new System.Drawing.Point(143, 17);
             this.CHB_INLET_x2.Name = "CHB_INLET_x2";
             this.CHB_INLET_x2.Size = new System.Drawing.Size(37, 17);
