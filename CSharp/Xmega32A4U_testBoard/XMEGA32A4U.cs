@@ -404,7 +404,251 @@ namespace Xmega32A4U_testBoard
                 return answer;
             }
         }
+        public class RTCounterAndCO
+        {
+            //Класс: Счётчик реального времени и счётчики импульсов
+            struct Constants
+            {
+                public const double sourceFrequency = 32.768;//кГц - опорная частота таймера
+                public const ushort maxCount = 65535;
+                //состояния
+                public const byte Status_ready = 0;
+                public const byte Status_stopped = 1;
+                public const byte Status_busy = 2;
+                //интервалы для делителей
+                public const int min_ms_div1 = 0;
+                public const int min_ms_div2 = 2000;
+                public const int min_ms_div8 = 4000;
+                public const int min_ms_div16 = 16000;
+                public const int min_ms_div64 = 32000;
+                public const int min_ms_div256 = 127996;
+                public const int min_ms_div1024 = 511981;
+                public const int max_ms_div1024 = 2047925;
+            }
+            //Счётчики
+            public class counter
+            {
+                public byte overflows;
+                public UInt32 Result;
+            }
+            public counter COA = new counter();
+            public counter COB = new counter();
+            public counter COC = new counter();
+            //предделители частоты
+            byte prescaler; //1,2,3(8),4(16),5(64),6(256),7(1024)
+            ushort prescaler_long;
 
+            bool setPrescaler(ushort PRESCALER)
+            {
+                switch (PRESCALER)
+                {
+                    case 1: prescaler = 1;
+                        break;
+                    case 2: prescaler = 2;
+                        break;
+                    case 8: prescaler = 3;
+                        break;
+                    case 16: prescaler = 4;
+                        break;
+                    case 64: prescaler = 5;
+                        break;
+                    case 256: prescaler = 6;
+                        break;
+                    case 1024: prescaler = 7;
+                        break;
+                    default: trace("ОШИБКА! Неверный предделитель!");
+                        prescaler = 0;
+                        return false;
+                }
+                return (transmit(Command.RTC.setPrescaler, prescaler)[0] == Command.RTC.setPrescaler);
+            }
+            public ushort getRTCprescaler(uint MILLISECONDS)
+            {
+                if ((MILLISECONDS >= Constants.min_ms_div1) && (MILLISECONDS < Constants.min_ms_div2))
+                {
+                    prescaler_long = 1;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div2) && (MILLISECONDS < Constants.min_ms_div8))
+                {
+                    prescaler_long = 2;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div8) && (MILLISECONDS < Constants.min_ms_div16))
+                {
+                    prescaler_long = 8;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div16) && (MILLISECONDS < Constants.min_ms_div64))
+                {
+                    prescaler_long = 16;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div64) && (MILLISECONDS < Constants.min_ms_div256))
+                {
+                    prescaler_long = 64;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div256) && (MILLISECONDS < Constants.min_ms_div1024))
+                {
+                    prescaler_long = 256;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div1024) && (MILLISECONDS < Constants.max_ms_div1024))
+                {
+                    prescaler_long = 1024;
+                }
+                else
+                {
+                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MILLISECONDS < 2047967; Получено: " + MILLISECONDS);
+                    prescaler_long = 0;
+                    return 0;
+                }
+                return prescaler_long;
+            }
+                public ushort getRTCprescaler(string MILLISECONDS)
+            {
+                return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
+            }
+            public double getRTCfreqency()
+            {
+                return (Constants.sourceFrequency / prescaler_long);
+            }
+            public ushort getRTCticks(uint MILLISECONDS, ushort PRESCALER)
+            {
+                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / PRESCALER)));
+                return tiks;
+            }
+                public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
+            {
+                if ((MILLISECONDS != "") && (PRESCALER != ""))
+                {
+                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), Convert.ToUInt16(PRESCALER));
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+                public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
+            {
+                if ((MILLISECONDS != ""))
+                {
+                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), PRESCALER);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            public bool setMeasureTime(uint MILLISECONDS)
+            {
+                //ФУНКЦИЯ: Задаёт количество тиков для RTC через интервал в миллисекундах
+                ushort RTC_prescaler = getRTCprescaler(MILLISECONDS);
+                setPrescaler(RTC_prescaler);
+                ushort ticks = getRTCticks(MILLISECONDS, RTC_prescaler);
+                byte[] bytes_ticks = BitConverter.GetBytes(ticks);
+                byte[] data = { bytes_ticks[1], bytes_ticks[0] };
+                if (transmit(Command.RTC.setMeasureTime, data)[0] == 1)
+                {
+                    trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
+                    return true;
+                }
+                trace("Интервал не был задан! Счётчики считают!");
+                return false;
+            }
+                public bool setMeasureTime(string MILLISECONDS)
+            {
+                if (MILLISECONDS != "")
+                {
+                    return setMeasureTime(Convert.ToUInt32(MILLISECONDS));
+                }
+                return false;
+            }
+            public bool startMeasure()
+            {
+                //ФУНКЦИЯ: Запускаем счётчик, возвращаем состояние счётчика на момент запуска.
+                byte[] answer = transmit(Command.RTC.startMeasure);
+                if (answer[0] != Constants.Status_busy)
+                {
+                    trace("Счётчик начал счёт...");
+                    return true;
+                }
+                else
+                {
+                    trace("Счётчики уже считают! Вы можите остановить счёт командой stopMeasure()");
+                    return false;
+                }
+            }
+            public bool stopMeasure()
+            {
+                //ФУНКЦИЯ: Останавливаем счётчик
+                return (transmit(Command.RTC.stopMeasure)[0] == Command.RTC.stopMeasure);
+            }
+            public string getResults()
+            {
+                //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам,
+                byte[] rDATA = transmit(Command.RTC.getResult);
+                byte Status = rDATA[0];
+
+                //COB_overflowed = rDATA[6];
+                switch (Status)
+                {
+                    case Constants.Status_ready:
+                        //Счётчик готов
+                        trace("Счётчики готовы к работе.");
+                        COA.overflows = rDATA[1];
+                        COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
+
+                        break;
+                    case Constants.Status_stopped:
+                        //Счётчик был принудительно остановлен!
+                        trace("Счётчики были принудительно остановлеын!");
+                        break;
+                    case Constants.Status_busy:
+                        //Счётчик успешно завершил счёт, без переполнения
+                        trace("Счётчики ещё считают!");
+                        break;
+                    default:
+                        //Счётчик переполнился <state> раз
+                        trace("ОШИБКА! Неизвестное состояние RTC: " + Status + " !!!");
+                        break;
+                }
+                string answer = "";
+                switch (Status)
+                {
+                    case Constants.Status_busy:
+                        answer = "Busy";
+                        break;
+                    case Constants.Status_ready:
+                        answer = "Ready";
+                        break;
+                    case Constants.Status_stopped:
+                        answer = "Stopped";
+                        break;
+                    default:
+                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКОВ! Состояние:" + Status);
+                        return "Ошибка! " + Status;
+                }
+                return answer;
+            }
+            public string getStatus()
+            {
+                string answer = "";
+                byte Status = transmit(Command.RTC.getStatus)[0];
+                switch (Status)
+                {
+                    case Constants.Status_busy:
+                        answer = "Busy";
+                        break;
+                    case Constants.Status_ready:
+                        answer = "Ready";
+                        break;
+                    case Constants.Status_stopped:
+                        answer = "Stopped";
+                        break;
+                    default:
+                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКА! Состояние:" + Status);
+                        return "Ошибка! " + Status;
+                }
+                return answer;
+            }
+        }
         public struct SPI_ADC
         {
             //СТРУКТУРА: АЦП
@@ -881,6 +1125,7 @@ namespace Xmega32A4U_testBoard
 
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
         public RealTimeCounterAndCO Counters = new RealTimeCounterAndCO();
+        public RTCounterAndCO Cs = new RTCounterAndCO();
         public SPI_DAC DAC = new SPI_DAC();
         public SPI_ADC ADC = new SPI_ADC();
 
