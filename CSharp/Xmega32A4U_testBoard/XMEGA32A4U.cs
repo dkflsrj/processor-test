@@ -828,7 +828,7 @@ namespace Xmega32A4U_testBoard
             const byte Lbyte_DoubleRange = 16;
             const byte Lbyte_NormalRange = 48;
             const byte ChannelStep = 4;
-            bool DoubleRange = false;
+            bool DoubleRange = true;
             ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
@@ -903,7 +903,7 @@ namespace Xmega32A4U_testBoard
             const byte Lbyte_DoubleRange = 16;
             const byte Lbyte_NormalRange = 48;
             const byte ChannelStep = 4;
-            bool DoubleRange = false;
+            bool DoubleRange = true;
             ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 byte Lbyte = 0;
@@ -972,12 +972,13 @@ namespace Xmega32A4U_testBoard
             public SPI_DEVICE_CHANNEL F1 = new SPI_DEVICE_CHANNEL(F1_channel, Command.SPI.IonSource.F1.setVoltage, F1_channel, Command.SPI.IonSource.F1.getVoltage);
             public SPI_DEVICE_CHANNEL F2 = new SPI_DEVICE_CHANNEL(F2_channel, Command.SPI.IonSource.F2.setVoltage, F2_channel, Command.SPI.IonSource.F2.getVoltage);
             
-            //public void enableDoubleRange(bool enable)
-            //{
-                
-            //    EmissionCurrent.enableDoubleRange(enable);
-            //Делегатом?
-            //}
+            public void enableDoubleRange(bool enable)
+            {
+                EmissionCurrent.enableDoubleRange(enable);
+                Ionization.enableDoubleRange(enable);
+                F1.enableDoubleRange(enable);
+                F2.enableDoubleRange(enable);
+            }
         }
         public class SPI_DETECTOR
         {
@@ -1004,6 +1005,12 @@ namespace Xmega32A4U_testBoard
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Детектора вероятно не сброшены!");
                 return false;
             }
+            public void enableDoubleRange(bool enable)
+            {
+                DV1.enableDoubleRange(enable);
+                DV2.enableDoubleRange(enable);
+                DV3.enableDoubleRange(enable);
+            }
         }
         public class SPI_SCANER
         {
@@ -1029,6 +1036,11 @@ namespace Xmega32A4U_testBoard
                 }
                 trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Сканера вероятно не сброшены!");
                 return false;
+            }
+            public void enableDoubleRange(bool enable)
+            {
+                ParentScan.enableDoubleRange(enable);
+                Scan.enableDoubleRange(enable);
             }
         }
         
