@@ -504,7 +504,7 @@ namespace Xmega32A4U_testBoard
             {
                 return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
             }
-            public double getRTCfreqency()
+            public double getRTCfrequency()
             {
                 return (Constants.sourceFrequency / prescaler_long);
             }
@@ -580,7 +580,7 @@ namespace Xmega32A4U_testBoard
                 //ФУНКЦИЯ: Останавливаем счётчик
                 return (transmit(Command.RTC.stopMeasure)[0] == Command.RTC.stopMeasure);
             }
-            public string getResults()
+            public string receiveResults()
             {
                 //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам,
                 byte[] rDATA = transmit(Command.RTC.getResult);
@@ -772,11 +772,11 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
                 return (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage);
             }
-            public bool setVoltage(string CHANNEL, string VOLTAGE)
+                public bool setVoltage(string CHANNEL, string VOLTAGE)
             {
                 return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
             }
-            public bool setVoltage(int CHANNEL, int VOLTAGE)
+                public bool setVoltage(int CHANNEL, int VOLTAGE)
             {
                 return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
             }
