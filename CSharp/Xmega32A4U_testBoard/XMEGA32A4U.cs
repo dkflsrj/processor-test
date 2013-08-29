@@ -627,10 +627,10 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(DAC_command, data)[0] == DAC_command)
                 {
-                    trace("Напряжения DAC'a сброшены");
+                    trace("Напряжения DAC'а Натекателя и Нагревателя сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Натекателя и Нагревателя вероятно не сброшены!");
                 return false;
             }
         }
@@ -692,10 +692,10 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
                 {
-                    trace("Напряжения DAC'a сброшены");
+                    trace("Напряжения DAC'a Конденсатора сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Конденсатора вероятно не сброшены!");
                 return false;
             }
         }
@@ -716,10 +716,10 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.IonSource.EmissionCurrent.setVoltage, data)[0] == Command.SPI.IonSource.EmissionCurrent.setVoltage)
                 {
-                    trace("Напряжения DAC'a сброшены");
+                    trace("Напряжения DAC'a Ионного Источника сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Ионного Источника вероятно не сброшены!");
                 return false;
             }
 
@@ -754,10 +754,10 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.Detector.DV1.setVoltage, data)[0] == Command.SPI.Detector.DV1.setVoltage)
                 {
-                    trace("Напряжения DAC'a сброшены");
+                    trace("Напряжения DAC'a Детектора сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Детектора вероятно не сброшены!");
                 return false;
             }
         }
@@ -780,10 +780,10 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.Scaner.Scan.setVoltage, data)[0] == Command.SPI.Scaner.Scan.setVoltage)
                 {
-                    trace("Напряжения DAC'a сброшены");
+                    trace("Напряжения DAC'a Сканера сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Сканера вероятно не сброшены!");
                 return false;
             }
         }

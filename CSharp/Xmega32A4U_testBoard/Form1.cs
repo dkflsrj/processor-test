@@ -515,8 +515,6 @@ namespace Xmega32A4U_testBoard
         {
             MC.Inlet.reset();
         }
-
-        
         //-------------------------------Ионный источник--------------------------
         private void BTN_IonSOURCE_setEmissionCurrentVoltage_Click(object sender, EventArgs e)
         {
