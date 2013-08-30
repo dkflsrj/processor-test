@@ -165,17 +165,21 @@ namespace Xmega32A4U_testBoard
         //Функции МК
         private void BTN_MCstatus_Click(object sender, EventArgs e)
         {
-            trace(true, "Статус: " + MC.Chip.getStatus().ToString());
+            //trace(true, "Статус: " + 
+            MC.Chip.getStatus().ToString();
         }
         private void BTN_COM_getMCversion_Click(object sender, EventArgs e)
         {
-            trace(true, "Запрос информации о прошивке у МК...");
-            trace(true, "   Дата создания: " + MC.Chip.getBirthday());
-            trace(true, "   Версия: " + MC.Chip.getVersion().ToString());
+            //trace(true, "Запрос информации о прошивке у МК...");
+            //trace(true, "   Дата создания: " + 
+            MC.Chip.getBirthday();
+            //trace(true, "   Версия: " + 
+            MC.Chip.getVersion().ToString();
         }
         private void BTN_COM_getCPUfreq_Click(object sender, EventArgs e)
         {
-            trace(true, "Частота CPU: " + MC.Chip.getCPUfrequency());
+            //trace(true, "Частота CPU: " + 
+            MC.Chip.getCPUfrequency();
         }
         private void BTN_COM_setMCwait_Click(object sender, EventArgs e)
         {
@@ -189,28 +193,29 @@ namespace Xmega32A4U_testBoard
         {
             if (MC.DAC.setVoltage(TXB_DAC_channel.Text, TXB_DAC_voltage.Text))
             {
-                trace(true, "На канал " + TXB_DAC_channel.Text + " выставлено напряжение: " + TXB_DAC_voltage.Text);
+                //trace(true, "На канал " + TXB_DAC_channel.Text + " выставлено напряжение: " + TXB_DAC_voltage.Text);
             }
             else
             {
-                trace(true, "ОШИБКА ОТКЛИКА! DAC возможно не выставил напряжение!");
+                //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно не выставил напряжение!");
             }
         }
         private void BTN_SPI_ADC_request_Click(object sender, EventArgs e)
         {
             MC.ADC.DoubleRange = CHB_ADC_DoubleRange.Checked;
-            trace(true, "Напряжение на канале " + TXB_ADC_channel.Text + " : " + MC.ADC.getVoltage(TXB_ADC_channel.Text));
+            //trace(true, "Напряжение на канале " + TXB_ADC_channel.Text + " : " + 
+            MC.ADC.getVoltage(TXB_ADC_channel.Text);
 
         }
         private void BTN_DAC_reset_Click(object sender, EventArgs e)
         {
             if (MC.DAC.reset())
             {
-                trace(true, "DAC сброшен!");
+                //trace(true, "DAC сброшен!");
             }
             else
             {
-                trace(true, "ОШИБКА ОТКЛИКА! DAC возможно НЕ сброшен!");
+                //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно НЕ сброшен!");
             }
         }
 
@@ -223,31 +228,29 @@ namespace Xmega32A4U_testBoard
             try
             {
                 Convert.ToInt32(TXB_COA_measureTime.Text);
-
-
             }
             catch (Exception)
             {
-                trace(true, "ОШИБКА! Неверный интервал!");
+                //trace(true, "ОШИБКА! Неверный интервал!");
                 return;
             }
             if (MC.Counters.startMeasure())
             {
-                trace(true, "COA начал счёт...");
+                //trace(true, "COA начал счёт...");
                 PGB_COA_progress.Value = 0;
                 UI_PGB_COA_count = 0;
                 UI_PGB_COA_step = (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_COA_measureTime.Text);
                 CLK_COA.Enabled = true;
                 return;
             }
-            trace(true, "Ошибка! Возможно COA не начал счёт!");
+            //trace(true, "Ошибка! Возможно COA не начал счёт!");
 
         }
         private void BTN_reqCount_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Проверям счётчик МК, если сосчитал, то принимаем результат
             string Counters_status = MC.Counters.receiveResults();
-            trace(true, "Состояние счётчиков: " + Counters_status);
+            //trace(true, "Состояние счётчиков: " + Counters_status);
             if (Counters_status == "Ready")
             {
                 trace(true, "   Счёт: " + MC.Counters.COA.Result);
@@ -262,7 +265,7 @@ namespace Xmega32A4U_testBoard
             }
             catch (Exception)
             {
-                trace(true, "ОШИБКА! Неверное время измерения!");
+                //trace(true, "ОШИБКА! Неверное время измерения!");
                 return;
             }
             try
@@ -271,7 +274,7 @@ namespace Xmega32A4U_testBoard
             }
             catch (Exception)
             {
-                trace(true, "ОШИБКА! Неверное время паузы!");
+                //trace(true, "ОШИБКА! Неверное время паузы!");
                 return;
             }
             try
@@ -280,16 +283,16 @@ namespace Xmega32A4U_testBoard
             }
             catch (Exception)
             {
-                trace(true, "ОШИБКА! Неверное количество измерений!");
+                //trace(true, "ОШИБКА! Неверное количество измерений!");
                 return;
             }
             if (MC.Counters.setMeasureTime(TXB_COA_measureTime.Text))
             {
-                trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
+                //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
             }
             else
             {
-                trace(true, "Счётчик ещё считает!");
+                //trace(true, "Счётчик ещё считает!");
             }
             /*if (MC.COA.setMeasureDelay(TXB_COA_delay.Text))
             {
@@ -304,12 +307,12 @@ namespace Xmega32A4U_testBoard
         {
             if (MC.Counters.stopMeasure())
             {
-                trace(true, "Счётчик был успешно остановлен!");
+                //trace(true, "Счётчик был успешно остановлен!");
                 CLK_COA.Enabled = false;
                 PGB_COA_progress.Value = PGB_COA_progress.Minimum;
                 return;
             }
-            trace(true, "ОШИБКА ОТКЛИКА! Возможно Счётчик не был остановлен!");
+            //trace(true, "ОШИБКА ОТКЛИКА! Возможно Счётчик не был остановлен!");
         }
 
 
@@ -431,7 +434,7 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_openLog_Click(object sender, EventArgs e)
         {
-            Process.Start("log.txt");
+            Process.Start("Log.txt");
         }
 
         private void CHB_traceLog_CheckedChanged(object sender, EventArgs e)

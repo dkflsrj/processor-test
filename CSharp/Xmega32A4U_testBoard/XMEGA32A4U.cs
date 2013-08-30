@@ -36,6 +36,7 @@ namespace Xmega32A4U_testBoard
             public const byte KeyError =        2;       //Не был получен ключ
             public const byte LockError =       3;       //Не был получен замок
             public const byte CheckSumError =   4;       //Неверная контрольная сумма
+            //public const byte wrong_SPI_DEVICE_Number
         }
         struct Command
         {
@@ -207,27 +208,27 @@ namespace Xmega32A4U_testBoard
                 //Составляем слово:
                 // 1 0 0 ххх 11 0 0 1 1 '0000'
                 // 131 + 16
-
+                trace_attached(Environment.NewLine);
+                trace("ADC.getVoltage(" + CHANNEL + ")");
+                trace("ADC.getVoltage(" + CHANNEL + "): DoubleRange = "+DoubleRange);
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
                 ushort voltage = 0;
-                //if (!ERROR)
-                //{
-                    byte adress = 1;
-                    adress += Convert.ToByte(rDATA[0] >> 4);
-                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                    trace("    Ответный адрес канала: " + adress);
-                    trace("    Напряжение: " + voltage);
-                //}
+                byte adress = 1;
+                adress += Convert.ToByte(rDATA[0] >> 4);
+                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                trace("ADC.getVoltage(" + CHANNEL + "): Ответный адрес канала: " + adress);
+//Если адрес != Каналу - ошибка!
+                trace("ADC.getVoltage(" + CHANNEL + "): Напряжение: " + voltage);
                 return voltage;
             }
-            public ushort getVoltage(string CHANNEL)
+                public ushort getVoltage(string CHANNEL)
             {
                 return getVoltage(Convert.ToByte(CHANNEL));
             }
-            public ushort getVoltage(int CHANNEL)
+                public ushort getVoltage(int CHANNEL)
             {
                 return getVoltage(Convert.ToByte(CHANNEL));
             }
@@ -240,13 +241,15 @@ namespace Xmega32A4U_testBoard
 
             public bool reset()
             {
+                trace_attached(Environment.NewLine);
+                trace("DAC.reset()");
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
                 {
-                    trace("Напряжения DAC'a сброшены");
+                    trace("DAC.reset(): Операция выполнена успешно!");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
+                trace("DAC.reset(): ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
                 return false;
             }
             public bool setVoltage(byte CHANNEL, ushort VOLTAGE)
@@ -277,9 +280,18 @@ namespace Xmega32A4U_testBoard
                  * 
                  */
                 //Формируем данные на отправку
+                trace_attached(Environment.NewLine);
+                trace("DAC.setVoltage("+CHANNEL+", "+VOLTAGE+")");
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                return (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage);
+                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
+                {
+                    trace("DAC.setVoltage(" + CHANNEL + ", " + VOLTAGE + "): Операция выполнена успешно!");
+                    return true;
+                }
+                trace("DAC.setVoltage(" + CHANNEL + ", " + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
+//ОШИБКА ОТКЛИКА!
+                return false;
             }
                 public bool setVoltage(string CHANNEL, string VOLTAGE)
             {
@@ -326,6 +338,7 @@ namespace Xmega32A4U_testBoard
             bool setPrescaler(ushort PRESCALER)
             {
                 //ФУНКЦИЯ: Устанавливает предделитель (в МК)
+                trace("Counters.setPrescaler("+PRESCALER+")");
                 switch (PRESCALER)
                 {
                     case 1: prescaler = 1;
@@ -342,11 +355,17 @@ namespace Xmega32A4U_testBoard
                         break;
                     case 1024: prescaler = 7;
                         break;
-                    default: trace("ОШИБКА! Неверный предделитель!");
+                    default: trace("Counters.setPrescaler("+PRESCALER+"): ОШИБКА! Неверный предделитель!");
                         prescaler = 0;
                         return false;
                 }
-                return (transmit(Command.RTC.setPrescaler, prescaler)[0] == Command.RTC.setPrescaler);
+                if((transmit(Command.RTC.setPrescaler, prescaler)[0] == Command.RTC.setPrescaler))
+                {
+                    trace("Counters.setPrescaler(" + PRESCALER + "): Операция выполнена успешно!");
+                    return true;
+                }
+                trace("Counters.setPrescaler(" + PRESCALER + "): ОШИБКА ОТКЛИКА!");
+                return false;
             }
             //Видимые функции
             public ushort getRTCprescaler(uint MILLISECONDS)
@@ -388,11 +407,11 @@ namespace Xmega32A4U_testBoard
                 }
                 return prescaler_long;
             }
-            public ushort getRTCprescaler(string MILLISECONDS)
+                public ushort getRTCprescaler(string MILLISECONDS)
             {
                 return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
             }
-            public double getRTCfrequency()
+                public double getRTCfrequency()
             {
                 //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
                 return (Constants.sourceFrequency / prescaler_long);
@@ -403,7 +422,7 @@ namespace Xmega32A4U_testBoard
                 ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / PRESCALER)));
                 return tiks;
             }
-            public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
+                public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
             {
                 if ((MILLISECONDS != "") && (PRESCALER != ""))
                 {
@@ -414,7 +433,7 @@ namespace Xmega32A4U_testBoard
                     return 0;
                 }
             }
-            public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
+                public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
             {
                 if ((MILLISECONDS != ""))
                 {
@@ -428,20 +447,27 @@ namespace Xmega32A4U_testBoard
             public bool setMeasureTime(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет, сохраняет и устанавливает предделитель, вычисляет и устанавливает количество тиков для RTC через интервал в миллисекундах
+                trace_attached(Environment.NewLine);
                 ushort RTC_prescaler = getRTCprescaler(MILLISECONDS);
-                setPrescaler(RTC_prescaler);
+                if (!setPrescaler(RTC_prescaler))
+                {
+                    trace("Counters.setMeasureTime(" + MILLISECONDS + "): Операция отменена! ОШИБКА ПРЕДДЕЛИТЕЛЯ!");
+                    return false;
+                }
+                trace("Counters.setMeasureTime(" + MILLISECONDS + ")");
                 ushort ticks = getRTCticks(MILLISECONDS, RTC_prescaler);
                 byte[] bytes_ticks = BitConverter.GetBytes(ticks);
                 byte[] data = { bytes_ticks[1], bytes_ticks[0] };
                 if (transmit(Command.RTC.setMeasureTime, data)[0] == 1)
                 {
-                    trace("Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
+                    trace("Counters.setMeasureTime(" + MILLISECONDS + "): Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
+                    trace("Counters.setMeasureTime(" + MILLISECONDS + "): Операция выполнена успешно!");
                     return true;
                 }
-                trace("Интервал не был задан! Счётчики считают!");
+                trace("Counters.setMeasureTime(" + MILLISECONDS + "): Операция не была выполнена! Счётчики считают!");
                 return false;
             }
-            public bool setMeasureTime(string MILLISECONDS)
+                public bool setMeasureTime(string MILLISECONDS)
             {
                 if (MILLISECONDS != "")
                 {
@@ -452,71 +478,71 @@ namespace Xmega32A4U_testBoard
             public bool startMeasure()
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
+                trace_attached(Environment.NewLine);
+                trace("Counters.startMeasure()");
                 byte[] answer = transmit(Command.RTC.startMeasure);
                 if (answer[0] != Constants.Status_busy)
                 {
-                    trace("Счётчик начал счёт...");
+                    trace("Counters.startMeasure(): Операция выполнена успешно!");
                     return true;
                 }
                 else
                 {
-                    trace("Счётчики уже считают! Вы можите остановить счёт командой stopMeasure()");
+                    trace("Counters.startMeasure(): Операция не была выполнена! Счётчики уже считают!");
                     return false;
                 }
             }
             public bool stopMeasure()
             {
                 //ФУНКЦИЯ: Останавливает счётчик. Всегда возвращает true. false - ошибка отклика!
-                return (transmit(Command.RTC.stopMeasure)[0] == Command.RTC.stopMeasure);
+                trace_attached(Environment.NewLine);
+                trace("Counters.stopMeasure()");
+                if(transmit(Command.RTC.stopMeasure)[0] == Command.RTC.stopMeasure)
+                {
+                    trace("Counters.stopMeasure(): Операция выполнена успешно!");
+                    return true;
+                }
+                trace("Counters.stopMeasure(): Операция не была выполнена!");
+                return false;
             }
             public string receiveResults()
             {
                 //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам. Возвращает состояние счётчика.
+                trace_attached(Environment.NewLine);
+                trace("Counters.receiveResults()");
                 byte[] rDATA = transmit(Command.RTC.getResult);
                 byte Status = rDATA[0];
                 switch (Status)
                 {
                     case Constants.Status_ready:
                         //Счётчик готов. Сохраняем результаты.
-                        trace("Счётчики готовы к работе.");
                         COA.overflows = rDATA[1];
                         COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
                         //COB.overflows = rDATA[?];
                         //COB.Result = Convert.ToUInt32(rDATA[?] * 16777216 + rDATA[?] * 65536 + rDATA[?] * 256 + rDATA[?]);
                         //COC.overflows = rDATA[?];
                         //COC.Result = Convert.ToUInt32(rDATA[?] * 16777216 + rDATA[?] * 65536 + rDATA[?] * 256 + rDATA[?]);
-                        break;
+                        trace("Counters.receiveResults(): Статус счётчиков: Ready");
+                        trace("Counters.receiveResults(): Операция выполнена успешно!");
+                        return "Ready";
                     case Constants.Status_stopped:
-                        trace("Счётчики были принудительно остановлены!");
-                        break;
+                        trace("Counters.receiveResults(): Статус счётчиков: Stopped");
+                        trace("Counters.receiveResults(): Операция отменена!");
+                        return "Stopped";
                     case Constants.Status_busy:
-                        trace("Счётчики ещё считают!");
-                        break;
+                        trace("Counters.receiveResults(): Статус счётчиков: Busy");
+                        trace("Counters.receiveResults(): Операция отменена!");
+                        return "Busy";
                     default:
-                        trace("ОШИБКА! Неизвестное состояние RTC: " + Status + " !!!");
-                        break;
+                        trace("ОШИБКА! Неизвестное состояние счётчиков: " + Status + " !!!");
+                        return "ОШИБКА!";
                 }
-                string answer = "";
-                switch (Status)
-                {
-                    case Constants.Status_busy:
-                        answer = "Busy";
-                        break;
-                    case Constants.Status_ready:
-                        answer = "Ready";
-                        break;
-                    case Constants.Status_stopped:
-                        answer = "Stopped";
-                        break;
-                    default:
-                        trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКОВ! Состояние:" + Status);
-                        return "Ошибка! " + Status;
-                }
-                return answer;
             }
             public string getStatus()
             {
                 //ФУНКЦИЯ: Возвращает статус счётчиков
+                trace_attached(Environment.NewLine);
+                trace("Counters.getStatus()");
                 string answer = "";
                 byte Status = transmit(Command.RTC.getStatus)[0];
                 switch (Status)
@@ -532,8 +558,11 @@ namespace Xmega32A4U_testBoard
                         break;
                     default:
                         trace("ОШИБКА СОСТОЯНИЯ СЧЁТЧИКА! Состояние:" + Status);
-                        return "Ошибка! " + Status;
+                        return "ОШИБКА!";
                 }
+
+                trace("Counters.getStatus(): Статус счётчиков: " + answer);
+                trace("Counters.getStatus(): Операция выполнена успешно!");
                 return answer;
             }
         }
@@ -546,9 +575,16 @@ namespace Xmega32A4U_testBoard
             protected void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
+                trace_attached(Environment.NewLine);
+                trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + ")");
                 byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                 byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                transmit(command, data);
+                if (transmit(command, data)[0] == DAC_command)
+                {
+                    trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + "): Операция выполнена успешно!");
+                    return;
+                }
+                trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
             }
             //Видимые функции
             public void setVoltage(ushort VOLTAGE)
@@ -589,6 +625,9 @@ namespace Xmega32A4U_testBoard
             bool DoubleRange = true;
             ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
+                trace_attached(Environment.NewLine);
+                trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + ")");
+                trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "): DoubleRange = " + DoubleRange);
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
@@ -597,8 +636,8 @@ namespace Xmega32A4U_testBoard
                 byte adress = 1;
                 adress += Convert.ToByte(rDATA[0] >> 4);
                 voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                trace("    Ответный адрес канала: " + adress);
-                trace("    Напряжение: " + voltage);
+                trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "): Ответный адрес канала: " + adress);
+                trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "): Напряжение: " + voltage);
                 return voltage;
             }
             //Видимые функции
@@ -626,13 +665,15 @@ namespace Xmega32A4U_testBoard
             }
             public bool reset()
             {
+                trace_attached(Environment.NewLine);
+                trace("DAC_CHANNEL.reset(INLET)");
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(DAC_command, data)[0] == DAC_command)
                 {
-                    trace("Напряжения DAC'а Натекателя и Нагревателя сброшены");
+                    trace("DAC_CHANNEL.reset(INLET): Операция выполнена успешно! Напряжения DAC'а Натекателя и Нагревателя сброшены.");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Натекателя и Нагревателя вероятно не сброшены!");
+                trace("DAC_CHANNEL.reset(INLET): ОШИБКА ОТКЛИКА! Напряжения DAC'а Натекателя и Нагревателя вероятно не сброшены!");
                 return false;
             }
         }
@@ -664,6 +705,9 @@ namespace Xmega32A4U_testBoard
             bool DoubleRange = true;
             ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
+                trace_attached(Environment.NewLine);
+                trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + ")");
+                trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "): DoubleRange = " + DoubleRange);
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
@@ -672,8 +716,8 @@ namespace Xmega32A4U_testBoard
                 byte adress = 1;
                 adress += Convert.ToByte(rDATA[0] >> 4);
                 voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                trace("    Ответный адрес канала: " + adress);
-                trace("    Напряжение: " + voltage);
+                trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "): Ответный адрес канала: " + adress);
+                trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "): Напряжение: " + voltage);
                 return voltage;
             }
             //Видимые функции
@@ -691,13 +735,15 @@ namespace Xmega32A4U_testBoard
             }
             public bool reset()
             {
+                trace_attached(Environment.NewLine);
+                trace("DAC_CHANNEL.reset(CONDESATOR)");
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
                 {
-                    trace("Напряжения DAC'a Конденсатора сброшены");
+                    trace("DAC_CHANNEL.reset(CONDESATOR): Операция выполнена успешно! Напряжения DAC'a Конденсатора сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Конденсатора вероятно не сброшены!");
+                trace("DAC_CHANNEL.reset(CONDESATOR): ОШИБКА ОТКЛИКА! Напряжения DAC'а Конденсатора вероятно не сброшены!");
                 return false;
             }
         }
@@ -714,13 +760,15 @@ namespace Xmega32A4U_testBoard
 
             public bool reset()
             {
+                trace_attached(Environment.NewLine);
+                trace("DAC_CHANNEL.reset(IonSOURCE)");
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.IonSource.EmissionCurrent.setVoltage, data)[0] == Command.SPI.IonSource.EmissionCurrent.setVoltage)
                 {
-                    trace("Напряжения DAC'a Ионного Источника сброшены");
+                    trace("DAC_CHANNEL.reset(IonSOURCE): Операция выполнена успешно! Напряжения DAC'a Ионного Источника сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Ионного Источника вероятно не сброшены!");
+                trace("DAC_CHANNEL.reset(IonSOURCE): ОШИБКА ОТКЛИКА! Напряжения DAC'а Ионного Источника вероятно не сброшены!");
                 return false;
             }
             //Каналы
@@ -753,13 +801,15 @@ namespace Xmega32A4U_testBoard
            
             public bool reset()
             {
+                trace_attached(Environment.NewLine);
+                trace("DAC_CHANNEL.reset(DETECTOR)");
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.Detector.DV1.setVoltage, data)[0] == Command.SPI.Detector.DV1.setVoltage)
                 {
-                    trace("Напряжения DAC'a Детектора сброшены");
+                    trace("DAC_CHANNEL.reset(DETECTOR): Операция выполнена успешно! Напряжения DAC'a Детектора сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Детектора вероятно не сброшены!");
+                trace("DAC_CHANNEL.reset(DETECTOR): ОШИБКА ОТКЛИКА! Напряжения DAC'а Детектора вероятно не сброшены!");
                 return false;
             }
             public void enableDoubleRange(bool enable)
@@ -785,13 +835,15 @@ namespace Xmega32A4U_testBoard
             
             public bool reset()
             {
+                trace_attached(Environment.NewLine);
+                trace("DAC_CHANNEL.reset(SCANER)");
                 byte[] data = { Reset_Hbyte, Reset_Lbyte };
                 if (transmit(Command.SPI.Scaner.Scan.setVoltage, data)[0] == Command.SPI.Scaner.Scan.setVoltage)
                 {
-                    trace("Напряжения DAC'a Сканера сброшены");
+                    trace("DAC_CHANNEL.reset(SCANER): Операция выполнена успешно! Напряжения DAC'a Сканера сброшены");
                     return true;
                 }
-                trace("ОШИБКА ОТКЛИКА! Напряжения DAC'а Сканера вероятно не сброшены!");
+                trace("DAC_CHANNEL.reset(SCANER): ОШИБКА ОТКЛИКА! Напряжения DAC'а Сканера вероятно не сброшены!");
                 return false;
             }
             public void enableDoubleRange(bool enable)
@@ -806,47 +858,65 @@ namespace Xmega32A4U_testBoard
             public void setUSART(SerialPort COM_PORT)
             {
                 //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
+                trace_attached(Environment.NewLine);
+                trace("Chip.setUSART(" + COM_PORT.PortName + ")");
                 USART = COM_PORT;
-                trace("Инициализация " + DateTime.Now.ToString("dd MMMM yyyy"));
+                //trace("Chip.setUSART(" + COM_PORT.PortName + "): СОМ порт задан.");
             }
             public bool checkCommandStack()
             {
                 //ФУНКЦИЯ: При общении ПК-МК, они считаю выполненные команды (byte). Это функция сверяет номер команды.
+                trace_attached(Environment.NewLine);
+                trace("Chip.checkCommandStack()");
                 if (transmit(Command.TEST.checkCommandStack)[0] == CommandStack)
                 {
-                    trace("Команды идут синхронно");
+                    trace("Chip.checkCommandStack(): Команды идут синхронно. (" + CommandStack + ")");
                     return true;
                 }
-                trace("Команды НЕ синхронны!");
+                trace("Chip.checkCommandStack(): Команды идут НЕ синхронно! (" + CommandStack + ")");
                 return false;
             }
             public byte getStatus()
             {
                 //ФУНКЦИЯ: Возвращает статус самого микроконтроллера
-                return transmit(Command.Chip.getStatus)[0];
+                trace_attached(Environment.NewLine);
+                trace("Chip.getStatus()");
+                byte answer = transmit(Command.Chip.getStatus)[0];
+                trace("Chip.getStatus(): Статус системы: "+answer);
+                return answer;
             }
             public byte getVersion()
             {
                 //ФУНКЦИЯ: Возвращает версию прошивки микроконтроллера
-                return transmit(Command.Chip.getVersion)[0];
+                trace_attached(Environment.NewLine);
+                trace("Chip.getVersion()");
+                byte answer = transmit(Command.Chip.getVersion)[0];
+                trace("Chip.getVersion(): Версия прошивки МК: " + answer);
+                return answer;
             }
             public string getBirthday()
             {
                 //ФУНКЦИЯ: Возвращает дату создания прошивки микроконтроллера
+                trace_attached(Environment.NewLine);
+                trace("Chip.getBirthday()");
                 UInt32 birthday = 0;
                 string answer = "00000000";
                 byte[] recDATA = transmit(Command.Chip.getBirthday);
                 birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
                 answer = birthday.ToString();
                 answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
+                trace("Chip.getBirthday(): Дата создания прошивки МК: " + answer);
                 return answer;
             }
             public string getCPUfrequency()
             {
                 //ФУНКЦИЯ: Возвращает частоту процессора микроконтроллера (не вычисляется)
+                trace_attached(Environment.NewLine);
+                trace("Chip.getCPUfrequency()");
                 UInt32 frequency = 0;
                 byte[] recDATA = transmit(Command.Chip.getCPUfrequency);
                 frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                trace("Chip.getCPUfrequency(): Частота процессора: "+frequency.ToString() + " Гц");
                 return frequency.ToString() + " Гц";
             }
         }
@@ -856,27 +926,52 @@ namespace Xmega32A4U_testBoard
             public void setTracer(RichTextBox TRACER)
             {
                 //ФУНКЦИЯ: Задаём трэйсер для отладки
+                trace_attached(Environment.NewLine);
+                trace("Tester.setTracer(" + TRACER.Name + ")");
                 tracer = TRACER;
                 tracer_defined = true;
+                //trace("Tester.setTracer(" + TRACER.Name + "): Трэйсер задан.");
             }
             public void enableTracer(bool enable)
             {
                 //ФУНКЦИЯ: Включает\выключает трэйсер
+                if (enable)
+                {
+                    tracer_enabled = enable;
+                    trace_attached(Environment.NewLine);
+                    trace("Tester.enableTracer(" + enable + ")");
+                    return;
+                }
+                trace_attached(Environment.NewLine);
+                trace("Tester.enableTracer(" + enable + ")");
                 tracer_enabled = enable;
             }
             public void enableLog(bool enable)
             {
                 //ФУНКЦИЯ: Включает\выключает ведение лога (сохранение отладочных сообщений в Log.txt)
+                if (enable)
+                {
+                    tracer_log_enabled = enable;
+                    trace_attached(Environment.NewLine);
+                    trace("Tester.enableLog(" + enable + ")");
+                    return;
+                }
+                trace_attached(Environment.NewLine);
+                trace("Tester.enableLog(" + enable + ")");
                 tracer_log_enabled = enable;
             }
             public void sendSomething()
             {
                 //ФУНКЦИЯ: Просто посылает число микроконтроллеру.
+                trace_attached(Environment.NewLine);
+                trace("Tester.sendSomething(243)");
                 transmit(243);
             }
             public void showMeByte(byte BYTE)
             {
                 //ФУНКЦИЯ: МК высвечивает на светодиодах BYTE
+                trace_attached(Environment.NewLine);
+                trace("Tester.showMeByte(" + BYTE + ")");
                 transmit(Command.TEST.showMeByte, BYTE);
             }
                 public void showMeByte(string BYTE)
@@ -891,6 +986,7 @@ namespace Xmega32A4U_testBoard
         public class TIC_PUMP
         {
             //КЛАСС: Микроконтроллер насоса
+
             byte[] transmit_toTIC(byte[] DATA)
             {
                 //ФУНКЦИЯ: Посылает данные TIC контроллеру
@@ -932,9 +1028,16 @@ namespace Xmega32A4U_testBoard
         public List<string> getErrorList()
         {
             //ФУНКЦИЯ: Возвращает лист ошибок, которые произошли во время сеанса.
+            trace_attached(Environment.NewLine);
+            trace(".getErrorList()");
             return ErrorList;
         }
         //--------------------------------------ВНУТРЕННИЕ ФУНКЦИИ-------------------------------------------
+        //КОНСТРУКТОР
+        public XMEGA32A4U()
+        {
+            trace("Инициализация " + DateTime.Now.ToString("dd MMMM yyyy"));
+        }
         //ИНТЕРФЕЙСНЫЕ
         static void trace(string text)
         {
@@ -977,20 +1080,20 @@ namespace Xmega32A4U_testBoard
             {
                 CheckSum -= data[i];
             }
-            trace("         Контрольная сумма: " + CheckSum);
+            trace("             Контрольная сумма: " + CheckSum);
             return CheckSum;
         }
         static byte[] transmit(List<byte> DATA)
         {
             //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
             byte command = DATA[0];                         //Запоминаем передаваемую команду
-            trace("Начало исполнения команды:");
-            trace("     Команда:");
+            trace("     Начало исполнения команды:");
+            trace("         Команда и байты данных:");
             foreach(byte b in DATA.ToArray())
             {
-                trace("         " + b);
+                trace("             " + b);
             }
-            trace("     Формирование пакета...");
+            trace("         Формирование пакета...");
             List<byte> rDATA = new List<byte>();            //Список данных, которые будут приняты
             List<byte> Packet = new List<byte>();           //Список байтов, которые будут посланы
             //Формируем пакет по типу:  ':<response><data><CS>\r' 
@@ -998,35 +1101,36 @@ namespace Xmega32A4U_testBoard
             Packet.AddRange(DATA);                          //'<data>' - байты данных <<response><attached_data>>
             Packet.Add(calcCheckSum(DATA.ToArray()));       //'<CS>' - контрольная сумма
             Packet.Add(Command.LOCK);                       //'\r' - конец передачи
-            trace("     Пакет:");
+            trace("         Пакет:");
             foreach (byte b in Packet.ToArray())
             {
-                trace("         " + b);
+                trace("             " + b);
             }
             //Выполняем передачу и приём
+            trace("         Передача...");
             USART.Open();
             USART.Write(Packet.ToArray(), 0, Packet.ToArray().Length);
-            Thread.Sleep(delay);                            //Задерживаемся, потом принимаем данные
-            trace("     Передача завершена!");
+            trace("         Передача завершена!");
             CommandStack++;                                 //Увеличиваем счётчик команд (команда ушла)
-            trace("     Приём...");                         //Приём-приём
+            Thread.Sleep(delay);                            //Задерживаемся, потом принимаем данные            
+            trace("         Приём...");                     //Приём-приём
             byte rBYTE;                                     //Принятый байт
             byte BytesToReadQuantity = Convert.ToByte(USART.BytesToRead);
-            trace("         Данные на приём:" + BytesToReadQuantity);
+            trace("             Данные на приём: " + BytesToReadQuantity);
             if (BytesToReadQuantity == 0)
             {
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не было получено никаких данных!");
                 USART.Close();
                 return new byte[] {0};
             }
-            trace("             Принято:");
+            trace("                 Принято:");
             //Принимаем данные пока есть что принимать
             while (USART.BytesToRead > 0)
             {
                 try
                 {
                     rBYTE = (byte)USART.ReadByte();
-                    trace("             "+rBYTE);
+                    trace("                     "+rBYTE);
                 }
                 catch
                 {
@@ -1037,6 +1141,7 @@ namespace Xmega32A4U_testBoard
                 rDATA.Add(rBYTE);
             }
             USART.Close();
+            trace("         Приём завершён!");
             //Если последний байт затвор, то всё путём
             if (rDATA.First<byte>() == Command.KEY)
             {
@@ -1045,42 +1150,44 @@ namespace Xmega32A4U_testBoard
                 {
                     rDATA.RemoveAt(rDATA.Count - 1);
                     //Анализируем полученные данные
-                    trace("     Анализ полученной команды...");
+                    trace("         Анализ полученной команды...");
                     byte rCheckSum = rDATA.Last();                          //Полученная КС
                     rDATA.RemoveAt(rDATA.Count - 1); //Убираем КС из списка полученных данных
                     byte CheckSum = calcCheckSum(rDATA.ToArray());          //Подсчитанная КС
                     if (CheckSum == rCheckSum)
                     {
-                        trace("         Контрольная сумма совпадает!");
+                        trace("             Контрольная сумма совпадает!");
                     }
                     else
                     {
-                        trace("         Несовпадает контрольная сумма!");
-                        trace("             Получено:" + rCheckSum);
-                        trace("             Подсчитано:" + CheckSum);
+                        trace("             Несовпадает контрольная сумма!");
+                        trace("                 Получено:" + rCheckSum);
+                        trace("                 Подсчитано:" + CheckSum);
                         return new byte[] { 0 };
                     }
                     //Проверяем данные на отклик
-                    trace("     Отклик: " + rDATA[0]);
-                    if (BytesToReadQuantity > 4)
+                    trace("             Отклик: " + rDATA[0]);
+                    if (rDATA[0] == command)
                     {
-                        if (rDATA[0] == command)
+                        trace("             Отклик совпадает!");
+                        if (BytesToReadQuantity > 4)
                         {
+
                             rDATA.RemoveAt(0);
-                            trace("     Принятые данные: ");
+                            trace("         Пакет принятых данных: ");
                             foreach (byte b in rDATA)
                             {
-                                trace("         " + b);
+                                trace("             " + b);
                             }
                         }
-                        else
-                        {
-                            trace("ОШИБКА ОТКЛИКА!");
-                            trace("     Ожидалось: " + command);
-                            trace("     Получено: " + rDATA[0]);
-                            defineError(rDATA.ToArray());
-                            return new byte[] { 0 };
-                        }
+                    }
+                    else
+                    {
+                        trace("ОШИБКА ОТКЛИКА! Отклик не совпадает!");
+                        trace("     Ожидалось: " + command);
+                        trace("     Получено: " + rDATA[0]);
+                        defineError(rDATA.ToArray());
+                        return new byte[] { 0 };
                     }
                     return rDATA.ToArray();
                 }
