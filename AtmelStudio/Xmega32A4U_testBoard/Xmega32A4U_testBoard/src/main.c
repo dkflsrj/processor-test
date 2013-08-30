@@ -31,8 +31,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 27
-#define birthday 20130828
+#define version 28
+#define birthday 20130830
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
 #define usartRX_delay 2										//Задержка приёма данных иначе разобьём команду на части
@@ -661,14 +661,21 @@ void COUNTERS_start(void)
 void COUNTERS_stop(void)
 {
 	//ФУНКЦИЯ: Принудительная остановка счётчиков
-	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
-	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
-	RTC.CTRL = RTC_PRESCALER_OFF_gc;
-	RTC.CNT = 0;
-	TCD0.CNT = 0;
-	TCD1.CNT = 0;
-	RTC_setStatus_stopped;
-	transmit_byte(COMMAND_COUNTERS_stop);
+	if (RTC_Status == RTC_Status_busy)
+	{
+		tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
+		tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
+		RTC.CTRL = RTC_PRESCALER_OFF_gc;
+		RTC.CNT = 0;
+		TCD0.CNT = 0;
+		TCD1.CNT = 0;
+		transmit_2bytes(COMMAND_COUNTERS_stop, RTC_Status);
+		RTC_setStatus_stopped;
+	}
+	else
+	{
+		transmit_2bytes(COMMAND_COUNTERS_stop, RTC_Status);
+	}
 }
 //RTC
 void RTC_setPrescaler(uint8_t DATA[])
