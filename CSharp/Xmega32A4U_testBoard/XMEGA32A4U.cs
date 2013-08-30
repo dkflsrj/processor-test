@@ -480,30 +480,42 @@ namespace Xmega32A4U_testBoard
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
                 trace_attached(Environment.NewLine);
                 trace("Counters.startMeasure()");
-                byte[] answer = transmit(Command.RTC.startMeasure);
-                if (answer[0] != Constants.Status_busy)
+                byte state = transmit(Command.RTC.startMeasure)[0];
+                switch (state)
                 {
-                    trace("Counters.startMeasure(): Операция выполнена успешно!");
-                    return true;
-                }
-                else
-                {
-                    trace("Counters.startMeasure(): Операция не была выполнена! Счётчики уже считают!");
-                    return false;
+                    case Constants.Status_busy:
+                        trace("Counters.startMeasure(): Операция отменена! Счётчики уже считают!");
+                        return false;
+                    case Constants.Status_ready:
+                    case Constants.Status_stopped:
+                        trace("Counters.startMeasure(): Операция выполнена успешно!");
+                        return true;
+                    default:
+                        trace("Counters.startMeasure(): ОШИБКА! НЕИЗВЕСТНОЕ СОСТОЯНИЕ СЧЁТЧИКОВ: " + state);
+                        return false;
                 }
             }
             public bool stopMeasure()
             {
-                //ФУНКЦИЯ: Останавливает счётчик. Всегда возвращает true. false - ошибка отклика!
+                //ФУНКЦИЯ: Останавливает счётчик. Возвращает true, если операция удалась. false - не удалась (счётчик не считает)
                 trace_attached(Environment.NewLine);
                 trace("Counters.stopMeasure()");
-                if(transmit(Command.RTC.stopMeasure)[0] == Command.RTC.stopMeasure)
+                byte state = transmit(Command.RTC.stopMeasure)[0];
+                switch(state)
                 {
-                    trace("Counters.stopMeasure(): Операция выполнена успешно!");
-                    return true;
+                    case Constants.Status_busy:
+                        trace("Counters.stopMeasure(): Операция выполнена успешно!");
+                        return true;
+                    case Constants.Status_ready:
+                        trace("Counters.stopMeasure(): Операция отменена! Счётчики не считают!");
+                        return false;
+                    case Constants.Status_stopped:
+                        trace("Counters.stopMeasure(): Операция отменена! Счётчики уже остановлены!");
+                        return false;
+                    default:
+                        trace("Counters.stopMeasure(): ОШИБКА! НЕИЗВЕСТНОЕ СОСТОЯНИЕ СЧЁТЧИКОВ: " + state);
+                        return false;
                 }
-                trace("Counters.stopMeasure(): Операция не была выполнена!");
-                return false;
             }
             public string receiveResults()
             {
