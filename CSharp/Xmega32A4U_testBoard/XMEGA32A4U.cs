@@ -8,6 +8,9 @@ using System.Threading;
 
 namespace Xmega32A4U_testBoard
 {
+    /// <summary>
+    /// Класс связи ПК с XMega32A4U
+    /// </summary>
     class XMEGA32A4U
     {
         //========================================================================================
@@ -302,7 +305,7 @@ namespace Xmega32A4U_testBoard
                 return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
             }
         }
-
+        //---------------------------------------КЛАССЫ--------------------------------------------
         public class RTCounterAndCO
         {
             //КЛАСС: Счётчик реального времени и счётчики импульсов
@@ -327,7 +330,13 @@ namespace Xmega32A4U_testBoard
             public class counter
             {
                 //КЛАСС: Счётчик. Только хранит значения.
+                /// <summary>
+                /// Количество переполнений счётчика
+                /// </summary>
                 public byte overflows;  //Количество переполений счётчика
+                /// <summary>
+                /// Сосчитанный результат
+                /// </summary>
                 public UInt32 Result;   //Сосчитанный результат
             }
             public counter COA = new counter();
@@ -368,6 +377,9 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
             //Видимые функции
+            /// <summary>
+            /// Вычисляет, устанавливает и возвращает предделитель RTC (без участия МК)
+            /// </summary>
             public ushort getRTCprescaler(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет, сохраняет и возвращает предделитель.
@@ -411,11 +423,17 @@ namespace Xmega32A4U_testBoard
             {
                 return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
             }
-                public double getRTCfrequency()
+            /// <summary>
+            /// Возвращает частоту RTC в соответствии с предделителем (Вычисляется без участия МК)
+            /// </summary>
+            public double getRTCfrequency()
             {
                 //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
                 return (Constants.sourceFrequency / prescaler_long);
             }
+            /// <summary>
+            /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем (Вычисляется без участия МК)
+            /// </summary>
             public ushort getRTCticks(uint MILLISECONDS, ushort PRESCALER)
             {
                 //ФУНКЦИЯ: Вычисляет количество тиков в соответствии с временем и предделителем. Возвращает количество тиков
@@ -444,6 +462,9 @@ namespace Xmega32A4U_testBoard
                     return 0;
                 }
             }
+            /// <summary>
+            /// Задаёт время измерения в миллисекундах. Возвращает true, если операция выполнена успешно, и false - если была отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)
+            /// </summary>
             public bool setMeasureTime(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет, сохраняет и устанавливает предделитель, вычисляет и устанавливает количество тиков для RTC через интервал в миллисекундах
@@ -475,6 +496,9 @@ namespace Xmega32A4U_testBoard
                 }
                 return false;
             }
+            /// <summary>
+            /// Запускает счётчики и RTC на заданный заранее промежуток времени (.setMeasureTime(MILLISECONDS)). Возвращает true, если операция выполнена успешно, и false - если была отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)
+            /// </summary>
             public bool startMeasure()
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
@@ -495,6 +519,9 @@ namespace Xmega32A4U_testBoard
                         return false;
                 }
             }
+            /// <summary>
+            /// Останавливает счётчики и RTC. Возвращает true, если операция выполнена успешно, и false, если операция была отменена (счётчики не считают)
+            /// </summary>
             public bool stopMeasure()
             {
                 //ФУНКЦИЯ: Останавливает счётчик. Возвращает true, если операция удалась. false - не удалась (счётчик не считает)
@@ -517,6 +544,9 @@ namespace Xmega32A4U_testBoard
                         return false;
                 }
             }
+            /// <summary>
+            /// Запрашивает у МК состояние счётчиков, если счётчики сосчитали (не считают сейчас и не были принудительно остановлены), то запрашивает результаты измерения и сохраняет их в СОХ.Result и СОХ.overflows. Возвращает состояние МК ("Ready","Busy","Stopped")
+            /// </summary>
             public string receiveResults()
             {
                 //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам. Возвращает состояние счётчика.
@@ -550,6 +580,9 @@ namespace Xmega32A4U_testBoard
                         return "ОШИБКА!";
                 }
             }
+            /// <summary>
+            /// Возвращает состояние МК ("Ready","Busy","Stopped")
+            /// </summary>
             public string getStatus()
             {
                 //ФУНКЦИЯ: Возвращает статус счётчиков
@@ -599,6 +632,9 @@ namespace Xmega32A4U_testBoard
                 trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
             }
             //Видимые функции
+            /// <summary>
+            /// Задаёт напряжение на DAC
+            /// </summary>
             public void setVoltage(ushort VOLTAGE)
             {
                 DAC_setVoltage(DAC_command, DAC_channel, VOLTAGE);
@@ -653,10 +689,16 @@ namespace Xmega32A4U_testBoard
                 return voltage;
             }
             //Видимые функции
+            /// <summary>
+            /// СВозвращает напряжение с ADC
+            /// </summary>
             public ushort getVoltage()
             {
                 return ADC_getVoltage(ADC_command, ADC_channel);
             }
+            /// <summary>
+            /// Увеличивает диапазон квантования напряжения в двое (Задавать до .getVoltage())
+            /// </summary>
             public void enableDoubleRange(bool enable)
             {
                 DoubleRange = enable;
@@ -1024,19 +1066,52 @@ namespace Xmega32A4U_testBoard
             }
         }
         //--------------------------------------ОБЪЕКТЫ-------------------------------------------
+        /// <summary>
+        /// Счётчки импульсов
+        /// </summary>
         public RTCounterAndCO Counters = new RTCounterAndCO();
         public SPI_DAC DAC = new SPI_DAC();     //ТЕСТОВЫЙ
         public SPI_ADC ADC = new SPI_ADC();     //ТЕСТОВЫЙ
+        /// <summary>
+        /// Натекатель (имеет общий reset() с нагревателем Heater)
+        /// </summary>
         public SPI_DEVICE_CHANNEL_withReset Inlet = new SPI_DEVICE_CHANNEL_withReset(1, Command.SPI.Inlet.setVoltage, 1, Command.SPI.Inlet.getVoltage);
+        /// <summary>
+        /// Нагреватель (имеет общий reset() с натекателем Inlet)
+        /// </summary>
         public SPI_DEVICE_CHANNEL_withReset Heater = new SPI_DEVICE_CHANNEL_withReset(2, Command.SPI.Heater.setVoltage, 2, Command.SPI.Heater.getVoltage);
+        /// <summary>
+        /// Ионный Источник
+        /// </summary>
         public SPI_IonSOURCE IonSource = new SPI_IonSOURCE();
+        /// <summary>
+        /// Детектор
+        /// </summary>
         public SPI_DETECTOR Detector = new SPI_DETECTOR();
+        /// <summary>
+        /// Сканирующее устройство
+        /// </summary>
         public SPI_SCANER Scaner = new SPI_SCANER();//У Сканера и Конденсатора DAC'и AD5643R и один общий ADC
+        /// <summary>
+        /// Конденсатор
+        /// </summary>
         public SPI_DEVICE_CHANNEL_CONDENSATOR Condensator = new SPI_DEVICE_CHANNEL_CONDENSATOR(1, Command.SPI.Condensator.setVoltage, 1, Command.SPI.Condensator.getPositiveVoltage, 2, Command.SPI.Condensator.getNegativeVoltage);
+        /// <summary>
+        /// Микроконтроллер XMega32A4U
+        /// </summary>
         public CHIP Chip = new CHIP();
+        /// <summary>
+        /// Тестовые функции для отладки.
+        /// </summary>
         public TEST Tester = new TEST();
+        /// <summary>
+        /// Микроконтроллер вакуумного насоса
+        /// </summary>
         public TIC_PUMP TIC = new TIC_PUMP();
         //--------------------------------------ВИДИМЫЕ ФУНКЦИИ-------------------------------------------
+        /// <summary>
+        /// Возвращает List(string) всех возникших ошибок (В РАЗРАБОТКЕ...)
+        /// </summary>
         public List<string> getErrorList()
         {
             //ФУНКЦИЯ: Возвращает лист ошибок, которые произошли во время сеанса.
