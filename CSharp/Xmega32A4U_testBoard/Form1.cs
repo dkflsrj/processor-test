@@ -19,7 +19,6 @@ namespace Xmega32A4U_testBoard
         decimal UI_PGB_COA_step = 0;
         decimal UI_PGB_COA_count = 0;
         const int CLK_COA_intreval = 10;
-
         public Form1()
         {
             InitializeComponent();
