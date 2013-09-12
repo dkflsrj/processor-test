@@ -34,13 +34,16 @@ namespace Xmega32A4U_testBoard
 
             trace(false, "Программа инициирована!");
 
-            findCOM();
-            setCOMparams();
-            TABpanel.SelectedIndex = 1;
+            if (findCOM())
+            {
+                setCOMparams();
+            
+                TABpanel.SelectedIndex = 1;
 
-            MC.Chip.setUSART(COM_Port);
+                MC.Chip.setUSART(COM_Port);
+            }
             MC.Tester.setTracer(Log);
-
+            
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
         }
@@ -134,7 +137,7 @@ namespace Xmega32A4U_testBoard
             trace(true, "   Биты данных: " + COM_Port.DataBits.ToString());
             trace(true, "   Стоповые биты: " + COM_Port.StopBits.ToString());
         }
-        void findCOM()
+        bool findCOM()
         {
             trace(true, "Поиск COM портов...");
             string[] Ports = SerialPort.GetPortNames();
@@ -154,10 +157,12 @@ namespace Xmega32A4U_testBoard
                 CMB_COM_Parity.Enabled = true;
                 CMB_COM_StopBits.Enabled = true;
                 BTN_COM_setParams.Enabled = true;
+                return true;
             }
             else
             {
                 trace(true, "ОШИБКА: Ни один COM порт не найден!");
+                return false;
             }
 
         }

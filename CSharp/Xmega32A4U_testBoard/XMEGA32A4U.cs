@@ -339,8 +339,17 @@ namespace Xmega32A4U_testBoard
                 /// </summary>
                 public UInt32 Result;   //Сосчитанный результат
             }
+            /// <summary>
+            /// Счётчик А
+            /// </summary>
             public counter COA = new counter();
+            /// <summary>
+            /// Счётчик В
+            /// </summary>
             public counter COB = new counter();
+            /// <summary>
+            /// Счётчик С
+            /// </summary>
             public counter COC = new counter();
             byte prescaler; //Предделитель в byte : 1,2,3(8),4(16),5(64),6(256),7(1024)
             ushort prescaler_long; //Предделитель в реальном коэффициенте деления (см. prescaler цифры в скобках)
@@ -378,7 +387,8 @@ namespace Xmega32A4U_testBoard
             }
             //Видимые функции
             /// <summary>
-            /// Вычисляет, устанавливает и возвращает предделитель RTC (без участия МК)
+            /// Вычисляет, устанавливает и возвращает предделитель RTC 
+            /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             public ushort getRTCprescaler(uint MILLISECONDS)
             {
@@ -424,7 +434,8 @@ namespace Xmega32A4U_testBoard
                 return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
             }
             /// <summary>
-            /// Возвращает частоту RTC в соответствии с предделителем (Вычисляется без участия МК)
+            /// Возвращает частоту RTC в соответствии с предделителем
+            /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             public double getRTCfrequency()
             {
@@ -432,7 +443,8 @@ namespace Xmega32A4U_testBoard
                 return (Constants.sourceFrequency / prescaler_long);
             }
             /// <summary>
-            /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем (Вычисляется без участия МК)
+            /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
+            /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             public ushort getRTCticks(uint MILLISECONDS, ushort PRESCALER)
             {
@@ -463,7 +475,10 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Задаёт время измерения в миллисекундах. Возвращает true, если операция выполнена успешно, и false - если была отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)
+            /// Задаёт время измерения в миллисекундах. 
+            /// <para>Возвращает:</para>
+            /// <para>true - операция выполнена успешно</para>
+            /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
             /// </summary>
             public bool setMeasureTime(uint MILLISECONDS)
             {
@@ -497,7 +512,10 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
             /// <summary>
-            /// Запускает счётчики и RTC на заданный заранее промежуток времени (.setMeasureTime(MILLISECONDS)). Возвращает true, если операция выполнена успешно, и false - если была отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)
+            /// Запускает счётчики и RTC на заданный заранее промежуток времени (.setMeasureTime(MILLISECONDS)).
+            /// <para>Возвращает:</para>
+            /// <para>true - операция выполнена успешно. Счётчики начали счёт.</para>
+            /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
             /// </summary>
             public bool startMeasure()
             {
@@ -520,7 +538,10 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Останавливает счётчики и RTC. Возвращает true, если операция выполнена успешно, и false, если операция была отменена (счётчики не считают)
+            /// Останавливает счётчики и RTC.
+            ///<para>Возвращает:</para>
+            ///<para>true - операция выполнена успешно. Счётчики принудительно остановлены (команда .recieveResults() будет проигнорирована)</para>
+            ///<para>false - операция была отменена (счётчики не считают)</para>
             /// </summary>
             public bool stopMeasure()
             {
@@ -545,7 +566,11 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Запрашивает у МК состояние счётчиков, если счётчики сосчитали (не считают сейчас и не были принудительно остановлены), то запрашивает результаты измерения и сохраняет их в СОХ.Result и СОХ.overflows. Возвращает состояние МК ("Ready","Busy","Stopped")
+            /// Запрашивает у МК состояние счётчиков, если счётчики сосчитали (не считают сейчас и не были принудительно остановлены), то запрашивает результаты измерения и сохраняет их в СОХ.Result и СОХ.overflows. 
+            /// <para>Возвращает состояние МК:</para>
+            /// <para>"Ready" - счётчик готов к работе (команда .stopMeasure() будет проигнорирована)</para>
+            /// <para>"Busy" - счётчик считает (команды .setMeasureTime(MILLISECONDS) и .startMeasure() будут проигнорированы, а команда .recieveResults() отменена)</para>
+            /// <para>"Stopped" - счётчик был принудительно остановлен командой .stopMeasure(). (команда .recieveResults() будет отменена)</para>
             /// </summary>
             public string receiveResults()
             {
@@ -581,7 +606,10 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Возвращает состояние МК ("Ready","Busy","Stopped")
+            /// Возвращает состояние МК:
+            /// <para>"Ready" - счётчик готов к работе (команда .stopMeasure() будет проигнорирована)</para>
+            /// <para>"Busy" - счётчик считает (команды .setMeasureTime(MILLISECONDS) и .startMeasure() будут проигнорированы)</para>
+            /// <para>"Stopped" - счётчик был принудительно остановлен командой .stopMeasure(). (команда .recieveResults(), будет проигнорирована)</para>
             /// </summary>
             public string getStatus()
             {
@@ -617,35 +645,44 @@ namespace Xmega32A4U_testBoard
             //Сам по себе не используется, используются только наследники
             protected byte DAC_channel; //Канал DAC'а
             protected byte DAC_command; //Команда обращения к конкретному DAC'у
-            protected void DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
+            protected bool DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
-                trace_attached(Environment.NewLine);
-                trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + ")");
-                byte[] bytes = BitConverter.GetBytes(VOLTAGE);
-                byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                if (transmit(command, data)[0] == DAC_command)
+                if (VOLTAGE >= 0 && VOLTAGE <= 4095)
                 {
-                    trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + "): Операция выполнена успешно!");
-                    return;
+                    trace_attached(Environment.NewLine);
+                    trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + ")");
+                    byte[] bytes = BitConverter.GetBytes(VOLTAGE);
+                    byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
+                    if (transmit(command, data)[0] == DAC_command)
+                    {
+                        trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + "): Операция выполнена успешно!");
+                        return true;
+                    }
+                    trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
                 }
-                trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
+                trace("DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + "):ОШИБКА! Операция отменена! Значение VOLTAGE ожидалось от 0 до 4095!");
+                return false;
             }
             //Видимые функции
             /// <summary>
             /// Задаёт напряжение на DAC
+            /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+            /// <para>Возвращает:</para>
+            /// <para>true - операция выполнена успешно</para>
+            /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
             /// </summary>
-            public void setVoltage(ushort VOLTAGE)
+            public bool setVoltage(ushort VOLTAGE)
             {
-                DAC_setVoltage(DAC_command, DAC_channel, VOLTAGE);
+                return DAC_setVoltage(DAC_command, DAC_channel, VOLTAGE);
             }
-                public void setVoltage(string VOLTAGE)
+                public bool setVoltage(string VOLTAGE)
             {
-                setVoltage(Convert.ToUInt16(VOLTAGE));
+                return setVoltage(Convert.ToUInt16(VOLTAGE));
             }
-                public void setVoltage(int VOLTAGE)
+                public bool setVoltage(int VOLTAGE)
             {
-                setVoltage(Convert.ToUInt16(VOLTAGE));
+                return setVoltage(Convert.ToUInt16(VOLTAGE));
             }
         }
         public class SPI_DEVICE_CHANNEL : SPI_DEVICE_DAC_CHANNEL
@@ -690,14 +727,19 @@ namespace Xmega32A4U_testBoard
             }
             //Видимые функции
             /// <summary>
-            /// СВозвращает напряжение с ADC
+            /// Возвращает напряжение на канале ADC.
+            /// <para>Если DoubleRange = true, то диапазон напряжения увеличен в двое.</para>
+            /// <para>Если DoubleRange = false, то диапазон напряжения соответствует выставляемому DAC'ом</para>
+            /// <para>DoubleRange задаётся командой .enableDoubleRange(bool)</para>
             /// </summary>
             public ushort getVoltage()
             {
                 return ADC_getVoltage(ADC_command, ADC_channel);
             }
             /// <summary>
-            /// Увеличивает диапазон квантования напряжения в двое (Задавать до .getVoltage())
+            /// .enableDoubleRange(true) - увеличивает диапазон напряжения считываемого ADC в двое.
+            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом</para>
+            /// <para>Задавать до .getVoltage()</para>
             /// </summary>
             public void enableDoubleRange(bool enable)
             {
@@ -717,6 +759,10 @@ namespace Xmega32A4U_testBoard
                 DAC_command = DAC_COMMAND;
                 ADC_command = ADC_COMMAND;
             }
+            /// <summary>
+            /// Сбрасывает все настройки DAC'а и его напряжения 
+            /// <para>ПРИМЕЧАНИЕ: у Натекателя и Нагревателя общий DAC, иными словами общий .reset()</para>
+            /// </summary>
             public bool reset()
             {
                 trace_attached(Environment.NewLine);
@@ -775,18 +821,38 @@ namespace Xmega32A4U_testBoard
                 return voltage;
             }
             //Видимые функции
+            /// <summary>
+            /// Возвращает напряжение положительной обкладки конденсатора
+            /// <para>Если DoubleRange = true, то диапазон напряжения увеличен в двое.</para>
+            /// <para>Если DoubleRange = false, то диапазон напряжения соответствует выставляемому DAC'ом</para>
+            /// <para>DoubleRange задаётся командой .enableDoubleRange(bool)</para>
+            /// </summary>
             public ushort getPositiveVoltage()
             {
                 return ADC_getVoltage(ADC_positive_command, ADC_positive_channel);
             }
+            /// <summary>
+            /// Возвращает напряжение отрицательной обкладки конденсатора
+            /// <para>Если DoubleRange = true, то диапазон напряжения увеличен в двое.</para>
+            /// <para>Если DoubleRange = false, то диапазон напряжения соответствует выставляемому DAC'ом</para>
+            /// <para>DoubleRange задаётся командой .enableDoubleRange(bool)</para>
+            /// </summary>
             public ushort getNegativeVoltage()
             {
                 return ADC_getVoltage(ADC_negative_command, ADC_negative_channel);
             }
+            /// <summary>
+            /// .enableDoubleRange(true) - увеличивает диапазон напряжения считываемого ADC в двое.
+            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом</para>
+            /// <para>Задавать до .getPositiveVoltage() и .getNegativeVoltage()</para>
+            /// </summary>
             public void enableDoubleRange(bool enable)
             {
                 DoubleRange = enable;
             }
+            /// <summary>
+            /// Сбрасывает все настройки DAC'а и его напряжения 
+            /// </summary>
             public bool reset()
             {
                 trace_attached(Environment.NewLine);
@@ -811,7 +877,9 @@ namespace Xmega32A4U_testBoard
             const byte Ionization_channel =2;
             const byte F1_channel = 3;
             const byte F2_channel = 4;
-
+            /// <summary>
+            /// Сбрасывает все настройки DAC'а и его напряжения 
+            /// </summary>
             public bool reset()
             {
                 trace_attached(Environment.NewLine);
@@ -826,11 +894,27 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
             //Каналы
+            /// <summary>
+            /// Напряжение тока эмиссии
+            /// </summary>
             public SPI_DEVICE_CHANNEL EmissionCurrent = new SPI_DEVICE_CHANNEL(EmissionCurrent_channel, Command.SPI.IonSource.EmissionCurrent.setVoltage, EmissionCurrent_channel,Command.SPI.IonSource.EmissionCurrent.getVoltage);
+            /// <summary>
+            /// Напряжение ионизации
+            /// </summary>
             public SPI_DEVICE_CHANNEL Ionization = new SPI_DEVICE_CHANNEL(Ionization_channel, Command.SPI.IonSource.Ionization.setVoltage, Ionization_channel, Command.SPI.IonSource.Ionization.getVoltage);
+            /// <summary>
+            /// Фокусирующее напряжение 1 
+            /// </summary>
             public SPI_DEVICE_CHANNEL F1 = new SPI_DEVICE_CHANNEL(F1_channel, Command.SPI.IonSource.F1.setVoltage, F1_channel, Command.SPI.IonSource.F1.getVoltage);
+            /// <summary>
+            /// Фокусирующее напряжение 2
+            /// </summary>
             public SPI_DEVICE_CHANNEL F2 = new SPI_DEVICE_CHANNEL(F2_channel, Command.SPI.IonSource.F2.setVoltage, F2_channel, Command.SPI.IonSource.F2.getVoltage);
-            
+            /// <summary>
+            /// .enableDoubleRange(true) - увеличивает диапазон напряжения в двое всем каналам ADC Ионного Источника.
+            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом всем каналам ADC Ионного Источника</para>
+            /// <para>Задавать до .getVoltage()</para>
+            /// </summary>
             public void enableDoubleRange(bool enable)
             {
                 EmissionCurrent.enableDoubleRange(enable);
@@ -852,7 +936,9 @@ namespace Xmega32A4U_testBoard
             public SPI_DEVICE_CHANNEL DV1 = new SPI_DEVICE_CHANNEL(DV1_channel, Command.SPI.Detector.DV1.setVoltage, DV1_channel, Command.SPI.Detector.DV1.getVoltage);
             public SPI_DEVICE_CHANNEL DV2 = new SPI_DEVICE_CHANNEL(DV2_channel, Command.SPI.Detector.DV2.setVoltage, DV2_channel, Command.SPI.Detector.DV2.getVoltage);
             public SPI_DEVICE_CHANNEL DV3 = new SPI_DEVICE_CHANNEL(DV3_channel, Command.SPI.Detector.DV3.setVoltage, DV3_channel, Command.SPI.Detector.DV3.getVoltage);
-           
+            /// <summary>
+            /// Сбрасывает все настройки DAC'а и его напряжения 
+            /// </summary>
             public bool reset()
             {
                 trace_attached(Environment.NewLine);
@@ -866,6 +952,11 @@ namespace Xmega32A4U_testBoard
                 trace("DAC_CHANNEL.reset(DETECTOR): ОШИБКА ОТКЛИКА! Напряжения DAC'а Детектора вероятно не сброшены!");
                 return false;
             }
+            /// <summary>
+            /// .enableDoubleRange(true) - увеличивает диапазон напряжения в двое всем каналам ADC Детектора.
+            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом всем каналам ADC Детектора</para>
+            /// <para>Задавать до .getVoltage()</para>
+            /// </summary>
             public void enableDoubleRange(bool enable)
             {
                 DV1.enableDoubleRange(enable);
@@ -884,9 +975,17 @@ namespace Xmega32A4U_testBoard
             const byte ADC_ParentScan_Channel = 1;//3   -каналы DAC и ADC различны (закоментированы реальные)
             const byte ADC_Scan_Channel = 2;//4
             //Каналы
+            /// <summary>
+            /// "Родительское" сканирующее напряжение
+            /// </summary>
             public SPI_DEVICE_CHANNEL ParentScan = new SPI_DEVICE_CHANNEL(DAC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.setVoltage, ADC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.getVoltage);
+            /// <summary>
+            /// Сканирующее напряжение
+            /// </summary>
             public SPI_DEVICE_CHANNEL Scan = new SPI_DEVICE_CHANNEL(DAC_Scan_Channel, Command.SPI.Scaner.Scan.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.Scan.getVoltage);
-            
+            /// <summary>
+            /// Сбрасывает все настройки DAC'а и его напряжения 
+            /// </summary>
             public bool reset()
             {
                 trace_attached(Environment.NewLine);
@@ -900,6 +999,11 @@ namespace Xmega32A4U_testBoard
                 trace("DAC_CHANNEL.reset(SCANER): ОШИБКА ОТКЛИКА! Напряжения DAC'а Сканера вероятно не сброшены!");
                 return false;
             }
+            /// <summary>
+            /// .enableDoubleRange(true) - увеличивает диапазон напряжения в двое всем каналам ADC Сканера.
+            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом всем каналам ADC Сканера</para>
+            /// <para>Задавать до .getVoltage()</para>
+            /// </summary>
             public void enableDoubleRange(bool enable)
             {
                 ParentScan.enableDoubleRange(enable);
@@ -909,6 +1013,9 @@ namespace Xmega32A4U_testBoard
         public class CHIP
         {
             //КЛАСС: Микросхема, сам микроконтроллер.
+            /// <summary>
+            /// Задаёт СОМ-порт для связи ПК с МК
+            /// </summary>
             public void setUSART(SerialPort COM_PORT)
             {
                 //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
@@ -917,6 +1024,9 @@ namespace Xmega32A4U_testBoard
                 USART = COM_PORT;
                 //trace("Chip.setUSART(" + COM_PORT.PortName + "): СОМ порт задан.");
             }
+            /// <summary>
+            /// Проверка синхронности команд ПК и МК (отладочное)
+            /// </summary>
             public bool checkCommandStack()
             {
                 //ФУНКЦИЯ: При общении ПК-МК, они считаю выполненные команды (byte). Это функция сверяет номер команды.
@@ -930,6 +1040,9 @@ namespace Xmega32A4U_testBoard
                 trace("Chip.checkCommandStack(): Команды идут НЕ синхронно! (" + CommandStack + ")");
                 return false;
             }
+            /// <summary>
+            /// Возвращает код статуса МК (отладочное)
+            /// </summary>
             public byte getStatus()
             {
                 //ФУНКЦИЯ: Возвращает статус самого микроконтроллера
@@ -939,6 +1052,9 @@ namespace Xmega32A4U_testBoard
                 trace("Chip.getStatus(): Статус системы: "+answer);
                 return answer;
             }
+            /// <summary>
+            /// Возвращает версию прошивки МК
+            /// </summary>
             public byte getVersion()
             {
                 //ФУНКЦИЯ: Возвращает версию прошивки микроконтроллера
@@ -948,6 +1064,9 @@ namespace Xmega32A4U_testBoard
                 trace("Chip.getVersion(): Версия прошивки МК: " + answer);
                 return answer;
             }
+            /// <summary>
+            /// Возвращает дату создания прошивки МК 
+            /// </summary>
             public string getBirthday()
             {
                 //ФУНКЦИЯ: Возвращает дату создания прошивки микроконтроллера
@@ -962,6 +1081,9 @@ namespace Xmega32A4U_testBoard
                 trace("Chip.getBirthday(): Дата создания прошивки МК: " + answer);
                 return answer;
             }
+            /// <summary>
+            /// Возвращает частоту процессора МК (не вычисляется) 
+            /// </summary>
             public string getCPUfrequency()
             {
                 //ФУНКЦИЯ: Возвращает частоту процессора микроконтроллера (не вычисляется)
@@ -977,6 +1099,9 @@ namespace Xmega32A4U_testBoard
         public class TEST
         {
             //КЛАСС: Класс для тестовых функций и отладки.
+            /// <summary>
+            /// Задаёт трейсер для вывода сообщений (отладочное)
+            /// </summary>
             public void setTracer(RichTextBox TRACER)
             {
                 //ФУНКЦИЯ: Задаём трэйсер для отладки
@@ -986,6 +1111,9 @@ namespace Xmega32A4U_testBoard
                 tracer_defined = true;
                 //trace("Tester.setTracer(" + TRACER.Name + "): Трэйсер задан.");
             }
+            /// <summary>
+            /// Разрешает вывод сообщений в трейсер, если он задан (отладочное) 
+            /// </summary>
             public void enableTracer(bool enable)
             {
                 //ФУНКЦИЯ: Включает\выключает трэйсер
@@ -1000,6 +1128,9 @@ namespace Xmega32A4U_testBoard
                 trace("Tester.enableTracer(" + enable + ")");
                 tracer_enabled = enable;
             }
+            /// <summary>
+            /// Разрешает вывод сообщений трейсера в текстовый файл Log.txt, находящийся в папке с exe-файлом
+            /// </summary>
             public void enableLog(bool enable)
             {
                 //ФУНКЦИЯ: Включает\выключает ведение лога (сохранение отладочных сообщений в Log.txt)
@@ -1014,6 +1145,9 @@ namespace Xmega32A4U_testBoard
                 trace("Tester.enableLog(" + enable + ")");
                 tracer_log_enabled = enable;
             }
+            /// <summary>
+            /// Посылает МК число 243. Получаем от него ругательства... (отладочное)
+            /// </summary>
             public void sendSomething()
             {
                 //ФУНКЦИЯ: Просто посылает число микроконтроллеру.
@@ -1021,6 +1155,9 @@ namespace Xmega32A4U_testBoard
                 trace("Tester.sendSomething(243)");
                 transmit(243);
             }
+            /// <summary>
+            /// Посылаем на МК BYTE, он высвечивает его на светодиодах (отладочное) 
+            /// </summary>
             public void showMeByte(byte BYTE)
             {
                 //ФУНКЦИЯ: МК высвечивает на светодиодах BYTE
@@ -1040,7 +1177,9 @@ namespace Xmega32A4U_testBoard
         public class TIC_PUMP
         {
             //КЛАСС: Микроконтроллер насоса
-
+            /// <summary>
+            /// Перендаём на МК данные DATA, которые он пересылает на TIC контроллер вакуумного насоса (В РАЗРАБОТКЕ...)
+            /// </summary>
             byte[] transmit_toTIC(byte[] DATA)
             {
                 //ФУНКЦИЯ: Посылает данные TIC контроллеру
@@ -1053,6 +1192,9 @@ namespace Xmega32A4U_testBoard
                 return transmit(formedDATA.ToArray());
             }
             //Видимые функции
+            /// <summary>
+            /// Перендаём на МК данные (внутри функции), которые он пересылает на TIC контроллер вакуумного насоса (В РАЗРАБОТКЕ...)
+            /// </summary>
             public void send()
             {
                 //ФУНКЦИЯ: Посылает данные TIC'у
@@ -1089,7 +1231,7 @@ namespace Xmega32A4U_testBoard
         /// </summary>
         public SPI_DETECTOR Detector = new SPI_DETECTOR();
         /// <summary>
-        /// Сканирующее устройство
+        /// Сканер
         /// </summary>
         public SPI_SCANER Scaner = new SPI_SCANER();//У Сканера и Конденсатора DAC'и AD5643R и один общий ADC
         /// <summary>
