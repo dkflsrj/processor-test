@@ -390,6 +390,8 @@ namespace Xmega32A4U_testBoard
             /// Вычисляет, устанавливает и возвращает предделитель RTC 
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
+            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <returns>?</returns>
             public ushort getRTCprescaler(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет, сохраняет и возвращает предделитель.
@@ -429,6 +431,12 @@ namespace Xmega32A4U_testBoard
                 }
                 return prescaler_long;
             }
+                /// <summary>
+            /// Вычисляет, устанавливает и возвращает предделитель RTC 
+            /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
+            /// </summary>
+            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <returns>?</returns>
                 public ushort getRTCprescaler(string MILLISECONDS)
             {
                 return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
@@ -446,12 +454,22 @@ namespace Xmega32A4U_testBoard
             /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
+            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <param name="PRESCALER">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
+            /// <returns></returns>
             public ushort getRTCticks(uint MILLISECONDS, ushort PRESCALER)
             {
                 //ФУНКЦИЯ: Вычисляет количество тиков в соответствии с временем и предделителем. Возвращает количество тиков
                 ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / PRESCALER)));
                 return tiks;
             }
+                /// <summary>
+            /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
+            /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
+            /// </summary>
+            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <param name="PRESCALER">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
+            /// <returns></returns>
                 public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
             {
                 if ((MILLISECONDS != "") && (PRESCALER != ""))
@@ -463,6 +481,13 @@ namespace Xmega32A4U_testBoard
                     return 0;
                 }
             }
+                /// <summary>
+                /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
+                /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
+                /// </summary>
+                /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
+                /// <param name="PRESCALER">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
+                /// <returns></returns>
                 public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
             {
                 if ((MILLISECONDS != ""))
@@ -480,6 +505,7 @@ namespace Xmega32A4U_testBoard
             /// <para>true - операция выполнена успешно</para>
             /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
             /// </summary>
+            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
             public bool setMeasureTime(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет, сохраняет и устанавливает предделитель, вычисляет и устанавливает количество тиков для RTC через интервал в миллисекундах
@@ -503,6 +529,13 @@ namespace Xmega32A4U_testBoard
                 trace("Counters.setMeasureTime(" + MILLISECONDS + "): Операция не была выполнена! Счётчики считают!");
                 return false;
             }
+                /// <summary>
+            /// Задаёт время измерения в миллисекундах. 
+            /// <para>Возвращает:</para>
+            /// <para>true - операция выполнена успешно</para>
+            /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
+            /// </summary>
+            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
                 public bool setMeasureTime(string MILLISECONDS)
             {
                 if (MILLISECONDS != "")
@@ -672,14 +705,34 @@ namespace Xmega32A4U_testBoard
             /// <para>true - операция выполнена успешно</para>
             /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
             /// </summary>
+            /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+            /// <returns></returns>
             public bool setVoltage(ushort VOLTAGE)
             {
                 return DAC_setVoltage(DAC_command, DAC_channel, VOLTAGE);
             }
+                /// <summary>
+            /// Задаёт напряжение на DAC
+            /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+            /// <para>Возвращает:</para>
+            /// <para>true - операция выполнена успешно</para>
+            /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
+            /// </summary>
+            /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+            /// <returns></returns>
                 public bool setVoltage(string VOLTAGE)
             {
                 return setVoltage(Convert.ToUInt16(VOLTAGE));
             }
+                /// <summary>
+                /// Задаёт напряжение на DAC
+                /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+                /// <para>Возвращает:</para>
+                /// <para>true - операция выполнена успешно</para>
+                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
+                /// </summary>
+                /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+                /// <returns></returns>
                 public bool setVoltage(int VOLTAGE)
             {
                 return setVoltage(Convert.ToUInt16(VOLTAGE));

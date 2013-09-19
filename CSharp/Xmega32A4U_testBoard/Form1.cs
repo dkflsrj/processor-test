@@ -43,7 +43,7 @@ namespace Xmega32A4U_testBoard
                 MC.Chip.setUSART(COM_Port);
             }
             MC.Tester.setTracer(Log);
-            
+
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
         }
