@@ -451,6 +451,7 @@
             this.GRB_TotalControl.Controls.Add(this.label2);
             this.GRB_TotalControl.Controls.Add(this.label1);
             this.GRB_TotalControl.Controls.Add(this.CHB_TotalControl);
+            this.GRB_TotalControl.Enabled = false;
             this.GRB_TotalControl.Location = new System.Drawing.Point(235, 10);
             this.GRB_TotalControl.Name = "GRB_TotalControl";
             this.GRB_TotalControl.Size = new System.Drawing.Size(411, 108);
@@ -533,6 +534,7 @@
             this.GRB_Counter.Controls.Add(this.BTN_startCounter);
             this.GRB_Counter.Controls.Add(this.BTN_reqCount);
             this.GRB_Counter.Controls.Add(this.BTN_stopCounter);
+            this.GRB_Counter.Enabled = false;
             this.GRB_Counter.Location = new System.Drawing.Point(235, 124);
             this.GRB_Counter.Name = "GRB_Counter";
             this.GRB_Counter.Size = new System.Drawing.Size(411, 190);
@@ -763,6 +765,7 @@
             this.GRB_SPI.Controls.Add(this.TXB_DAC_voltage);
             this.GRB_SPI.Controls.Add(this.BTN_SPI_DAC_send);
             this.GRB_SPI.Controls.Add(this.BTN_SPI_ADC_request);
+            this.GRB_SPI.Enabled = false;
             this.GRB_SPI.Location = new System.Drawing.Point(6, 233);
             this.GRB_SPI.Name = "GRB_SPI";
             this.GRB_SPI.Size = new System.Drawing.Size(223, 81);
@@ -905,6 +908,7 @@
             // 
             // BTN_LEDbyte
             // 
+            this.BTN_LEDbyte.Enabled = false;
             this.BTN_LEDbyte.Location = new System.Drawing.Point(6, 77);
             this.BTN_LEDbyte.Name = "BTN_LEDbyte";
             this.BTN_LEDbyte.Size = new System.Drawing.Size(103, 23);
@@ -915,6 +919,7 @@
             // 
             // TXB_LEDbyte
             // 
+            this.TXB_LEDbyte.Enabled = false;
             this.TXB_LEDbyte.Location = new System.Drawing.Point(115, 79);
             this.TXB_LEDbyte.Name = "TXB_LEDbyte";
             this.TXB_LEDbyte.Size = new System.Drawing.Size(100, 20);
