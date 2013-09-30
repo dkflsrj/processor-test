@@ -26,13 +26,13 @@
 
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
-#define FATAL_ERROR						while(1){showMeByte(255);								\
-											delay_ms(50);}
+//#define FATAL_ERROR						while(1){showMeByte(255);								
+//											delay_ms(50);}
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 28
-#define birthday 20130830
+#define version 29
+#define birthday 20130930
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
 #define usartRX_delay 2										//Задержка приёма данных иначе разобьём команду на части
@@ -83,8 +83,12 @@ uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc;
 //uint8_t	 COA_MeasurementsQuantity = 1;		//Количество измерений
 //uint16_t COA_MeasureQuantity = 1;			//Количество интервалов (интервал + задержка)
 //uint8_t COA_Results_transmitted = 0;		//Были ли переданны измеренные данные 0 - не было данных, 1 - есть данные, 2 - были переданы, 3 - затёрты!
-uint32_t COA_Measurment = 0;				//Последнее измерение счётчика
-uint8_t	COA_ovf = 0; 
+uint32_t COA_Measurment = 0;				//Последнее измерение счётчика COA
+uint8_t	COA_ovf = 0;						//Количество переполнений счётчика СОА в последнем измерении
+uint32_t COB_Measurment = 0;				//Последнее измерение счётчика COB
+uint8_t	COB_ovf = 0;						//Количество переполнений счётчика СОВ в последнем измерении
+uint32_t COC_Measurment = 0;				//Последнее измерение счётчика COC
+uint8_t	COC_ovf = 0;						//Количество переполнений счётчика СОС в последнем измерении
 //uint8_t RTC_Status = 0;						//RTC выключен, 1 - таймирует измерение, 2 - задержку
 
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
@@ -94,41 +98,20 @@ static usart_rs232_options_t USART_COMP_OPTIONS = {
 	.paritytype = USART_COMP_PARITY,
 	.stopbits = USART_COMP_STOP_BIT
 };
-struct spi_device DAC = {
-	.id = IOPORT_CREATE_PIN(PORTC, 1)
+static usart_rs232_options_t USART_TIC_OPTIONS = {
+	.baudrate = USART_TIC_BAUDRATE,
+	.charlength = USART_TIC_CHAR_LENGTH,
+	.paritytype = USART_TIC_PARITY,
+	.stopbits = USART_TIC_STOP_BIT
 };
-struct spi_device ADC = {
-	.id = IOPORT_CREATE_PIN(PORTC, 2)
-};
+// struct spi_device DAC = {
+// 	.id = IOPORT_CREATE_PIN(PORTC, 1)
+// };
+// struct spi_device ADC = {
+// 	.id = IOPORT_CREATE_PIN(PORTC, 2)
+// };
 
 struct spi_device DAC_IonSource = {
-	.id = IOPORT_CREATE_PIN(PORTC, 1)
-};
-struct spi_device DAC_Detector = {
-	.id = IOPORT_CREATE_PIN(PORTC, 1)
-};
-struct spi_device DAC_Inlet = {
-	.id = IOPORT_CREATE_PIN(PORTC, 1)
-};
-struct spi_device DAC_Scaner = {
-	.id = IOPORT_CREATE_PIN(PORTC, 1)
-};
-struct spi_device DAC_Condensator = {
-	.id = IOPORT_CREATE_PIN(PORTC, 1)
-};
-struct spi_device ADC_IonSource = {
-	.id = IOPORT_CREATE_PIN(PORTC, 2)
-};
-struct spi_device ADC_Detector = {
-	.id = IOPORT_CREATE_PIN(PORTC, 2)
-};
-struct spi_device ADC_Inlet = {
-	.id = IOPORT_CREATE_PIN(PORTC, 2)
-};
-struct spi_device ADC_Scaner = {
-	.id = IOPORT_CREATE_PIN(PORTC, 2)
-};
-/*struct spi_device DAC_IonSource = {
 	.id = pin_iWRIS
 };
 struct spi_device DAC_Detector = {
@@ -154,12 +137,12 @@ struct spi_device ADC_Inlet = {
 };
 struct spi_device ADC_Scaner = {
 	.id = pin_iECSV
-};*/
+};
 //ADC у конденсатора тот же что и у сканера
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
-void showMeByte(uint8_t LED_BYTE);
-
-void checkCommand(uint8_t data[], uint8_t data_length);
+//Рудименты
+void showMeByte(uint8_t LED_BYTE);	
+//
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
 void transmit(uint8_t DATA[],uint8_t DATA_length);
 void transmit_byte(uint8_t DATA);
@@ -182,7 +165,6 @@ void RTC_set_Period(uint8_t DATA[]);
 
 void COUNTERS_start(void);
 void COUNTERS_stop(void);
-void COUNTERS_Measure_done(void);
 
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
@@ -194,7 +176,7 @@ void TIC_transmit(uint8_t DATA[]);
 
 void SPI_send(uint8_t DEVICE_Number, uint8_t data[]);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
-ISR(USARTE0_RXC_vect)
+ISR(USARTD0_RXC_vect)
 {
 	//ПРЕРЫВАНИЕ: Пришёл байт данных по порту USART от компьютера
 	//ФУНКЦИЯ: Дешифрирование байта как команду или данные, выполнение предписанных действий
@@ -353,26 +335,44 @@ ISR(USARTE0_RXC_vect)
 // 		}
 // 	}
 }
+ISR(USARTE0_RXC_vect)
+{
+	//ПРЕРЫВАНИЕ: Пришёл байт данных по порту USART от TIC контроллера
+	//ФУНКЦИЯ: Дешифрирование байта как команду или данные, выполнение предписанных действий
+	//Принимаем байт
+	
+	
+}
 ISR(RTC_OVF_vect)
 {
 	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
 	//ФУНКЦИЯ: Остановка счётчиков импульсов
-	COUNTERS_Measure_done();
+	tc_write_clock_source(&TCC0, TC_CLKSEL_OFF_gc);
+	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
+	tc_write_clock_source(&TCE0, TC_CLKSEL_OFF_gc);
+	tc_write_clock_source(&TCC1, TC_CLKSEL_OFF_gc);
+	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
+	RTC.CTRL = RTC_PRESCALER_OFF_gc;
+	COA_Measurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
+	COB_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
+	COC_Measurment = TCE0.CNT;
+	
+	RTC.CNT = 0;
+	RTC_setStatus_ready;
+	MC_status = 4;
 }
-static void ISR_TCD1(void)
+static void ISR_TCC1(void)
  {
 	 COA_ovf++;
  }
-void COUNTERS_Measure_done(void)
-{
-	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
-	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
-	COA_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
-	RTC.CTRL = RTC_PRESCALER_OFF_gc;
-	RTC.CNT = 0;
-	RTC_setStatus_ready;
-	MC_status = 4;								//ТЕСТОВОЕ. Высвечивает сосчитанные байты
-}
+static void ISR_TCD1(void)
+ {
+	 COB_ovf++;
+ }
+static void ISR_TCE0(void)
+ {
+	 COC_ovf++;
+ }
 //
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
 void showMeByte(uint8_t LED_BYTE)
@@ -380,76 +380,76 @@ void showMeByte(uint8_t LED_BYTE)
 	//ФУНКЦИЯ: Показвает на светодиодах байт LED_BYTE. Вводит МК в режим отображения байта
 	//ПРИМЕЧАНИЕ: Если срабатывает по прерыванию, возможно некорректное отображение
 	//MC_status = LED_BYTE;									//Меняем статус на "отображение байта"
-	bool bits[8] = {0,0,0,0,0,0,0,0};				//Массив битов - лампочек
-	for (int i = 0; i < 8; i++)
-	{
-		bits[i] = (LED_BYTE  & (1 << (i))) != 0;	//Переводим байт в биты
-	}
-	//Отображаем на светодиодах
-	if (bits[0])
-	{
-		gpio_set_pin_high(LED_VD1);
-	}
-	else
-	{
-		gpio_set_pin_low(LED_VD1);
-	}
-	if (bits[1])
-	{
-		gpio_set_pin_high(LED_VD2);
-	}
-	else
-	{
-		gpio_set_pin_low(LED_VD2);
-	}
-	if (bits[2])
-	{
-		gpio_set_pin_high(LED_VD3);
-	}
-	else
-	{
-		gpio_set_pin_low(LED_VD3);
-	}
-	if (bits[3])
-	{
-		gpio_set_pin_high(LED_VD4);
-	}
-	else
-	{
-		gpio_set_pin_low(LED_VD4);
-	}
-	if (bits[4])
-	{
-		gpio_set_pin_high(LED_VD5);
-	}
-	else
-	{
-		gpio_set_pin_low(LED_VD5);
-	}
-	if (bits[5])
-	{
-		gpio_set_pin_high(LED_VD6);
-	}
-	else
-	{
-		gpio_set_pin_low(LED_VD6);
-	}
-	if (bits[6])
-	{
-		gpio_set_pin_high(LED_VD7);
-	}
-	else
-	{
-		gpio_set_pin_low(LED_VD7);
-	}
-	if (bits[7])
-	{
-		gpio_set_pin_high(LED_VD8);
-	}
-	else
-	{
-		gpio_set_pin_low(LED_VD8);
-	}
+// 	bool bits[8] = {0,0,0,0,0,0,0,0};				//Массив битов - лампочек
+// 	for (int i = 0; i < 8; i++)
+// 	{
+// 		bits[i] = (LED_BYTE  & (1 << (i))) != 0;	//Переводим байт в биты
+// 	}
+// 	//Отображаем на светодиодах
+// 	if (bits[0])
+// 	{
+// 		gpio_set_pin_high(LED_VD1);
+// 	}
+// 	else
+// 	{
+// 		gpio_set_pin_low(LED_VD1);
+// 	}
+// 	if (bits[1])
+// 	{
+// 		gpio_set_pin_high(LED_VD2);
+// 	}
+// 	else
+// 	{
+// 		gpio_set_pin_low(LED_VD2);
+// 	}
+// 	if (bits[2])
+// 	{
+// 		gpio_set_pin_high(LED_VD3);
+// 	}
+// 	else
+// 	{
+// 		gpio_set_pin_low(LED_VD3);
+// 	}
+// 	if (bits[3])
+// 	{
+// 		gpio_set_pin_high(LED_VD4);
+// 	}
+// 	else
+// 	{
+// 		gpio_set_pin_low(LED_VD4);
+// 	}
+// 	if (bits[4])
+// 	{
+// 		gpio_set_pin_high(LED_VD5);
+// 	}
+// 	else
+// 	{
+// 		gpio_set_pin_low(LED_VD5);
+// 	}
+// 	if (bits[5])
+// 	{
+// 		gpio_set_pin_high(LED_VD6);
+// 	}
+// 	else
+// 	{
+// 		gpio_set_pin_low(LED_VD6);
+// 	}
+// 	if (bits[6])
+// 	{
+// 		gpio_set_pin_high(LED_VD7);
+// 	}
+// 	else
+// 	{
+// 		gpio_set_pin_low(LED_VD7);
+// 	}
+// 	if (bits[7])
+// 	{
+// 		gpio_set_pin_high(LED_VD8);
+// 	}
+// 	else
+// 	{
+// 		gpio_set_pin_low(LED_VD8);
+// 	}
 	//uint8_t data[] = {COMMAND_showByte};
 	//transmit(data,1);
 }
@@ -457,32 +457,32 @@ void showMeByte(uint8_t LED_BYTE)
 void SPI_DAC_send(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: Посылаем данные о напряжении (адрес и напряжение) ЦАП'у
-	uint8_t data[] = {DATA[1],DATA[2]};
-	spi_select_device(&SPIC, &DAC);
-	spi_write_packet(&SPIC, data, 2);
-	spi_deselect_device(&SPIC, &DAC);
-	uint8_t aswDATA[] = {COMMAND_DAC_set_Voltage};
-	transmit(aswDATA, 1);
+// 	uint8_t data[] = {DATA[1],DATA[2]};
+// 	spi_select_device(&SPIC, &DAC);
+// 	spi_write_packet(&SPIC, data, 2);
+// 	spi_deselect_device(&SPIC, &DAC);
+// 	uint8_t aswDATA[] = {COMMAND_DAC_set_Voltage};
+// 	transmit(aswDATA, 1);
 }
 void SPI_ADC_send(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: Запрашиваем данные у АЦП
-	uint8_t data[] = {DATA[1],DATA[2]};
-	spi_select_device(&SPIC, &ADC);
-	spi_write_packet(&SPIC, data, 2);
-	spi_deselect_device(&SPIC, &ADC);
-	//Получаем ответ
-	spi_select_device(&SPIC, &ADC);
-	spi_put(&SPIC, 0);
-	SPI_rDATA[0] = spi_get(&SPIC);
-	spi_put(&SPIC, 0);
-	SPI_rDATA[1] = spi_get(&SPIC);
-	spi_deselect_device(&SPIC, &ADC);
-	//Передём ответ на ПК по USART
-	uint8_t aswDATA[] = {COMMAND_ADC_get_Voltage,SPI_rDATA[0],SPI_rDATA[1]};
-	transmit(aswDATA, 3);
+// 	uint8_t data[] = {DATA[1],DATA[2]};
+// 	spi_select_device(&SPIC, &ADC);
+// 	spi_write_packet(&SPIC, data, 2);
+// 	spi_deselect_device(&SPIC, &ADC);
+// 	//Получаем ответ
+// 	spi_select_device(&SPIC, &ADC);
+// 	spi_put(&SPIC, 0);
+// 	SPI_rDATA[0] = spi_get(&SPIC);
+// 	spi_put(&SPIC, 0);
+// 	SPI_rDATA[1] = spi_get(&SPIC);
+// 	spi_deselect_device(&SPIC, &ADC);
+// 	//Передём ответ на ПК по USART
+// 	uint8_t aswDATA[] = {COMMAND_ADC_get_Voltage,SPI_rDATA[0],SPI_rDATA[1]};
+// 	transmit(aswDATA, 3);
 }
-//USART
+//USART COMP
 void transmit(uint8_t DATA[],uint8_t DATA_length)
 {
 	//ФУНКЦИЯ: Посылаем заданное количество данных, оформив их по протоколу и с контрольной суммой
@@ -547,23 +547,6 @@ void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
 	delay_us(usartCOMP_delay);
 	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
 }
-void checkCommand(uint8_t data[], uint8_t data_length)
-{
-	//ФУНКЦИЯ: Сверяет контрольную сумму принятых данных
-	//Проверяем команду на ключ и замок
-	
-	
-// 	uint8_t CheckSum = 0;
-// 	for (uint8_t i = 0; i < data_length - 1; i++)
-// 	{
-// 		CheckSum -= data[i];
-// 	}
-// 	if (CheckSum == data[data_length - 1])
-// 	{
-// 		return true;
-// 	}
-// 	return false;
-}
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 {
 	//ФУНКЦИЯ: Вычисляет контрольную сумму принятых данных
@@ -591,7 +574,7 @@ void COUNTERS_transmit_Result(void)
 {
 	//ФУНКЦИЯ: Вернуть ПК результат измерения
 	//ПОЯСНЕНИЯ: <key><response_command><RTC_Status><COA_ovf><COA_Measurement_4bytes><COB_ovf><COB_Measurement_4bytes><COC_ovf><COC_Measurement_2bytes><lock>
-	uint8_t data[] = {COMMAND_COUNTERS_get_Count,RTC_Status,COA_ovf,0,0,0,0};
+	uint8_t data[] = {COMMAND_COUNTERS_get_Count,RTC_Status,COA_ovf,0,0,0,0,COB_ovf,0,0,0,0,COC_ovf,0,0};
 	switch(RTC_Status)
 	{
 		case RTC_Status_ready:
@@ -599,7 +582,13 @@ void COUNTERS_transmit_Result(void)
 			data[4] = (COA_Measurment >> 16);
 			data[5] = (COA_Measurment >> 8);
 			data[6] = COA_Measurment;
-			transmit(data,7);	//15 будет для трёх счётчиков
+			data[8] = (COB_Measurment >> 24);
+			data[9] = (COB_Measurment >> 16);
+			data[10] = (COB_Measurment >> 8);
+			data[11] = COB_Measurment;
+			data[13] = (COC_Measurment >> 8);
+			data[14] = COC_Measurment;
+			transmit(data,15);	//15 будет для трёх счётчиков
 			break;
 		case RTC_Status_busy:
 		case RTC_Status_stopped:
@@ -644,12 +633,20 @@ void COUNTERS_start(void)
 	if (RTC_Status != RTC_Status_busy)
 	{	
 		COA_ovf = 0;
+		COB_ovf = 0;
+		COC_ovf = 0;
+		TCC0.CNT = 0;
+		TCC1.CNT = 0;
 		TCD0.CNT = 0;
 		TCD1.CNT = 0;
+		TCE0.CNT = 0;
 		RTC.CNT = 0;
-		tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH1_gc);	
+		tc_write_clock_source(&TCC0,TC_CLKSEL_EVCH0_gc);
+		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH2_gc);
+		tc_write_clock_source(&TCE0,TC_CLKSEL_EVCH4_gc);	
 		RTC.CTRL = RTC_prescaler;
-		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH0_gc);
+		tc_write_clock_source(&TCC1,TC_CLKSEL_EVCH1_gc);
+		tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH3_gc);
 		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 		RTC_setStatus_busy;
 	}
@@ -663,12 +660,19 @@ void COUNTERS_stop(void)
 	//ФУНКЦИЯ: Принудительная остановка счётчиков
 	if (RTC_Status == RTC_Status_busy)
 	{
+		tc_write_clock_source(&TCC0, TC_CLKSEL_OFF_gc);
 		tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
-		tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
+		tc_write_clock_source(&TCE0, TC_CLKSEL_OFF_gc);
 		RTC.CTRL = RTC_PRESCALER_OFF_gc;
+		tc_write_clock_source(&TCC1, TC_CLKSEL_OFF_gc);
+		tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
+		
 		RTC.CNT = 0;
+		TCC0.CNT = 0;
+		TCC1.CNT = 0;
 		TCD0.CNT = 0;
 		TCD1.CNT = 0;
+		TCE0.CNT = 0;
 		transmit_2bytes(COMMAND_COUNTERS_stop, RTC_Status);
 		RTC_setStatus_stopped;
 	}
@@ -695,11 +699,11 @@ void RTC_setPrescaler(uint8_t DATA[])
 void TIC_transmit(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: ретранслировать команду TIC насосу
-	delay_us(usartCOMP_delay);
+	delay_us(usartTIC_delay);
 	for (uint8_t i = 2; i < DATA[1]; i++)
 	{
-		usart_putchar(USART_COMP,DATA[i]);				//USART_TIC
-		delay_us(usartCOMP_delay);
+		usart_putchar(USART_TIC,DATA[i]);				//USART_TIC
+		delay_us(usartTIC_delay);
 	}
 	//ждём ответа от TIC
 	//Пересылаем ответ на ПК
@@ -707,7 +711,7 @@ void TIC_transmit(uint8_t DATA[])
 //Прочие
 void ERROR_ASYNCHR(void)
 {
-	showMeByte(255);
+	//showMeByte(255);
 	uint8_t ERROR[] = {25,24,15};
 	while(1)
 	{
@@ -819,10 +823,12 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	}
 	//Если SPI-устройство - АЦП, то получаем ответ, отсылаем ответ.
 	spi_select_device(&SPIC, &SPI_DEVICE);
+	gpio_set_pin_low(pin_iRDUN);
 	spi_put(&SPIC, 0);
 	SPI_rDATA[0] = spi_get(&SPIC);
 	spi_put(&SPIC, 0);
 	SPI_rDATA[1] = spi_get(&SPIC);
+	gpio_set_pin_high(pin_iRDUN);
 	spi_deselect_device(&SPIC, &SPI_DEVICE);
 	//Передём ответ на ПК по USART
 	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
@@ -831,7 +837,6 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
 {
-	//COA.set_MT(10);
 	board_init();						//Инициируем карту
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
@@ -839,33 +844,41 @@ int main(void)
 	RTC_init;							//Инициируем счётчик реального времени
 	Counters_init;						//Инициируем счётчики импульсов
 	USART_COMP_init;					//Инициируем USART с компутером
+	USART_TIC_init;					//Инициируем USART с насосемъ
 	//Инициировать счётчик СОА
-	PORTD.PIN5CTRL = PORT_ISC_RISING_gc;
+	PORTC.PIN0CTRL = PORT_ISC_RISING_gc;
+	PORTC.PIN1CTRL = PORT_ISC_RISING_gc;
+	PORTC.PIN2CTRL = PORT_ISC_RISING_gc;
 	//PORTD.DIRCLR = 0x01;
-	EVSYS_SetEventSource( 0, EVSYS_CHMUX_PORTD_PIN5_gc );
+	EVSYS_SetEventSource( 0, EVSYS_CHMUX_PORTC_PIN0_gc );
 	EVSYS_SetEventChannelFilter( 0, EVSYS_DIGFILT_3SAMPLES_gc );
-	//Инициировать двойные счётчики
-	EVSYS_SetEventSource(1, EVSYS_CHMUX_TCD0_OVF_gc);
+	EVSYS_SetEventSource( 1, EVSYS_CHMUX_TCC0_OVF_gc );
 	EVSYS_SetEventChannelFilter( 1, EVSYS_DIGFILT_1SAMPLE_gc );
+	EVSYS_SetEventSource( 2, EVSYS_CHMUX_PORTC_PIN1_gc );
+	EVSYS_SetEventChannelFilter( 2, EVSYS_DIGFILT_3SAMPLES_gc );
+	EVSYS_SetEventSource( 3, EVSYS_CHMUX_TCD0_OVF_gc );
+	EVSYS_SetEventChannelFilter( 3, EVSYS_DIGFILT_1SAMPLE_gc );
+	EVSYS_SetEventSource( 4, EVSYS_CHMUX_PORTC_PIN2_gc );
+	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );
 	//COX
 	//COUNTER.State.Ready};
 	//Светопредставление для определения перезагрузки
-	for (uint16_t i = 1; i <129 ; i += i)
-	{
-		delay_ms(50);
-		showMeByte(i);
-	}
-	for (uint16_t i = 128; i >1 ; i -= i/2)
-	{
-		delay_ms(50);
-		showMeByte(i);
-	}
-	delay_ms(50);
-	showMeByte(2);
-	delay_ms(50);
-	showMeByte(1);
-	delay_ms(50);
-	showMeByte(0);
+	//for (uint16_t i = 1; i <129 ; i += i)
+	//{
+		//delay_ms(50);
+		//showMeByte(i);
+	//}
+	//for (uint16_t i = 128; i >1 ; i -= i/2)
+	//{
+		//delay_ms(50);
+		//showMeByte(i);
+	//}
+	//delay_ms(50);
+	//showMeByte(2);
+	//delay_ms(50);
+	//showMeByte(1);
+	//delay_ms(50);
+	//showMeByte(0);
 	//Конечная инициализация
 	RTC_setStatus_ready;
 	MC_status = 1;						//Режим ожидания
@@ -877,38 +890,38 @@ int main(void)
 	//FATAL_transmit_ERROR;
 	while (1) 
 	{
-		switch (MC_status)
-		{
-			case 1: delay_ms(1000);
-					gpio_toggle_pin(LED_VD1);
-				break;
-			case 2: //showMeByte(duoByte);
-				break;
-			case 3: //showMeByte(duoByte >> 8);
-				break;
-			case 4:	showMeByte(0);
-					for (Byte i = 0; i < 20; i++)
-					{
-						gpio_toggle_pin(LED_VD1);
-						delay_ms(50);
-					}
-					showMeByte(COA_Measurment >> 24);
-					delay_ms(2000);
-					showMeByte(0);
-					delay_ms(500);
-					showMeByte(COA_Measurment >> 16);
-					delay_ms(2000);
-					showMeByte(0);
-					delay_ms(500);
-					showMeByte(COA_Measurment >> 8);
-					delay_ms(2000);
-					showMeByte(0);
-					delay_ms(500);
-					showMeByte(COA_Measurment);
-					delay_ms(2000);
-
-				break;
-		}
+		//switch (MC_status)
+		//{
+		//	case 1: //delay_ms(1000);
+		//			//gpio_toggle_pin(LED_VD1);
+		//		break;
+		//	case 2: //showMeByte(duoByte);
+		//		break;
+		//	case 3: //showMeByte(duoByte >> 8);
+		//		break;
+		//	case 4:	//showMeByte(0);
+		//			//for (Byte i = 0; i < 20; i++)
+		//			//{
+		//			//	//gpio_toggle_pin(LED_VD1);
+		//			//	delay_ms(50);
+		//			//}
+		//			//showMeByte(COA_Measurment >> 24);
+		//			//delay_ms(2000);
+		//			//showMeByte(0);
+		//			//delay_ms(500);
+		//			//showMeByte(COA_Measurment >> 16);
+		//			//delay_ms(2000);
+		//			//showMeByte(0);
+		//			//delay_ms(500);
+		//			//showMeByte(COA_Measurment >> 8);
+		//			//delay_ms(2000);
+		//			//showMeByte(0);
+		//			//delay_ms(500);
+		//			//showMeByte(COA_Measurment);
+		//			//delay_ms(2000);
+		//
+		//		break;
+		//}
 	}
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
