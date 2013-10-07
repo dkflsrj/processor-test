@@ -222,10 +222,6 @@ namespace Xmega32A4U_testBoard
                 //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно НЕ сброшен!");
             }
         }
-
-
-
-
         private void BTN_startCounter_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Запускаем счётчик МК
@@ -318,8 +314,6 @@ namespace Xmega32A4U_testBoard
             }
             //trace(true, "ОШИБКА ОТКЛИКА! Возможно Счётчик не был остановлен!");
         }
-
-
         private void CLK_timer_Tick(object sender, EventArgs e)
         {
             if (CHB_TotalControl.Checked)
@@ -397,7 +391,6 @@ namespace Xmega32A4U_testBoard
             LBL_COA_frequency.Text = MC.Counters.getRTCfrequency().ToString();
             LBL_COA_prescaler.Text = MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text).ToString();
         }
-
         private void CHB_enableSuperTracer_CheckedChanged(object sender, EventArgs e)
         {
             if (CHB_enableSuperTracer.Checked)
@@ -409,7 +402,6 @@ namespace Xmega32A4U_testBoard
                 MC.Tester.enableTracer(false);
             }
         }
-
         private void CLK_COA_Tick(object sender, EventArgs e)
         {
             UI_PGB_COA_count += UI_PGB_COA_step;
@@ -424,7 +416,6 @@ namespace Xmega32A4U_testBoard
             }
 
         }
-
         private void BTN_MC_Reset_Click(object sender, EventArgs e)
         {
             /*CHB_TotalControl.Checked = false;
@@ -435,12 +426,10 @@ namespace Xmega32A4U_testBoard
             }
             trace(true, "ОШИБКА ОТКЛИКА! Вероятно перезагрузка не была выполнена!");*/
         }
-
         private void BTN_openLog_Click(object sender, EventArgs e)
         {
             Process.Start("Log.txt");
         }
-
         private void CHB_traceLog_CheckedChanged(object sender, EventArgs e)
         {
             if (CHB_traceLog.Checked)
@@ -452,7 +441,6 @@ namespace Xmega32A4U_testBoard
                 MC.Tester.enableLog(false);
             }
         }
-
         private void WATCHER_Counters_Tick(object sender, EventArgs e)
         {
 
@@ -472,17 +460,14 @@ namespace Xmega32A4U_testBoard
                     break;
             }
         }
-
         private void BTN_sendSomething_Click(object sender, EventArgs e)
         {
             MC.Tester.sendSomething();
         }
-
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
             MC.TIC.send();
         }
-
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
             foreach (string error in MC.getErrorList().ToArray())
@@ -496,28 +481,21 @@ namespace Xmega32A4U_testBoard
         {
             MC.Inlet.setVoltage(TXB_INLET_setVoltage.Text);
         }
-
         private void BTN_INLET_getVoltage_Click(object sender, EventArgs e)
         {
             MC.Inlet.enableDoubleRange(CHB_INLET_x2.Checked);
             LBL_INLET_getVoltage.Text = MC.Inlet.getVoltage().ToString();
         }
-
-        
-
-
         //-------------------------------Нагреватель------------------------------
         private void BTN_HEATER_setVoltage_Click(object sender, EventArgs e)
         {
             MC.Heater.setVoltage(TXB_HEATER_setVoltage.Text);
         }
-
         private void _BTN_HEATER_getVoltage_Click(object sender, EventArgs e)
         {
             MC.Heater.enableDoubleRange(CHB_INLET_x2.Checked);
             LBL_HEATER_getVoltage.Text = MC.Heater.getVoltage().ToString();
         }
-
         private void BTN_HEATER_reset_Click(object sender, EventArgs e)
         {
             MC.Inlet.reset();
@@ -527,46 +505,38 @@ namespace Xmega32A4U_testBoard
         {
             MC.IonSource.EmissionCurrent.setVoltage(TXB_IonSOURCE_setEmissionCurrentVoltage.Text);
         }
-
         private void BTN_IonSOURCE_setIonizationVoltage_Click(object sender, EventArgs e)
         {
             MC.IonSource.Ionization.setVoltage(TXB_IonSOURCE_setIonizationVoltage.Text);
         }
-
         private void BTN_IonSOURCE_setF1voltage_Click(object sender, EventArgs e)
         {
             MC.IonSource.F1.setVoltage(TXB_IonSOURCE_setF1voltage.Text);
         }
-
         private void BTN_IonSOURCE_setF2voltage_Click(object sender, EventArgs e)
         {
             MC.IonSource.F2.setVoltage(TXB_IonSOURCE_setF2voltage.Text);
         }
-
         private void BTN_IonSOURCE_getEmissionCurrentVoltage_Click(object sender, EventArgs e)
         {
             MC.IonSource.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
             LBL_IonSOURCE_getEmissionCurrentVoltage.Text = MC.IonSource.EmissionCurrent.getVoltage().ToString();
         }
-
         private void BTN_IonSOURCE_getIonizationVoltage_Click(object sender, EventArgs e)
         {
             MC.IonSource.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
             LBL_IonSOURCE_getIonizationVoltage.Text = MC.IonSource.Ionization.getVoltage().ToString();
         }
-
         private void BTN_IonSOURCE_getF1voltage_Click(object sender, EventArgs e)
         {
             MC.IonSource.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
             LBL_IonSOURCE_getF1voltage.Text = MC.IonSource.F1.getVoltage().ToString();
         }
-
         private void BTN_IonSOURCE_getF2voltage_Click(object sender, EventArgs e)
         {
             MC.IonSource.enableDoubleRange(CHB_IonSOURCE_x2.Checked);
             LBL_IonSOURCE_getF2voltage.Text = MC.IonSource.F2.getVoltage().ToString();
         }
-
         private void BTN_IonSOURCE_reset_Click(object sender, EventArgs e)
         {
             MC.IonSource.reset();
@@ -580,88 +550,142 @@ namespace Xmega32A4U_testBoard
         {
             MC.Detector.DV2.setVoltage(TXB_DETECTOR_setDV2voltage.Text);
         }
-
         private void BTN_DETECTOR_setDV3voltage_Click(object sender, EventArgs e)
         {
             MC.Detector.DV3.setVoltage(TXB_DETECTOR_setDV3voltage.Text);
         }
-
         private void BTN_DETECTOR_getDV1voltage_Click(object sender, EventArgs e)
         {
             MC.Detector.enableDoubleRange(CHB_DETECTOR_x2.Checked);
             LBL_DETECTOR_getDV1voltage.Text = MC.Detector.DV1.getVoltage().ToString();
         }
-
         private void BTN_DETECTOR_getDV2voltage_Click(object sender, EventArgs e)
         {
             MC.Detector.enableDoubleRange(CHB_DETECTOR_x2.Checked);
             LBL_DETECTOR_getDV2voltage.Text = MC.Detector.DV2.getVoltage().ToString();
         }
-
         private void BTN_DETECTOR_getDV3voltage_Click(object sender, EventArgs e)
         {
             MC.Detector.enableDoubleRange(CHB_DETECTOR_x2.Checked);
             LBL_DETECTOR_getDV3voltage.Text = MC.Detector.DV3.getVoltage().ToString();
         }
-
         private void BTN_DETECTOR_reset_Click(object sender, EventArgs e)
         {
             MC.Detector.reset();
         }
-
         private void BTN_checkCommandStack_Click(object sender, EventArgs e)
         {
             MC.Chip.checkCommandStack();
         }
-
+        //--------------------------------------Сканер----------------------------------------
         private void BTN_SCANER_setParentScanVoltage_Click(object sender, EventArgs e)
         {
             MC.Scaner.ParentScan.setVoltage(TXB_SCANER_setParentScanVoltage.Text);
         }
-
         private void BTN_SCANER_setScanVoltage_Click(object sender, EventArgs e)
         {
             MC.Scaner.Scan.setVoltage(TXB_SCANER_setScanVoltage.Text);
         }
-
         private void BTN_SCANER_getParentScanVoltage_Click(object sender, EventArgs e)
         {
             MC.Scaner.enableDoubleRange(CHB_SCANER_x2.Checked);
             LBL_SCANER_getParentScanVoltage.Text = MC.Scaner.ParentScan.getVoltage().ToString();
         }
-
         private void BTN_SCANER_getScanVoltage_Click(object sender, EventArgs e)
         {
             MC.Scaner.enableDoubleRange(CHB_SCANER_x2.Checked);
             LBL_SCANER_getScanVoltage.Text = MC.Scaner.Scan.getVoltage().ToString();
         }
-
         private void BTN_SCANER_reset_Click(object sender, EventArgs e)
         {
             MC.Scaner.reset();
         }
-
+        //------------------------------------Конденсатор------------------------------------------
         private void BTN_CONDENSATOR_setVoltage_Click(object sender, EventArgs e)
         {
             MC.Condensator.setVoltage(TXB_CONDENSATOR_setVoltage.Text);
         }
-
         private void BTN_CONDENSATOR_getPositiveVoltage_Click(object sender, EventArgs e)
         {
             MC.Condensator.enableDoubleRange(CHB_CONDENSATOR_x2.Checked);
             LBL_CONDENSATOR_getPositiveVoltage.Text = MC.Condensator.getPositiveVoltage().ToString();
         }
-
         private void BTN_CONDENSATOR_getNegativeVoltage_Click(object sender, EventArgs e)
         {
             MC.Condensator.enableDoubleRange(CHB_CONDENSATOR_x2.Checked);
             LBL_CONDENSATOR_getNegativeVoltage.Text = MC.Condensator.getNegativeVoltage().ToString();
         }
-
         private void BTN_CONDENSATOR_reset_Click(object sender, EventArgs e)
         {
             MC.Condensator.reset();
         }
+        //----------------------------------Real: Counters-------------------------------------
+        private void TXB_realCOX_MeasureTime_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Convert.ToInt32(TXB_realCOX_MeasureTime.Text);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+            LBL_realCOX_Tiks.Text = "";
+            LBL_realCOX_Tiks.Text += MC.Counters.getRTCticks(TXB_realCOX_MeasureTime.Text, MC.Counters.getRTCprescaler(TXB_realCOX_MeasureTime.Text)).ToString();
+            LBL_realCOX_frequency.Text = MC.Counters.getRTCfrequency().ToString();
+            LBL_realCOX_Devider.Text = MC.Counters.getRTCprescaler(TXB_realCOX_MeasureTime.Text).ToString();
+        }
 
+        private void BTN_realCOX_setParameters_Click(object sender, EventArgs e)
+        {
+            //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах 
+            //if (
+                MC.Counters.setMeasureTime(TXB_realCOX_MeasureTime.Text);
+            //   )
+            //{
+                //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
+            //}
+            //else
+            //{
+                //trace(true, "Счётчик ещё считает!");
+            //}
+        }
+
+        private void BTN_realCOX_start_Click(object sender, EventArgs e)
+        {
+            //try
+            //{
+            //    Convert.ToInt32(TXB_realCOX_MeasureTime.Text);
+            //}
+            //catch (Exception)
+            //{
+            //    //trace(true, "ОШИБКА! Неверный интервал!");
+            //    return;
+            //}
+            //if (
+                MC.Counters.startMeasure();
+            //    )
+            //{
+            //    //trace(true, "COA начал счёт...");
+            //    PGB_COA_progress.Value = 0;
+            //    UI_PGB_COA_count = 0;
+            //    UI_PGB_COA_step = (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_COA_measureTime.Text);
+            //    CLK_COA.Enabled = true;
+            //    return;
+            //}
+        }
+
+        private void BTN_realCOX_stop_Click(object sender, EventArgs e)
+        {
+            MC.Counters.stopMeasure();
+        }
+
+        private void BTN_realCOX_check_Click(object sender, EventArgs e)
+        {
+            LBL_realCOX_RTCstate.Text = MC.Counters.receiveResults();
+            LBL_realCOX_COA_Result.Text = MC.Counters.COA.Result.ToString();
+            LBL_realCOX_COB_Result.Text = MC.Counters.COB.Result.ToString();
+            LBL_realCOX_COC_Result.Text = MC.Counters.COC.Result.ToString();
+        }
     }
 }
