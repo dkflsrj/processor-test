@@ -573,7 +573,7 @@ void MC_transmit_Birthday(void)
 void COUNTERS_transmit_Result(void)
 {
 	//‘”Ќ ÷»я: ¬ернуть ѕ  результат измерени€
-	//ѕќя—Ќ≈Ќ»я: <key><response_command><RTC_Status><COA_ovf><COA_Measurement_4bytes><COB_ovf><COB_Measurement_4bytes><COC_ovf><COC_Measurement_2bytes><lock>
+	//ѕќя—Ќ≈Ќ»я: <key><response_command><RTC_Status><COA_ovf><COA_Measurement_4bytes><COB_ovf><COB_Measurement_4bytes><COC_ovf><COC_Measurement_2bytes><checkSum><lock>
 	uint8_t data[] = {COMMAND_COUNTERS_get_Count,RTC_Status,COA_ovf,0,0,0,0,COB_ovf,0,0,0,0,COC_ovf,0,0};
 	switch(RTC_Status)
 	{

@@ -21,6 +21,7 @@ namespace Xmega32A4U_testBoard
         //
         //-------------------------------------ПЕРЕМЕННЫЕ-----------------------------------------
         static SerialPort USART;        //COM порт, его необходимо задать .Chip.setUSART(SerialPort)
+        static bool USART_defined = false;  //СОМ-порт не определён.
         static RichTextBox tracer;      //Трэйсер отладочных сообщений, задаётся .Tester.setTracer(RichTextBox)
         static bool tracer_defined = false;  //Трэйсер не задан. 
         static bool tracer_enabled = true;   //Трэйсер включен. .Tester.enableTracer(bool) - для вкл\выкл
@@ -340,15 +341,15 @@ namespace Xmega32A4U_testBoard
                 public UInt32 Result;   //Сосчитанный результат
             }
             /// <summary>
-            /// Счётчик А
+            /// Счётчик А (32-разрядный)
             /// </summary>
             public counter COA = new counter();
             /// <summary>
-            /// Счётчик В
+            /// Счётчик В (32-разрядный)
             /// </summary>
             public counter COB = new counter();
             /// <summary>
-            /// Счётчик С
+            /// Счётчик С (16-разрядный)
             /// </summary>
             public counter COC = new counter();
             byte prescaler; //Предделитель в byte : 1,2,3(8),4(16),5(64),6(256),7(1024)
@@ -608,6 +609,7 @@ namespace Xmega32A4U_testBoard
             public string receiveResults()
             {
                 //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам. Возвращает состояние счётчика.
+                //ПОЯСНЕНИЯ: <key><response_command><RTC_Status><COA_ovf><COA_Measurement_4bytes><COB_ovf><COB_Measurement_4bytes><COC_ovf><COC_Measurement_2bytes><checkSum><lock>
                 trace_attached(Environment.NewLine);
                 trace("Counters.receiveResults()");
                 byte[] rDATA = transmit(Command.RTC.getResult);
@@ -618,10 +620,10 @@ namespace Xmega32A4U_testBoard
                         //Счётчик готов. Сохраняем результаты.
                         COA.overflows = rDATA[1];
                         COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
-                        //COB.overflows = rDATA[?];
-                        //COB.Result = Convert.ToUInt32(rDATA[?] * 16777216 + rDATA[?] * 65536 + rDATA[?] * 256 + rDATA[?]);
-                        //COC.overflows = rDATA[?];
-                        //COC.Result = Convert.ToUInt32(rDATA[?] * 16777216 + rDATA[?] * 65536 + rDATA[?] * 256 + rDATA[?]);
+                        COB.overflows = rDATA[6];
+                        COB.Result = Convert.ToUInt32(rDATA[7] * 16777216 + rDATA[8] * 65536 + rDATA[9] * 256 + rDATA[10]);
+                        COC.overflows = rDATA[11];
+                        COC.Result = Convert.ToUInt32(rDATA[12] * 256 + rDATA[13]);
                         trace("Counters.receiveResults(): Статус счётчиков: Ready");
                         trace("Counters.receiveResults(): Операция выполнена успешно!");
                         return "Ready";
@@ -1075,6 +1077,7 @@ namespace Xmega32A4U_testBoard
                 trace_attached(Environment.NewLine);
                 trace("Chip.setUSART(" + COM_PORT.PortName + ")");
                 USART = COM_PORT;
+                USART_defined = true;
                 //trace("Chip.setUSART(" + COM_PORT.PortName + "): СОМ порт задан.");
             }
             /// <summary>
@@ -1390,6 +1393,11 @@ namespace Xmega32A4U_testBoard
             }
             //Выполняем передачу и приём
             trace("         Передача...");
+            if (!USART_defined)
+            {
+                trace("СОМ-порт не определён!");
+                return new byte[] {0};
+            }
             USART.Open();
             USART.Write(Packet.ToArray(), 0, Packet.ToArray().Length);
             trace("         Передача завершена!");
