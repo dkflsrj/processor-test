@@ -195,32 +195,32 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_SPI_DAC_send_Click(object sender, EventArgs e)
         {
-            if (MC.DAC.setVoltage(TXB_DAC_channel.Text, TXB_DAC_voltage.Text))
-            {
-                //trace(true, "На канал " + TXB_DAC_channel.Text + " выставлено напряжение: " + TXB_DAC_voltage.Text);
-            }
-            else
-            {
-                //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно не выставил напряжение!");
-            }
+            //if (MC.DAC.setVoltage(TXB_DAC_channel.Text, TXB_DAC_voltage.Text))
+            //{
+            //    //trace(true, "На канал " + TXB_DAC_channel.Text + " выставлено напряжение: " + TXB_DAC_voltage.Text);
+            //}
+            //else
+            //{
+            //    //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно не выставил напряжение!");
+            //}
         }
         private void BTN_SPI_ADC_request_Click(object sender, EventArgs e)
         {
-            MC.ADC.DoubleRange = CHB_ADC_DoubleRange.Checked;
-            //trace(true, "Напряжение на канале " + TXB_ADC_channel.Text + " : " + 
-            MC.ADC.getVoltage(TXB_ADC_channel.Text);
+           //MC.ADC.DoubleRange = CHB_ADC_DoubleRange.Checked;
+           ////trace(true, "Напряжение на канале " + TXB_ADC_channel.Text + " : " + 
+           //MC.ADC.getVoltage(TXB_ADC_channel.Text);
 
         }
         private void BTN_DAC_reset_Click(object sender, EventArgs e)
         {
-            if (MC.DAC.reset())
-            {
-                //trace(true, "DAC сброшен!");
-            }
-            else
-            {
-                //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно НЕ сброшен!");
-            }
+            //if (MC.DAC.reset())
+            //{
+            //    //trace(true, "DAC сброшен!");
+            //}
+            //else
+            //{
+            //    //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно НЕ сброшен!");
+            //}
         }
         private void BTN_startCounter_Click(object sender, EventArgs e)
         {
@@ -686,6 +686,20 @@ namespace Xmega32A4U_testBoard
             LBL_realCOX_COA_Result.Text = MC.Counters.COA.Result.ToString();
             LBL_realCOX_COB_Result.Text = MC.Counters.COB.Result.ToString();
             LBL_realCOX_COC_Result.Text = MC.Counters.COC.Result.ToString();
+            LBL_realCOX_COA_Ovf.Text = MC.Counters.COA.overflows.ToString();
+            LBL_realCOX_COB_Ovf.Text = MC.Counters.COB.overflows.ToString();
+            LBL_realCOX_COC_Ovf.Text = MC.Counters.COC.overflows.ToString();
         }
+
+        private void BTN_checkFlags_Click(object sender, EventArgs e)
+        {
+            MC.setFlags(false, CHB_iHVE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            MC.setFlags(true, CHB_iHVE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
+        }
+
     }
 }

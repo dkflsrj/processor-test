@@ -72,6 +72,8 @@
 #define COMMAND_Scaner_Scan_get_Voltage				70	//Команда: Запросить сканирующее напряжение
 #define COMMAND_Condensator_get_PositiveVoltage		71	//Команда: Запросить напряжение конденсатора "+"
 #define COMMAND_Condensator_get_NegativeVoltage		72	//Команда: Запросить напряжение конденсатора "-"
+
+#define COMMAND_Flags_set							80	//Команда: Установить флаги (SEMV1,SEMV2,SEMV3,SPUMP,iEDCD,iHVE) 
 //-----------------------------------------------ОШИБКИ----------------------------------------------
 //ПОЯСНЕНИЯ: Ошибка приходит в формате <key><ERROR_token><ErrorNum><data[]><CS><lock>
 //Метка
@@ -167,6 +169,8 @@
 		case COMMAND_Condensator_get_PositiveVoltage: 	SPI_send(SPI_DEVICE_Number_ADC_Condensator,BYTES);		\
 			break;																								\
 		case COMMAND_Condensator_get_NegativeVoltage: 	SPI_send(SPI_DEVICE_Number_ADC_Condensator,BYTES);		\
+			break;																								\
+		case COMMAND_Flags_set: 					checkFlags(BYTES[1]);											\
 			break;																								\
 		default: transmit_3bytes(ERROR_Token, ERROR_Decoder, BYTES[0]);											\
 	}

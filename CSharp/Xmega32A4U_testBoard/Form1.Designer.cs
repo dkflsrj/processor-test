@@ -99,9 +99,6 @@
             this.BTN_TIC = new System.Windows.Forms.Button();
             this.TABpanel_4 = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.BTN_DETECTOR_EM3 = new System.Windows.Forms.Button();
-            this.BTN_DETECTOR_EM2 = new System.Windows.Forms.Button();
-            this.BTN_EM1 = new System.Windows.Forms.Button();
             this.BTN_DETECTOR_reset = new System.Windows.Forms.Button();
             this.BTN_DETECTOR_getDV3voltage = new System.Windows.Forms.Button();
             this.CHB_DETECTOR_x2 = new System.Windows.Forms.CheckBox();
@@ -118,7 +115,7 @@
             this.BTN_DETECTOR_setDV2voltage = new System.Windows.Forms.Button();
             this.BTN_DETECTOR_setDV1voltage = new System.Windows.Forms.Button();
             this.label13 = new System.Windows.Forms.Label();
-            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.GPB_Flags = new System.Windows.Forms.GroupBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.BTN_IonSOURCE_reset = new System.Windows.Forms.Button();
             this.CHB_IonSOURCE_x2 = new System.Windows.Forms.CheckBox();
@@ -175,11 +172,19 @@
             this.BTN_INLET_getVoltage = new System.Windows.Forms.Button();
             this.TABpanel_5 = new System.Windows.Forms.TabPage();
             this.GPB_realCOX = new System.Windows.Forms.GroupBox();
+            this.LBL_realCOX_COC_Ovf = new System.Windows.Forms.Label();
+            this.LBL_realCOX_COB_Ovf = new System.Windows.Forms.Label();
+            this.label20 = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
             this.LBL_realCOX_COC_Result = new System.Windows.Forms.Label();
+            this.LBL_realCOX_COA_Ovf = new System.Windows.Forms.Label();
             this.LBL_realCOX_COB_Result = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.LBL_realCOX_RTCstate = new System.Windows.Forms.Label();
             this.LBL_realCOX_COA_Result = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
             this.label22 = new System.Windows.Forms.Label();
+            this.labelN = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
             this.label16 = new System.Windows.Forms.Label();
             this.label23 = new System.Windows.Forms.Label();
@@ -201,8 +206,14 @@
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.labelN = new System.Windows.Forms.Label();
-            this.LBL_realCOX_RTCstate = new System.Windows.Forms.Label();
+            this.BTN_checkFlags = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.CHB_SEMV1 = new System.Windows.Forms.CheckBox();
+            this.CHB_SEMV2 = new System.Windows.Forms.CheckBox();
+            this.CHB_SEMV3 = new System.Windows.Forms.CheckBox();
+            this.CHB_SPUMP = new System.Windows.Forms.CheckBox();
+            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
+            this.CHB_iEDCD = new System.Windows.Forms.CheckBox();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -213,6 +224,7 @@
             this.TABpanel_3.SuspendLayout();
             this.TABpanel_4.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.GPB_Flags.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.GPB_CONDER.SuspendLayout();
@@ -988,7 +1000,7 @@
             // 
             this.TABpanel_4.BackColor = System.Drawing.SystemColors.Control;
             this.TABpanel_4.Controls.Add(this.groupBox2);
-            this.TABpanel_4.Controls.Add(this.groupBox4);
+            this.TABpanel_4.Controls.Add(this.GPB_Flags);
             this.TABpanel_4.Controls.Add(this.groupBox3);
             this.TABpanel_4.Controls.Add(this.groupBox1);
             this.TABpanel_4.Controls.Add(this.GPB_CONDER);
@@ -1001,9 +1013,6 @@
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.BTN_DETECTOR_EM3);
-            this.groupBox2.Controls.Add(this.BTN_DETECTOR_EM2);
-            this.groupBox2.Controls.Add(this.BTN_EM1);
             this.groupBox2.Controls.Add(this.BTN_DETECTOR_reset);
             this.groupBox2.Controls.Add(this.BTN_DETECTOR_getDV3voltage);
             this.groupBox2.Controls.Add(this.CHB_DETECTOR_x2);
@@ -1026,36 +1035,6 @@
             this.groupBox2.TabIndex = 5;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Детектор";
-            // 
-            // BTN_DETECTOR_EM3
-            // 
-            this.BTN_DETECTOR_EM3.Enabled = false;
-            this.BTN_DETECTOR_EM3.Location = new System.Drawing.Point(106, 122);
-            this.BTN_DETECTOR_EM3.Name = "BTN_DETECTOR_EM3";
-            this.BTN_DETECTOR_EM3.Size = new System.Drawing.Size(44, 22);
-            this.BTN_DETECTOR_EM3.TabIndex = 6;
-            this.BTN_DETECTOR_EM3.Text = "EM3";
-            this.BTN_DETECTOR_EM3.UseVisualStyleBackColor = true;
-            // 
-            // BTN_DETECTOR_EM2
-            // 
-            this.BTN_DETECTOR_EM2.Enabled = false;
-            this.BTN_DETECTOR_EM2.Location = new System.Drawing.Point(56, 122);
-            this.BTN_DETECTOR_EM2.Name = "BTN_DETECTOR_EM2";
-            this.BTN_DETECTOR_EM2.Size = new System.Drawing.Size(44, 22);
-            this.BTN_DETECTOR_EM2.TabIndex = 6;
-            this.BTN_DETECTOR_EM2.Text = "EM2";
-            this.BTN_DETECTOR_EM2.UseVisualStyleBackColor = true;
-            // 
-            // BTN_EM1
-            // 
-            this.BTN_EM1.Enabled = false;
-            this.BTN_EM1.Location = new System.Drawing.Point(6, 122);
-            this.BTN_EM1.Name = "BTN_EM1";
-            this.BTN_EM1.Size = new System.Drawing.Size(44, 22);
-            this.BTN_EM1.TabIndex = 6;
-            this.BTN_EM1.Text = "EM1";
-            this.BTN_EM1.UseVisualStyleBackColor = true;
             // 
             // BTN_DETECTOR_reset
             // 
@@ -1209,14 +1188,22 @@
             this.label13.TabIndex = 1;
             this.label13.Text = "Задать напряжения";
             // 
-            // groupBox4
+            // GPB_Flags
             // 
-            this.groupBox4.Location = new System.Drawing.Point(464, 3);
-            this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(185, 150);
-            this.groupBox4.TabIndex = 5;
-            this.groupBox4.TabStop = false;
-            this.groupBox4.Text = "Насос";
+            this.GPB_Flags.Controls.Add(this.button1);
+            this.GPB_Flags.Controls.Add(this.BTN_checkFlags);
+            this.GPB_Flags.Controls.Add(this.CHB_iEDCD);
+            this.GPB_Flags.Controls.Add(this.CHB_SEMV3);
+            this.GPB_Flags.Controls.Add(this.CHB_iHVE);
+            this.GPB_Flags.Controls.Add(this.CHB_SEMV2);
+            this.GPB_Flags.Controls.Add(this.CHB_SPUMP);
+            this.GPB_Flags.Controls.Add(this.CHB_SEMV1);
+            this.GPB_Flags.Location = new System.Drawing.Point(500, 159);
+            this.GPB_Flags.Name = "GPB_Flags";
+            this.GPB_Flags.Size = new System.Drawing.Size(143, 153);
+            this.GPB_Flags.TabIndex = 5;
+            this.GPB_Flags.TabStop = false;
+            this.GPB_Flags.Text = "Флаги";
             // 
             // groupBox3
             // 
@@ -1802,8 +1789,14 @@
             // 
             // GPB_realCOX
             // 
+            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COC_Ovf);
+            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COB_Ovf);
+            this.GPB_realCOX.Controls.Add(this.label20);
+            this.GPB_realCOX.Controls.Add(this.label19);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COC_Result);
+            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COA_Ovf);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COB_Result);
+            this.GPB_realCOX.Controls.Add(this.label17);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_RTCstate);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COA_Result);
             this.GPB_realCOX.Controls.Add(this.label21);
@@ -1831,6 +1824,42 @@
             this.GPB_realCOX.TabStop = false;
             this.GPB_realCOX.Text = "Счётчики";
             // 
+            // LBL_realCOX_COC_Ovf
+            // 
+            this.LBL_realCOX_COC_Ovf.AutoSize = true;
+            this.LBL_realCOX_COC_Ovf.Location = new System.Drawing.Point(167, 214);
+            this.LBL_realCOX_COC_Ovf.Name = "LBL_realCOX_COC_Ovf";
+            this.LBL_realCOX_COC_Ovf.Size = new System.Drawing.Size(13, 13);
+            this.LBL_realCOX_COC_Ovf.TabIndex = 16;
+            this.LBL_realCOX_COC_Ovf.Text = "0";
+            // 
+            // LBL_realCOX_COB_Ovf
+            // 
+            this.LBL_realCOX_COB_Ovf.AutoSize = true;
+            this.LBL_realCOX_COB_Ovf.Location = new System.Drawing.Point(167, 194);
+            this.LBL_realCOX_COB_Ovf.Name = "LBL_realCOX_COB_Ovf";
+            this.LBL_realCOX_COB_Ovf.Size = new System.Drawing.Size(13, 13);
+            this.LBL_realCOX_COB_Ovf.TabIndex = 17;
+            this.LBL_realCOX_COB_Ovf.Text = "0";
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(138, 214);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(25, 13);
+            this.label20.TabIndex = 16;
+            this.label20.Text = "ovf:";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(138, 194);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(25, 13);
+            this.label19.TabIndex = 17;
+            this.label19.Text = "ovf:";
+            // 
             // LBL_realCOX_COC_Result
             // 
             this.LBL_realCOX_COC_Result.AutoSize = true;
@@ -1840,6 +1869,15 @@
             this.LBL_realCOX_COC_Result.TabIndex = 16;
             this.LBL_realCOX_COC_Result.Text = "0";
             // 
+            // LBL_realCOX_COA_Ovf
+            // 
+            this.LBL_realCOX_COA_Ovf.AutoSize = true;
+            this.LBL_realCOX_COA_Ovf.Location = new System.Drawing.Point(167, 174);
+            this.LBL_realCOX_COA_Ovf.Name = "LBL_realCOX_COA_Ovf";
+            this.LBL_realCOX_COA_Ovf.Size = new System.Drawing.Size(13, 13);
+            this.LBL_realCOX_COA_Ovf.TabIndex = 18;
+            this.LBL_realCOX_COA_Ovf.Text = "0";
+            // 
             // LBL_realCOX_COB_Result
             // 
             this.LBL_realCOX_COB_Result.AutoSize = true;
@@ -1848,6 +1886,24 @@
             this.LBL_realCOX_COB_Result.Size = new System.Drawing.Size(13, 13);
             this.LBL_realCOX_COB_Result.TabIndex = 17;
             this.LBL_realCOX_COB_Result.Text = "0";
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(138, 174);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(25, 13);
+            this.label17.TabIndex = 18;
+            this.label17.Text = "ovf:";
+            // 
+            // LBL_realCOX_RTCstate
+            // 
+            this.LBL_realCOX_RTCstate.AutoSize = true;
+            this.LBL_realCOX_RTCstate.Location = new System.Drawing.Point(44, 154);
+            this.LBL_realCOX_RTCstate.Name = "LBL_realCOX_RTCstate";
+            this.LBL_realCOX_RTCstate.Size = new System.Drawing.Size(68, 13);
+            this.LBL_realCOX_RTCstate.TabIndex = 18;
+            this.LBL_realCOX_RTCstate.Text = "Неизвестно";
             // 
             // LBL_realCOX_COA_Result
             // 
@@ -1875,6 +1931,15 @@
             this.label22.Size = new System.Drawing.Size(32, 13);
             this.label22.TabIndex = 13;
             this.label22.Text = "СОС:";
+            // 
+            // labelN
+            // 
+            this.labelN.AutoSize = true;
+            this.labelN.Location = new System.Drawing.Point(6, 154);
+            this.labelN.Name = "labelN";
+            this.labelN.Size = new System.Drawing.Size(32, 13);
+            this.labelN.TabIndex = 15;
+            this.labelN.Text = "RTC:";
             // 
             // label30
             // 
@@ -2060,23 +2125,89 @@
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
-            // labelN
+            // BTN_checkFlags
             // 
-            this.labelN.AutoSize = true;
-            this.labelN.Location = new System.Drawing.Point(6, 154);
-            this.labelN.Name = "labelN";
-            this.labelN.Size = new System.Drawing.Size(32, 13);
-            this.labelN.TabIndex = 15;
-            this.labelN.Text = "RTC:";
+            this.BTN_checkFlags.Location = new System.Drawing.Point(7, 88);
+            this.BTN_checkFlags.Name = "BTN_checkFlags";
+            this.BTN_checkFlags.Size = new System.Drawing.Size(130, 23);
+            this.BTN_checkFlags.TabIndex = 6;
+            this.BTN_checkFlags.Text = "Проверить";
+            this.BTN_checkFlags.UseVisualStyleBackColor = true;
+            this.BTN_checkFlags.Click += new System.EventHandler(this.BTN_checkFlags_Click);
             // 
-            // LBL_realCOX_RTCstate
+            // button1
             // 
-            this.LBL_realCOX_RTCstate.AutoSize = true;
-            this.LBL_realCOX_RTCstate.Location = new System.Drawing.Point(44, 154);
-            this.LBL_realCOX_RTCstate.Name = "LBL_realCOX_RTCstate";
-            this.LBL_realCOX_RTCstate.Size = new System.Drawing.Size(68, 13);
-            this.LBL_realCOX_RTCstate.TabIndex = 18;
-            this.LBL_realCOX_RTCstate.Text = "Неизвестно";
+            this.button1.Location = new System.Drawing.Point(6, 117);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(130, 23);
+            this.button1.TabIndex = 6;
+            this.button1.Text = "Установить";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // CHB_SEMV1
+            // 
+            this.CHB_SEMV1.AutoSize = true;
+            this.CHB_SEMV1.Location = new System.Drawing.Point(6, 19);
+            this.CHB_SEMV1.Name = "CHB_SEMV1";
+            this.CHB_SEMV1.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV1.TabIndex = 1;
+            this.CHB_SEMV1.Text = "SEMV1";
+            this.CHB_SEMV1.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SEMV2
+            // 
+            this.CHB_SEMV2.AutoSize = true;
+            this.CHB_SEMV2.Location = new System.Drawing.Point(6, 42);
+            this.CHB_SEMV2.Name = "CHB_SEMV2";
+            this.CHB_SEMV2.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV2.TabIndex = 1;
+            this.CHB_SEMV2.Text = "SEMV2";
+            this.CHB_SEMV2.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SEMV3
+            // 
+            this.CHB_SEMV3.AutoSize = true;
+            this.CHB_SEMV3.Location = new System.Drawing.Point(6, 65);
+            this.CHB_SEMV3.Name = "CHB_SEMV3";
+            this.CHB_SEMV3.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV3.TabIndex = 1;
+            this.CHB_SEMV3.Text = "SEMV3";
+            this.CHB_SEMV3.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SPUMP
+            // 
+            this.CHB_SPUMP.AutoSize = true;
+            this.CHB_SPUMP.Location = new System.Drawing.Point(74, 19);
+            this.CHB_SPUMP.Name = "CHB_SPUMP";
+            this.CHB_SPUMP.Size = new System.Drawing.Size(64, 17);
+            this.CHB_SPUMP.TabIndex = 1;
+            this.CHB_SPUMP.Text = "SPUMP";
+            this.CHB_SPUMP.UseVisualStyleBackColor = true;
+            // 
+            // CHB_iHVE
+            // 
+            this.CHB_iHVE.AutoSize = true;
+            this.CHB_iHVE.Checked = true;
+            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CHB_iHVE.Location = new System.Drawing.Point(74, 42);
+            this.CHB_iHVE.Name = "CHB_iHVE";
+            this.CHB_iHVE.Size = new System.Drawing.Size(48, 17);
+            this.CHB_iHVE.TabIndex = 1;
+            this.CHB_iHVE.Text = "HVE";
+            this.CHB_iHVE.UseVisualStyleBackColor = true;
+            // 
+            // CHB_iEDCD
+            // 
+            this.CHB_iEDCD.AutoSize = true;
+            this.CHB_iEDCD.Checked = true;
+            this.CHB_iEDCD.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CHB_iEDCD.Location = new System.Drawing.Point(74, 65);
+            this.CHB_iEDCD.Name = "CHB_iEDCD";
+            this.CHB_iEDCD.Size = new System.Drawing.Size(56, 17);
+            this.CHB_iEDCD.TabIndex = 1;
+            this.CHB_iEDCD.Text = "EDCD";
+            this.CHB_iEDCD.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -2108,6 +2239,8 @@
             this.TABpanel_4.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.GPB_Flags.ResumeLayout(false);
+            this.GPB_Flags.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
             this.groupBox1.ResumeLayout(false);
@@ -2250,9 +2383,6 @@
         private System.Windows.Forms.Button BTN_DETECTOR_setDV2voltage;
         private System.Windows.Forms.Button BTN_DETECTOR_setDV1voltage;
         private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Button BTN_DETECTOR_EM3;
-        private System.Windows.Forms.Button BTN_DETECTOR_EM2;
-        private System.Windows.Forms.Button BTN_EM1;
         private System.Windows.Forms.Button BTN_checkCommandStack;
         private System.Windows.Forms.Button BTN_SCANER_setParentScanVoltage;
         private System.Windows.Forms.Button BTN_SCANER_setScanVoltage;
@@ -2275,7 +2405,7 @@
         private System.Windows.Forms.CheckBox CHB_CONDENSATOR_x2;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox TXB_CONDENSATOR_setVoltage;
-        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.GroupBox GPB_Flags;
         private System.Windows.Forms.TabPage TABpanel_5;
         private System.Windows.Forms.GroupBox GPB_realCOX;
         private System.Windows.Forms.Label LBL_realCOX_COC_Result;
@@ -2300,6 +2430,20 @@
         private System.Windows.Forms.Button BTN_realCOX_stop;
         private System.Windows.Forms.Label LBL_realCOX_RTCstate;
         private System.Windows.Forms.Label labelN;
+        private System.Windows.Forms.Label LBL_realCOX_COC_Ovf;
+        private System.Windows.Forms.Label LBL_realCOX_COB_Ovf;
+        private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.Label LBL_realCOX_COA_Ovf;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button BTN_checkFlags;
+        private System.Windows.Forms.CheckBox CHB_iEDCD;
+        private System.Windows.Forms.CheckBox CHB_SEMV3;
+        private System.Windows.Forms.CheckBox CHB_iHVE;
+        private System.Windows.Forms.CheckBox CHB_SEMV2;
+        private System.Windows.Forms.CheckBox CHB_SPUMP;
+        private System.Windows.Forms.CheckBox CHB_SEMV1;
     }
 }
 

@@ -74,7 +74,7 @@ void board_init(void)
 	//DAC
 		//не используется
 	//Ключ дистанционного управления
-	gpio_configure_pin(pin_iEDCD,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
+	gpio_configure_pin(pin_iEDCD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 	//Вентиля
 	gpio_configure_pin(pin_SEMV1, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_SEMV2, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
