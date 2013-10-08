@@ -161,9 +161,14 @@ namespace Xmega32A4U_testBoard
                 public const byte showMeByte = 10;
                 public const byte checkCommandStack = 8;
             }
+            public const byte setFlags = 80;
+            //public const byte EMV1 = ;
+            //public const byte EMV2 = ;
+            //public const byte EMV3 = ;
+            //public const byte HVE = ;
         }
 
-        public struct SPI_ADC
+        /*public struct SPI_ADC
         {
             //СТРУКТУРА: АЦП. Тестовая
             const byte Hbyte = 127;
@@ -259,30 +264,30 @@ namespace Xmega32A4U_testBoard
             public bool setVoltage(byte CHANNEL, ushort VOLTAGE)
             {
                 //ФУНКЦИЯ: Посылаем DAC'у адресс канала и напряжение на нём, получаем отклик
-                /*  ____________________________________________________________
-                 *  |_____Адрес____|__________________|       |    Диапазон    |
-                 *  | 14 | 13 | 12 |  Имя  | № вывода | Канал |ADRESS_and_Hbyte|  
-                 *  |----+----+----+-------+----------+-------+----------------|
-                 *  | 0  | 0  | 0  | DAC A |    4     |   1   |    0...15      |
-                 *  | 0  | 0  | 1  | DAC B |    5     |   2   |    16...31     |
-                 *  | 0  | 1  | 0  | DAC C |    6     |   3   |    32...47     |
-                 *  | 0  | 1  | 1  | DAC D |    7     |   4   |    48...63     |
-                 *  | 1  | 0  | 0  | DAC E |    10    |   5   |    64...79     |
-                 *  | 1  | 0  | 1  | DAC F |    11    |   6   |    80...95     |
-                 *  | 1  | 1  | 0  | DAC G |    12    |   7   |    96...111    |
-                 *  | 1  | 1  | 1  | DAC H |    13    |   8   |    112...127   |
-                 *  |----+----+----+-------+----------+-------+----------------| 
-                 * 
-                 *  ADRESS_and_Hbyte =  0      111         xxxx
-                 *                     D\C    адрес    Старший байт 
-                 *  Lbyte =   xxxx xxxx
-                 *          Младший байт
-                 * 
-                 * D\C -> 0 - адрес + напряжение | 1 - управляющий сигнал  (1111 1111 1111 1111 - полный сброс)
-                 * 
-                 * VOLTAGE = 0...4095 = 0_0 ... 15_255
-                 * 
-                 */
+                //  ____________________________________________________________
+                 //*  |_____Адрес____|__________________|       |    Диапазон    |
+                 //*  | 14 | 13 | 12 |  Имя  | № вывода | Канал |ADRESS_and_Hbyte|  
+                 //*  |----+----+----+-------+----------+-------+----------------|
+                 //*  | 0  | 0  | 0  | DAC A |    4     |   1   |    0...15      |
+                 //*  | 0  | 0  | 1  | DAC B |    5     |   2   |    16...31     |
+                 //*  | 0  | 1  | 0  | DAC C |    6     |   3   |    32...47     |
+                 //*  | 0  | 1  | 1  | DAC D |    7     |   4   |    48...63     |
+                 //*  | 1  | 0  | 0  | DAC E |    10    |   5   |    64...79     |
+                 //*  | 1  | 0  | 1  | DAC F |    11    |   6   |    80...95     |
+                 //*  | 1  | 1  | 0  | DAC G |    12    |   7   |    96...111    |
+                 //*  | 1  | 1  | 1  | DAC H |    13    |   8   |    112...127   |
+                 //*  |----+----+----+-------+----------+-------+----------------| 
+                 //* 
+                 //*  ADRESS_and_Hbyte =  0      111         xxxx
+                 //*                     D\C    адрес    Старший байт 
+                 //*  Lbyte =   xxxx xxxx
+                 //*          Младший байт
+                 //* 
+                 //* D\C -> 0 - адрес + напряжение | 1 - управляющий сигнал  (1111 1111 1111 1111 - полный сброс)
+                 //* 
+                 //* VOLTAGE = 0...4095 = 0_0 ... 15_255
+                 //* 
+                 //
                 //Формируем данные на отправку
                 trace_attached(Environment.NewLine);
                 trace("DAC.setVoltage("+CHANNEL+", "+VOLTAGE+")");
@@ -305,7 +310,7 @@ namespace Xmega32A4U_testBoard
             {
                 return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
             }
-        }
+        }*/
         //---------------------------------------КЛАССЫ--------------------------------------------
         public class RTCounterAndCO
         {
@@ -1268,8 +1273,8 @@ namespace Xmega32A4U_testBoard
         /// Счётчки импульсов
         /// </summary>
         public RTCounterAndCO Counters = new RTCounterAndCO();
-        public SPI_DAC DAC = new SPI_DAC();     //ТЕСТОВЫЙ
-        public SPI_ADC ADC = new SPI_ADC();     //ТЕСТОВЫЙ
+        //public SPI_DAC DAC = new SPI_DAC();     //ТЕСТОВЫЙ
+        //public SPI_ADC ADC = new SPI_ADC();     //ТЕСТОВЫЙ
         /// <summary>
         /// Натекатель (имеет общий reset() с нагревателем Heater)
         /// </summary>
@@ -1569,7 +1574,16 @@ namespace Xmega32A4U_testBoard
                 trace("Слишком короткое сообщение. Вероятно, это отклик.");
             }
         }
-
+        public void setFlags(bool set_flags, bool HVE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
+        {
+            //ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
+	        //ПОЯСНЕНИЯ: Формат байта: <Проверить\Установить><0><iHVE><iEDCD><SEMV1><SEMV2><SEMV3><SPUMP>
+            trace_attached(Environment.NewLine);
+            trace(".setFlags(" + Convert.ToInt16(set_flags) + 0 + Convert.ToInt16(HVE) + Convert.ToInt16(EDCD) + Convert.ToInt16(SEMV1) + Convert.ToInt16(SEMV2) + Convert.ToInt16(SEMV3) + Convert.ToInt16(SPUMP) + ")");
+            byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(HVE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
+            //trace(flags.ToString());
+            transmit(Command.setFlags, flags);
+        }
         //   ! Р А З О Б Р А Т Ь ! Неиспользуемые функции
         void trace_error(byte[] DATA)
         {

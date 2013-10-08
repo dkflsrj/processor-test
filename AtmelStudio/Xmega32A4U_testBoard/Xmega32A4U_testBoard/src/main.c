@@ -31,8 +31,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 29
-#define birthday 20130930
+#define version 30
+#define birthday 20131008
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
 #define usartRX_delay 2										//Задержка приёма данных иначе разобьём команду на части
@@ -90,8 +90,20 @@ uint8_t	COB_ovf = 0;						//Количество переполнений счётчика СОВ в последнем изм
 uint32_t COC_Measurment = 0;				//Последнее измерение счётчика COC
 uint8_t	COC_ovf = 0;						//Количество переполнений счётчика СОС в последнем измерении
 //uint8_t RTC_Status = 0;						//RTC выключен, 1 - таймирует измерение, 2 - задержку
-
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
+//Битовое поле: флаги
+struct pin_flags
+{
+	uint8_t SPUMP :1;
+	uint8_t SEMV3 :1;
+	uint8_t SEMV2 :1;
+	uint8_t SEMV1 :1;
+	uint8_t iEDCD :1;
+	uint8_t iHVE :1;
+	uint8_t dummy :1;
+	uint8_t checkOrSet :1;	
+}flags;
+//USART
 static usart_rs232_options_t USART_COMP_OPTIONS = {
 	.baudrate = USART_COMP_BAUDRATE,
 	.charlength = USART_COMP_CHAR_LENGTH,
@@ -139,6 +151,8 @@ struct spi_device ADC_Scaner = {
 	.id = pin_iECSV
 };
 //ADC у конденсатора тот же что и у сканера
+//-----------------------------------------УКАЗАТЕЛИ----------------------------------------------
+uint8_t *pointer_flags;
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 //Рудименты
 void showMeByte(uint8_t LED_BYTE);	
@@ -175,6 +189,9 @@ void ERROR_ASYNCHR(void);
 void TIC_transmit(uint8_t DATA[]);
 
 void SPI_send(uint8_t DEVICE_Number, uint8_t data[]);
+
+void checkFlags(uint8_t DATA);
+void updateFlags();
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTD0_RXC_vect)
 {
@@ -834,6 +851,67 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
 	transmit(aswDATA, 3);
 }
+
+void checkFlags(uint8_t DATA)
+{
+	//ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
+	//ПОЯСНЕНИЯ: Формат байта: <Проверить\Установить><Операция отменена><iHVE><iEDCD><SEMV1><SEMV2><SEMV3><SPUMP>
+	//				Если первый бит <Проверить\Установить> = 0, то МК тут же возвращает текущее состояние флагов
+	//				Если первый бит <Проверить\Установить> = 1, то МК устанавливает флаги и возвращает их.
+	updateFlags();
+	flags.checkOrSet = DATA >> 7;
+	if(flags.checkOrSet == 0)
+	{
+		//Проверить. Выслать на ПК свеженькие данные о флагах
+		transmit_2bytes(COMMAND_Flags_set, *pointer_flags);
+		return;
+	}
+	//Установить! А надо ли что менять-то?
+	if(DATA != *pointer_flags)
+	{
+		//Есть что менять!
+		//uint8_t flag[] = {flags.iHVE,flags.iEDCD,flags.SEMV1,flags.SEMV2,flags.SEMV3,flags.SPUMP};
+		//uint8_t pin[] = {pin_iHVE,pin_iEDCD,pin_SEMV1,pin_SEMV2,pin_SEMV3,pin_SPUMP};
+		//for (uint8_t i = 0; i < 6; i++)
+		//{
+			
+		//}
+		//if(flags.iHVE != (DATA >> 5)){gpio_toggle_pin( pin_iHVE);}
+		//if(flags.iEDCD != (DATA >> 4)){gpio_toggle_pin(pin_iEDCD);}
+		//if(flags.SEMV1 != (DATA >> 3)){gpio_toggle_pin(pin_SEMV1);}
+		//if(flags.SEMV2 != (DATA >> 2)){gpio_toggle_pin(pin_SEMV2);}
+		//if(flags.SEMV3 != (DATA >> 1)){gpio_toggle_pin(pin_SEMV3);}
+		//if(flags.SPUMP != DATA){gpio_toggle_pin(		 pin_SPUMP);}
+		uint8_t i = ((DATA & 32) >> 5);
+		if(flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE);}}
+		i = ((DATA & 16) >> 4);
+		if(flags.iEDCD != i){if(i == 1){gpio_set_pin_high(pin_iEDCD);}else{gpio_set_pin_low(pin_iEDCD);}}
+		i = ((DATA & 8) >> 3);
+		if(flags.SEMV1 != i){if(i == 1){gpio_set_pin_high(pin_SEMV1);}else{gpio_set_pin_low(pin_SEMV1);}}
+		i = ((DATA & 4) >> 2);
+		if(flags.SEMV2 != i){if(i == 1){gpio_set_pin_high(pin_SEMV2);}else{gpio_set_pin_low(pin_SEMV2);}}
+		i = ((DATA & 2) >> 1);
+		if(flags.SEMV3 != i){if(i == 1){gpio_set_pin_high(pin_SEMV3);}else{gpio_set_pin_low(pin_SEMV3);}}
+		i = DATA & 1;
+		if(flags.SPUMP != i){if(i == 1){gpio_set_pin_high(pin_SPUMP);}else{gpio_set_pin_low(pin_SPUMP);}}
+		updateFlags();
+		transmit_2bytes(COMMAND_Flags_set, *pointer_flags);
+		return;
+	}
+	//Нечего менять. Сообщаем об отмене
+	uint8_t data = 64;
+	transmit_2bytes(COMMAND_Flags_set, data);
+}
+void updateFlags()
+{
+	//ФУНКЦИЯ: МК осматривает флаговые пины портов и собирает их в байт flags
+	flags.iHVE =  (PORTC.OUT & 8  ) >> 3;
+	flags.iEDCD = (PORTA.OUT & 128) >> 7;
+	flags.SEMV1 = (PORTD.OUT & 2  ) >> 1;
+	flags.SEMV2 = (PORTD.OUT & 16 ) >> 4;
+	flags.SEMV3 = (PORTD.OUT & 32 ) >> 5;
+	flags.SPUMP = PORTD.OUT & 1;
+}
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
 {
@@ -880,13 +958,14 @@ int main(void)
 	//delay_ms(50);
 	//showMeByte(0);
 	//Конечная инициализация
+	pointer_flags = &flags;
+    updateFlags();
 	RTC_setStatus_ready;
 	MC_status = 1;						//Режим ожидания
 	MC_error = 1;						//Ошибок нет
 	cpu_irq_enable();					//Разрешаем прерывания	
 
 	//Инициализация завершена
-
 	//FATAL_transmit_ERROR;
 	while (1) 
 	{

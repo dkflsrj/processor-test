@@ -4,7 +4,7 @@
 
 #ifndef Initializator
 #define Initializator
-//USART COMP
+//USART COMP (USARTE0)
 #define USART_COMP						&USARTD0
 #define USART_COMP_BAUDRATE				128000
 #define USART_COMP_CHAR_LENGTH			USART_CHSIZE_8BIT_gc
@@ -38,9 +38,9 @@
 										tc_enable(&TCD0);										 \
 										tc_enable(&TCD1);										 \
 										tc_enable(&TCE0);										 \
-										tc_set_overflow_interrupt_callback(&TCD1, ISR_TCC1);	 \
+										tc_set_overflow_interrupt_callback(&TCC1, ISR_TCC1);	 \
 										tc_set_overflow_interrupt_callback(&TCD1, ISR_TCD1);	 \
-										tc_set_overflow_interrupt_callback(&TCD1, ISR_TCE0);	 \
+										tc_set_overflow_interrupt_callback(&TCE0, ISR_TCE0);	 \
 										tc_set_wgm(&TCC0, TC_WG_NORMAL);						 \
 										tc_set_wgm(&TCC1, TC_WG_NORMAL);						 \
 										tc_set_wgm(&TCD0, TC_WG_NORMAL);						 \
