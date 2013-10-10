@@ -1584,6 +1584,33 @@ namespace Xmega32A4U_testBoard
             //trace(flags.ToString());
             transmit(Command.setFlags, flags);
         }
+        public void testDAC_AD5643R(byte CHANNEL, ushort VOLTAGE)
+        {
+                //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
+                if (VOLTAGE >= 0 && VOLTAGE <= 16383)
+                {
+                    trace_attached(Environment.NewLine);
+                    //trace(".testDAC_AD5643R(" + VOLTAGE + ")");
+                    int V = VOLTAGE;
+                    V = V << 2;
+                    byte[] bytes = BitConverter.GetBytes(V);
+                    //byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
+                    byte Hbyte = Convert.ToByte(24 + CHANNEL);
+                    trace(bytes[1] + " " + bytes[0]);
+                    byte Mbyte = bytes[1];
+                    byte Lbyte = bytes[0];
+                    trace(Hbyte + " " + Mbyte + " " + Lbyte);
+                    byte[] data = { Hbyte, Mbyte, Lbyte};
+                    if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
+                    {
+                        trace(".testDAC_AD5643R(" + VOLTAGE + "): Операция выполнена успешно!");
+                        return;
+                    }
+                    trace(".testDAC_AD5643R(" + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
+                    return;
+                }
+                trace(".testDAC_AD5643R(" + VOLTAGE + "):ОШИБКА! Операция отменена! Значение VOLTAGE ожидалось от 0 до 16383!");
+        }
         //   ! Р А З О Б Р А Т Ь ! Неиспользуемые функции
         void trace_error(byte[] DATA)
         {

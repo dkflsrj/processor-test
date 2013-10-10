@@ -31,8 +31,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 30
-#define birthday 20131008
+#define version 53
+#define birthday 20131010
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
 #define usartRX_delay 2										//Задержка приёма данных иначе разобьём команду на части
@@ -786,8 +786,8 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	//			1			 IonSource		DAC
 	//			2			 Detector		DAC
 	//			3			 Inlet			DAC
-	//			4			 Scaner			DAC
-	//			5			 Condensator	DAC
+	//			4			 Scaner			DAC AD5643R
+	//			5			 Condensator	DAC AD5643R
 	//			6			 IonSource		ADC
 	//			7			 Detector		ADC
 	//			8			 Inlet			ADC
@@ -795,6 +795,7 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	//			10			 Condensator	ADC
 	//Создадим виртульное устройство
 	bool DEVICE_is_DAC = true;
+	bool DAC_is_AD5643R = false;
 	struct spi_device SPI_DEVICE = {
 		.id = 0
 	};
@@ -807,8 +808,10 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 		case 3:	SPI_DEVICE = DAC_Inlet;
 			break;
 		case 4: SPI_DEVICE = DAC_Scaner;
+			DAC_is_AD5643R = true;
 			break;
 		case 5: SPI_DEVICE = DAC_Condensator;
+			DAC_is_AD5643R = true;
 			break;
 		case 6:	SPI_DEVICE = ADC_IonSource;
 			DEVICE_is_DAC = false;
@@ -826,6 +829,18 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 		default:
 			transmit_3bytes(ERROR_Token, ERROR_wrong_SPI_DEVICE_Number, DEVICE_Number);
 			return;
+	}
+	//Если устройство DAC AD5643R то посылаем данные по его протоколу, откликаемся и выходим
+	if(DAC_is_AD5643R)
+	{
+		uint8_t sdata[] = {data[1], data[2], data[3]};
+		spi_select_device(&SPIC, &SPI_DEVICE);
+		spi_write_packet(&SPIC, sdata, 3);
+		spi_deselect_device(&SPIC, &SPI_DEVICE);
+		//откликаемся
+		uint8_t aswDATA[] = {data[0]};
+		transmit(aswDATA, 1);
+		return;
 	}
 	uint8_t sdata[] = {data[1], data[2]};
 	spi_select_device(&SPIC, &SPI_DEVICE);
