@@ -603,7 +603,8 @@ namespace Xmega32A4U_testBoard
         //------------------------------------Конденсатор------------------------------------------
         private void BTN_CONDENSATOR_setVoltage_Click(object sender, EventArgs e)
         {
-            MC.Condensator.setVoltage(TXB_CONDENSATOR_setVoltage.Text);
+            //MC.Condensator.setVoltage(TXB_CONDENSATOR_setVoltage.Text);
+            MC.testDAC_AD5643R(0 , Convert.ToUInt16(TXB_CONDENSATOR_setVoltage.Text));
         }
         private void BTN_CONDENSATOR_getPositiveVoltage_Click(object sender, EventArgs e)
         {

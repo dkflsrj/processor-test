@@ -116,6 +116,14 @@
             this.BTN_DETECTOR_setDV1voltage = new System.Windows.Forms.Button();
             this.label13 = new System.Windows.Forms.Label();
             this.GPB_Flags = new System.Windows.Forms.GroupBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.BTN_checkFlags = new System.Windows.Forms.Button();
+            this.CHB_iEDCD = new System.Windows.Forms.CheckBox();
+            this.CHB_SEMV3 = new System.Windows.Forms.CheckBox();
+            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
+            this.CHB_SEMV2 = new System.Windows.Forms.CheckBox();
+            this.CHB_SPUMP = new System.Windows.Forms.CheckBox();
+            this.CHB_SEMV1 = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.BTN_IonSOURCE_reset = new System.Windows.Forms.Button();
             this.CHB_IonSOURCE_x2 = new System.Windows.Forms.CheckBox();
@@ -206,14 +214,6 @@
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.BTN_checkFlags = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
-            this.CHB_SEMV1 = new System.Windows.Forms.CheckBox();
-            this.CHB_SEMV2 = new System.Windows.Forms.CheckBox();
-            this.CHB_SEMV3 = new System.Windows.Forms.CheckBox();
-            this.CHB_SPUMP = new System.Windows.Forms.CheckBox();
-            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
-            this.CHB_iEDCD = new System.Windows.Forms.CheckBox();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -1205,6 +1205,90 @@
             this.GPB_Flags.TabStop = false;
             this.GPB_Flags.Text = "Флаги";
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(6, 117);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(130, 23);
+            this.button1.TabIndex = 6;
+            this.button1.Text = "Установить";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // BTN_checkFlags
+            // 
+            this.BTN_checkFlags.Location = new System.Drawing.Point(7, 88);
+            this.BTN_checkFlags.Name = "BTN_checkFlags";
+            this.BTN_checkFlags.Size = new System.Drawing.Size(130, 23);
+            this.BTN_checkFlags.TabIndex = 6;
+            this.BTN_checkFlags.Text = "Проверить";
+            this.BTN_checkFlags.UseVisualStyleBackColor = true;
+            this.BTN_checkFlags.Click += new System.EventHandler(this.BTN_checkFlags_Click);
+            // 
+            // CHB_iEDCD
+            // 
+            this.CHB_iEDCD.AutoSize = true;
+            this.CHB_iEDCD.Checked = true;
+            this.CHB_iEDCD.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CHB_iEDCD.Location = new System.Drawing.Point(74, 65);
+            this.CHB_iEDCD.Name = "CHB_iEDCD";
+            this.CHB_iEDCD.Size = new System.Drawing.Size(56, 17);
+            this.CHB_iEDCD.TabIndex = 1;
+            this.CHB_iEDCD.Text = "EDCD";
+            this.CHB_iEDCD.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SEMV3
+            // 
+            this.CHB_SEMV3.AutoSize = true;
+            this.CHB_SEMV3.Location = new System.Drawing.Point(6, 65);
+            this.CHB_SEMV3.Name = "CHB_SEMV3";
+            this.CHB_SEMV3.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV3.TabIndex = 1;
+            this.CHB_SEMV3.Text = "SEMV3";
+            this.CHB_SEMV3.UseVisualStyleBackColor = true;
+            // 
+            // CHB_iHVE
+            // 
+            this.CHB_iHVE.AutoSize = true;
+            this.CHB_iHVE.Checked = true;
+            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CHB_iHVE.Location = new System.Drawing.Point(74, 42);
+            this.CHB_iHVE.Name = "CHB_iHVE";
+            this.CHB_iHVE.Size = new System.Drawing.Size(48, 17);
+            this.CHB_iHVE.TabIndex = 1;
+            this.CHB_iHVE.Text = "HVE";
+            this.CHB_iHVE.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SEMV2
+            // 
+            this.CHB_SEMV2.AutoSize = true;
+            this.CHB_SEMV2.Location = new System.Drawing.Point(6, 42);
+            this.CHB_SEMV2.Name = "CHB_SEMV2";
+            this.CHB_SEMV2.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV2.TabIndex = 1;
+            this.CHB_SEMV2.Text = "SEMV2";
+            this.CHB_SEMV2.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SPUMP
+            // 
+            this.CHB_SPUMP.AutoSize = true;
+            this.CHB_SPUMP.Location = new System.Drawing.Point(74, 19);
+            this.CHB_SPUMP.Name = "CHB_SPUMP";
+            this.CHB_SPUMP.Size = new System.Drawing.Size(64, 17);
+            this.CHB_SPUMP.TabIndex = 1;
+            this.CHB_SPUMP.Text = "SPUMP";
+            this.CHB_SPUMP.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SEMV1
+            // 
+            this.CHB_SEMV1.AutoSize = true;
+            this.CHB_SEMV1.Location = new System.Drawing.Point(6, 19);
+            this.CHB_SEMV1.Name = "CHB_SEMV1";
+            this.CHB_SEMV1.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV1.TabIndex = 1;
+            this.CHB_SEMV1.Text = "SEMV1";
+            this.CHB_SEMV1.UseVisualStyleBackColor = true;
+            // 
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.BTN_IonSOURCE_reset);
@@ -1438,6 +1522,7 @@
             // 
             // BTN_SCANER_reset
             // 
+            this.BTN_SCANER_reset.Enabled = false;
             this.BTN_SCANER_reset.Location = new System.Drawing.Point(191, 12);
             this.BTN_SCANER_reset.Name = "BTN_SCANER_reset";
             this.BTN_SCANER_reset.Size = new System.Drawing.Size(48, 23);
@@ -1490,6 +1575,7 @@
             // 
             // TXB_SCANER_setScanVoltage
             // 
+            this.TXB_SCANER_setScanVoltage.Enabled = false;
             this.TXB_SCANER_setScanVoltage.Location = new System.Drawing.Point(103, 67);
             this.TXB_SCANER_setScanVoltage.Name = "TXB_SCANER_setScanVoltage";
             this.TXB_SCANER_setScanVoltage.Size = new System.Drawing.Size(44, 20);
@@ -1498,6 +1584,7 @@
             // 
             // TXB_SCANER_setParentScanVoltage
             // 
+            this.TXB_SCANER_setParentScanVoltage.Enabled = false;
             this.TXB_SCANER_setParentScanVoltage.Location = new System.Drawing.Point(103, 38);
             this.TXB_SCANER_setParentScanVoltage.Name = "TXB_SCANER_setParentScanVoltage";
             this.TXB_SCANER_setParentScanVoltage.Size = new System.Drawing.Size(44, 20);
@@ -1506,6 +1593,7 @@
             // 
             // BTN_SCANER_setParentScanVoltage
             // 
+            this.BTN_SCANER_setParentScanVoltage.Enabled = false;
             this.BTN_SCANER_setParentScanVoltage.Location = new System.Drawing.Point(5, 36);
             this.BTN_SCANER_setParentScanVoltage.Name = "BTN_SCANER_setParentScanVoltage";
             this.BTN_SCANER_setParentScanVoltage.Size = new System.Drawing.Size(92, 23);
@@ -1526,6 +1614,7 @@
             // 
             // BTN_SCANER_setScanVoltage
             // 
+            this.BTN_SCANER_setScanVoltage.Enabled = false;
             this.BTN_SCANER_setScanVoltage.Location = new System.Drawing.Point(5, 65);
             this.BTN_SCANER_setScanVoltage.Name = "BTN_SCANER_setScanVoltage";
             this.BTN_SCANER_setScanVoltage.Size = new System.Drawing.Size(92, 23);
@@ -1563,6 +1652,7 @@
             // 
             // BTN_CONDENSATOR_reset
             // 
+            this.BTN_CONDENSATOR_reset.Enabled = false;
             this.BTN_CONDENSATOR_reset.Location = new System.Drawing.Point(289, 8);
             this.BTN_CONDENSATOR_reset.Name = "BTN_CONDENSATOR_reset";
             this.BTN_CONDENSATOR_reset.Size = new System.Drawing.Size(48, 23);
@@ -2125,90 +2215,6 @@
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
-            // BTN_checkFlags
-            // 
-            this.BTN_checkFlags.Location = new System.Drawing.Point(7, 88);
-            this.BTN_checkFlags.Name = "BTN_checkFlags";
-            this.BTN_checkFlags.Size = new System.Drawing.Size(130, 23);
-            this.BTN_checkFlags.TabIndex = 6;
-            this.BTN_checkFlags.Text = "Проверить";
-            this.BTN_checkFlags.UseVisualStyleBackColor = true;
-            this.BTN_checkFlags.Click += new System.EventHandler(this.BTN_checkFlags_Click);
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(6, 117);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(130, 23);
-            this.button1.TabIndex = 6;
-            this.button1.Text = "Установить";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // CHB_SEMV1
-            // 
-            this.CHB_SEMV1.AutoSize = true;
-            this.CHB_SEMV1.Location = new System.Drawing.Point(6, 19);
-            this.CHB_SEMV1.Name = "CHB_SEMV1";
-            this.CHB_SEMV1.Size = new System.Drawing.Size(62, 17);
-            this.CHB_SEMV1.TabIndex = 1;
-            this.CHB_SEMV1.Text = "SEMV1";
-            this.CHB_SEMV1.UseVisualStyleBackColor = true;
-            // 
-            // CHB_SEMV2
-            // 
-            this.CHB_SEMV2.AutoSize = true;
-            this.CHB_SEMV2.Location = new System.Drawing.Point(6, 42);
-            this.CHB_SEMV2.Name = "CHB_SEMV2";
-            this.CHB_SEMV2.Size = new System.Drawing.Size(62, 17);
-            this.CHB_SEMV2.TabIndex = 1;
-            this.CHB_SEMV2.Text = "SEMV2";
-            this.CHB_SEMV2.UseVisualStyleBackColor = true;
-            // 
-            // CHB_SEMV3
-            // 
-            this.CHB_SEMV3.AutoSize = true;
-            this.CHB_SEMV3.Location = new System.Drawing.Point(6, 65);
-            this.CHB_SEMV3.Name = "CHB_SEMV3";
-            this.CHB_SEMV3.Size = new System.Drawing.Size(62, 17);
-            this.CHB_SEMV3.TabIndex = 1;
-            this.CHB_SEMV3.Text = "SEMV3";
-            this.CHB_SEMV3.UseVisualStyleBackColor = true;
-            // 
-            // CHB_SPUMP
-            // 
-            this.CHB_SPUMP.AutoSize = true;
-            this.CHB_SPUMP.Location = new System.Drawing.Point(74, 19);
-            this.CHB_SPUMP.Name = "CHB_SPUMP";
-            this.CHB_SPUMP.Size = new System.Drawing.Size(64, 17);
-            this.CHB_SPUMP.TabIndex = 1;
-            this.CHB_SPUMP.Text = "SPUMP";
-            this.CHB_SPUMP.UseVisualStyleBackColor = true;
-            // 
-            // CHB_iHVE
-            // 
-            this.CHB_iHVE.AutoSize = true;
-            this.CHB_iHVE.Checked = true;
-            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_iHVE.Location = new System.Drawing.Point(74, 42);
-            this.CHB_iHVE.Name = "CHB_iHVE";
-            this.CHB_iHVE.Size = new System.Drawing.Size(48, 17);
-            this.CHB_iHVE.TabIndex = 1;
-            this.CHB_iHVE.Text = "HVE";
-            this.CHB_iHVE.UseVisualStyleBackColor = true;
-            // 
-            // CHB_iEDCD
-            // 
-            this.CHB_iEDCD.AutoSize = true;
-            this.CHB_iEDCD.Checked = true;
-            this.CHB_iEDCD.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_iEDCD.Location = new System.Drawing.Point(74, 65);
-            this.CHB_iEDCD.Name = "CHB_iEDCD";
-            this.CHB_iEDCD.Size = new System.Drawing.Size(56, 17);
-            this.CHB_iEDCD.TabIndex = 1;
-            this.CHB_iEDCD.Text = "EDCD";
-            this.CHB_iEDCD.UseVisualStyleBackColor = true;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2222,7 +2228,7 @@
             this.MaximumSize = new System.Drawing.Size(700, 600);
             this.MinimumSize = new System.Drawing.Size(700, 600);
             this.Name = "Form1";
-            this.Text = "XMega32A4U_testBoard v0.3";
+            this.Text = "XMega32A4U_testBoard v0.53";
             this.TABpanel.ResumeLayout(false);
             this.TABpanel_1.ResumeLayout(false);
             this.TABpanel_1.PerformLayout();
