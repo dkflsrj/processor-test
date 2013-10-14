@@ -842,26 +842,30 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 		transmit(aswDATA, 1);
 		return;
 	}
-	uint8_t sdata[] = {data[1], data[2]};
-	spi_select_device(&SPIC, &SPI_DEVICE);
-	spi_write_packet(&SPIC, sdata, 2);
-	spi_deselect_device(&SPIC, &SPI_DEVICE);
-	//Если SPI-устройство - ЦАП, то откликаемся и выходим. 
+	//Если SPI-устройство - ЦАП, то посылаем, откликаемся и выходим. 
 	if(DEVICE_is_DAC)
-	{
+	{	uint8_t sdata[] = {data[1], data[2]};
+		spi_select_device(&SPIC, &SPI_DEVICE);
+		spi_write_packet(&SPIC, sdata, 2);
+		spi_deselect_device(&SPIC, &SPI_DEVICE);
 		uint8_t aswDATA[] = {data[0]};
 		transmit(aswDATA, 1);
 		return;
 	}
-	//Если SPI-устройство - АЦП, то получаем ответ, отсылаем ответ.
+	//Если SPI-устройство - АЦП, то посылаем, получаем ответ, отсылаем ответ.
+	uint8_t sdata[] = {data[1], data[2]};
 	spi_select_device(&SPIC, &SPI_DEVICE);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_deselect_device(&SPIC, &SPI_DEVICE);
+	
 	gpio_set_pin_low(pin_iRDUN);
 	spi_put(&SPIC, 0);
 	SPI_rDATA[0] = spi_get(&SPIC);
 	spi_put(&SPIC, 0);
 	SPI_rDATA[1] = spi_get(&SPIC);
 	gpio_set_pin_high(pin_iRDUN);
-	spi_deselect_device(&SPIC, &SPI_DEVICE);
 	//Передём ответ на ПК по USART
 	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
 	transmit(aswDATA, 3);
@@ -933,7 +937,10 @@ int main(void)
 	board_init();						//Инициируем карту
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
-	SPI_init;							//Инициируем систему SPI
+	//SPI_init;							//Инициируем систему SPI
+	SPIC.CTRL = 80;//83
+	//SPIC.CTRL = 0b01010000;
+	
 	RTC_init;							//Инициируем счётчик реального времени
 	Counters_init;						//Инициируем счётчики импульсов
 	USART_COMP_init;					//Инициируем USART с компутером

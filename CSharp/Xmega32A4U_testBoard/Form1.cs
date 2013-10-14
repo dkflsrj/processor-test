@@ -619,7 +619,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_CONDENSATOR_reset_Click(object sender, EventArgs e)
         {
-            MC.Condensator.reset();
+            //MC.Condensator.reset();
         }
         //----------------------------------Real: Counters-------------------------------------
         private void TXB_realCOX_MeasureTime_TextChanged(object sender, EventArgs e)

@@ -1,0 +1,5 @@
+
+
+[18:11:56] Tester.enableLog(True)
+
+[18:11:57] Tester.enableLog(False)
