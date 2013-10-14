@@ -31,8 +31,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 54
-#define birthday 20131011
+#define version 56
+#define birthday 20131014
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
 #define usartRX_delay 2										//Задержка приёма данных иначе разобьём команду на части
@@ -859,12 +859,9 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	spi_write_packet(&SPIC, sdata, 2);
 	gpio_set_pin_high(pin_iRDUN);
 	spi_deselect_device(&SPIC, &SPI_DEVICE);
-	
+	//Читаем два байта
 	gpio_set_pin_low(pin_iRDUN);
-	spi_put(&SPIC, 0);
-	SPI_rDATA[0] = spi_get(&SPIC);
-	spi_put(&SPIC, 0);
-	SPI_rDATA[1] = spi_get(&SPIC);
+	spi_read_packet(&SPIC,SPI_rDATA,2);
 	gpio_set_pin_high(pin_iRDUN);
 	//Передём ответ на ПК по USART
 	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
@@ -937,10 +934,7 @@ int main(void)
 	board_init();						//Инициируем карту
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
-	//SPI_init;							//Инициируем систему SPI
-	SPIC.CTRL = 80;//83
-	//SPIC.CTRL = 0b01010000;
-	
+	SPIC.CTRL = 83;						//Инициируем систему SPI
 	RTC_init;							//Инициируем счётчик реального времени
 	Counters_init;						//Инициируем счётчики импульсов
 	USART_COMP_init;					//Инициируем USART с компутером
