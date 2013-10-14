@@ -20,9 +20,6 @@
 #define USART_TIC_STOP_BIT				true
 #define USART_TIC_init					usart_init_rs232(USART_COMP, &USART_TIC_OPTIONS);		 \
 										usart_set_rx_interrupt_level(USART_TIC,USART_INT_LVL_MED)
-//SPI
-#define SPI_init						spi_master_init(&SPIC);									 \
-										spi_enable(&SPIC)			//Включаем ШПИКа
 //RTC
 #define RTC_init						rtc_init();												 \
 										CLK.RTCCTRL = 13 // RTC 1.024кГц
