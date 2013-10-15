@@ -25,6 +25,7 @@ namespace Xmega32A4U_testBoard
         static RichTextBox tracer;      //Трэйсер отладочных сообщений, задаётся .Tester.setTracer(RichTextBox)
         static bool tracer_defined = false;  //Трэйсер не задан. 
         static bool tracer_enabled = true;   //Трэйсер включен. .Tester.enableTracer(bool) - для вкл\выкл
+        static bool tracer_transmit_enabled = true; //Трейсер в функции transmit включён\выключен
         static bool tracer_log_enabled = false;     //Ведение лога в Log.txt отключено. .Tester.enableLog(bool) - для вкл\выкл
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
@@ -1253,6 +1254,23 @@ namespace Xmega32A4U_testBoard
                 tracer_enabled = enable;
             }
             /// <summary>
+            /// Разрешает подробный вывод сообщений в трейсер, если он задан (отладочное) 
+            /// </summary>
+            public void enableTracerInTransmit(bool enable)
+            {
+                //ФУНКЦИЯ: Включает\выключает трэйсер
+                if (enable)
+                {
+                    tracer_transmit_enabled = enable;
+                    trace_attached(Environment.NewLine);
+                    trace("Tester.enableTracerInTransmit(" + enable + ")");
+                    return;
+                }
+                trace_attached(Environment.NewLine);
+                trace("Tester.enableTracerInTransmit(" + enable + ")");
+                tracer_transmit_enabled = enable;
+            }
+            /// <summary>
             /// Разрешает вывод сообщений трейсера в текстовый файл Log.txt, находящийся в папке с exe-файлом
             /// </summary>
             public void enableLog(bool enable)
@@ -1439,6 +1457,8 @@ namespace Xmega32A4U_testBoard
         static byte[] transmit(List<byte> DATA)
         {
             //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
+            bool tracer_enabled_before = tracer_enabled;
+            tracer_enabled = tracer_transmit_enabled;
             byte command = DATA[0];                         //Запоминаем передаваемую команду
             trace("     Начало исполнения команды:");
             trace("         Команда и байты данных:");
@@ -1464,6 +1484,7 @@ namespace Xmega32A4U_testBoard
             if (!USART_defined)
             {
                 trace("СОМ-порт не определён!");
+                tracer_enabled = tracer_enabled_before;
                 return new byte[] {0};
             }
             USART.Open();
@@ -1479,6 +1500,7 @@ namespace Xmega32A4U_testBoard
             {
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не было получено никаких данных!");
                 USART.Close();
+                tracer_enabled = tracer_enabled_before;
                 return new byte[] {0};
             }
             trace("                 Принято:");
@@ -1494,6 +1516,7 @@ namespace Xmega32A4U_testBoard
                 {
                     trace("ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
                     USART.Close();
+                    tracer_enabled = tracer_enabled_before;
                     return new byte[] {0};
                 }
                 rDATA.Add(rBYTE);
@@ -1521,6 +1544,7 @@ namespace Xmega32A4U_testBoard
                         trace("             Несовпадает контрольная сумма!");
                         trace("                 Получено:" + rCheckSum);
                         trace("                 Подсчитано:" + CheckSum);
+                        tracer_enabled = tracer_enabled_before;
                         return new byte[] { 0 };
                     }
                     //Проверяем данные на отклик
@@ -1545,13 +1569,16 @@ namespace Xmega32A4U_testBoard
                         trace("     Ожидалось: " + command);
                         trace("     Получено: " + rDATA[0]);
                         defineError(rDATA.ToArray());
+                        tracer_enabled = tracer_enabled_before;
                         return new byte[] { 0 };
                     }
+                    tracer_enabled = tracer_enabled_before;
                     return rDATA.ToArray();
                 }
                 trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен затвор!");
             }
             trace("ОШИБКА ПРИЁМА ДАННЫХ! Не был получен ключ!");
+            tracer_enabled = tracer_enabled_before;
             return new byte[] { 0 };
         }
             static byte[] transmit(byte[] DATA)
@@ -1637,7 +1664,18 @@ namespace Xmega32A4U_testBoard
                 trace("Слишком короткое сообщение. Вероятно, это отклик.");
             }
         }
-        public void setFlags(bool set_flags, bool HVE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
+        /// <summary>
+        /// МК устанавливает и возвращает флаги в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP|, где SPUM - нулевой бит
+        /// </summary>
+        /// <param name="set_flags">true - установить следующие флаги, <para>false - не устанавливать, только проверить</para></param>
+        /// <param name="HVE">Разрешение высокого напряжения</param>
+        /// <param name="EDCD">Разрешение дистанционного управления</param>
+        /// <param name="SEMV1">Электромагнитный вентиль 1</param>
+        /// <param name="SEMV2">Электромагнитный вентиль 2</param>
+        /// <param name="SEMV3">Электромагнитный вентиль 3</param>
+        /// <param name="SPUMP">Включение насоса?</param>
+        /// <returns>Байт флагов в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP| </returns>
+        public byte setFlags(bool set_flags, bool HVE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
         {
             //ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
 	        //ПОЯСНЕНИЯ: Формат байта: <Проверить\Установить><0><iHVE><iEDCD><SEMV1><SEMV2><SEMV3><SPUMP>
@@ -1645,7 +1683,7 @@ namespace Xmega32A4U_testBoard
             trace(".setFlags(" + Convert.ToInt16(set_flags) + 0 + Convert.ToInt16(HVE) + Convert.ToInt16(EDCD) + Convert.ToInt16(SEMV1) + Convert.ToInt16(SEMV2) + Convert.ToInt16(SEMV3) + Convert.ToInt16(SPUMP) + ")");
             byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(HVE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
             //trace(flags.ToString());
-            transmit(Command.setFlags, flags);
+            return transmit(Command.setFlags, flags)[0];
         }
         public void testDAC_AD5643R(byte CHANNEL, ushort VOLTAGE)
         {
