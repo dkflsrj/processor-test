@@ -884,18 +884,6 @@ void checkFlags(uint8_t DATA)
 	if(DATA != *pointer_flags)
 	{
 		//Есть что менять!
-		//uint8_t flag[] = {flags.iHVE,flags.iEDCD,flags.SEMV1,flags.SEMV2,flags.SEMV3,flags.SPUMP};
-		//uint8_t pin[] = {pin_iHVE,pin_iEDCD,pin_SEMV1,pin_SEMV2,pin_SEMV3,pin_SPUMP};
-		//for (uint8_t i = 0; i < 6; i++)
-		//{
-			
-		//}
-		//if(flags.iHVE != (DATA >> 5)){gpio_toggle_pin( pin_iHVE);}
-		//if(flags.iEDCD != (DATA >> 4)){gpio_toggle_pin(pin_iEDCD);}
-		//if(flags.SEMV1 != (DATA >> 3)){gpio_toggle_pin(pin_SEMV1);}
-		//if(flags.SEMV2 != (DATA >> 2)){gpio_toggle_pin(pin_SEMV2);}
-		//if(flags.SEMV3 != (DATA >> 1)){gpio_toggle_pin(pin_SEMV3);}
-		//if(flags.SPUMP != DATA){gpio_toggle_pin(		 pin_SPUMP);}
 		uint8_t i = ((DATA & 32) >> 5);
 		if(flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE);}}
 		i = ((DATA & 16) >> 4);
