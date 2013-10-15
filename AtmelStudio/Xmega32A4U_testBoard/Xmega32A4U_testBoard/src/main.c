@@ -31,7 +31,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 57
+#define version 58
 #define birthday 20131015
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
@@ -852,15 +852,15 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	}
 	//Если SPI-устройство - АЦП, то посылаем, получаем ответ, отсылаем ответ.
 	uint8_t sdata[] = {data[1], data[2]};
-	spi_select_device(&SPIC, &SPI_DEVICE);
 	gpio_set_pin_low(pin_iRDUN);
 	spi_write_packet(&SPIC, sdata, 2);
 	gpio_set_pin_high(pin_iRDUN);
-	spi_deselect_device(&SPIC, &SPI_DEVICE);
 	//Читаем два байта
+	spi_deselect_device(&SPIC, &SPI_DEVICE);
 	gpio_set_pin_low(pin_iRDUN);
 	spi_read_packet(&SPIC,SPI_rDATA,2);
 	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &SPI_DEVICE);
 	//Передём ответ на ПК по USART
 	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
 	transmit(aswDATA, 3);

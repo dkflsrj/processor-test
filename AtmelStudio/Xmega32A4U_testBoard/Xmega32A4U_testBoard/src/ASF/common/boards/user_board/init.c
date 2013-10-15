@@ -58,14 +58,14 @@ void board_init(void)
 	gpio_configure_pin(pin_MISO,	IOPORT_DIR_INPUT);
 	gpio_configure_pin(pin_SDIN,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iRDUN,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iECIS,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
+	gpio_configure_pin(pin_iECIS,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iWRIS,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iECSV,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
+	gpio_configure_pin(pin_iECSV,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iWRSV,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iWRCV,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iECVD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
+	gpio_configure_pin(pin_iECVD,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iWRVD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	gpio_configure_pin(pin_iECINL,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
+	gpio_configure_pin(pin_iECINL,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iWINL,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 	//HVE
 	gpio_configure_pin(pin_iHVE,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
