@@ -20,18 +20,12 @@
 #include <spi_master.h>			//Включаем модуль SPI
 #include <Decoder.h>
 #include <Initializator.h>
-//#include <stdio.h>
-//#include <conio.h>
-//
-
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
-//#define FATAL_ERROR						while(1){showMeByte(255);								
-//											delay_ms(50);}
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 62
+#define version 63
 #define birthday 20131015
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
@@ -43,9 +37,6 @@
 #define RTC_setStatus_ready			RTC_Status =	RTC_Status_ready	 
 #define RTC_setStatus_stopped		RTC_Status =	RTC_Status_stopped
 #define RTC_setStatus_busy			RTC_Status =	RTC_Status_busy	
- //delayed status!!! 
-		 
-
 //----------------------------------------ПЕРЕМЕННЫЕ----------------------------------------------
 //	МИКРОКОНТРОЛЛЕР
 uint8_t MC_version = version;
@@ -75,22 +66,15 @@ uint8_t CommandStack = 0;
 uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
 uint8_t SPI_AD5643R_configurated = 0;		//0 - ни один ЦАПов AD5643 не с конфигурирован, 1 - сконфигурирован ЦАП конденсатора, 2 - сконфигурирован ЦАП сканера, 3 - сконфигурированы оба!
 //		Измерения
-
-//uint16_t RTC_MeasureTime = 1000;			//Время интервала (в миллисекунд)[0.05...30 сек]
-//uint8_t  RTC_MeasureDelay = 10;				//Задержка в миллисекундах между интервалами [10..50мс]
 uint8_t RTC_Status = RTC_Status_ready;	//Состояния счётчика
 uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
 
-//uint8_t	 COA_MeasurementsQuantity = 1;		//Количество измерений
-//uint16_t COA_MeasureQuantity = 1;			//Количество интервалов (интервал + задержка)
-//uint8_t COA_Results_transmitted = 0;		//Были ли переданны измеренные данные 0 - не было данных, 1 - есть данные, 2 - были переданы, 3 - затёрты!
 uint32_t COA_Measurment = 0;				//Последнее измерение счётчика COA
 uint8_t	COA_ovf = 0;						//Количество переполнений счётчика СОА в последнем измерении
 uint32_t COB_Measurment = 0;				//Последнее измерение счётчика COB
 uint8_t	COB_ovf = 0;						//Количество переполнений счётчика СОВ в последнем измерении
 uint32_t COC_Measurment = 0;				//Последнее измерение счётчика COC
 uint8_t	COC_ovf = 0;						//Количество переполнений счётчика СОС в последнем измерении
-//uint8_t RTC_Status = 0;						//RTC выключен, 1 - таймирует измерение, 2 - задержку
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 //Битовое поле: флаги
 struct pin_flags
@@ -117,12 +101,6 @@ static usart_rs232_options_t USART_TIC_OPTIONS = {
 	.paritytype = USART_TIC_PARITY,
 	.stopbits = USART_TIC_STOP_BIT
 };
-// struct spi_device DAC = {
-// 	.id = IOPORT_CREATE_PIN(PORTC, 1)
-// };
-// struct spi_device ADC = {
-// 	.id = IOPORT_CREATE_PIN(PORTC, 2)
-// };
 
 struct spi_device DAC_IonSource = {
 	.id = pin_iWRIS
@@ -175,8 +153,6 @@ void SPI_ADC_send(uint8_t data[]);
 
 void RTC_setPrescaler(uint8_t DATA[]);
 void RTC_set_Period(uint8_t DATA[]);
-/*void RTC_set_Delay(uint8_t DELAY);*/
-//void COA_set_MeasureQuontity(uint8_t COUNT[]);
 
 void COUNTERS_start(void);
 void COUNTERS_stop(void);
@@ -186,7 +162,6 @@ bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoef
 
 void ERROR_ASYNCHR(void);
 
-//void RTC_delay(void);
 void TIC_transmit(uint8_t DATA[]);
 
 void SPI_send(uint8_t DEVICE_Number, uint8_t data[]);
@@ -391,7 +366,6 @@ static void ISR_TCE0(void)
  {
 	 COC_ovf++;
  }
-//
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
 void showMeByte(uint8_t LED_BYTE)
 {
@@ -631,20 +605,6 @@ void RTC_set_Period(uint8_t DATA[])
 		transmit_2bytes(COMMAND_RTC_set_Period, 0);	//Операция не удалась - таймер считает. Остановите таймер! Кто-нибудь!!!
 	}
 }
-// void RTC_set_Delay(uint8_t DELAY)
-// {
-// 	//ФУНКЦИЯ: Задаёт задержку между интервалами
-// 	RTC.PER = (uint16_t)DELAY;
-// 	uint8_t data[] = {COMMAND_RTC_set_Delay};
-// 	transmit(data,1);
-// }
-// void COA_set_MeasureQuontity(uint8_t COUNT[])
-// {
-// 	//ФУНКЦИЯ: Задаёт количество интервалов
-// 	//COA_MeasureQuantity = (COUNT[1] << 8) + COUNT[2];
-// 	uint8_t data[] = {COMMAND_COA_set_Quantity};
-// 	transmit(data,1);
-// }
 void COUNTERS_start(void)
 {
 	//ФУНКЦИЯ: Запускаем счётчики на определённое интервалом время
@@ -706,13 +666,6 @@ void RTC_setPrescaler(uint8_t DATA[])
 	RTC_prescaler = DATA[1];
 	transmit_byte(COMMAND_RTC_set_Prescaler);
 }
-// void RTC_delay()
-// {
-// 	//ФУНКЦИЯ: RTC выполняет задержку между измерениями
-// 	RTC.CNT = 0;
-// 	RTC_Status = 2;
-// 	RTC.CTRL = RTC_PRESCALER_DIV1_gc;
-// }
 //TIC
 void TIC_transmit(uint8_t DATA[])
 {
@@ -972,25 +925,6 @@ int main(void)
 	EVSYS_SetEventChannelFilter( 3, EVSYS_DIGFILT_1SAMPLE_gc );
 	EVSYS_SetEventSource( 4, EVSYS_CHMUX_PORTC_PIN2_gc );
 	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );
-	//COX
-	//COUNTER.State.Ready};
-	//Светопредставление для определения перезагрузки
-	//for (uint16_t i = 1; i <129 ; i += i)
-	//{
-		//delay_ms(50);
-		//showMeByte(i);
-	//}
-	//for (uint16_t i = 128; i >1 ; i -= i/2)
-	//{
-		//delay_ms(50);
-		//showMeByte(i);
-	//}
-	//delay_ms(50);
-	//showMeByte(2);
-	//delay_ms(50);
-	//showMeByte(1);
-	//delay_ms(50);
-	//showMeByte(0);
 	//Конечная инициализация
 	pointer_flags = &flags;
     updateFlags();
@@ -998,90 +932,16 @@ int main(void)
 	MC_status = 1;						//Режим ожидания
 	MC_error = 1;						//Ошибок нет
 	cpu_irq_enable();					//Разрешаем прерывания	
-
 	//Инициализация завершена
-	//FATAL_transmit_ERROR;
 	while (1) 
 	{
-		//switch (MC_status)
-		//{
-		//	case 1: //delay_ms(1000);
-		//			//gpio_toggle_pin(LED_VD1);
-		//		break;
-		//	case 2: //showMeByte(duoByte);
-		//		break;
-		//	case 3: //showMeByte(duoByte >> 8);
-		//		break;
-		//	case 4:	//showMeByte(0);
-		//			//for (Byte i = 0; i < 20; i++)
-		//			//{
-		//			//	//gpio_toggle_pin(LED_VD1);
-		//			//	delay_ms(50);
-		//			//}
-		//			//showMeByte(COA_Measurment >> 24);
-		//			//delay_ms(2000);
-		//			//showMeByte(0);
-		//			//delay_ms(500);
-		//			//showMeByte(COA_Measurment >> 16);
-		//			//delay_ms(2000);
-		//			//showMeByte(0);
-		//			//delay_ms(500);
-		//			//showMeByte(COA_Measurment >> 8);
-		//			//delay_ms(2000);
-		//			//showMeByte(0);
-		//			//delay_ms(500);
-		//			//showMeByte(COA_Measurment);
-		//			//delay_ms(2000);
-		//
-		//		break;
-		//}
+		
 	}
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
 /*
 *
 */
-/*SPI_rDATA[0] = 255;
-SPI_rDATA[1] = 129;
-ADC_word = 131 + 4*ADC_channel;
-
-spi_select_device(&SPIC, &ADC);
-//посылаем запрос
-spi_put(&SPIC, ADC_word);
-spi_put(&SPIC, 16);
-spi_deselect_device(&SPIC, &ADC);
-
-spi_select_device(&SPIC, &ADC);
-//посылаем болванов и читаем
-spi_put(&SPIC, 0);
-SPI_rDATA[0] = spi_get(&SPIC);
-spi_put(&SPIC, 0);
-SPI_rDATA[1] = spi_get(&SPIC);
-spi_deselect_device(&SPIC, &ADC);
-
-//Показываем на идиодах
-for (uint8_t i = 0; i < 10; i++)
-{
-showMeByte(LED_channel);
-delay_ms(50);
-showMeByte(0);
-delay_ms(50);
-}
-showMeByte(SPI_rDATA[0]);
-delay_ms(2000);
-showMeByte(0);
-delay_ms(500);
-showMeByte(SPI_rDATA[1]);
-delay_ms(2000);
-LED_channel = LED_channel*2;
-if (LED_channel == 0)
-{
-LED_channel = 1;
-}
-ADC_channel++;
-if (ADC_channel == 8)
-{
-ADC_channel = 0;
-}
+/*
 */
 //-----------------------------------------THE END------------------------------------------------

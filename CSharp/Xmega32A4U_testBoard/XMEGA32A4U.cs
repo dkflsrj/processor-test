@@ -1504,8 +1504,6 @@ namespace Xmega32A4U_testBoard
         /// Счётчки импульсов
         /// </summary>
         public RTCounterAndCO Counters = new RTCounterAndCO();
-        //public SPI_DAC DAC = new SPI_DAC();     //ТЕСТОВЫЙ
-        //public SPI_ADC ADC = new SPI_ADC();     //ТЕСТОВЫЙ
         /// <summary>
         /// Натекатель (имеет общий reset() с нагревателем Heater)
         /// </summary>
