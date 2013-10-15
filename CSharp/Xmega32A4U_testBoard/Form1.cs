@@ -604,8 +604,6 @@ namespace Xmega32A4U_testBoard
         //------------------------------------Конденсатор------------------------------------------
         private void BTN_CONDENSATOR_setVoltage_Click(object sender, EventArgs e)
         {
-            //MC.Condensator.setVoltage(TXB_CONDENSATOR_setVoltage.Text);
-            //MC.testDAC_AD5643R(0 , Convert.ToUInt16(TXB_CONDENSATOR_setVoltage.Text));
             MC.Condensator.setVoltage(TXB_CONDENSATOR_setVoltage.Text);
         }
         private void BTN_CONDENSATOR_getPositiveVoltage_Click(object sender, EventArgs e)
@@ -638,7 +636,6 @@ namespace Xmega32A4U_testBoard
             LBL_realCOX_frequency.Text = MC.Counters.getRTCfrequency().ToString();
             LBL_realCOX_Devider.Text = MC.Counters.getRTCprescaler(TXB_realCOX_MeasureTime.Text).ToString();
         }
-
         private void BTN_realCOX_setParameters_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах 
@@ -653,7 +650,6 @@ namespace Xmega32A4U_testBoard
                 //trace(true, "Счётчик ещё считает!");
             //}
         }
-
         private void BTN_realCOX_start_Click(object sender, EventArgs e)
         {
             //try
@@ -677,12 +673,10 @@ namespace Xmega32A4U_testBoard
             //    return;
             //}
         }
-
         private void BTN_realCOX_stop_Click(object sender, EventArgs e)
         {
             MC.Counters.stopMeasure();
         }
-
         private void BTN_realCOX_check_Click(object sender, EventArgs e)
         {
             LBL_realCOX_RTCstate.Text = MC.Counters.receiveResults();
@@ -693,7 +687,6 @@ namespace Xmega32A4U_testBoard
             LBL_realCOX_COB_Ovf.Text = MC.Counters.COB.overflows.ToString();
             LBL_realCOX_COC_Ovf.Text = MC.Counters.COC.overflows.ToString();
         }
-
         private void BTN_checkFlags_Click(object sender, EventArgs e)
         {
            
@@ -705,11 +698,9 @@ namespace Xmega32A4U_testBoard
             if ((flags & 16) == 16) { CHB_iEDCD.Checked = true; } else { CHB_iEDCD.Checked = false; }
             if ((flags & 32) == 32) { CHB_iHVE.Checked = true; } else { CHB_iHVE.Checked = false; }
         }
-
         private void button1_Click(object sender, EventArgs e)
         {
             MC.setFlags(true, CHB_iHVE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
         }
-
     }
 }

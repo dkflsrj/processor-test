@@ -7,39 +7,6 @@
 
 #ifndef CONF_BOARD_H
 #define CONF_BOARD_H
-
-
-// “≈—“Œ¬¿ﬂ œÀ¿“¿
-// 	#define LED_VD1 IOPORT_CREATE_PIN(PORTB,0)
-// 	#define LED_VD2 IOPORT_CREATE_PIN(PORTB,2)
-// 	#define LED_VD3 IOPORT_CREATE_PIN(PORTB,3)
-// 	#define LED_VD4 IOPORT_CREATE_PIN(PORTD,0)
-// 	#define LED_VD5 IOPORT_CREATE_PIN(PORTD,1)
-// 	#define LED_VD6 IOPORT_CREATE_PIN(PORTD,2)
-// 	#define LED_VD7 IOPORT_CREATE_PIN(PORTD,3)
-// 	#define LED_VD8 IOPORT_CREATE_PIN(PORTD,4)
-// 	
-// 	#define A0		IOPORT_CREATE_PIN(PORTA,0)
-// 	#define A1		IOPORT_CREATE_PIN(PORTA,1)
-// 	#define A2		IOPORT_CREATE_PIN(PORTA,2)
-// 	#define A3		IOPORT_CREATE_PIN(PORTA,3)
-// 	#define A4		IOPORT_CREATE_PIN(PORTA,4)
-// 	#define A5		IOPORT_CREATE_PIN(PORTA,5)
-// 	#define A6		IOPORT_CREATE_PIN(PORTA,6)
-// 	#define A7		IOPORT_CREATE_PIN(PORTA,7)
-// 	
-// 	#define RXD		IOPORT_CREATE_PIN(PORTE,2)
-// 	#define TXD		IOPORT_CREATE_PIN(PORTE,3)
-// 	
-// 	#define LDAC	IOPORT_CREATE_PIN(PORTC,0)
-// 	#define SDAC	IOPORT_CREATE_PIN(PORTC,1)
-// 	#define SADC	IOPORT_CREATE_PIN(PORTC,2)
-// 	#define SS		IOPORT_CREATE_PIN(PORTC,4)
-// 	#define MOSI	IOPORT_CREATE_PIN(PORTC,5)
-// 	#define MISO	IOPORT_CREATE_PIN(PORTC,6)
-// 	#define SCLK	IOPORT_CREATE_PIN(PORTC,7)
-
-//œ–Œ≈ “Õ¿ﬂ œÀ¿“¿
 //------------------------------------ ŒÕ‘»√”–¿÷»» ƒÀﬂ Ã  Ã—œ---------------------------------------
 //PORT A
 #define pin_iWRIS	IOPORT_CREATE_PIN(PORTA, 0)		//SPI SS, Á‡ÔËÒ¸ »ÓÌÌÓ„Ó »ÒÚÓ˜ÌËÍ‡
