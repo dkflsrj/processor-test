@@ -13,8 +13,7 @@
 #define SPI_DEVICE_Number_ADC_IonSource				6
 #define SPI_DEVICE_Number_ADC_Detector				7
 #define SPI_DEVICE_Number_ADC_Inlet					8
-#define SPI_DEVICE_Number_ADC_Scaner				9
-#define SPI_DEVICE_Number_ADC_Condensator			10
+#define SPI_DEVICE_Number_ADC_MSV					9
 //-----------------------------------------СПИСОК КОМАНД---------------------------------------------
 #define COMMAND_MC_get_Version						1	//Команда: Запросить версию прошивки
 #define COMMAND_MC_get_Birthday						2	//Команда: Запросить дату создания прошивки
@@ -68,10 +67,7 @@
 #define COMMAND_Detector_DV3_get_Voltage			66	//Команда: Запросить напряжение DV3
 #define COMMAND_Inlet_get_Voltage					67	//Команда: Запросить напряжение натекателя
 #define COMMAND_Heater_get_Voltage					68	//Команда: Запросить напряжение нагревателя
-#define COMMAND_Scaner_Parent_get_Voltage			69	//Команда: Запросить родительское напряжение
-#define COMMAND_Scaner_Scan_get_Voltage				70	//Команда: Запросить сканирующее напряжение
-#define COMMAND_Condensator_get_PositiveVoltage		71	//Команда: Запросить напряжение конденсатора "+"
-#define COMMAND_Condensator_get_NegativeVoltage		72	//Команда: Запросить напряжение конденсатора "-"
+#define COMMAND_MSV_get_Voltage						70	//Команда: Запросить напряжение конденсатора ("+" или "-") или сканера (родительское или сканирующее)
 
 #define COMMAND_Flags_set							80	//Команда: Установить флаги (SEMV1,SEMV2,SEMV3,SPUMP,iEDCD,iHVE) 
 //-----------------------------------------------ОШИБКИ----------------------------------------------
@@ -162,15 +158,9 @@
 			break;																								\
 		case COMMAND_Heater_get_Voltage: 			SPI_send(SPI_DEVICE_Number_ADC_Inlet,BYTES);				\
 			break;																								\
-		case COMMAND_Scaner_Parent_get_Voltage: 	SPI_send(SPI_DEVICE_Number_ADC_Scaner,BYTES);				\
+		case COMMAND_MSV_get_Voltage: 				SPI_send(SPI_DEVICE_Number_ADC_MSV,BYTES);					\
 			break;																								\
-		case COMMAND_Scaner_Scan_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Scaner,BYTES);				\
-			break;																								\
-		case COMMAND_Condensator_get_PositiveVoltage: 	SPI_send(SPI_DEVICE_Number_ADC_Condensator,BYTES);		\
-			break;																								\
-		case COMMAND_Condensator_get_NegativeVoltage: 	SPI_send(SPI_DEVICE_Number_ADC_Condensator,BYTES);		\
-			break;																								\
-		case COMMAND_Flags_set: 					checkFlags(BYTES[1]);											\
+		case COMMAND_Flags_set: 					checkFlags(BYTES[1]);										\
 			break;																								\
 		default: transmit_3bytes(ERROR_Token, ERROR_Decoder, BYTES[0]);											\
 	}

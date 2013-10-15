@@ -137,7 +137,7 @@ namespace Xmega32A4U_testBoard
                     public struct ParentScan
                     {
                         public const byte setVoltage = 51;
-                        public const byte getVoltage = 69;
+                        public const byte getVoltage = 70;
                     }
                     public struct Scan
                     {
@@ -149,8 +149,8 @@ namespace Xmega32A4U_testBoard
                 {
                     //Коды команд Конденсатора
                     public const byte setVoltage = 53;
-                    public const byte getPositiveVoltage = 71;
-                    public const byte getNegativeVoltage = 72;
+                    public const byte getPositiveVoltage = 70;
+                    public const byte getNegativeVoltage = 70;
                 }
             }
             public const byte LOCK = 13;

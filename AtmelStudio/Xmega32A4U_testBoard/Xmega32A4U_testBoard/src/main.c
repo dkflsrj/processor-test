@@ -31,8 +31,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 56
-#define birthday 20131014
+#define version 57
+#define birthday 20131015
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
 #define usartRX_delay 2										//Задержка приёма данных иначе разобьём команду на части
@@ -147,7 +147,7 @@ struct spi_device ADC_Detector = {
 struct spi_device ADC_Inlet = {
 	.id = pin_iECINL
 };
-struct spi_device ADC_Scaner = {
+struct spi_device ADC_MSV = {
 	.id = pin_iECSV
 };
 //ADC у конденсатора тот же что и у сканера
@@ -791,8 +791,7 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	//			6			 IonSource		ADC
 	//			7			 Detector		ADC
 	//			8			 Inlet			ADC
-	//			9			 Scaner			ADC
-	//			10			 Condensator	ADC
+	//			9			 MSV			ADC (Scaner and Condensator)
 	//Создадим виртульное устройство
 	bool DEVICE_is_DAC = true;
 	bool DAC_is_AD5643R = false;
@@ -822,8 +821,7 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 		case 8: SPI_DEVICE = ADC_Inlet;
 			DEVICE_is_DAC = false;
 			break;
-		case 9: //Сканер и Конденсатор на одном АЦП
-		case 10: SPI_DEVICE = ADC_Scaner;
+		case 9:  SPI_DEVICE = ADC_MSV;
 			DEVICE_is_DAC = false;
 			break;
 		default:
