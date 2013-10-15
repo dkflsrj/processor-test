@@ -624,7 +624,15 @@ namespace Xmega32A4U_testBoard
                 {
                     case Constants.Status_ready:
                         //Счётчик готов. Сохраняем результаты.
-                        COA.overflows = rDATA[1];
+                        try
+                        {
+                            COA.overflows = rDATA[1];
+                        }
+                        catch (Exception)
+                        {
+                            trace("Counters.receiveResults(): Ошибка! Получено данных меньше, чем ожидалось!");
+                            return "Ошибка!";
+                        }
                         COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
                         COB.overflows = rDATA[6];
                         COB.Result = Convert.ToUInt32(rDATA[7] * 16777216 + rDATA[8] * 65536 + rDATA[9] * 256 + rDATA[10]);
@@ -781,7 +789,15 @@ namespace Xmega32A4U_testBoard
                 ushort voltage = 0;
                 byte adress = 1;
                 adress += Convert.ToByte(rDATA[0] >> 4);
-                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                try
+                {
+                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                }
+                catch (Exception)
+                {
+                    trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "):Ошибка! Получено данных меньше, чем ожидалось!");
+                    return 0;
+                }
                 trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "): Ответный адрес канала: " + adress);
                 trace("ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + "): Напряжение: " + voltage);
                 return voltage;
@@ -895,7 +911,15 @@ namespace Xmega32A4U_testBoard
                 ushort voltage = 0;
                 byte adress = 1;
                 adress += Convert.ToByte(rDATA[0] >> 4);
-                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                try
+                {
+                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                }
+                catch (Exception)
+                {
+                    trace(".Condensator.getVoltage(" + command + ", " + CHANNEL + "):Ошибка! Получено данных меньше, чем ожидалось!");
+                    return 0;
+                }
                 trace(".Condensator.getVoltage(" + command + ", " + CHANNEL + "): Ответный адрес канала: " + adress);
                 trace(".Condensator.getVoltage(" + command + ", " + CHANNEL + "): Напряжение: " + voltage);
                 return voltage;
@@ -1200,7 +1224,15 @@ namespace Xmega32A4U_testBoard
                 UInt32 birthday = 0;
                 string answer = "00000000";
                 byte[] recDATA = transmit(Command.Chip.getBirthday);
-                birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                try
+                {
+                    birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                }
+                catch (Exception)
+                {
+                    trace("Chip.getBirthday(): Ошибка! Получено меньше данных чем ожидалось!");
+                    return answer;
+                }
                 answer = birthday.ToString();
                 answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
                 trace("Chip.getBirthday(): Дата создания прошивки МК: " + answer);
@@ -1216,7 +1248,15 @@ namespace Xmega32A4U_testBoard
                 trace("Chip.getCPUfrequency()");
                 UInt32 frequency = 0;
                 byte[] recDATA = transmit(Command.Chip.getCPUfrequency);
-                frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                try
+                {
+                    frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                }
+                catch (Exception)
+                {
+                    trace("Chip.getBirthday(): Ошибка! Получено меньше данных чем ожидалось!");
+                    return "Неизвестно";
+                }
                 trace("Chip.getCPUfrequency(): Частота процессора: "+frequency.ToString() + " Гц");
                 return frequency.ToString() + " Гц";
             }
@@ -1408,6 +1448,30 @@ namespace Xmega32A4U_testBoard
         public XMEGA32A4U()
         {
             trace("Инициализация " + DateTime.Now.ToString("dd MMMM yyyy"));
+        }
+        //Флаги
+        /// <summary>
+        /// МК устанавливает и возвращает флаги в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP|, где SPUM - нулевой бит
+        /// </summary>
+        /// <param name="set_flags">true - установить следующие флаги, <para>false - не устанавливать, только проверить</para></param>
+        /// <param name="HVE">Разрешение высокого напряжения</param>
+        /// <param name="EDCD">Разрешение дистанционного управления</param>
+        /// <param name="SEMV1">Электромагнитный вентиль 1</param>
+        /// <param name="SEMV2">Электромагнитный вентиль 2</param>
+        /// <param name="SEMV3">Электромагнитный вентиль 3</param>
+        /// <param name="SPUMP">Включение насоса?</param>
+        /// <returns>Байт флагов в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP| </returns>
+        public byte setFlags(bool set_flags, bool HVE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
+        {
+            //ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
+            //ПОЯСНЕНИЯ: Формат байта: <Проверить\Установить><0><iHVE><iEDCD><SEMV1><SEMV2><SEMV3><SPUMP>
+            trace_attached(Environment.NewLine);
+            trace(".setFlags(" + Convert.ToInt16(set_flags) + 0 + Convert.ToInt16(HVE) + Convert.ToInt16(EDCD) + Convert.ToInt16(SEMV1) + Convert.ToInt16(SEMV2) + Convert.ToInt16(SEMV3) + Convert.ToInt16(SPUMP) + ")");
+            byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(HVE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
+            //trace(flags.ToString());
+            flags = transmit(Command.setFlags, flags)[0];
+            if ((flags & 64) == 64) { trace(".setFlags(): Отмена операции. Флаги синхронизированы!"); }
+            return flags;
         }
         //ИНТЕРФЕЙСНЫЕ
         static void trace(string text)
@@ -1663,69 +1727,6 @@ namespace Xmega32A4U_testBoard
             {
                 trace("Слишком короткое сообщение. Вероятно, это отклик.");
             }
-        }
-        /// <summary>
-        /// МК устанавливает и возвращает флаги в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP|, где SPUM - нулевой бит
-        /// </summary>
-        /// <param name="set_flags">true - установить следующие флаги, <para>false - не устанавливать, только проверить</para></param>
-        /// <param name="HVE">Разрешение высокого напряжения</param>
-        /// <param name="EDCD">Разрешение дистанционного управления</param>
-        /// <param name="SEMV1">Электромагнитный вентиль 1</param>
-        /// <param name="SEMV2">Электромагнитный вентиль 2</param>
-        /// <param name="SEMV3">Электромагнитный вентиль 3</param>
-        /// <param name="SPUMP">Включение насоса?</param>
-        /// <returns>Байт флагов в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP| </returns>
-        public byte setFlags(bool set_flags, bool HVE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
-        {
-            //ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
-	        //ПОЯСНЕНИЯ: Формат байта: <Проверить\Установить><0><iHVE><iEDCD><SEMV1><SEMV2><SEMV3><SPUMP>
-            trace_attached(Environment.NewLine);
-            trace(".setFlags(" + Convert.ToInt16(set_flags) + 0 + Convert.ToInt16(HVE) + Convert.ToInt16(EDCD) + Convert.ToInt16(SEMV1) + Convert.ToInt16(SEMV2) + Convert.ToInt16(SEMV3) + Convert.ToInt16(SPUMP) + ")");
-            byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(HVE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
-            //trace(flags.ToString());
-            return transmit(Command.setFlags, flags)[0];
-        }
-        public void testDAC_AD5643R(byte CHANNEL, ushort VOLTAGE)
-        {
-                //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
-                if (VOLTAGE >= 0 && VOLTAGE <= 16383)
-                {
-                    trace_attached(Environment.NewLine);
-                    //trace(".testDAC_AD5643R(" + VOLTAGE + ")");
-                    //посылаем настройку - включение внутреннего референса
-                    trace(".testDAC_AD5643R(" + "настройка" + ");");
-                    byte Hbyte = 56;
-                    byte Mbyte = 0;
-                    byte Lbyte = 1;
-                    byte[] data = { Hbyte, Mbyte, Lbyte };
-                    if (transmit(Command.SPI.Scaner.ParentScan.setVoltage, data)[0] != Command.SPI.Scaner.ParentScan.setVoltage)
-                    {
-                        trace(".testDAC_AD5643R(" + "настройка" + "): ОШИБКА ОТКЛИКА!");
-                        return;
-                    }
-                    trace(".testDAC_AD5643R(" + "настройка" + "): Операция выполнена успешно!");
-                    trace(".testDAC_AD5643R(" + VOLTAGE + ");");
-                    //посылаем напряжение
-                    int V = VOLTAGE;
-                    V = V << 2;
-                    byte[] bytes = BitConverter.GetBytes(V);
-                    //byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                    Hbyte = Convert.ToByte(24 + CHANNEL);
-                    trace(bytes[1] + " " + bytes[0]);
-                    Mbyte = bytes[1];
-                    Lbyte = bytes[0];
-                    trace(Hbyte + " " + Mbyte + " " + Lbyte);
-                    data = new byte[] { Hbyte, Mbyte, Lbyte};
-                    //if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
-                    if (transmit(Command.SPI.Scaner.ParentScan.setVoltage, data)[0] == Command.SPI.Scaner.ParentScan.setVoltage)
-                    {
-                        trace(".testDAC_AD5643R(" + VOLTAGE + "): Операция выполнена успешно!");
-                        return;
-                    }
-                    trace(".testDAC_AD5643R(" + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
-                    return;
-                }
-                trace(".testDAC_AD5643R(" + VOLTAGE + "):ОШИБКА! Операция отменена! Значение VOLTAGE ожидалось от 0 до 16383!");
         }
         //   ! Р А З О Б Р А Т Ь ! Неиспользуемые функции
         void trace_error(byte[] DATA)
