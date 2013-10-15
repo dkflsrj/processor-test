@@ -31,7 +31,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version 61
+#define version 62
 #define birthday 20131015
 #define usartCOMP_delay 10
 #define usartTIC_delay 1
@@ -73,6 +73,7 @@ uint8_t USART_MEM_length = 0;
 uint8_t CommandStack = 0;
 //		SPI
 uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
+uint8_t SPI_AD5643R_configurated = 0;		//0 - ни один ЦАПов AD5643 не с конфигурирован, 1 - сконфигурирован ЦАП конденсатора, 2 - сконфигурирован ЦАП сканера, 3 - сконфигурированы оба!
 //		Измерения
 
 //uint16_t RTC_MeasureTime = 1000;			//Время интервала (в миллисекунд)[0.05...30 сек]
@@ -189,7 +190,7 @@ void ERROR_ASYNCHR(void);
 void TIC_transmit(uint8_t DATA[]);
 
 void SPI_send(uint8_t DEVICE_Number, uint8_t data[]);
-
+void SPI_configurate_DAC_AD5643R(struct spi_device SPI_DEV);
 void checkFlags(uint8_t DATA);
 void updateFlags();
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
@@ -807,9 +808,31 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 		case 3:	SPI_DEVICE = DAC_Inlet;
 			break;
 		case 4: SPI_DEVICE = DAC_Scaner;
+			switch(SPI_AD5643R_configurated)
+			{
+				case 0: SPI_AD5643R_configurated = 2;
+						SPI_configurate_DAC_AD5643R(DAC_Scaner);
+					break;
+				case 1:	SPI_AD5643R_configurated = 3;
+						SPI_configurate_DAC_AD5643R(DAC_Scaner);
+					break;
+				default:
+					break;
+			}
 			DAC_is_AD5643R = true;
 			break;
 		case 5: SPI_DEVICE = DAC_Condensator;
+			switch(SPI_AD5643R_configurated)
+			{
+				case 0: SPI_AD5643R_configurated = 1;
+						SPI_configurate_DAC_AD5643R(DAC_Condensator);
+					break;
+				case 2:	SPI_AD5643R_configurated = 3;
+						SPI_configurate_DAC_AD5643R(DAC_Condensator);
+					break;
+				default:
+					break;
+			}
 			DAC_is_AD5643R = true;
 			break;
 		case 6:	SPI_DEVICE = ADC_IonSource;
@@ -831,6 +854,7 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	//Если устройство DAC AD5643R то посылаем данные по его протоколу, откликаемся и выходим
 	if(DAC_is_AD5643R)
 	{
+		//Сконфигурированы ли ЦАПы?
 		uint8_t sdata[] = {data[1], data[2], data[3]};
 		spi_select_device(&SPIC, &SPI_DEVICE);
 		spi_write_packet(&SPIC, sdata, 3);
@@ -842,7 +866,8 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	}
 	//Если SPI-устройство - ЦАП, то посылаем, откликаемся и выходим. 
 	if(DEVICE_is_DAC)
-	{	uint8_t sdata[] = {data[1], data[2]};
+	{	
+		uint8_t sdata[] = {data[1], data[2]};
 		spi_select_device(&SPIC, &SPI_DEVICE);
 		spi_write_packet(&SPIC, sdata, 2);
 		spi_deselect_device(&SPIC, &SPI_DEVICE);
@@ -865,7 +890,14 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
 	transmit(aswDATA, 3);
 }
-
+void SPI_configurate_DAC_AD5643R(struct spi_device SPI_DEV)
+{
+	//ФУНКЦИЯ: Конфигурирует ЦАП AD5643R
+	uint8_t sdata[] = {56, 0, 1};	//настроечные байты для ЦАПА AD5643R
+	spi_select_device(&SPIC, &SPI_DEV);
+	spi_write_packet(&SPIC, sdata, 3);
+	spi_deselect_device(&SPIC, &SPI_DEV);
+}
 void checkFlags(uint8_t DATA)
 {
 	//ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
@@ -885,7 +917,7 @@ void checkFlags(uint8_t DATA)
 	{
 		//Есть что менять!
 		uint8_t i = ((DATA & 32) >> 5);
-		if(flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE);}}
+		if(flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE); SPI_AD5643R_configurated = 0;}}
 		i = ((DATA & 16) >> 4);
 		if(flags.iEDCD != i){if(i == 1){gpio_set_pin_high(pin_iEDCD);}else{gpio_set_pin_low(pin_iEDCD);}}
 		i = ((DATA & 8) >> 3);

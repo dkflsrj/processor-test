@@ -868,10 +868,6 @@ namespace Xmega32A4U_testBoard
                 if (VOLTAGE >= 0 && VOLTAGE <= 16383)
                 {
                     trace(".Condensator.setVoltage(" + Command.SPI.Condensator.setVoltage + "," + DAC_channel + "," + VOLTAGE + "): AD5643R;");
-                    if (!Ref_is_inner)
-                    {
-                        DAC_setInnerReference();
-                    }
                     //посылаем напряжение
                     int voltage = VOLTAGE;
                     voltage = voltage << 2;
@@ -953,26 +949,6 @@ namespace Xmega32A4U_testBoard
             public void enableDoubleRange(bool enable)
             {
                 DoubleRange = enable;
-            }
-            /// <summary>
-            /// Сбрасывает все настройки DAC'а и его напряжения 
-            /// </summary>
-            
-            bool DAC_setInnerReference()
-            {
-                //ФУНКЦИЯ: Посылаем настройки внутреннего опорного напряжение для ЦАПа. Включаем его.
-                //ПРИМЕЧАНИЕ: Необходимо чтобы данная функция была перенесена на микроконтроллер, чтобы он конфигурировал DAC сам. Или вынести в отдельную функцию - "сконфигурировать всё"
-                trace_attached(Environment.NewLine);
-                //посылаем настройку - включение внутреннего референса
-                trace(".Condensator.DAC.configurate(" + Command.SPI.Condensator.setVoltage + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): Включение внутреннего референса...");
-                if (transmit(Command.SPI.Condensator.setVoltage, ConfInnerRef_bytes)[0] != Command.SPI.Condensator.setVoltage)
-                {
-                    trace(".Condensator.DAC.configurate(" + Command.SPI.Condensator.setVoltage + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): ОШИБКА ОТКЛИКА!");
-                    return false;
-                }
-                trace(".Condensator.DAC.configurate(" + Command.SPI.Condensator.setVoltage + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): Операция выполнена успешно!");
-                Ref_is_inner = true;
-                return true;
             }
             //Видимые функции
             /// <summary>
@@ -1127,7 +1103,6 @@ namespace Xmega32A4U_testBoard
                 //DAC AD5643R
                 byte[] Reset_bytes = { 40, 0, 1 }; //старший, средний, младший
                 byte[] ConfInnerRef_bytes = { 56, 0, 1 }; //старший, средний, младший
-                bool Ref_is_inner = false;
                 byte ADC_command;
                 byte ADC_channel;
                 byte DAC_command;
@@ -1146,10 +1121,6 @@ namespace Xmega32A4U_testBoard
                     if (VOLTAGE >= 0 && VOLTAGE <= 16383)
                     {
                         trace(".Condensator.setVoltage(" + DAC_command + "," + DAC_channel + "," + VOLTAGE + "): AD5643R;");
-                        if (!Ref_is_inner)
-                        {
-                            DAC_setInnerReference();
-                        }
                         //посылаем напряжение
                         int voltage = VOLTAGE;
                         voltage = voltage << 2;
@@ -1219,26 +1190,6 @@ namespace Xmega32A4U_testBoard
                 public void enableDoubleRange(bool enable)
                 {
                     DoubleRange = enable;
-                }
-                /// <summary>
-                /// Сбрасывает все настройки DAC'а и его напряжения 
-                /// </summary>
-
-                bool DAC_setInnerReference()
-                {
-                    //ФУНКЦИЯ: Посылаем настройки внутреннего опорного напряжение для ЦАПа. Включаем его.
-                    //ПРИМЕЧАНИЕ: Необходимо чтобы данная функция была перенесена на микроконтроллер, чтобы он конфигурировал DAC сам. Или вынести в отдельную функцию - "сконфигурировать всё"
-                    trace_attached(Environment.NewLine);
-                    //посылаем настройку - включение внутреннего референса
-                    trace(".Condensator.DAC.configurate(" + DAC_command + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): Включение внутреннего референса...");
-                    if (transmit(DAC_command, ConfInnerRef_bytes)[0] != DAC_command)
-                    {
-                        trace(".Condensator.DAC.configurate(" + DAC_command + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): ОШИБКА ОТКЛИКА!");
-                        return false;
-                    }
-                    trace(".Condensator.DAC.configurate(" + DAC_command + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): Операция выполнена успешно!");
-                    Ref_is_inner = true;
-                    return true;
                 }
                 //Видимые функции
                 /// <summary>
