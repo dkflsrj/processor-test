@@ -590,6 +590,7 @@ namespace Xmega32A4U_testBoard
         {
             MC.Scaner.enableDoubleRange(CHB_SCANER_x2.Checked);
             LBL_SCANER_getParentScanVoltage.Text = MC.Scaner.ParentScan.getVoltage().ToString();
+
         }
         private void BTN_SCANER_getScanVoltage_Click(object sender, EventArgs e)
         {

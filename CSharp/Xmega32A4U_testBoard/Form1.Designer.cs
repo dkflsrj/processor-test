@@ -1575,7 +1575,6 @@
             // 
             // TXB_SCANER_setScanVoltage
             // 
-            this.TXB_SCANER_setScanVoltage.Enabled = false;
             this.TXB_SCANER_setScanVoltage.Location = new System.Drawing.Point(103, 67);
             this.TXB_SCANER_setScanVoltage.Name = "TXB_SCANER_setScanVoltage";
             this.TXB_SCANER_setScanVoltage.Size = new System.Drawing.Size(44, 20);
@@ -1584,7 +1583,6 @@
             // 
             // TXB_SCANER_setParentScanVoltage
             // 
-            this.TXB_SCANER_setParentScanVoltage.Enabled = false;
             this.TXB_SCANER_setParentScanVoltage.Location = new System.Drawing.Point(103, 38);
             this.TXB_SCANER_setParentScanVoltage.Name = "TXB_SCANER_setParentScanVoltage";
             this.TXB_SCANER_setParentScanVoltage.Size = new System.Drawing.Size(44, 20);
@@ -1593,7 +1591,6 @@
             // 
             // BTN_SCANER_setParentScanVoltage
             // 
-            this.BTN_SCANER_setParentScanVoltage.Enabled = false;
             this.BTN_SCANER_setParentScanVoltage.Location = new System.Drawing.Point(5, 36);
             this.BTN_SCANER_setParentScanVoltage.Name = "BTN_SCANER_setParentScanVoltage";
             this.BTN_SCANER_setParentScanVoltage.Size = new System.Drawing.Size(92, 23);
@@ -1614,7 +1611,6 @@
             // 
             // BTN_SCANER_setScanVoltage
             // 
-            this.BTN_SCANER_setScanVoltage.Enabled = false;
             this.BTN_SCANER_setScanVoltage.Location = new System.Drawing.Point(5, 65);
             this.BTN_SCANER_setScanVoltage.Name = "BTN_SCANER_setScanVoltage";
             this.BTN_SCANER_setScanVoltage.Size = new System.Drawing.Size(92, 23);

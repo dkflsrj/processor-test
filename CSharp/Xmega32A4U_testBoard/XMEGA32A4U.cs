@@ -854,7 +854,7 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
         }
-        public class SPI_DEVICE_CHANNEL_CONDENSATOR
+        public class SPI_CONDENSATOR
         {
             //КЛАСС: Каналы для конденсатора (+\-) с reset()'ом
             //DAC AD5643R
@@ -909,7 +909,7 @@ namespace Xmega32A4U_testBoard
                 byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), Lbyte };
                 byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
-                byte adress = 1;
+                byte adress = 0;
                 adress += Convert.ToByte(rDATA[0] >> 4);
                 try
                 {
@@ -1116,21 +1116,180 @@ namespace Xmega32A4U_testBoard
         {
             //КЛАСС: Сканер (Сканирющее напряжение).
             //DAC AD5643BR
-            const byte Reset_Hbyte = 255;
-            const byte Reset_Lbyte = 255;
-            const byte DAC_ParentScan_Channel = 1;
-            const byte DAC_Scan_Channel = 2;
-            const byte ADC_ParentScan_Channel = 1;//3   -каналы DAC и ADC различны (закоментированы реальные)
-            const byte ADC_Scan_Channel = 2;//4
+            const byte DAC_ParentScan_Channel = 0;
+            const byte DAC_Scan_Channel = 1;
+            const byte ADC_ParentScan_Channel = 3;
+            const byte ADC_Scan_Channel = 2;
+            //Класс для двух каналов сканирующего напряжения
+            public class SPI_DEVICE_CHANNEL_withAD5643R
+            {
+                //КЛАСС: Для канала с ЦАПом AD5643R и номральным АЦП
+                //DAC AD5643R
+                byte[] Reset_bytes = { 40, 0, 1 }; //старший, средний, младший
+                byte[] ConfInnerRef_bytes = { 56, 0, 1 }; //старший, средний, младший
+                bool Ref_is_inner = false;
+                byte ADC_command;
+                byte ADC_channel;
+                byte DAC_command;
+                byte DAC_channel = 24; //Канал нулевой, но посылка (24+КАНАЛ)
+                //КОНСТРУКТОР
+                public SPI_DEVICE_CHANNEL_withAD5643R(byte DAC_Channel, byte DAC_Command, byte ADC_Channel, byte ADC_Command)
+                {
+                    DAC_command = DAC_Command;
+                    DAC_channel += DAC_Channel;
+                    ADC_command = ADC_Command;
+                    ADC_channel = ADC_Channel;
+                }
+                bool DAC_setVoltage(ushort VOLTAGE)
+                {
+                    //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
+                    if (VOLTAGE >= 0 && VOLTAGE <= 16383)
+                    {
+                        trace(".Condensator.setVoltage(" + DAC_command + "," + DAC_channel + "," + VOLTAGE + "): AD5643R;");
+                        if (!Ref_is_inner)
+                        {
+                            DAC_setInnerReference();
+                        }
+                        //посылаем напряжение
+                        int voltage = VOLTAGE;
+                        voltage = voltage << 2;
+                        byte[] bytes = BitConverter.GetBytes(voltage);
+                        byte Hbyte = Convert.ToByte(DAC_channel);
+                        byte Mbyte = bytes[1];
+                        byte Lbyte = bytes[0];
+                        byte[] data = new byte[] { Hbyte, Mbyte, Lbyte };
+                        if (transmit(DAC_command, data)[0] == DAC_command)
+                        {
+                            trace(".Condensator.setVoltage(" + DAC_command + "," + DAC_channel + "," + VOLTAGE + "): Операция выполнена успешно!");
+                            return true;
+                        }
+                        trace(".Condensator.setVoltage(" + DAC_command + "," + DAC_channel + "," + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
+                        return false;
+                    }
+                    trace(".Condensator.setVoltage(" + DAC_command + "," + DAC_channel + "," + VOLTAGE + "):ОШИБКА! Операция отменена! Значение VOLTAGE ожидалось от 0 до 16383!");
+                    return false;
+                }
+                //ADC
+                const byte ADC_Hbyte = 131;
+                const byte ADC_Lbyte_DoubleRange = 16;
+                const byte ADC_Lbyte_NormalRange = 48;
+                const byte ChannelStep = 4;
+                bool DoubleRange = true;
+                ushort ADC_getVoltage(byte command, byte CHANNEL)
+                {
+                    trace_attached(Environment.NewLine);
+                    trace(".Condensator.getVoltage(" + command + ", " + CHANNEL + ")");
+                    trace(".Condensator.getVoltage(" + command + ", " + CHANNEL + "): DoubleRange = " + DoubleRange);
+                    byte Lbyte = 0;
+                    if (DoubleRange) { Lbyte = ADC_Lbyte_DoubleRange; } else { Lbyte = ADC_Lbyte_NormalRange; }
+                    byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), Lbyte };
+                    byte[] rDATA = transmit(command, data);
+                    ushort voltage = 0;
+                    byte adress = 0;
+                    adress += Convert.ToByte(rDATA[0] >> 4);
+                    try
+                    {
+                        voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                    }
+                    catch (Exception)
+                    {
+                        trace(".Condensator.getVoltage(" + command + ", " + CHANNEL + "):Ошибка! Получено данных меньше, чем ожидалось!");
+                        return 0;
+                    }
+                    trace(".Condensator.getVoltage(" + command + ", " + CHANNEL + "): Ответный адрес канала: " + adress);
+                    trace(".Condensator.getVoltage(" + command + ", " + CHANNEL + "): Напряжение: " + voltage);
+                    return voltage;
+                }
+                //Видимые функции
+                /// <summary>
+                /// Возвращает напряжение положительной обкладки конденсатора
+                /// <para>Если DoubleRange = true, то диапазон напряжения увеличен в двое.</para>
+                /// <para>Если DoubleRange = false, то диапазон напряжения соответствует выставляемому DAC'ом</para>
+                /// <para>DoubleRange задаётся командой .enableDoubleRange(bool)</para>
+                /// </summary>
+                public ushort getVoltage()
+                {
+                    return ADC_getVoltage(ADC_command, ADC_channel);
+                }
+                /// <summary>
+                /// .enableDoubleRange(true) - увеличивает диапазон напряжения считываемого ADC в двое.
+                /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом</para>
+                /// <para>Задавать до .getPositiveVoltage() и .getNegativeVoltage()</para>
+                /// </summary>
+                public void enableDoubleRange(bool enable)
+                {
+                    DoubleRange = enable;
+                }
+                /// <summary>
+                /// Сбрасывает все настройки DAC'а и его напряжения 
+                /// </summary>
+
+                bool DAC_setInnerReference()
+                {
+                    //ФУНКЦИЯ: Посылаем настройки внутреннего опорного напряжение для ЦАПа. Включаем его.
+                    //ПРИМЕЧАНИЕ: Необходимо чтобы данная функция была перенесена на микроконтроллер, чтобы он конфигурировал DAC сам. Или вынести в отдельную функцию - "сконфигурировать всё"
+                    trace_attached(Environment.NewLine);
+                    //посылаем настройку - включение внутреннего референса
+                    trace(".Condensator.DAC.configurate(" + DAC_command + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): Включение внутреннего референса...");
+                    if (transmit(DAC_command, ConfInnerRef_bytes)[0] != DAC_command)
+                    {
+                        trace(".Condensator.DAC.configurate(" + DAC_command + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): ОШИБКА ОТКЛИКА!");
+                        return false;
+                    }
+                    trace(".Condensator.DAC.configurate(" + DAC_command + "," + DAC_channel + "," + ConfInnerRef_bytes[0] + "|" + ConfInnerRef_bytes[1] + "|" + ConfInnerRef_bytes[2] + "|" + "): Операция выполнена успешно!");
+                    Ref_is_inner = true;
+                    return true;
+                }
+                //Видимые функции
+                /// <summary>
+                /// Задаёт напряжение на DAC
+                /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+                /// <para>Возвращает:</para>
+                /// <para>true - операция выполнена успешно</para>
+                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
+                /// </summary>
+                /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+                /// <returns></returns>
+                public bool setVoltage(ushort VOLTAGE)
+                {
+                    return DAC_setVoltage(VOLTAGE);
+                }
+                /// <summary>
+                /// Задаёт напряжение на DAC
+                /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+                /// <para>Возвращает:</para>
+                /// <para>true - операция выполнена успешно</para>
+                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
+                /// </summary>
+                /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+                /// <returns></returns>
+                public bool setVoltage(string VOLTAGE)
+                {
+                    return setVoltage(Convert.ToUInt16(VOLTAGE));
+                }
+                /// <summary>
+                /// Задаёт напряжение на DAC
+                /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+                /// <para>Возвращает:</para>
+                /// <para>true - операция выполнена успешно</para>
+                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
+                /// </summary>
+                /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+                /// <returns></returns>
+                public bool setVoltage(int VOLTAGE)
+                {
+                    return setVoltage(Convert.ToUInt16(VOLTAGE));
+                }
+            }
             //Каналы
             /// <summary>
             /// "Родительское" сканирующее напряжение
             /// </summary>
-            public SPI_DEVICE_CHANNEL ParentScan = new SPI_DEVICE_CHANNEL(DAC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.setVoltage, ADC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.getVoltage);
+            public SPI_DEVICE_CHANNEL_withAD5643R ParentScan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.setVoltage, ADC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.getVoltage);
             /// <summary>
             /// Сканирующее напряжение
             /// </summary>
-            public SPI_DEVICE_CHANNEL Scan = new SPI_DEVICE_CHANNEL(DAC_Scan_Channel, Command.SPI.Scaner.Scan.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.Scan.getVoltage);
+            public SPI_DEVICE_CHANNEL_withAD5643R Scan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_Scan_Channel, Command.SPI.Scaner.Scan.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.Scan.getVoltage);
             /// <summary>
             /// Сбрасывает все настройки DAC'а и его напряжения 
             /// </summary>
@@ -1138,12 +1297,12 @@ namespace Xmega32A4U_testBoard
             {
                 trace_attached(Environment.NewLine);
                 trace("DAC_CHANNEL.reset(SCANER)");
-                byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.Scaner.Scan.setVoltage, data)[0] == Command.SPI.Scaner.Scan.setVoltage)
-                {
+                //byte[] data = { Reset_Hbyte, Reset_Lbyte };
+                //if (transmit(Command.SPI.Scaner.Scan.setVoltage, data)[0] == Command.SPI.Scaner.Scan.setVoltage)
+                //{
                     trace("DAC_CHANNEL.reset(SCANER): Операция выполнена успешно! Напряжения DAC'a Сканера сброшены");
                     return true;
-                }
+                //}
                 trace("DAC_CHANNEL.reset(SCANER): ОШИБКА ОТКЛИКА! Напряжения DAC'а Сканера вероятно не сброшены!");
                 return false;
             }
@@ -1419,7 +1578,7 @@ namespace Xmega32A4U_testBoard
         /// <summary>
         /// Конденсатор
         /// </summary>
-        public SPI_DEVICE_CHANNEL_CONDENSATOR Condensator = new SPI_DEVICE_CHANNEL_CONDENSATOR();
+        public SPI_CONDENSATOR Condensator = new SPI_CONDENSATOR();
         /// <summary>
         /// Микроконтроллер XMega32A4U
         /// </summary>
