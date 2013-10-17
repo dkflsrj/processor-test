@@ -191,7 +191,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_LEDbyte_Click(object sender, EventArgs e)
         {
-            MC.Tester.showMeByte(TXB_LEDbyte.Text);
+            //MC.Tester.showMeByte(TXB_LEDbyte.Text);
         }
         private void BTN_SPI_DAC_send_Click(object sender, EventArgs e)
         {
