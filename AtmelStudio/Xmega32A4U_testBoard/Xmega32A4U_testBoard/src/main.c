@@ -25,8 +25,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										64
-#define birthday									20131015
+#define version										65
+#define birthday									20131017
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
 #define usartRX_delay								2		//Задержка приёма данных иначе разобьём команду на части
@@ -51,7 +51,7 @@ uint32_t MC_birthday = birthday;
 uint8_t MC_status = 0;					/* Состояние микроконтроллера:
 *	0 - Неинициализирован, запрещённое состояние;
 *	1 - режим ожидания;
-*	2 - отображение байта на светодиодах;
+*	2 - Задание - сконфигурировать ЦАПы на плате MSV и выставить средние напряжения;
 */
 uint8_t MC_error = 0;					/* Код последней ошибки:
 *	0 - Неинициализирован, запрещённое состояние;
@@ -832,7 +832,6 @@ void checkFlags(uint8_t DATA)
 	//ПОЯСНЕНИЯ: Формат байта: <Проверить\Установить><Операция отменена><iHVE><iEDCD><SEMV1><SEMV2><SEMV3><SPUMP>
 	//				Если первый бит <Проверить\Установить> = 0, то МК тут же возвращает текущее состояние флагов
 	//				Если первый бит <Проверить\Установить> = 1, то МК устанавливает флаги и возвращает их.
-	bool turnOnDACsOnMSVcard = false;
 	updateFlags();
 	flags.checkOrSet = DATA >> 7;
 	if(flags.checkOrSet == 0)
@@ -846,7 +845,7 @@ void checkFlags(uint8_t DATA)
 	{
 		//Есть что менять!
 		uint8_t i = ((DATA & 32) >> 5);
-		if(flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE); turnOnDACsOnMSVcard = true;}}
+		if(flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE); MC_status = 2;}}
 		i = ((DATA & 16) >> 4);
 		if(flags.iEDCD != i){if(i == 1){gpio_set_pin_high(pin_iEDCD);}else{gpio_set_pin_low(pin_iEDCD);}}
 		i = ((DATA & 8) >> 3);
@@ -859,29 +858,6 @@ void checkFlags(uint8_t DATA)
 		if(flags.SPUMP != i){if(i == 1){gpio_set_pin_high(pin_SPUMP);}else{gpio_set_pin_low(pin_SPUMP);}}
 		updateFlags();
 		transmit_2bytes(COMMAND_Flags_set, *pointer_flags);
-		if(turnOnDACsOnMSVcard)
-		{
-			delay_ms(20); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
-			//Высокое напряжение включеноё - конфигурируем DAC
-			uint8_t sdata[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};	//настроечные байты для ЦАПА AD5643R
-			spi_select_device(&SPIC, &DAC_Condensator);
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, sdata, 3);
-			spi_deselect_device(&SPIC, &DAC_Condensator);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-			sdata[0] = AD5643R_startVoltage_Hbyte;
-			sdata[1] = AD5643R_startVoltage_Mbyte;
-			sdata[2] = AD5643R_startVoltage_Lbyte;
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_select_device(&SPIC, &DAC_Condensator);
-			spi_write_packet(&SPIC, sdata, 3);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-			spi_deselect_device(&SPIC, &DAC_Condensator);
-			sdata[0] = AD5643R_startVoltage_Hbyte + 1;
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, sdata, 3);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-		}
 		return;
 	}
 	//Нечего менять. Сообщаем об отмене
@@ -934,7 +910,30 @@ int main(void)
 	//Инициализация завершена
 	while (1) 
 	{
-		
+		if(MC_status == 2)
+		{
+			delay_s(2); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
+			//Высокое напряжение включеноё - конфигурируем DAC
+			uint8_t sdata[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};	//настроечные байты для ЦАПА AD5643R
+			spi_select_device(&SPIC, &DAC_Condensator);
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, sdata, 3);
+			spi_deselect_device(&SPIC, &DAC_Condensator);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			sdata[0] = AD5643R_startVoltage_Hbyte;
+			sdata[1] = AD5643R_startVoltage_Mbyte;
+			sdata[2] = AD5643R_startVoltage_Lbyte;
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_select_device(&SPIC, &DAC_Condensator);
+			spi_write_packet(&SPIC, sdata, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			spi_deselect_device(&SPIC, &DAC_Condensator);
+			sdata[0] = AD5643R_startVoltage_Hbyte + 1;
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, sdata, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			MC_status = 1;
+		}
 	}
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
