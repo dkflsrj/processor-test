@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //Ã 
-#define version										65
+#define version										66
 #define birthday									20131017
 #define usartCOMP_delay								10
 #define usartTIC_delay								1

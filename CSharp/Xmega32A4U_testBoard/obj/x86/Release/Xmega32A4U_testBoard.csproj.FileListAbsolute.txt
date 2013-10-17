@@ -1,0 +1,8 @@
+D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\bin\Release\Xmega32A4U_testBoard.exe
+D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\bin\Release\Xmega32A4U_testBoard.pdb
+D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Release\Xmega32A4U_testBoard.Form1.resources
+D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Release\Xmega32A4U_testBoard.Properties.Resources.resources
+D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Release\Xmega32A4U_testBoard.csproj.GenerateResource.Cache
+D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Release\Xmega32A4U_testBoard.exe
+D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Release\Xmega32A4U_testBoard.pdb
+D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Release\Xmega32A4U_testBoard.csprojResolveAssemblyReference.cache
