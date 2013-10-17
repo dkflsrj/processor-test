@@ -597,10 +597,6 @@ namespace Xmega32A4U_testBoard
             MC.Scaner.enableDoubleRange(CHB_SCANER_x2.Checked);
             LBL_SCANER_getScanVoltage.Text = MC.Scaner.Scan.getVoltage().ToString();
         }
-        private void BTN_SCANER_reset_Click(object sender, EventArgs e)
-        {
-            MC.Scaner.reset();
-        }
         //------------------------------------Конденсатор------------------------------------------
         private void BTN_CONDENSATOR_setVoltage_Click(object sender, EventArgs e)
         {
@@ -615,10 +611,6 @@ namespace Xmega32A4U_testBoard
         {
             MC.Condensator.enableDoubleRange(CHB_CONDENSATOR_x2.Checked);
             LBL_CONDENSATOR_getNegativeVoltage.Text = MC.Condensator.getNegativeVoltage().ToString();
-        }
-        private void BTN_CONDENSATOR_reset_Click(object sender, EventArgs e)
-        {
-            //MC.Condensator.reset();
         }
         //----------------------------------Real: Counters-------------------------------------
         private void TXB_realCOX_MeasureTime_TextChanged(object sender, EventArgs e)

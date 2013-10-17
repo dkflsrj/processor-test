@@ -858,7 +858,7 @@ namespace Xmega32A4U_testBoard
         {
             //КЛАСС: Каналы для конденсатора (+\-) с reset()'ом
             //DAC AD5643R
-            byte[] Reset_bytes = { 40, 0, 1 }; //старший, средний, младший
+            //byte[] Reset_bytes = { 40, 0, 1 }; //старший, средний, младший
             byte[] ConfInnerRef_bytes = {56,0,1}; //старший, средний, младший
             protected bool Ref_is_inner = false;
             protected byte DAC_channel = 24; //Канал нулевой, но посылка (24+КАНАЛ)
@@ -1117,7 +1117,7 @@ namespace Xmega32A4U_testBoard
             {
                 //КЛАСС: Для канала с ЦАПом AD5643R и номральным АЦП
                 //DAC AD5643R
-                byte[] Reset_bytes = { 40, 0, 1 }; //старший, средний, младший
+                //byte[] Reset_bytes = { 40, 0, 1 }; //старший, средний, младший
                 byte[] ConfInnerRef_bytes = { 56, 0, 1 }; //старший, средний, младший
                 byte ADC_command;
                 byte ADC_channel;
@@ -1257,22 +1257,6 @@ namespace Xmega32A4U_testBoard
             /// Сканирующее напряжение
             /// </summary>
             public SPI_DEVICE_CHANNEL_withAD5643R Scan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_Scan_Channel, Command.SPI.Scaner.Scan.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.Scan.getVoltage);
-            /// <summary>
-            /// Сбрасывает все настройки DAC'а и его напряжения 
-            /// </summary>
-            public bool reset()
-            {
-                trace_attached(Environment.NewLine);
-                trace("DAC_CHANNEL.reset(SCANER)");
-                //byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                //if (transmit(Command.SPI.Scaner.Scan.setVoltage, data)[0] == Command.SPI.Scaner.Scan.setVoltage)
-                //{
-                    trace("DAC_CHANNEL.reset(SCANER): Операция выполнена успешно! Напряжения DAC'a Сканера сброшены");
-                    return true;
-                //}
-                trace("DAC_CHANNEL.reset(SCANER): ОШИБКА ОТКЛИКА! Напряжения DAC'а Сканера вероятно не сброшены!");
-                return false;
-            }
             /// <summary>
             /// .enableDoubleRange(true) - увеличивает диапазон напряжения в двое всем каналам ADC Сканера.
             /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом всем каналам ADC Сканера</para>

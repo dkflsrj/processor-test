@@ -145,7 +145,6 @@
             this.BTN_IonSOURCE_getEmissionCurrentVoltage = new System.Windows.Forms.Button();
             this.BTN_IonSOURCE_setEmissionCurrentVoltage = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.BTN_SCANER_reset = new System.Windows.Forms.Button();
             this.BTN_SCANER_getScanVoltage = new System.Windows.Forms.Button();
             this.BTN_SCANER_getParentScanVoltage = new System.Windows.Forms.Button();
             this.LBL_SCANER_getScanVoltage = new System.Windows.Forms.Label();
@@ -157,7 +156,6 @@
             this.BTN_SCANER_setScanVoltage = new System.Windows.Forms.Button();
             this.label14 = new System.Windows.Forms.Label();
             this.GPB_CONDER = new System.Windows.Forms.GroupBox();
-            this.BTN_CONDENSATOR_reset = new System.Windows.Forms.Button();
             this.BTN_CONDENSATOR_getNegativeVoltage = new System.Windows.Forms.Button();
             this.BTN_CONDENSATOR_getPositiveVoltage = new System.Windows.Forms.Button();
             this.BTN_CONDENSATOR_setVoltage = new System.Windows.Forms.Button();
@@ -1502,7 +1500,6 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.BTN_SCANER_reset);
             this.groupBox1.Controls.Add(this.BTN_SCANER_getScanVoltage);
             this.groupBox1.Controls.Add(this.BTN_SCANER_getParentScanVoltage);
             this.groupBox1.Controls.Add(this.LBL_SCANER_getScanVoltage);
@@ -1519,17 +1516,6 @@
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Сканер";
-            // 
-            // BTN_SCANER_reset
-            // 
-            this.BTN_SCANER_reset.Enabled = false;
-            this.BTN_SCANER_reset.Location = new System.Drawing.Point(191, 12);
-            this.BTN_SCANER_reset.Name = "BTN_SCANER_reset";
-            this.BTN_SCANER_reset.Size = new System.Drawing.Size(48, 23);
-            this.BTN_SCANER_reset.TabIndex = 6;
-            this.BTN_SCANER_reset.Text = "Сброс";
-            this.BTN_SCANER_reset.UseVisualStyleBackColor = true;
-            this.BTN_SCANER_reset.Click += new System.EventHandler(this.BTN_SCANER_reset_Click);
             // 
             // BTN_SCANER_getScanVoltage
             // 
@@ -1630,7 +1616,6 @@
             // 
             // GPB_CONDER
             // 
-            this.GPB_CONDER.Controls.Add(this.BTN_CONDENSATOR_reset);
             this.GPB_CONDER.Controls.Add(this.BTN_CONDENSATOR_getNegativeVoltage);
             this.GPB_CONDER.Controls.Add(this.BTN_CONDENSATOR_getPositiveVoltage);
             this.GPB_CONDER.Controls.Add(this.BTN_CONDENSATOR_setVoltage);
@@ -1645,17 +1630,6 @@
             this.GPB_CONDER.TabIndex = 5;
             this.GPB_CONDER.TabStop = false;
             this.GPB_CONDER.Text = "Конденсатор";
-            // 
-            // BTN_CONDENSATOR_reset
-            // 
-            this.BTN_CONDENSATOR_reset.Enabled = false;
-            this.BTN_CONDENSATOR_reset.Location = new System.Drawing.Point(289, 8);
-            this.BTN_CONDENSATOR_reset.Name = "BTN_CONDENSATOR_reset";
-            this.BTN_CONDENSATOR_reset.Size = new System.Drawing.Size(48, 23);
-            this.BTN_CONDENSATOR_reset.TabIndex = 6;
-            this.BTN_CONDENSATOR_reset.Text = "Сброс";
-            this.BTN_CONDENSATOR_reset.UseVisualStyleBackColor = true;
-            this.BTN_CONDENSATOR_reset.Click += new System.EventHandler(this.BTN_CONDENSATOR_reset_Click);
             // 
             // BTN_CONDENSATOR_getNegativeVoltage
             // 
@@ -2390,7 +2364,6 @@
         private System.Windows.Forms.Button BTN_SCANER_setScanVoltage;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label label15;
-        private System.Windows.Forms.Button BTN_SCANER_reset;
         private System.Windows.Forms.Button BTN_SCANER_getScanVoltage;
         private System.Windows.Forms.Button BTN_SCANER_getParentScanVoltage;
         private System.Windows.Forms.Label LBL_SCANER_getScanVoltage;
@@ -2400,7 +2373,6 @@
         private System.Windows.Forms.Label LBL_SCANER_getParentScanVoltage;
         private System.Windows.Forms.Label LBL_CONDENSATOR_getPositiveVoltage;
         private System.Windows.Forms.Label LBL_CONDENSATOR_getNegativeVoltage;
-        private System.Windows.Forms.Button BTN_CONDENSATOR_reset;
         private System.Windows.Forms.Button BTN_CONDENSATOR_getNegativeVoltage;
         private System.Windows.Forms.Button BTN_CONDENSATOR_getPositiveVoltage;
         private System.Windows.Forms.Button BTN_CONDENSATOR_setVoltage;
