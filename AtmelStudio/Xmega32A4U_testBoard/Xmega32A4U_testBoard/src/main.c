@@ -25,8 +25,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										66
-#define birthday									20131017
+#define version										67
+#define birthday									20131018
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
 #define usartRX_delay								2		//Задержка приёма данных иначе разобьём команду на части
@@ -44,6 +44,8 @@
 #define AD5643R_startVoltage_Hbyte					24	
 #define AD5643R_startVoltage_Mbyte					127
 #define AD5643R_startVoltage_Lbyte					252
+#define AD5328R_confHbyte							128
+#define AD5328R_confLbyte							60
 //----------------------------------------ПЕРЕМЕННЫЕ----------------------------------------------
 //	МИКРОКОНТРОЛЛЕР
 uint8_t MC_version = version;
@@ -51,7 +53,6 @@ uint32_t MC_birthday = birthday;
 uint8_t MC_status = 0;					/* Состояние микроконтроллера:
 *	0 - Неинициализирован, запрещённое состояние;
 *	1 - режим ожидания;
-*	2 - Задание - сконфигурировать ЦАПы на плате MSV и выставить средние напряжения;
 */
 uint8_t MC_error = 0;					/* Код последней ошибки:
 *	0 - Неинициализирован, запрещённое состояние;
@@ -82,18 +83,29 @@ uint8_t	COB_ovf = 0;						//Количество переполнений счётчика СОВ в последнем изм
 uint32_t COC_Measurment = 0;				//Последнее измерение счётчика COC
 uint8_t	COC_ovf = 0;						//Количество переполнений счётчика СОС в последнем измерении
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
-//Битовое поле: флаги
-struct pin_flags
+//Битовые поля
+struct _MC_Tasks
 {
-	uint8_t SPUMP :1;
-	uint8_t SEMV3 :1;
-	uint8_t SEMV2 :1;
-	uint8_t SEMV1 :1;
-	uint8_t iEDCD :1;
-	uint8_t iHVE :1;
-	uint8_t dummy :1;
-	uint8_t checkOrSet :1;	
-}flags;
+	uint8_t setDACs		:1;
+	uint8_t noTasks1	:1;
+	uint8_t noTasks2	:1;
+	uint8_t noTasks3	:1;
+	uint8_t noTasks4	:1;
+	uint8_t noTasks5	:1;
+	uint8_t noTasks6	:1;
+	uint8_t noTasks7	:1;
+}MC_Tasks;
+struct pin_Flags
+{
+	uint8_t SPUMP		:1;
+	uint8_t SEMV3		:1;
+	uint8_t SEMV2		:1;
+	uint8_t SEMV1		:1;
+	uint8_t iEDCD		:1;
+	uint8_t iHVE		:1;
+	uint8_t dummy		:1;
+	uint8_t checkOrSet	:1;	
+}Flags;
 //USART
 static usart_rs232_options_t USART_COMP_OPTIONS = {
 	.baudrate = USART_COMP_BAUDRATE,
@@ -137,10 +149,9 @@ struct spi_device ADC_MSV = {
 };
 //ADC у конденсатора тот же что и у сканера
 //-----------------------------------------УКАЗАТЕЛИ----------------------------------------------
-uint8_t *pointer_flags;
+uint8_t *pointer_MC_Tasks;
+uint8_t *pointer_Flags;
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
-//Рудименты
-void showMeByte(uint8_t LED_BYTE);	
 //
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
 void transmit(uint8_t DATA[],uint8_t DATA_length);
@@ -186,8 +197,6 @@ ISR(USARTD0_RXC_vect)
 	//Есть ли RXIF? Есть ли данные на приём?
 	if ((*USART_COMP.STATUS >> 7) == 0)
 	{
-		//CommandStack++;	//тестовое, для учёта количества выполненных команд
-		//showMeByte(CommandStack);
 		//НЕТ! Данные закончились! Значит можно интерпретировать... Но сначала "орфография"...
 		//А пришёл ли ключ?
 		if(USART_MEM[0] == COMMAND_KEY)
@@ -211,7 +220,6 @@ ISR(USARTD0_RXC_vect)
 						command[i-1] = USART_MEM[i];
 					}
 					CommandStack++;	//тестовое, для учёта количества выполненных команд
-					//showMeByte(CommandStack);
 					Decode(command);
 				}
 				else
@@ -233,105 +241,6 @@ ISR(USARTD0_RXC_vect)
 		}
 		USART_MEM_length = 0;
 	}	
-	
-	//for (uint8_t i = 0; i < USART_MEM_length; i++)
-	//{
-	//	usart_putchar(USART_COMP,USART_MEM[i]);							//<data>
-	//	delay_us(usartCOMP_delay);
-	//}
-	
-	
-	//Проверяем команду на вшивость
-	/*if(USART_MEM[0] == COMMAND_KEY)
-	{
-		//Всё в порядке ключ есть, а есть ли замок?
-		if (USART_MEM[USART_MEM_length - 1] == COMMAND_LOCK)
-		{
-			//всё оk! Замок есть, а верна ли контрольная сумма?
-			uint8_t CheckSum = 0;
-			for (uint8_t i = 1; i < USART_MEM_length - 2; i++)
-			{
-				CheckSum -= USART_MEM[i];
-			}
-			if (CheckSum == USART_MEM[USART_MEM_length - 2])
-			{
-				//всё супер, команда оформлена по протоколу, теперь её нужно переформатировать её (убрать ключ, замок и кс)
-				uint8_t command[USART_MEM_length - 3];
-				for (uint8_t i = 0; i < USART_MEM_length - 3; i++)
-				{
-					command[i] = USART_MEM[i+1];
-				}
-				
-				for (uint8_t i = 0; i < USART_MEM_length-3; i++)
-				{
-					usart_putchar(USART_COMP,command[i]);							//<data>
-					delay_us(usartCOMP_delay);
-				}
-				//Decode(USART_MEM);
-			}
-			else
-			{
-				//ОШИБКА! НЕВЕРНАЯ КОНТРОЛЬНАЯ СУММА!
-				transmit_3bytes(ERROR_Token, ERROR_CheckSum, USART_MEM[USART_MEM_length - 2]);
-			}
-		}
-		else
-		{
-			//ОШИБКА! ГДЕ ЗАМОК?
-			transmit_3bytes(ERROR_Token, ERROR_WhereIsLOCK,USART_MEM[USART_MEM_length - 1]);
-		}
-		for (uint8_t i = 0; i < USART_MEM_length-1; i++)
-		{
-			usart_putchar(USART_COMP,USART_MEM[i]);							//<data>
-			delay_us(usartCOMP_delay);
-		}
-	}
-	else
-	{
-		//ОШИБКА! ГДЕ КЛЮЧ?
-		transmit_3bytes(ERROR_Token, ERROR_WhereIsKEY, USART_MEM[0]);
-	}*/
-	//обнуляемся, и готовимся к приёму следующей передачи
-	//USART_MEM_length = 0;
-	//usart_set_rx_interrupt_level(USART_COMP,USART_INT_LVL_MED);
-	
-// 	USART_rDATA = usart_getchar(USART_COMP);		//Получаем наш байт
-// 	if (USART_recieving)
-// 	{
-// 		//если мы уже получаем байты, то проверяем байт на закрытие передачи (<lock> + чистый регистр приёма)
-// 		if ((USART_rDATA == COMMAND_LOCK)&&(usart_rx_is_complete(USART_COMP)))
-// 		{
-// 			//Пришёл затвор! Проверяем контрольную сумму 
-// 			if (checkCommand(USART_MEM,USART_MEM_length))
-// 			{
-// 				//дешифрируем команду
-// 				Decode(USART_MEM);
-// 			}
-// 			else
-// 			{
-// 				//Надо послать ошибку контрольной суммы. Такой команды мы не знаем
-// 				uint8_t data[] = {ERROR_Token, ERROR_CheckSum, USART_MEM[0]};
-// 				transmit(data,3);
-// 			}
-// 			USART_recieving = false;
-// 			USART_MEM_length = 0;
-// 		} 
-// 		else
-// 		{
-// 			//Передача не закрыта, продолжаем получать байты
-// 			USART_MEM[USART_MEM_length] = USART_rDATA;
-// 			USART_MEM_length++;
-// 		}
-// 	}
-// 	else
-// 	{
-// 		//если мы не получали байты, то проверяем регистр на ключ
-// 		if (USART_rDATA == COMMAND_KEY)
-// 		{
-// 			//Пришёл ключ! Отпираем получение данных
-// 			USART_recieving = true;
-// 		}
-// 	}
 }
 ISR(USARTE0_RXC_vect)
 {
@@ -372,84 +281,6 @@ static void ISR_TCE0(void)
 	 COC_ovf++;
  }
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
-void showMeByte(uint8_t LED_BYTE)
-{
-	//ФУНКЦИЯ: Показвает на светодиодах байт LED_BYTE. Вводит МК в режим отображения байта
-	//ПРИМЕЧАНИЕ: Если срабатывает по прерыванию, возможно некорректное отображение
-	//MC_status = LED_BYTE;									//Меняем статус на "отображение байта"
-// 	bool bits[8] = {0,0,0,0,0,0,0,0};				//Массив битов - лампочек
-// 	for (int i = 0; i < 8; i++)
-// 	{
-// 		bits[i] = (LED_BYTE  & (1 << (i))) != 0;	//Переводим байт в биты
-// 	}
-// 	//Отображаем на светодиодах
-// 	if (bits[0])
-// 	{
-// 		gpio_set_pin_high(LED_VD1);
-// 	}
-// 	else
-// 	{
-// 		gpio_set_pin_low(LED_VD1);
-// 	}
-// 	if (bits[1])
-// 	{
-// 		gpio_set_pin_high(LED_VD2);
-// 	}
-// 	else
-// 	{
-// 		gpio_set_pin_low(LED_VD2);
-// 	}
-// 	if (bits[2])
-// 	{
-// 		gpio_set_pin_high(LED_VD3);
-// 	}
-// 	else
-// 	{
-// 		gpio_set_pin_low(LED_VD3);
-// 	}
-// 	if (bits[3])
-// 	{
-// 		gpio_set_pin_high(LED_VD4);
-// 	}
-// 	else
-// 	{
-// 		gpio_set_pin_low(LED_VD4);
-// 	}
-// 	if (bits[4])
-// 	{
-// 		gpio_set_pin_high(LED_VD5);
-// 	}
-// 	else
-// 	{
-// 		gpio_set_pin_low(LED_VD5);
-// 	}
-// 	if (bits[5])
-// 	{
-// 		gpio_set_pin_high(LED_VD6);
-// 	}
-// 	else
-// 	{
-// 		gpio_set_pin_low(LED_VD6);
-// 	}
-// 	if (bits[6])
-// 	{
-// 		gpio_set_pin_high(LED_VD7);
-// 	}
-// 	else
-// 	{
-// 		gpio_set_pin_low(LED_VD7);
-// 	}
-// 	if (bits[7])
-// 	{
-// 		gpio_set_pin_high(LED_VD8);
-// 	}
-// 	else
-// 	{
-// 		gpio_set_pin_low(LED_VD8);
-// 	}
-	//uint8_t data[] = {COMMAND_showByte};
-	//transmit(data,1);
-}
 //SPI
 void SPI_DAC_send(uint8_t DATA[])
 {
@@ -833,31 +664,62 @@ void checkFlags(uint8_t DATA)
 	//				Если первый бит <Проверить\Установить> = 0, то МК тут же возвращает текущее состояние флагов
 	//				Если первый бит <Проверить\Установить> = 1, то МК устанавливает флаги и возвращает их.
 	updateFlags();
-	flags.checkOrSet = DATA >> 7;
-	if(flags.checkOrSet == 0)
+	Flags.checkOrSet = DATA >> 7;
+	if(Flags.checkOrSet == 0)
 	{
 		//Проверить. Выслать на ПК свеженькие данные о флагах
-		transmit_2bytes(COMMAND_Flags_set, *pointer_flags);
+		transmit_2bytes(COMMAND_Flags_set, *pointer_Flags);
 		return;
 	}
 	//Установить! А надо ли что менять-то?
-	if(DATA != *pointer_flags)
+	if(DATA != *pointer_Flags)
 	{
 		//Есть что менять!
 		uint8_t i = ((DATA & 32) >> 5);
-		if(flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE); MC_status = 2;}}
+		if(Flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE); MC_Tasks.setDACs = 1;}}
 		i = ((DATA & 16) >> 4);
-		if(flags.iEDCD != i){if(i == 1){gpio_set_pin_high(pin_iEDCD);}else{gpio_set_pin_low(pin_iEDCD);}}
+		if(Flags.iEDCD != i){if(i == 1){gpio_set_pin_high(pin_iEDCD);}else{gpio_set_pin_low(pin_iEDCD);}}
 		i = ((DATA & 8) >> 3);
-		if(flags.SEMV1 != i){if(i == 1){gpio_set_pin_high(pin_SEMV1);}else{gpio_set_pin_low(pin_SEMV1);}}
+		if(Flags.SEMV1 != i){if(i == 1){gpio_set_pin_high(pin_SEMV1);}else{gpio_set_pin_low(pin_SEMV1);}}
 		i = ((DATA & 4) >> 2);
-		if(flags.SEMV2 != i){if(i == 1){gpio_set_pin_high(pin_SEMV2);}else{gpio_set_pin_low(pin_SEMV2);}}
+		if(Flags.SEMV2 != i){if(i == 1){gpio_set_pin_high(pin_SEMV2);}else{gpio_set_pin_low(pin_SEMV2);}}
 		i = ((DATA & 2) >> 1);
-		if(flags.SEMV3 != i){if(i == 1){gpio_set_pin_high(pin_SEMV3);}else{gpio_set_pin_low(pin_SEMV3);}}
+		if(Flags.SEMV3 != i){if(i == 1){gpio_set_pin_high(pin_SEMV3);}else{gpio_set_pin_low(pin_SEMV3);}}
 		i = DATA & 1;
-		if(flags.SPUMP != i){if(i == 1){gpio_set_pin_high(pin_SPUMP);}else{gpio_set_pin_low(pin_SPUMP);}}
+		if(Flags.SPUMP != i){if(i == 1){gpio_set_pin_high(pin_SPUMP);}else{gpio_set_pin_low(pin_SPUMP);}}
 		updateFlags();
-		transmit_2bytes(COMMAND_Flags_set, *pointer_flags);
+		transmit_2bytes(COMMAND_Flags_set, *pointer_Flags);
+		if(MC_Tasks.setDACs)
+		{
+			delay_s(2); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
+			//Высокое напряжение включеноё - конфигурируем DACи
+			//DAC AD5643R
+			uint8_t sdata[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};	//настроечные байты для ЦАПА AD5643R
+			spi_select_device(&SPIC, &DAC_Condensator);
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, sdata, 3);
+			spi_deselect_device(&SPIC, &DAC_Condensator);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			sdata[0] = AD5643R_startVoltage_Hbyte;
+			sdata[1] = AD5643R_startVoltage_Mbyte;
+			sdata[2] = AD5643R_startVoltage_Lbyte;
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_select_device(&SPIC, &DAC_Condensator);
+			spi_write_packet(&SPIC, sdata, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			spi_deselect_device(&SPIC, &DAC_Condensator);
+			sdata[0] = AD5643R_startVoltage_Hbyte + 1;
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, sdata, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			//DAC AD5328R
+			sdata[0] = AD5328R_confHbyte;
+			sdata[1] = AD5328R_confLbyte;;
+			spi_select_device(&SPIC,&DAC_Detector);
+			spi_write_packet(&SPIC, sdata, 2);
+			spi_deselect_device(&SPIC,&DAC_Detector);
+			MC_Tasks.setDACs = 0;
+		}
 		return;
 	}
 	//Нечего менять. Сообщаем об отмене
@@ -866,13 +728,13 @@ void checkFlags(uint8_t DATA)
 }
 void updateFlags()
 {
-	//ФУНКЦИЯ: МК осматривает флаговые пины портов и собирает их в байт flags
-	flags.iHVE =  (PORTC.OUT & 8  ) >> 3;
-	flags.iEDCD = (PORTA.OUT & 128) >> 7;
-	flags.SEMV1 = (PORTD.OUT & 2  ) >> 1;
-	flags.SEMV2 = (PORTD.OUT & 16 ) >> 4;
-	flags.SEMV3 = (PORTD.OUT & 32 ) >> 5;
-	flags.SPUMP = PORTD.OUT & 1;
+	//ФУНКЦИЯ: МК осматривает флаговые пины портов и собирает их в байт Flags
+	Flags.iHVE =  (PORTC.OUT & 8  ) >> 3;
+	Flags.iEDCD = (PORTA.OUT & 128) >> 7;
+	Flags.SEMV1 = (PORTD.OUT & 2  ) >> 1;
+	Flags.SEMV2 = (PORTD.OUT & 16 ) >> 4;
+	Flags.SEMV3 = (PORTD.OUT & 32 ) >> 5;
+	Flags.SPUMP = PORTD.OUT & 1;
 }
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
@@ -901,7 +763,7 @@ int main(void)
 	EVSYS_SetEventSource( 4, EVSYS_CHMUX_PORTC_PIN2_gc );
 	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );
 	//Конечная инициализация
-	pointer_flags = &flags;
+	pointer_Flags = &Flags;
     updateFlags();
 	RTC_setStatus_ready;
 	MC_status = 1;						//Режим ожидания
@@ -910,30 +772,7 @@ int main(void)
 	//Инициализация завершена
 	while (1) 
 	{
-		if(MC_status == 2)
-		{
-			delay_s(2); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
-			//Высокое напряжение включеноё - конфигурируем DAC
-			uint8_t sdata[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};	//настроечные байты для ЦАПА AD5643R
-			spi_select_device(&SPIC, &DAC_Condensator);
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, sdata, 3);
-			spi_deselect_device(&SPIC, &DAC_Condensator);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-			sdata[0] = AD5643R_startVoltage_Hbyte;
-			sdata[1] = AD5643R_startVoltage_Mbyte;
-			sdata[2] = AD5643R_startVoltage_Lbyte;
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_select_device(&SPIC, &DAC_Condensator);
-			spi_write_packet(&SPIC, sdata, 3);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-			spi_deselect_device(&SPIC, &DAC_Condensator);
-			sdata[0] = AD5643R_startVoltage_Hbyte + 1;
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, sdata, 3);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-			MC_status = 1;
-		}
+		
 	}
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
