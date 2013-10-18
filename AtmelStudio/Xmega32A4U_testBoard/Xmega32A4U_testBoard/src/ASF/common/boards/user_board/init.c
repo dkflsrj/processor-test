@@ -31,8 +31,7 @@ void board_init(void)
 	gpio_configure_pin(pin_iWRVD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iECINL,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iWINL,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	//HVE (Высокий уровень - 12В отключено, низкий - включено)
-	gpio_configure_pin(pin_iHVE,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
+	
 	//ADC
 		//не используется
 	//DAC
