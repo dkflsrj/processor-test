@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										67
+#define version										68
 #define birthday									20131018
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
@@ -739,6 +739,8 @@ void updateFlags()
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
 {
+	//Впервую очередь выключаем DC-DC 12V
+	gpio_configure_pin(pin_iHVE, IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT); //HVE (Высокий уровень - 12В отключено, низкий - включено)
 	board_init();						//Инициируем карту
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
