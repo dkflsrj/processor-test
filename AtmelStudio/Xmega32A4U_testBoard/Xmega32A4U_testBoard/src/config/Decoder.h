@@ -20,10 +20,7 @@
 #define COMMAND_MC_get_CPUfreq						3	//Команда: Запросить частоту МК
 #define COMMAND_MC_reset							4	//Команда: Перезагрузка МК
 #define COMMAND_MC_wait								5	//Команда: Перевести МК в ожидание
-//#define COMMAND_showTCD2_CNTh						6	//Команда: Показать младший байт TCD2
-//#define COMMAND_showTCD2_CNTl						7	//Команда: Показать старший байт TCD2
 #define COMMAND_checkCommandStack					8	//Команда: Вернуть стэк команда (МК ведёт счёт команд с самого запуска)
-#define COMMAND_showMeByte							10	//Команда: Показать байт на светодиодах
 #define COMMAND_retransmitToTIC						11	//Команда: Ретранслировать данные насосу
 		
 #define COMMAND_LOCK								13	//Команда: Любая команда заканчивается этой (замок)
@@ -36,8 +33,6 @@
 #define COMMAND_COUNTERS_stop						33	//Команда: Остановить счётчик
 #define COMMAND_RTC_set_Prescaler					34	//Команда: Задать делитель RTC
 #define COMMAND_RTC_get_Status						35	//Команда: Запросить состояние счётчика
-//#define COMMAND_RTC_set_Delay						36	//Команда: Задать задержку между измерениями
-//#define COMMAND_COA_set_Quantity					37	//Команда: Задать количество измерений
 
 #define COMMAND_DAC_set_Voltage						40	//Команда: Задать DAC'у напряжение
 #define COMMAND_ADC_get_Voltage						41	//Команда: Запросить у ADC напряжение
@@ -85,8 +80,6 @@
 	switch(BYTES[0])																							\
 	{																											\
 		case COMMAND_MC_get_Status:					MC_transmit_Status;											\
-			break;																								\
-		case COMMAND_showMeByte:					showMeByte(BYTES[1]);										\
 			break;																								\
 		case COMMAND_MC_get_CPUfreq:				MC_transmit_CPUfreq();										\
 			break;																								\

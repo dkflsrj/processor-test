@@ -31,14 +31,14 @@ void board_init(void)
 	gpio_configure_pin(pin_iWRVD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iECINL,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_iWINL,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
-	//HVE
+	//HVE (Высокий уровень - 12В отключено, низкий - включено)
 	gpio_configure_pin(pin_iHVE,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
 	//ADC
 		//не используется
 	//DAC
 		//не используется
-	//Ключ дистанционного управления
-	gpio_configure_pin(pin_iEDCD,	IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);
+	//Ключ дистанционного управления (Высокий уровень - ручное, низкий - дистанционное)
+	gpio_configure_pin(pin_iEDCD,	IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	//Вентиля
 	gpio_configure_pin(pin_SEMV1, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
 	gpio_configure_pin(pin_SEMV2, IOPORT_INIT_LOW | IOPORT_DIR_OUTPUT);
