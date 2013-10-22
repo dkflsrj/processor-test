@@ -34,8 +34,6 @@
 #define COMMAND_RTC_set_Prescaler					34	//Команда: Задать делитель RTC
 #define COMMAND_RTC_get_Status						35	//Команда: Запросить состояние счётчика
 
-#define COMMAND_DAC_set_Voltage						40	//Команда: Задать DAC'у напряжение
-#define COMMAND_ADC_get_Voltage						41	//Команда: Запросить у ADC напряжение
 //Команды DAC'ам
 #define COMMAND_IonSource_EC_set_Voltage			42	//Команда: Задать напряжение эмиссии
 #define COMMAND_IonSource_Ion_set_Voltage			43	//Команда: Задать напряжение ионизации
@@ -86,10 +84,6 @@
 		case COMMAND_MC_get_Version:				MC_transmit_Version;										\
 			break;																								\
 		case COMMAND_MC_get_Birthday:				MC_transmit_Birthday();										\
-			break;																								\
-		case COMMAND_DAC_set_Voltage:				SPI_DAC_send(BYTES);										\
-			break;																								\
-		case COMMAND_ADC_get_Voltage:				SPI_ADC_send(BYTES);										\
 			break;																								\
 		case COMMAND_COUNTERS_start:				COUNTERS_start();											\
 			break;																								\
@@ -158,7 +152,7 @@
 		default: transmit_3bytes(ERROR_Token, ERROR_Decoder, BYTES[0]);											\
 	}
 //----------------------------------------ПРОСТЫЕ КОМАНДЫ-----------------------------------------
-#define MC_transmit_Status			transmit_2bytes(COMMAND_MC_get_Status, MC_status)
+#define MC_transmit_Status			transmit_2bytes(COMMAND_MC_get_Status, 1)
 #define MC_transmit_Version			transmit_2bytes(COMMAND_MC_get_Version, MC_version)
 #define RTC_transmit_Status			transmit_2bytes(COMMAND_RTC_get_Status, RTC_Status)
 

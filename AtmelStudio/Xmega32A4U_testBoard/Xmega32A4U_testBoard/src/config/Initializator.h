@@ -44,10 +44,10 @@
 										tc_set_wgm(&TCD1, TC_WG_NORMAL);						 \
 										tc_set_wgm(&TCE0, TC_WG_NORMAL);						 \
 										tc_set_overflow_interrupt_level(&TCC0,TC_INT_LVL_OFF);	 \
-										tc_set_overflow_interrupt_level(&TCC1,TC_INT_LVL_LO);	 \
+										tc_set_overflow_interrupt_level(&TCC1,TC_INT_LVL_HI);	 \
 										tc_set_overflow_interrupt_level(&TCD0,TC_INT_LVL_OFF);	 \
-										tc_set_overflow_interrupt_level(&TCD1,TC_INT_LVL_LO);	 \
-										tc_set_overflow_interrupt_level(&TCE0,TC_INT_LVL_LO);	 \
+										tc_set_overflow_interrupt_level(&TCD1,TC_INT_LVL_HI);	 \
+										tc_set_overflow_interrupt_level(&TCE0,TC_INT_LVL_HI);	 \
 //----------------------------------------КОНФИГУРАЦИИ ПОРТОВ--------------------------------------
 //ПОРТ С (0x0640 DIR = 0xB8 | 0x0644 OUT = 0xB8)	-!Оптимизация: совпадение значенией DIR и OUT!-
 //	  № пина	Имя		DIR		OUT		Описание

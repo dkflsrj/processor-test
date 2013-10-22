@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										69
+#define version										70
 #define birthday									20131021
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
@@ -50,32 +50,13 @@
 //	МИКРОКОНТРОЛЛЕР
 uint8_t MC_version = version;
 uint32_t MC_birthday = birthday;
-uint8_t MC_status = 0;					/* Состояние микроконтроллера:
-*	0 - Неинициализирован, запрещённое состояние;
-*	1 - режим ожидания;
-*/
-uint8_t MC_error = 0;					/* Код последней ошибки:
-*	0 - Неинициализирован, запрещённое состояние;
-*	1 - нет ошибок;
-*	2 - контроллер не понял команду;
-*	3 - ошибка MC_lastCommand;
-*	4 - ошибка выбора SPI устройства (нет такого)
-*/
-uint8_t MC_lastCommand = 0;					// Последняя команда, которую выполняет\нял контроллер
-uint8_t MC_MEM[] = {0,0,0,0,0,0,0,0,0};		//Восемь байт для всяких операций (включая SPI) + счётчик
+uint8_t CommandStack = 0;
 //		USART
-uint8_t USART_rDATA = 0;					//Последний принятый байт по USART
-uint8_t USART_nextByteIsData_count = 0;
-bool	USART_recieving = false;			//Можно пристыковать для экономии памяти к USART_MEM_length
 uint8_t USART_MEM[10];						//10 байт памяти для приёма данных USART
 uint8_t USART_MEM_length = 0;
-uint8_t CommandStack = 0;
-//		SPI
-uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
 //		Измерения
 uint8_t RTC_Status = RTC_Status_ready;	//Состояния счётчика
 uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
-
 uint32_t COA_Measurment = 0;				//Последнее измерение счётчика COA
 uint8_t	COA_ovf = 0;						//Количество переполнений счётчика СОА в последнем измерении
 uint32_t COB_Measurment = 0;				//Последнее измерение счётчика COB
@@ -165,12 +146,8 @@ void MC_reset(void);
 
 void COUNTERS_transmit_Result(void);
 
-void SPI_DAC_send(uint8_t data[]);
-void SPI_ADC_send(uint8_t data[]);
-
 void RTC_setPrescaler(uint8_t DATA[]);
 void RTC_set_Period(uint8_t DATA[]);
-
 void COUNTERS_start(void);
 void COUNTERS_stop(void);
 
@@ -254,11 +231,12 @@ ISR(RTC_OVF_vect)
 {
 	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
 	//ФУНКЦИЯ: Остановка счётчиков импульсов
-	tc_write_clock_source(&TCC0, TC_CLKSEL_OFF_gc);
-	tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
-	tc_write_clock_source(&TCE0, TC_CLKSEL_OFF_gc);
-	tc_write_clock_source(&TCC1, TC_CLKSEL_OFF_gc);
-	tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
+	asm("LDI R16, 0x00		\n\t"
+		"STS 0x0800, R16		\n\t"
+		"STS 0x0900, R16		\n\t"
+		"STS 0x0A00, R16		\n\t"
+		"STS 0x0840, R16		\n\t"
+		"STS 0x0940, R16		\n\t");
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
 	COA_Measurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
 	COB_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
@@ -266,7 +244,6 @@ ISR(RTC_OVF_vect)
 	
 	RTC.CNT = 0;
 	RTC_setStatus_ready;
-	MC_status = 4;
 }
 static void ISR_TCC1(void)
  {
@@ -281,35 +258,6 @@ static void ISR_TCE0(void)
 	 COC_ovf++;
  }
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
-//SPI
-void SPI_DAC_send(uint8_t DATA[])
-{
-	//ФУНКЦИЯ: Посылаем данные о напряжении (адрес и напряжение) ЦАП'у
-// 	uint8_t data[] = {DATA[1],DATA[2]};
-// 	spi_select_device(&SPIC, &DAC);
-// 	spi_write_packet(&SPIC, data, 2);
-// 	spi_deselect_device(&SPIC, &DAC);
-// 	uint8_t aswDATA[] = {COMMAND_DAC_set_Voltage};
-// 	transmit(aswDATA, 1);
-}
-void SPI_ADC_send(uint8_t DATA[])
-{
-	//ФУНКЦИЯ: Запрашиваем данные у АЦП
-// 	uint8_t data[] = {DATA[1],DATA[2]};
-// 	spi_select_device(&SPIC, &ADC);
-// 	spi_write_packet(&SPIC, data, 2);
-// 	spi_deselect_device(&SPIC, &ADC);
-// 	//Получаем ответ
-// 	spi_select_device(&SPIC, &ADC);
-// 	spi_put(&SPIC, 0);
-// 	SPI_rDATA[0] = spi_get(&SPIC);
-// 	spi_put(&SPIC, 0);
-// 	SPI_rDATA[1] = spi_get(&SPIC);
-// 	spi_deselect_device(&SPIC, &ADC);
-// 	//Передём ответ на ПК по USART
-// 	uint8_t aswDATA[] = {COMMAND_ADC_get_Voltage,SPI_rDATA[0],SPI_rDATA[1]};
-// 	transmit(aswDATA, 3);
-}
 //USART COMP
 void transmit(uint8_t DATA[],uint8_t DATA_length)
 {
@@ -385,7 +333,7 @@ uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 	}
 	return CheckSum;
 }
-
+//MC
 void MC_transmit_CPUfreq(void)
 {
  	uint32_t freq = sysclk_get_cpu_hz();
@@ -396,6 +344,25 @@ void MC_transmit_Birthday(void)
 {
 	uint8_t data[] = {COMMAND_MC_get_Birthday, (uint8_t)MC_birthday,(uint8_t)(MC_birthday >> 8),(uint8_t)(MC_birthday>>16),(uint8_t)(MC_birthday>>24)};
 	transmit(data,5);
+}
+void MC_reset(void)
+{
+	//ФУНКЦИЯ: Перезагружаем МК
+	//ВНИМАНИЕ: Нужно уделить особое внимание состоянию системы перед перезагрузкой, навести порядок
+	cpu_irq_disable();
+	uint8_t data[] = {COMMAND_MC_reset};
+	transmit(data,1);
+	
+	RST.CTRL = 1;
+}
+void ERROR_ASYNCHR(void)
+{
+	//showMeByte(255);
+	uint8_t ERROR[] = {25,24,15};
+	while(1)
+	{
+		transmit(ERROR,3);
+	}
 }
 //COUNTERS
 void COUNTERS_transmit_Result(void)
@@ -455,12 +422,18 @@ void COUNTERS_start(void)
 		TCD1.CNT = 0;
 		TCE0.CNT = 0;
 		RTC.CNT = 0;
-		tc_write_clock_source(&TCC0,TC_CLKSEL_EVCH0_gc);
-		tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH2_gc);
-		tc_write_clock_source(&TCE0,TC_CLKSEL_EVCH4_gc);	
-		RTC.CTRL = RTC_prescaler;
-		tc_write_clock_source(&TCC1,TC_CLKSEL_EVCH1_gc);
-		tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH3_gc);
+		asm("LDI R16, 0x08		\n\t"
+			"LDI R17, 0x0A		\n\t"
+			"LDI R18, 0x0C		\n\t"
+			"LDS R19,0x205F		\n\t"	
+			"LDI R20, 0x09		\n\t"
+			"LDI R21, 0x0B		\n\t"
+			"STS 0x0800, R16 	\n\t"
+			"STS 0x0900, R17	\n\t"
+			"STS 0x0A00, R18	\n\t"
+			"STS 0x0400, R19	\n\t"	
+			"STS 0x0840, R20	\n\t"
+			"STS 0x0940, R21	\n\t");
 		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 		RTC_setStatus_busy;
 	}
@@ -516,25 +489,6 @@ void TIC_transmit(uint8_t DATA[])
 	//Пересылаем ответ на ПК
 }
 //Прочие
-void ERROR_ASYNCHR(void)
-{
-	//showMeByte(255);
-	uint8_t ERROR[] = {25,24,15};
-	while(1)
-	{
-		transmit(ERROR,3);
-	}
-}
-void MC_reset(void)
-{
-	//ФУНКЦИЯ: Перезагружаем МК
-	//ВНИМАНИЕ: Нужно уделить особое внимание состоянию системы перед перезагрузкой, навести порядок
-	cpu_irq_disable();
-	uint8_t data[] = {COMMAND_MC_reset};
-	transmit(data,1);
-	
-	RST.CTRL = 1;
-}
 bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource )
 {
 	volatile uint8_t * chMux;
@@ -567,7 +521,7 @@ bool EVSYS_SetEventChannelFilter( uint8_t eventChannel,EVSYS_DIGFILT_t filterCoe
 		return false;
 	}
 }
-
+//SPI
 void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 {
 	//ФУНКЦИЯ: Посылает данные указанному SPI-устройству будь то DAC или ADC
@@ -618,6 +572,7 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 			transmit_3bytes(ERROR_Token, ERROR_wrong_SPI_DEVICE_Number, DEVICE_Number);
 			return;
 	}
+	uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
 	//Если устройство DAC AD5643R то посылаем данные по его протоколу, откликаемся и выходим
 	if(DAC_is_AD5643R)
 	{
@@ -657,6 +612,7 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
 	transmit(aswDATA, 3);
 }
+//Флаги
 void checkFlags(uint8_t DATA)
 {
 	//ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
@@ -739,6 +695,14 @@ void updateFlags()
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
 {
+	
+	//tc_write_clock_source(&TCC0,TC_CLKSEL_EVCH0_gc);
+	//	tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH2_gc);
+	//	tc_write_clock_source(&TCE0,TC_CLKSEL_EVCH4_gc);	
+		//RTC.CTRL = RTC_prescaler;
+	//	tc_write_clock_source(&TCC1,TC_CLKSEL_EVCH1_gc);
+	//	tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH3_gc);
+		
 	confPORTs;							//Конфигурируем порты (HVE пин в первую очередь)
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
@@ -746,12 +710,11 @@ int main(void)
 	RTC_init;							//Инициируем счётчик реального времени
 	Counters_init;						//Инициируем счётчики импульсов
 	USART_COMP_init;					//Инициируем USART с компутером
-	USART_TIC_init;					//Инициируем USART с насосемъ
-	//Инициировать счётчик СОА
+	USART_TIC_init;						//Инициируем USART с насосемъ
+	//Инициировать счётчики
 	PORTC.PIN0CTRL = PORT_ISC_RISING_gc;
 	PORTC.PIN1CTRL = PORT_ISC_RISING_gc;
 	PORTC.PIN2CTRL = PORT_ISC_RISING_gc;
-	//PORTD.DIRCLR = 0x01;
 	EVSYS_SetEventSource( 0, EVSYS_CHMUX_PORTC_PIN0_gc );
 	EVSYS_SetEventChannelFilter( 0, EVSYS_DIGFILT_3SAMPLES_gc );
 	EVSYS_SetEventSource( 1, EVSYS_CHMUX_TCC0_OVF_gc );
@@ -766,8 +729,6 @@ int main(void)
 	pointer_Flags = &Flags;
     updateFlags();
 	RTC_setStatus_ready;
-	MC_status = 1;						//Режим ожидания
-	MC_error = 1;						//Ошибок нет
 	cpu_irq_enable();					//Разрешаем прерывания	
 	//Инициализация завершена
 	while (1) 
