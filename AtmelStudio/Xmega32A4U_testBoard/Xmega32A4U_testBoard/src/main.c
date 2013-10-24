@@ -25,8 +25,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										71
-#define birthday									20131023
+#define version										72
+#define birthday									20131024
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
 #define usartRX_delay								2		//Задержка приёма данных иначе разобьём команду на части
@@ -34,9 +34,11 @@
 #define RTC_Status_ready							0		//Счётчик готов к работе
 #define RTC_Status_stopped							1		//Счётчик был принудительно остановлен
 #define RTC_Status_busy								2		//Счётчик ещё считает
+#define RTC_Status_delayed							3		//Счётчик считает время задержки
 #define RTC_setStatus_ready			RTC_Status =	RTC_Status_ready	 
 #define RTC_setStatus_stopped		RTC_Status =	RTC_Status_stopped
 #define RTC_setStatus_busy			RTC_Status =	RTC_Status_busy	
+#define RTC_setStatus_delayed		RTC_Status =	RTC_Status_delayed
 //SPI
 #define AD5643R_confHbyte							56
 #define AD5643R_confMbyte							0
@@ -57,6 +59,7 @@ uint8_t USART_MEM_length = 0;
 //		Измерения
 uint8_t RTC_Status = RTC_Status_ready;		//Состояния счётчика
 uint8_t RTC_Prescaler = RTC_PRESCALER_OFF_gc; //Предделитель RTC во время измерения
+uint8_t RTC_DelayPrescaler = RTC_PRESCALER_OFF_gc;//Предделитель RTC во время задержки
 uint16_t RTC_MeasureTime = 0;				//Период RTC во время следующего измерения
 uint16_t RTC_Delay = 0;						//Период RTC во время задержки
 uint8_t RTC_DealayPrescaler = RTC_PRESCALER_OFF_gc; //Предделитель RTС во время задержки
@@ -70,14 +73,14 @@ uint8_t	COC_ovf = 0;						//Количество переполнений счётчика СОС в последнем изм
 //Битовые поля
 struct _MC_Tasks
 {
-	uint8_t setDACs		:1;
-	uint8_t noTasks1	:1;
-	uint8_t noTasks2	:1;
-	uint8_t noTasks3	:1;
-	uint8_t noTasks4	:1;
-	uint8_t noTasks5	:1;
-	uint8_t noTasks6	:1;
-	uint8_t noTasks7	:1;
+	uint8_t setDACs			:1;
+	uint8_t doNextMeasure	:1;
+	uint8_t noTasks2		:1;
+	uint8_t noTasks3		:1;
+	uint8_t noTasks4		:1;
+	uint8_t noTasks5		:1;
+	uint8_t noTasks6		:1;
+	uint8_t noTasks7		:1;
 }MC_Tasks;
 struct pinFlags
 {
@@ -134,7 +137,7 @@ struct spi_device ADC_MSV = {
 //ADC у конденсатора тот же что и у сканера
 //-----------------------------------------УКАЗАТЕЛИ----------------------------------------------
 uint8_t *pointer_MC_Tasks;
-uint8_t* pointer_Flags;
+uint8_t *pointer_Flags;
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 //
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
@@ -153,6 +156,9 @@ void RTC_setPrescaler(uint8_t DATA[]);
 void RTC_set_Period(uint8_t DATA[]);
 void COUNTERS_start(void);
 void COUNTERS_stop(void);
+void RTC_startDelay(void);
+void RTC_setDelay(uint8_t DATA[]);
+void RTC_setDelayPrescaler(uint8_t DATA[]);
 
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
@@ -235,19 +241,25 @@ ISR(RTC_OVF_vect)
 {
 	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
 	//ФУНКЦИЯ: Остановка счётчиков импульсов
-	asm("LDI R16, 0x00		\n\t"
-		"STS 0x0800, R16		\n\t"
-		"STS 0x0900, R16		\n\t"
-		"STS 0x0A00, R16		\n\t"
-		"STS 0x0840, R16		\n\t"
-		"STS 0x0940, R16		\n\t");
+	asm(
+		"LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
+		"STS 0x0800, R16		\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Ноль
+		"STS 0x0900, R16		\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Ноль
+		"STS 0x0A00, R16		\n\t"//Адрес TCE0.CTRLA = 0x0A00 <-	Ноль
+		"STS 0x0840, R16		\n\t"//Адрес TCC1.CTRLA = 0x0840 <-	Ноль
+		"STS 0x0940, R16		\n\t"//Адрес TCD1.CTRLA = 0x0940 <-	Ноль
+	);								 
 	RTC.CTRL = RTC_PRESCALER_OFF_gc;
+	
+	//Сюда надо проверку
+	//Если надо делать следующее измерение, то запускаем задержку и сохраняем результаты
+	
 	COA_Measurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
 	COB_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
 	COC_Measurment = TCE0.CNT;
 	
 	RTC.CNT = 0;
-	RTC_setStatus_ready;
+	RTC_setStatus_ready;//Убрать!
 }
 static void ISR_TCC1(void)
  {
@@ -374,6 +386,10 @@ void COUNTERS_transmit_Result(void)
 	//ФУНКЦИЯ: Вернуть ПК результат измерения
 	//ПОЯСНЕНИЯ: <key><response_command><RTC_Status><COA_ovf><COA_Measurement_4bytes><COB_ovf><COB_Measurement_4bytes><COC_ovf><COC_Measurement_2bytes><checkSum><lock>
 	uint8_t data[] = {COMMAND_COUNTERS_get_Count,RTC_Status,COA_ovf,0,0,0,0,COB_ovf,0,0,0,0,COC_ovf,0,0};
+	
+	//Нужно чтобы результаты можно было пересылать во время измерения! То есть во время статуса Delayed и busy!
+	// Но с проверкой, не было ли перезаписи данных (не опоздал ли комп)
+	
 	switch(RTC_Status)
 	{
 		case RTC_Status_ready:
@@ -402,9 +418,29 @@ void RTC_set_Period(uint8_t DATA[])
 	RTC_MeasureTime = (((uint16_t)DATA[1])<<8) + DATA[2];
 	transmit_2bytes(COMMAND_RTC_set_Period, RTC_Status);
 }
+void RTC_startDelay(void)
+{
+	//ФУНКЦИЯ: Начать задержку
+	
+}
+void RTC_setDelay(uint8_t DATA[])
+{
+	//ФУНКЦИЯ: Установить время задержки
+	RTC_Delay = (((uint16_t)DATA[1])<<8) + DATA[2];
+	transmit_2bytes(COMMAND_RTC_set_Delay, RTC_Status);
+}
+void RTC_setDelayPrescaler(uint8_t DATA[])
+{
+	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
+	RTC_DelayPrescaler = DATA[1];
+	transmit_byte(COMMAND_RTC_set_DelayPrescaler);
+}
 void COUNTERS_start(void)
 {
 	//ФУНКЦИЯ: Запускаем счётчики на определённое интервалом время
+	
+	//Принимать команду запуска во время busy -> ставить флажок MC_Tasks.doNextMeasure. Если флага нет - значит начинать новую серию измерений
+	
 	if (RTC_Status != RTC_Status_busy)
 	{	
 		COA_ovf = 0;
@@ -417,18 +453,20 @@ void COUNTERS_start(void)
 		TCE0.CNT = 0;
 		RTC.CNT = 0;
 		RTC.PER = RTC_MeasureTime;
-		asm("LDI R16, 0x08		\n\t"
-			"LDI R17, 0x0A		\n\t"
-			"LDI R18, 0x0C		\n\t"
-			"LDS R19,0x205F		\n\t"	
-			"LDI R20, 0x09		\n\t"
-			"LDI R21, 0x0B		\n\t"
-			"STS 0x0800, R16 	\n\t"
-			"STS 0x0900, R17	\n\t"
-			"STS 0x0A00, R18	\n\t"
-			"STS 0x0400, R19	\n\t"	
-			"STS 0x0840, R20	\n\t"
-			"STS 0x0940, R21	\n\t");
+		asm(	
+			"LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
+			"LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
+			"LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
+			"LDS R19, 0x205F	\n\t"//RTC: Адрес RTC_Prescaler  = 0x205F
+			"LDI R20, 0x09		\n\t"//TCC1:Код канала событий 1 = 0x09
+			"LDI R21, 0x0B		\n\t"//TCD1:Код канала событий 3 = 0x0B
+			"STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
+			"STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
+			"STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
+			"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_Prescaler(@0x205F)	
+			"STS 0x0840, R20	\n\t"//Адрес TCC1.CTRLA = 0x0840 <- Канал событий 1
+			"STS 0x0940, R21	\n\t"//Адрес TCD1.CTRLA = 0x0940 <- Канал событий 3
+		);
 		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 		RTC_setStatus_busy;
 	}
@@ -448,7 +486,7 @@ void COUNTERS_stop(void)
 		RTC.CTRL = RTC_PRESCALER_OFF_gc;
 		tc_write_clock_source(&TCC1, TC_CLKSEL_OFF_gc);
 		tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
-		
+		//Могут быть траблы, внимательней
 		RTC.CNT = 0;
 		TCC0.CNT = 0;
 		TCC1.CNT = 0;

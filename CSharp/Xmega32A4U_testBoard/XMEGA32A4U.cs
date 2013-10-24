@@ -863,7 +863,7 @@ namespace Xmega32A4U_testBoard
             /// Сбрасывает все настройки DAC'а и его напряжения 
             /// <para>ПРИМЕЧАНИЕ: у Натекателя и Нагревателя общий DAC, иными словами общий .reset()</para>
             /// </summary>
-            public bool reset()
+            bool reset()
             {
                 string command = "DAC_CHANNEL.reset(INLET)";
                 trace_attached(Environment.NewLine);
@@ -1044,7 +1044,7 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Сбрасывает все настройки DAC'а и его напряжения 
             /// </summary>
-            public bool reset()
+            bool reset()
             {
                 string command = "DAC_CHANNEL.reset(IonSOURCE)";
                 trace_attached(Environment.NewLine);
@@ -1104,7 +1104,7 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Сбрасывает все настройки DAC'а и его напряжения 
             /// </summary>
-            public bool reset()
+            bool reset()
             {
                 string command = "DAC_CHANNEL.reset(DETECTOR)";
                 trace_attached(Environment.NewLine);

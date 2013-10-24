@@ -1036,6 +1036,7 @@
             // 
             // BTN_DETECTOR_reset
             // 
+            this.BTN_DETECTOR_reset.Enabled = false;
             this.BTN_DETECTOR_reset.Location = new System.Drawing.Point(152, 9);
             this.BTN_DETECTOR_reset.Name = "BTN_DETECTOR_reset";
             this.BTN_DETECTOR_reset.Size = new System.Drawing.Size(48, 23);
@@ -1317,6 +1318,7 @@
             // 
             // BTN_IonSOURCE_reset
             // 
+            this.BTN_IonSOURCE_reset.Enabled = false;
             this.BTN_IonSOURCE_reset.Location = new System.Drawing.Point(180, 11);
             this.BTN_IonSOURCE_reset.Name = "BTN_IonSOURCE_reset";
             this.BTN_IonSOURCE_reset.Size = new System.Drawing.Size(48, 23);
@@ -1774,6 +1776,7 @@
             // 
             // BTN_HEATER_reset
             // 
+            this.BTN_HEATER_reset.Enabled = false;
             this.BTN_HEATER_reset.Location = new System.Drawing.Point(180, 12);
             this.BTN_HEATER_reset.Name = "BTN_HEATER_reset";
             this.BTN_HEATER_reset.Size = new System.Drawing.Size(48, 23);

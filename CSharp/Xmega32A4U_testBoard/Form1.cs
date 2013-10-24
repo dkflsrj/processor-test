@@ -498,7 +498,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_HEATER_reset_Click(object sender, EventArgs e)
         {
-            MC.Inlet.reset();
+            //MC.Inlet.reset();
         }
         //-------------------------------Ионный источник--------------------------
         private void BTN_IonSOURCE_setEmissionCurrentVoltage_Click(object sender, EventArgs e)
@@ -539,7 +539,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_IonSOURCE_reset_Click(object sender, EventArgs e)
         {
-            MC.IonSource.reset();
+            //MC.IonSource.reset();
         }
         //------------------------------------Детектор------------------------------------------
         private void BTN_DETECTOR_setDV1voltage_Click(object sender, EventArgs e)
@@ -571,7 +571,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_DETECTOR_reset_Click(object sender, EventArgs e)
         {
-            MC.Detector.reset();
+            //MC.Detector.reset();
         }
         private void BTN_checkCommandStack_Click(object sender, EventArgs e)
         {
