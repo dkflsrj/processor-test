@@ -25,8 +25,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										70
-#define birthday									20131021
+#define version										71
+#define birthday									20131023
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
 #define usartRX_delay								2		//Задержка приёма данных иначе разобьём команду на части
@@ -55,8 +55,11 @@ uint8_t CommandStack = 0;
 uint8_t USART_MEM[10];						//10 байт памяти для приёма данных USART
 uint8_t USART_MEM_length = 0;
 //		Измерения
-uint8_t RTC_Status = RTC_Status_ready;	//Состояния счётчика
-uint8_t RTC_prescaler = RTC_PRESCALER_OFF_gc; 
+uint8_t RTC_Status = RTC_Status_ready;		//Состояния счётчика
+uint8_t RTC_Prescaler = RTC_PRESCALER_OFF_gc; //Предделитель RTC во время измерения
+uint16_t RTC_MeasureTime = 0;				//Период RTC во время следующего измерения
+uint16_t RTC_Delay = 0;						//Период RTC во время задержки
+uint8_t RTC_DealayPrescaler = RTC_PRESCALER_OFF_gc; //Предделитель RTС во время задержки
 uint32_t COA_Measurment = 0;				//Последнее измерение счётчика COA
 uint8_t	COA_ovf = 0;						//Количество переполнений счётчика СОА в последнем измерении
 uint32_t COB_Measurment = 0;				//Последнее измерение счётчика COB
@@ -76,7 +79,7 @@ struct _MC_Tasks
 	uint8_t noTasks6	:1;
 	uint8_t noTasks7	:1;
 }MC_Tasks;
-struct pin_Flags
+struct pinFlags
 {
 	uint8_t SPUMP		:1;
 	uint8_t SEMV3		:1;
@@ -131,7 +134,7 @@ struct spi_device ADC_MSV = {
 //ADC у конденсатора тот же что и у сканера
 //-----------------------------------------УКАЗАТЕЛИ----------------------------------------------
 uint8_t *pointer_MC_Tasks;
-uint8_t *pointer_Flags;
+uint8_t* pointer_Flags;
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 //
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
@@ -159,8 +162,9 @@ void ERROR_ASYNCHR(void);
 void TIC_transmit(uint8_t DATA[]);
 
 void SPI_send(uint8_t DEVICE_Number, uint8_t data[]);
+
 void checkFlags(uint8_t DATA);
-void updateFlags();
+void updateFlags(void);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTD0_RXC_vect)
 {
@@ -394,19 +398,9 @@ void COUNTERS_transmit_Result(void)
 }
 void RTC_set_Period(uint8_t DATA[])
 {
-	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов
-	
-	if (RTC_Status != RTC_Status_busy)
-	{
-		RTC.PER = (((uint16_t)DATA[1])<<8) + DATA[2];
-//  		uint8_t data[] = {COMMAND_RTC_set_Period, 1};
-//  		transmit(data, 2);	//Операция удалась
-		transmit_2bytes(COMMAND_RTC_set_Period, 1);
-	}
-	else
-	{
-		transmit_2bytes(COMMAND_RTC_set_Period, 0);	//Операция не удалась - таймер считает. Остановите таймер! Кто-нибудь!!!
-	}
+	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов при следующем измерении
+	RTC_MeasureTime = (((uint16_t)DATA[1])<<8) + DATA[2];
+	transmit_2bytes(COMMAND_RTC_set_Period, RTC_Status);
 }
 void COUNTERS_start(void)
 {
@@ -422,6 +416,7 @@ void COUNTERS_start(void)
 		TCD1.CNT = 0;
 		TCE0.CNT = 0;
 		RTC.CNT = 0;
+		RTC.PER = RTC_MeasureTime;
 		asm("LDI R16, 0x08		\n\t"
 			"LDI R17, 0x0A		\n\t"
 			"LDI R18, 0x0C		\n\t"
@@ -472,7 +467,7 @@ void COUNTERS_stop(void)
 void RTC_setPrescaler(uint8_t DATA[])
 {
 	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
-	RTC_prescaler = DATA[1];
+	RTC_Prescaler = DATA[1];
 	transmit_byte(COMMAND_RTC_set_Prescaler);
 }
 //TIC
@@ -682,7 +677,7 @@ void checkFlags(uint8_t DATA)
 	uint8_t data = 64;
 	transmit_2bytes(COMMAND_Flags_set, data);
 }
-void updateFlags()
+void updateFlags(void)
 {
 	//ФУНКЦИЯ: МК осматривает флаговые пины портов и собирает их в байт Flags
 	Flags.iHVE =  (PORTC.OUT & 8  ) >> 3;
@@ -695,14 +690,6 @@ void updateFlags()
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
 {
-	
-	//tc_write_clock_source(&TCC0,TC_CLKSEL_EVCH0_gc);
-	//	tc_write_clock_source(&TCD0,TC_CLKSEL_EVCH2_gc);
-	//	tc_write_clock_source(&TCE0,TC_CLKSEL_EVCH4_gc);	
-		//RTC.CTRL = RTC_prescaler;
-	//	tc_write_clock_source(&TCC1,TC_CLKSEL_EVCH1_gc);
-	//	tc_write_clock_source(&TCD1,TC_CLKSEL_EVCH3_gc);
-		
 	confPORTs;							//Конфигурируем порты (HVE пин в первую очередь)
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
@@ -724,13 +711,13 @@ int main(void)
 	EVSYS_SetEventSource( 3, EVSYS_CHMUX_TCD0_OVF_gc );
 	EVSYS_SetEventChannelFilter( 3, EVSYS_DIGFILT_1SAMPLE_gc );
 	EVSYS_SetEventSource( 4, EVSYS_CHMUX_PORTC_PIN2_gc );
-	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );
-	//Конечная инициализация
+	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );//Конечная инициализация
 	pointer_Flags = &Flags;
     updateFlags();
 	RTC_setStatus_ready;
 	cpu_irq_enable();					//Разрешаем прерывания	
 	//Инициализация завершена
+	COUNTERS_start();
 	while (1) 
 	{
 		
