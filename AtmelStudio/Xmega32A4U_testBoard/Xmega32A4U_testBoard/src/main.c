@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										72
+#define version										73
 #define birthday									20131024
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
@@ -755,7 +755,13 @@ int main(void)
 	RTC_setStatus_ready;
 	cpu_irq_enable();					//Разрешаем прерывания	
 	//Инициализация завершена
-	COUNTERS_start();
+	delay_s(1);
+	uint8_t ssdata[] = {0,0};
+	ssdata[0] = AD5328R_confHbyte;
+	ssdata[1] = AD5328R_confLbyte;;
+	spi_select_device(&SPIC,&DAC_IonSource);
+	spi_write_packet(&SPIC, ssdata, 2);
+	spi_deselect_device(&SPIC,&DAC_IonSource);
 	while (1) 
 	{
 		
