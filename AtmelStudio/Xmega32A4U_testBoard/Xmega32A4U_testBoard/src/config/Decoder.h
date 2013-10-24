@@ -35,6 +35,7 @@
 #define COMMAND_RTC_get_Status						35	//Команда: Запросить состояние счётчика
 #define COMMAND_RTC_set_Delay						36	//Команда: Задать время задержки
 #define COMMAND_RTC_startDelay						37	//Команда: Принудительно запустить задержку (таймер)
+#define COMMAND_RTC_set_DelayPrescaler				38  //Команда: Установить предделитель RTC для задержки
 //Команды DAC'ам
 #define COMMAND_IonSource_EC_set_Voltage			42	//Команда: Задать напряжение эмиссии
 #define COMMAND_IonSource_Ion_set_Voltage			43	//Команда: Задать напряжение ионизации
