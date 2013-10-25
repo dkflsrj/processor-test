@@ -39,19 +39,17 @@
 //Команды DAC'ам
 #define COMMAND_IonSource_set_Voltage				40	//Команда: Задать напряжение DAC'у Ионного Источника
 #define COMMAND_Detector_set_Voltage				41	//Команда: Задать напряжение DAC'у Детектора
+#define COMMAND_Scaner_set_Voltage					42	//Команда: Задать напряжение DAC'у Сканера
+#define COMMAND_Condensator_set_Voltage				43	//Команда: Задать напряжение конденсатора
+
 #define COMMAND_Inlet_set_Voltage					49	//Команда: Задать напряжение натекателя
 #define COMMAND_Heater_set_Voltage					50	//Команда: Задать напряжение нагревателя
-#define COMMAND_Scaner_Parent_set_Voltage			51	//Команда: Задать родительское напряжение
-#define COMMAND_Scaner_Scan_set_Voltage				52	//Команда: Задать сканирующее напряжение
-#define COMMAND_Condensator_set_Voltage				53	//Команда: Задать напряжение конденсатора
+
 
 #define COMMAND_KEY									58	//Команда: Любая команда начинается с этой (ключ)
 
 //Команды ADC'ам
-#define COMMAND_IonSource_EC_get_Voltage			60	//Команда: Запросить напряжение эмиссии
-#define COMMAND_IonSource_Ion_get_Voltage			61	//Команда: Запросить напряжение ионизации
-#define COMMAND_IonSource_F1_get_Voltage			62	//Команда: Запросить напряжение фокусное 1
-#define COMMAND_IonSource_F2_get_Voltage			63	//Команда: Запросить напряжение фокусное 2
+#define COMMAND_IonSource_get_Voltage				60	//Команда: Запросить напряжение у ADC Ионного Источника
 #define COMMAND_Detector_DV1_get_Voltage			64	//Команда: Запросить напряжение DV1
 #define COMMAND_Detector_DV2_get_Voltage			65	//Команда: Запросить напряжение DV2
 #define COMMAND_Detector_DV3_get_Voltage			66	//Команда: Запросить напряжение DV3
@@ -108,19 +106,11 @@
 			break;																								\
 		case COMMAND_Heater_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Inlet,BYTES);				\
 			break;																								\
-		case COMMAND_Scaner_Parent_set_Voltage: 	SPI_send(SPI_DEVICE_Number_DAC_Scaner,BYTES);				\
-			break;																								\
-		case COMMAND_Scaner_Scan_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_Scaner,BYTES);				\
+		case COMMAND_Scaner_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Scaner,BYTES);				\
 			break;																								\
 		case COMMAND_Condensator_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_Condensator,BYTES);			\
 			break;																								\
-		case COMMAND_IonSource_EC_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_IonSource,BYTES);			\
-			break;																								\
-		case COMMAND_IonSource_Ion_get_Voltage: 	SPI_send(SPI_DEVICE_Number_ADC_IonSource,BYTES);			\
-			break;																								\
-		case COMMAND_IonSource_F1_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_IonSource,BYTES);			\
-			break;																								\
-		case COMMAND_IonSource_F2_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_IonSource,BYTES);			\
+		case COMMAND_IonSource_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_IonSource,BYTES);			\
 			break;																								\
 		case COMMAND_Detector_DV1_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector,BYTES);				\
 			break;																								\
