@@ -560,9 +560,9 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	//ФУНКЦИЯ: Посылает данные указанному SPI-устройству будь то DAC или ADC
 	//	Список устройств:
 	//		DEVICE_Number		NAME		TYPE
-	//			1			 IonSource		DAC
-	//			2			 Detector		DAC
-	//			3			 Inlet			DAC
+	//			1			 IonSource		DAC AD5328
+	//			2			 Detector		DAC AD5328
+	//			3			 Inlet			DAC AD5328
 	//			4			 Scaner			DAC AD5643R
 	//			5			 Condensator	DAC AD5643R
 	//			6			 IonSource		ADC

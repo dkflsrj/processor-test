@@ -86,17 +86,17 @@ namespace Xmega32A4U_testBoard
                     public struct Ionization
                     {
                         public const byte setVoltage = 40;
-                        public const byte getVoltage = 61;
+                        public const byte getVoltage = 60;
                     }
                     public struct F1
                     {
                         public const byte setVoltage = 40;
-                        public const byte getVoltage = 62;
+                        public const byte getVoltage = 60;
                     }
                     public struct F2
                     {
                         public const byte setVoltage = 40;
-                        public const byte getVoltage = 63;
+                        public const byte getVoltage = 60;
                     }
                 }
                 public struct Detector
@@ -135,19 +135,19 @@ namespace Xmega32A4U_testBoard
                     //Коды команд Сканера
                     public struct ParentScan
                     {
-                        public const byte setVoltage = 51;
+                        public const byte setVoltage = 42;
                         public const byte getVoltage = 70;
                     }
                     public struct Scan
                     {
-                        public const byte setVoltage = 52;
+                        public const byte setVoltage = 42;
                         public const byte getVoltage = 70;
                     }
                 }
                 public struct Condensator
                 {
                     //Коды команд Конденсатора
-                    public const byte setVoltage = 53;
+                    public const byte setVoltage = 43;
                     public const byte getPositiveVoltage = 70;
                     public const byte getNegativeVoltage = 70;
                 }
@@ -161,10 +161,6 @@ namespace Xmega32A4U_testBoard
                 public const byte checkCommandStack = 8;
             }
             public const byte setFlags = 80;
-            //public const byte EMV1 = ;
-            //public const byte EMV2 = ;
-            //public const byte EMV3 = ;
-            //public const byte HVE = ;
         }
 
         /*public struct SPI_ADC
