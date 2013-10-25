@@ -1035,16 +1035,16 @@ namespace Xmega32A4U_testBoard
         {
             //КЛАСС: Ионный источник - используется каналы А,B,C,D
             //DAC AD5328BR
-            const byte Reset_Hbyte = 255;
-            const byte Reset_Lbyte = 255;
-            const byte EmissionCurrent_channel = 1;
-            const byte Ionization_channel =2;
-            const byte F1_channel = 3;
-            const byte F2_channel = 4;
+            const byte Reset_Hbyte = 128;//255;
+            const byte Reset_Lbyte = 60;//255;
+            const byte EmissionCurrent_channel =        1;
+            const byte Ionization_channel =             2;
+            const byte F1_channel =                     3;
+            const byte F2_channel =                     4;
             /// <summary>
             /// Сбрасывает все настройки DAC'а и его напряжения 
             /// </summary>
-            bool reset()
+            public bool reset()
             {
                 string command = "DAC_CHANNEL.reset(IonSOURCE)";
                 trace_attached(Environment.NewLine);

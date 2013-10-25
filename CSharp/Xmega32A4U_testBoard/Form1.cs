@@ -203,6 +203,7 @@ namespace Xmega32A4U_testBoard
             //{
             //    //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно не выставил напряжение!");
             //}
+           // MC.IonSource.F8.setVoltage(TXB_DAC_voltage.Text);
         }
         private void BTN_SPI_ADC_request_Click(object sender, EventArgs e)
         {
@@ -539,7 +540,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_IonSOURCE_reset_Click(object sender, EventArgs e)
         {
-            //MC.IonSource.reset();
+            MC.IonSource.reset();
         }
         //------------------------------------Детектор------------------------------------------
         private void BTN_DETECTOR_setDV1voltage_Click(object sender, EventArgs e)
