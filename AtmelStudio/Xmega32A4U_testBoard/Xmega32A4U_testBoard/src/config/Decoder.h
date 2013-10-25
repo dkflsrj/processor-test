@@ -37,13 +37,8 @@
 #define COMMAND_RTC_startDelay						37	//Команда: Принудительно запустить задержку (таймер)
 #define COMMAND_RTC_set_DelayPrescaler				38  //Команда: Установить предделитель RTC для задержки
 //Команды DAC'ам
-#define COMMAND_IonSource_EC_set_Voltage			42	//Команда: Задать напряжение эмиссии
-#define COMMAND_IonSource_Ion_set_Voltage			43	//Команда: Задать напряжение ионизации
-#define COMMAND_IonSource_F1_set_Voltage			44	//Команда: Задать напряжение фокусное 1
-#define COMMAND_IonSource_F2_set_Voltage			45	//Команда: Задать напряжение фокусное 2
-#define COMMAND_Detector_DV1_set_Voltage			46	//Команда: Задать напряжение DV1
-#define COMMAND_Detector_DV2_set_Voltage			47	//Команда: Задать напряжение DV2
-#define COMMAND_Detector_DV3_set_Voltage			48	//Команда: Задать напряжение DV3
+#define COMMAND_IonSource_set_Voltage				40	//Команда: Задать напряжение DAC'у Ионного Источника
+#define COMMAND_Detector_set_Voltage				41	//Команда: Задать напряжение DAC'у Детектора
 #define COMMAND_Inlet_set_Voltage					49	//Команда: Задать напряжение натекателя
 #define COMMAND_Heater_set_Voltage					50	//Команда: Задать напряжение нагревателя
 #define COMMAND_Scaner_Parent_set_Voltage			51	//Команда: Задать родительское напряжение
@@ -105,19 +100,9 @@
 			break;																								\
 		case COMMAND_checkCommandStack:				transmit_2bytes(COMMAND_checkCommandStack,CommandStack);	\
 			break;																								\
-		case COMMAND_IonSource_EC_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_IonSource,BYTES);			\
+		case COMMAND_IonSource_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_IonSource,BYTES);			\
 			break;																								\
-		case COMMAND_IonSource_Ion_set_Voltage:		SPI_send(SPI_DEVICE_Number_DAC_IonSource,BYTES);			\
-			break;																								\
-		case COMMAND_IonSource_F1_set_Voltage:		SPI_send(SPI_DEVICE_Number_DAC_IonSource,BYTES);			\
-			break;																								\
-		case COMMAND_IonSource_F2_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_IonSource,BYTES);			\
-			break;																								\
-		case COMMAND_Detector_DV1_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_Detector,BYTES);				\
-			break;																								\
-		case COMMAND_Detector_DV2_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_Detector,BYTES);				\
-			break;																								\
-		case COMMAND_Detector_DV3_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_Detector,BYTES);				\
+		case COMMAND_Detector_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Detector,BYTES);				\
 			break;																								\
 		case COMMAND_Inlet_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Inlet,BYTES);				\
 			break;																								\

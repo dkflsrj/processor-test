@@ -25,8 +25,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										74
-#define birthday									20131024
+#define version										75
+#define birthday									20131025
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
 #define usartRX_delay								2		//Задержка приёма данных иначе разобьём команду на части
@@ -186,7 +186,7 @@ ISR(USARTD0_RXC_vect)
 	{
 		//НЕТ! Данные закончились! Значит можно интерпретировать... Но сначала "орфография"...
 		//А пришёл ли ключ?
-		if(USART_MEM[0] == COMMAND_KEY)
+		if (USART_MEM[0] == COMMAND_KEY)
 		{
 			//Всё в порядке ключ есть, а есть ли замок?
 			if (USART_MEM[USART_MEM_length - 1] == COMMAND_LOCK)
@@ -390,7 +390,7 @@ void COUNTERS_transmit_Result(void)
 	//Нужно чтобы результаты можно было пересылать во время измерения! То есть во время статуса Delayed и busy!
 	// Но с проверкой, не было ли перезаписи данных (не опоздал ли комп)
 	
-	switch(RTC_Status)
+	switch (RTC_Status)
 	{
 		case RTC_Status_ready:
 			data[3] = (COA_Measurment >> 24);

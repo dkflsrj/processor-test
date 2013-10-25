@@ -75,29 +75,27 @@ namespace Xmega32A4U_testBoard
             public struct SPI
             {
                 //Коды команд для SPI устройств
-                public const byte DAC_setVoltage =                      40;
-                public const byte ADC_getVoltage =                      41;
                 public struct IonSource
                 {
                     //Коды команд Ионного Источника
                     public struct EmissionCurrent
                     {
-                        public const byte setVoltage = 42;
+                        public const byte setVoltage = 40;
                         public const byte getVoltage = 60;
                     }
                     public struct Ionization
                     {
-                        public const byte setVoltage = 43;
+                        public const byte setVoltage = 40;
                         public const byte getVoltage = 61;
                     }
                     public struct F1
                     {
-                        public const byte setVoltage = 44;
+                        public const byte setVoltage = 40;
                         public const byte getVoltage = 62;
                     }
                     public struct F2
                     {
-                        public const byte setVoltage = 45;
+                        public const byte setVoltage = 40;
                         public const byte getVoltage = 63;
                     }
                 }
@@ -106,17 +104,17 @@ namespace Xmega32A4U_testBoard
                     //Коды команд Детектора
                     public struct DV1
                     {
-                        public const byte setVoltage = 46;
+                        public const byte setVoltage = 41;
                         public const byte getVoltage = 64;
                     }
                     public struct DV2
                     {
-                        public const byte setVoltage = 47;
+                        public const byte setVoltage = 41;
                         public const byte getVoltage = 65;
                     }
                     public struct DV3
                     {
-                        public const byte setVoltage = 48;
+                        public const byte setVoltage = 41;
                         public const byte getVoltage = 66;
                     }
                 }
