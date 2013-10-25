@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										73
+#define version										74
 #define birthday									20131024
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
@@ -731,7 +731,7 @@ int main(void)
 	confPORTs;							//Конфигурируем порты (HVE пин в первую очередь)
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
-	SPIC.CTRL = 83;						//Инициируем систему SPI
+	SPIC.CTRL = 87;						//Инициируем систему SPI
 	RTC_init;							//Инициируем счётчик реального времени
 	Counters_init;						//Инициируем счётчики импульсов
 	USART_COMP_init;					//Инициируем USART с компутером

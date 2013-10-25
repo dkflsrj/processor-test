@@ -79,7 +79,6 @@
             this.BTN_reqCount = new System.Windows.Forms.Button();
             this.BTN_stopCounter = new System.Windows.Forms.Button();
             this.GRB_SPI = new System.Windows.Forms.GroupBox();
-            this.BTN_DAC_reset = new System.Windows.Forms.Button();
             this.TXB_ADC_channel = new System.Windows.Forms.TextBox();
             this.TXB_DAC_channel = new System.Windows.Forms.TextBox();
             this.CHB_ADC_DoubleRange = new System.Windows.Forms.CheckBox();
@@ -212,6 +211,7 @@
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
+            this.BTN_DAC_reset = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -800,8 +800,8 @@
             this.GRB_SPI.Controls.Add(this.TXB_DAC_channel);
             this.GRB_SPI.Controls.Add(this.CHB_ADC_DoubleRange);
             this.GRB_SPI.Controls.Add(this.TXB_DAC_voltage);
-            this.GRB_SPI.Controls.Add(this.BTN_SPI_DAC_send);
             this.GRB_SPI.Controls.Add(this.BTN_SPI_ADC_request);
+            this.GRB_SPI.Controls.Add(this.BTN_SPI_DAC_send);
             this.GRB_SPI.Enabled = false;
             this.GRB_SPI.Location = new System.Drawing.Point(6, 233);
             this.GRB_SPI.Name = "GRB_SPI";
@@ -809,16 +809,6 @@
             this.GRB_SPI.TabIndex = 11;
             this.GRB_SPI.TabStop = false;
             this.GRB_SPI.Text = "SPI";
-            // 
-            // BTN_DAC_reset
-            // 
-            this.BTN_DAC_reset.Location = new System.Drawing.Point(6, 19);
-            this.BTN_DAC_reset.Name = "BTN_DAC_reset";
-            this.BTN_DAC_reset.Size = new System.Drawing.Size(55, 24);
-            this.BTN_DAC_reset.TabIndex = 9;
-            this.BTN_DAC_reset.Text = "Сброс";
-            this.BTN_DAC_reset.UseVisualStyleBackColor = true;
-            this.BTN_DAC_reset.Click += new System.EventHandler(this.BTN_DAC_reset_Click);
             // 
             // TXB_ADC_channel
             // 
@@ -849,11 +839,11 @@
             // 
             // TXB_DAC_voltage
             // 
-            this.TXB_DAC_voltage.Location = new System.Drawing.Point(152, 22);
+            this.TXB_DAC_voltage.Location = new System.Drawing.Point(152, 23);
             this.TXB_DAC_voltage.Name = "TXB_DAC_voltage";
-            this.TXB_DAC_voltage.Size = new System.Drawing.Size(63, 20);
+            this.TXB_DAC_voltage.Size = new System.Drawing.Size(57, 20);
             this.TXB_DAC_voltage.TabIndex = 2;
-            this.TXB_DAC_voltage.Text = "4000";
+            this.TXB_DAC_voltage.Text = "40";
             // 
             // BTN_SPI_DAC_send
             // 
@@ -1318,7 +1308,6 @@
             // 
             // BTN_IonSOURCE_reset
             // 
-            this.BTN_IonSOURCE_reset.Enabled = false;
             this.BTN_IonSOURCE_reset.Location = new System.Drawing.Point(180, 11);
             this.BTN_IonSOURCE_reset.Name = "BTN_IonSOURCE_reset";
             this.BTN_IonSOURCE_reset.Size = new System.Drawing.Size(48, 23);
@@ -2188,6 +2177,16 @@
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
+            // BTN_DAC_reset
+            // 
+            this.BTN_DAC_reset.Location = new System.Drawing.Point(6, 19);
+            this.BTN_DAC_reset.Name = "BTN_DAC_reset";
+            this.BTN_DAC_reset.Size = new System.Drawing.Size(55, 24);
+            this.BTN_DAC_reset.TabIndex = 9;
+            this.BTN_DAC_reset.Text = "Сброс";
+            this.BTN_DAC_reset.UseVisualStyleBackColor = true;
+            this.BTN_DAC_reset.Click += new System.EventHandler(this.BTN_DAC_reset_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2276,7 +2275,6 @@
         private System.Windows.Forms.CheckBox CHB_ADC_DoubleRange;
         private System.Windows.Forms.GroupBox GRB_Counter;
         private System.Windows.Forms.GroupBox GRB_SPI;
-        private System.Windows.Forms.Button BTN_DAC_reset;
         private System.Windows.Forms.GroupBox GRB_MC;
         private System.Windows.Forms.CheckBox CHB_TotalControl;
         private System.Windows.Forms.Timer CLK_timer;
@@ -2421,6 +2419,7 @@
         private System.Windows.Forms.CheckBox CHB_SEMV2;
         private System.Windows.Forms.CheckBox CHB_SPUMP;
         private System.Windows.Forms.CheckBox CHB_SEMV1;
+        private System.Windows.Forms.Button BTN_DAC_reset;
     }
 }
 
