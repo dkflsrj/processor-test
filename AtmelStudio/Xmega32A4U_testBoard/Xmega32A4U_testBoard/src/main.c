@@ -25,8 +25,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										75
-#define birthday									20131025
+#define version										77
+#define birthday									20131031
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
 #define usartRX_delay								2		//Задержка приёма данных иначе разобьём команду на части
@@ -46,8 +46,16 @@
 #define AD5643R_startVoltage_Hbyte					24	
 #define AD5643R_startVoltage_Mbyte					127
 #define AD5643R_startVoltage_Lbyte					252
+//Двойной референс
 #define AD5328R_confHbyte							128
 #define AD5328R_confLbyte							60
+//Стартовые напряжение PSIS EC (тока эмиссии)
+#define AD5328R_startVoltage_Hbyte_PSIS_EC			0
+#define AD5328R_startVoltage_Lbyte_PSIS_EC			82
+//Стартовые напряжения PSIS IV,F1,F2 (ионизации, фокусные)
+#define AD5328R_startVoltage_Hbyte_PSIS_IV			44
+#define AD5328R_startVoltage_Lbyte_PSIS_IV			205
+
 //----------------------------------------ПЕРЕМЕННЫЕ----------------------------------------------
 //	МИКРОКОНТРОЛЛЕР
 uint8_t MC_version = version;
@@ -682,13 +690,14 @@ void checkFlags(uint8_t DATA)
 		{
 			delay_s(2); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
 			//Высокое напряжение включеноё - конфигурируем DACи
-			//DAC AD5643R
-			uint8_t sdata[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};	//настроечные байты для ЦАПА AD5643R
+			//MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
+			uint8_t sdata[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};
 			spi_select_device(&SPIC, &DAC_Condensator);
 			spi_select_device(&SPIC, &DAC_Scaner);
 			spi_write_packet(&SPIC, sdata, 3);
 			spi_deselect_device(&SPIC, &DAC_Condensator);
 			spi_deselect_device(&SPIC, &DAC_Scaner);
+			//MSV DAC'и AD5643R (Конденсатор и сканер) - стартовое напряжение на первых каналах
 			sdata[0] = AD5643R_startVoltage_Hbyte;
 			sdata[1] = AD5643R_startVoltage_Mbyte;
 			sdata[2] = AD5643R_startVoltage_Lbyte;
@@ -697,16 +706,43 @@ void checkFlags(uint8_t DATA)
 			spi_write_packet(&SPIC, sdata, 3);
 			spi_deselect_device(&SPIC, &DAC_Scaner);
 			spi_deselect_device(&SPIC, &DAC_Condensator);
+			//MSV DAC AD5643R (Сканер) - стартовое напряжение на первом канале
 			sdata[0] = AD5643R_startVoltage_Hbyte + 1;
 			spi_select_device(&SPIC, &DAC_Scaner);
 			spi_write_packet(&SPIC, sdata, 3);
 			spi_deselect_device(&SPIC, &DAC_Scaner);
-			//DAC AD5328R
+			//DPS + PSIS DAC'и AD5328R (Детектор и Ионный Источник) - двойной референс
 			sdata[0] = AD5328R_confHbyte;
-			sdata[1] = AD5328R_confLbyte;;
+			sdata[1] = AD5328R_confLbyte;
 			spi_select_device(&SPIC,&DAC_Detector);
+			spi_select_device(&SPIC,&DAC_IonSource);
 			spi_write_packet(&SPIC, sdata, 2);
 			spi_deselect_device(&SPIC,&DAC_Detector);
+			spi_deselect_device(&SPIC,&DAC_IonSource);
+			//PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на первом канале (Ток Эмиссии)
+			sdata[0] = AD5328R_startVoltage_Hbyte_PSIS_EC;
+			sdata[1] = AD5328R_startVoltage_Lbyte_PSIS_EC;
+			spi_select_device(&SPIC,&DAC_IonSource);
+			spi_write_packet(&SPIC, sdata, 2);
+			spi_deselect_device(&SPIC,&DAC_IonSource);
+			//PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на втором канале (Ионизации)
+			sdata[0] = AD5328R_startVoltage_Hbyte_PSIS_IV;
+			sdata[1] = AD5328R_startVoltage_Lbyte_PSIS_IV;
+			spi_select_device(&SPIC,&DAC_IonSource);
+			spi_write_packet(&SPIC, sdata, 2);
+			spi_deselect_device(&SPIC,&DAC_IonSource);
+			//PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на третьем канале (Фокусное 1)
+			sdata[0] += 16;//переход на следующий адрес
+			//sdata[1] = ;
+			spi_select_device(&SPIC,&DAC_IonSource);
+			spi_write_packet(&SPIC, sdata, 2);
+			spi_deselect_device(&SPIC,&DAC_IonSource);
+			//PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на четвёртом канале (Фокусное 2)
+			sdata[0] += 16;//переход на следующий адрес
+			//sdata[1] = ;
+			spi_select_device(&SPIC,&DAC_IonSource);
+			spi_write_packet(&SPIC, sdata, 2);
+			spi_deselect_device(&SPIC,&DAC_IonSource);
 			MC_Tasks.setDACs = 0;
 		}
 		return;
@@ -755,13 +791,6 @@ int main(void)
 	RTC_setStatus_ready;
 	cpu_irq_enable();					//Разрешаем прерывания	
 	//Инициализация завершена
-	delay_s(1);
-	uint8_t ssdata[] = {0,0};
-	ssdata[0] = AD5328R_confHbyte;
-	ssdata[1] = AD5328R_confLbyte;;
-	spi_select_device(&SPIC,&DAC_IonSource);
-	spi_write_packet(&SPIC, ssdata, 2);
-	spi_deselect_device(&SPIC,&DAC_IonSource);
 	while (1) 
 	{
 		
