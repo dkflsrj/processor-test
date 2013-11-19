@@ -9,7 +9,7 @@ using System.Threading;
 namespace Xmega32A4U_testBoard
 {
     /// <summary>
-    /// Класс связи ПК с XMega32A4U
+    /// Класс связи ПК с ATXmega32A4U
     /// </summary>
     class XMEGA32A4U
     {
@@ -60,12 +60,15 @@ namespace Xmega32A4U_testBoard
             public struct RTC
             {
                 //Коды команд счётчиков
-                public const byte setMeasureTime =     30;
-                public const byte startMeasure =       31;
-                public const byte getResult =          32;
-                public const byte stopMeasure =        33;
-                public const byte setPrescaler =       34;
-                public const byte getStatus =          35;
+                public const byte setMeasureTime =      30;
+                public const byte startMeasure =        31;
+                public const byte getResult =           32;
+                public const byte stopMeasure =         33;
+                public const byte setPrescaler =        34;
+                public const byte getStatus =           35;
+                public const byte setDelayPeriod =      36;
+                public const byte setAll =              37;
+                public const byte LAM =                 38;
             }
             public struct TIC
             {
@@ -342,11 +345,11 @@ namespace Xmega32A4U_testBoard
                 /// <summary>
                 /// Количество переполнений счётчика
                 /// </summary>
-                public byte overflows;  //Количество переполений счётчика
+                public List<byte> Overflows = new List<byte>();  //Количество переполений счётчика
                 /// <summary>
                 /// Сосчитанный результат
                 /// </summary>
-                public UInt32 Result;   //Сосчитанный результат
+                public List<uint> Count = new List<uint>();   //Сосчитанный результат
             }
             /// <summary>
             /// Счётчик А (32-разрядный)
@@ -360,51 +363,61 @@ namespace Xmega32A4U_testBoard
             /// Счётчик С (16-разрядный)
             /// </summary>
             public counter COC = new counter();
-            byte prescaler; //Предделитель в byte : 1,2,3(8),4(16),5(64),6(256),7(1024)
-            ushort prescaler_long; //Предделитель в реальном коэффициенте деления (см. prescaler цифры в скобках)
-            bool setPrescaler(ushort PRESCALER)
+            //Настройки для измерений
+            public uint[] MeasureTimes = new uint[4096];
+            public uint[] DelayTimes = new uint[4096];
+            public ushort NumberOfMeasurments = 0;
+
+            byte getRTCprescaler(uint MILLISECONDS)
             {
-                //ФУНКЦИЯ: Устанавливает предделитель (в МК)
-                string command = "Counters.setPrescaler(" + PRESCALER + ")";
-                trace(command);
-                switch (PRESCALER)
+                byte prescaler; //Предделитель
+                if ((MILLISECONDS >= Constants.min_ms_div1) && (MILLISECONDS < Constants.min_ms_div2))
                 {
-                    case 1: prescaler = 1;
-                        break;
-                    case 2: prescaler = 2;
-                        break;
-                    case 8: prescaler = 3;
-                        break;
-                    case 16: prescaler = 4;
-                        break;
-                    case 64: prescaler = 5;
-                        break;
-                    case 256: prescaler = 6;
-                        break;
-                    case 1024: prescaler = 7;
-                        break;
-                    default: trace(command + ": ОШИБКА! Неверный предделитель!");
-                        prescaler = 0;
-                        return false;
+                    prescaler = 1;
                 }
-                if((transmit(Command.RTC.setPrescaler, prescaler)[0] == Command.RTC.setPrescaler))
+                else if ((MILLISECONDS >= Constants.min_ms_div2) && (MILLISECONDS < Constants.min_ms_div8))
                 {
-                    trace(command + ": Операция выполнена успешно!");
-                    return true;
+                    prescaler = 2;
                 }
-                addError(command + ": ОШИБКА ОТКЛИКА!");
-                return false;
+                else if ((MILLISECONDS >= Constants.min_ms_div8) && (MILLISECONDS < Constants.min_ms_div16))
+                {
+                    prescaler = 3;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div16) && (MILLISECONDS < Constants.min_ms_div64))
+                {
+                    prescaler = 4;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div64) && (MILLISECONDS < Constants.min_ms_div256))
+                {
+                    prescaler = 5;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div256) && (MILLISECONDS < Constants.min_ms_div1024))
+                {
+                    prescaler = 6;
+                }
+                else if ((MILLISECONDS >= Constants.min_ms_div1024) && (MILLISECONDS < Constants.max_ms_div1024))
+                {
+                    prescaler = 7;
+                }
+                else
+                {
+                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MeasureTime_ms < 2047967; Получено: " + MILLISECONDS);
+                    prescaler = 0;
+                    return 0;
+                }
+                return prescaler;
             }
             //Видимые функции
             /// <summary>
             /// Вычисляет, устанавливает и возвращает предделитель RTC 
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
-            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
             /// <returns>?</returns>
-            public ushort getRTCprescaler(uint MILLISECONDS)
+            public ushort getRTCprescaler_long(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет, сохраняет и возвращает предделитель.
+                ushort prescaler_long; //Предделитель в реальном коэффициенте деления (см. prescaler цифры в скобках)
                 if ((MILLISECONDS >= Constants.min_ms_div1) && (MILLISECONDS < Constants.min_ms_div2))
                 {
                     prescaler_long = 1;
@@ -435,74 +448,61 @@ namespace Xmega32A4U_testBoard
                 }
                 else
                 {
-                    trace("Counters.getRTCprescaler("+MILLISECONDS+"): ОШИБКА! Недопустимое время измерения! Ожидалось: 0 < MILLISECONDS < 2047967; Получено: " + MILLISECONDS);
+                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MeasureTime_ms < 2047967; Получено: " + MILLISECONDS);
                     prescaler_long = 0;
                     return 0;
                 }
                 return prescaler_long;
             }
-                /// <summary>
+            /// <summary>
             /// Вычисляет, устанавливает и возвращает предделитель RTC 
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
-            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
             /// <returns>?</returns>
-                public ushort getRTCprescaler(string MILLISECONDS)
+            public ushort getRTCprescaler_long(string MILLISECONDS)
             {
-                return getRTCprescaler(Convert.ToUInt32(MILLISECONDS));
+                return getRTCprescaler_long(Convert.ToUInt32(MILLISECONDS));
             }
             /// <summary>
             /// Возвращает частоту RTC в соответствии с предделителем
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
-            public double getRTCfrequency()
+            public double getRTCfrequency(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
-                return (Constants.sourceFrequency / prescaler_long);
+                return (Constants.sourceFrequency / getRTCprescaler_long(MILLISECONDS));
+            }
+            public double getRTCfrequency(string MILLISECONDS)
+            {
+                //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
+                return (Constants.sourceFrequency / getRTCprescaler_long(Convert.ToUInt32(MILLISECONDS)));
             }
             /// <summary>
             /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
-            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
-            /// <param name="PRESCALER">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
+            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <param name="PRESCALER_long">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
             /// <returns></returns>
-            public ushort getRTCticks(uint MILLISECONDS, ushort PRESCALER)
+            public ushort getRTCticks(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет количество тиков в соответствии с временем и предделителем. Возвращает количество тиков
-                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / PRESCALER)));
+                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / getRTCprescaler_long(MILLISECONDS))));
                 return tiks;
             }
-                /// <summary>
+            /// <summary>
             /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
-            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
-            /// <param name="PRESCALER">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
+            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <param name="PRESCALER_long">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
             /// <returns></returns>
-                public ushort getRTCticks(string MILLISECONDS, string PRESCALER)
+            public ushort getRTCticks(string MILLISECONDS)
             {
-                if ((MILLISECONDS != "") && (PRESCALER != ""))
+                if (MILLISECONDS != "")
                 {
-                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), Convert.ToUInt16(PRESCALER));
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-                /// <summary>
-                /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
-                /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
-                /// </summary>
-                /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
-                /// <param name="PRESCALER">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
-                /// <returns></returns>
-                public ushort getRTCticks(string MILLISECONDS, ushort PRESCALER)
-            {
-                if ((MILLISECONDS != ""))
-                {
-                    return getRTCticks(Convert.ToUInt32(MILLISECONDS), PRESCALER);
+                    return getRTCticks(Convert.ToUInt32(MILLISECONDS));
                 }
                 else
                 {
@@ -515,11 +515,11 @@ namespace Xmega32A4U_testBoard
             /// <para>true - операция выполнена успешно</para>
             /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
             /// </summary>
-            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
             public bool setMeasureTime(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет, сохраняет и устанавливает предделитель, вычисляет и устанавливает количество тиков для RTC через интервал в миллисекундах
-                string command = "Counters.setMeasureTime(" + MILLISECONDS + ")";
+                /*string command = "Counters.setMeasureTime(" + MILLISECONDS + ")";
                 trace_attached(Environment.NewLine);
                 ushort RTC_prescaler = getRTCprescaler(MILLISECONDS);
                 if (!setPrescaler(RTC_prescaler))
@@ -528,7 +528,7 @@ namespace Xmega32A4U_testBoard
                     return false;
                 }
                 trace(command);
-                ushort ticks = getRTCticks(MILLISECONDS, RTC_prescaler);
+                ushort ticks = getRTCticks(MILLISECONDS);
                 byte[] bytes_ticks = BitConverter.GetBytes(ticks);
                 byte[] data = { bytes_ticks[1], bytes_ticks[0] };
                 if (transmit(Command.RTC.setMeasureTime, data)[0] == 1)
@@ -536,7 +536,7 @@ namespace Xmega32A4U_testBoard
                     trace(command + ": Операция выполнена успешно! Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
                     return true;
                 }
-                trace(command + ": Операция отменена! Счётчики считают!");
+                trace(command + ": Операция отменена! Счётчики считают!");*/
                 return false;
             }
                 /// <summary>
@@ -569,10 +569,10 @@ namespace Xmega32A4U_testBoard
             /// <para>true - операция выполнена успешно. Счётчики начали счёт.</para>
             /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
             /// </summary>
-            public bool startMeasure()
+            public void startMeasure(ushort Cycles)
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
-                string command = "Counters.startMeasure()";
+                /*string command = "Counters.startMeasure()";
                 trace_attached(Environment.NewLine);
                 trace(command);
                 byte state = transmit(Command.RTC.startMeasure)[0];
@@ -588,7 +588,391 @@ namespace Xmega32A4U_testBoard
                     default:
                         addError(" ! " + command + ": ОШИБКА МК! НЕИЗВЕСТНОЕ СОСТОЯНИЕ СЧЁТЧИКОВ: " + state);
                         return false;
+                }*/
+                //ФУНКЦИЯ: Запускаем счётчики...
+                //List<ushort> Results = new List<ushort>();
+                
+                //Очищаем листы результатов
+                COA.Count.Clear();
+                COA.Overflows.Clear();
+                COB.Count.Clear();
+                COB.Overflows.Clear();
+                COC.Count.Clear();
+                COC.Overflows.Clear();
+                //Отладочные настройки
+                MeasureTimes[0] = 50;
+                DelayTimes[0] = 10;
+                //Объявления
+                List<byte> Packet = new List<byte>();
+                List<byte> wDATA = new List<byte>();
+                List<byte> rDATA = new List<byte>();
+                byte[] BYTES_buf = new byte[4];
+                byte MeasurePrescaler = 0;
+                byte[] MeasurePeriod = new byte[2];
+                byte DelayPrescaler = 0;
+                byte[] DelayPeriod = new byte[2];
+                byte k = 0;
+                //Подготовка к передаче первых настроек (до измерения)
+                MeasurePrescaler = getRTCprescaler(MeasureTimes[0]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[0]));
+                MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
+                DelayPrescaler = getRTCprescaler(DelayTimes[0]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[0]));
+                DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
+                wDATA.Add(37); //Команда
+                wDATA.Add(0);    //Не делать измерение
+                wDATA.Add(MeasurePrescaler);
+                wDATA.Add(MeasurePeriod[1]);
+                wDATA.Add(MeasurePeriod[0]);
+                wDATA.Add(DelayPrescaler);
+                wDATA.Add(DelayPeriod[1]);
+                wDATA.Add(DelayPeriod[0]);
+                Packet.Add(Command.KEY);
+                Packet.Add((byte)(wDATA.Count + 4));
+                Packet.AddRange(wDATA);
+                Packet.Add(calcCheckSum(wDATA.ToArray()));
+                Packet.Add(Command.LOCK);
+                //Передача настроек до старта
+                if (!USART.IsOpen)
+                {
+                    USART.Open();
                 }
+                USART.Write(Packet.ToArray(), 0, Packet.Count);
+                //Thread.Sleep(100);
+                //Слушаем данные
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());
+                if (rDATA[k++] != 58)
+                {
+                    trace("Ухо!58");
+                    return;
+                }
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());
+                if (rDATA[k++] != 37)
+                {
+                    trace("Ухо!37");
+                    return;
+                }
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//MC_Status
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//RTC_Status
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousOVF
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 24
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 16
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 8
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 0
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousOVF
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 24
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 16
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 8
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 0
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COC_PreviousOVF
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 8
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 0
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//CS
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());
+                if (rDATA[k++] != 13)
+                {
+                    trace("Ухо!13");
+                    return;
+                }
+                //сервис
+                rDATA.Clear();
+                k = 0;
+                //Подготовка команды начала измерений
+                Packet.Clear();
+                wDATA.Clear();
+                wDATA.Add(31);
+                Packet.Add(Command.KEY);
+                Packet.Add((byte)(wDATA.Count + 4));
+                Packet.AddRange(wDATA);
+                Packet.Add(calcCheckSum(wDATA.ToArray()));
+                Packet.Add(Command.LOCK);
+                USART.Write(Packet.ToArray(), 0, Packet.Count);
+                //Подготовка новых данных для следующего измерения
+                wDATA.Clear();
+                Packet.Clear();
+                wDATA.Add(37); //Команда
+                wDATA.Add(1);    //Не делать измерение
+                wDATA.Add(MeasurePrescaler);
+                wDATA.Add(MeasurePeriod[1]);
+                wDATA.Add(MeasurePeriod[0]);
+                wDATA.Add(DelayPrescaler);
+                wDATA.Add(DelayPeriod[1]);
+                wDATA.Add(DelayPeriod[0]);
+                Packet.Add(Command.KEY);
+                Packet.Add((byte)(wDATA.Count + 4));
+                Packet.AddRange(wDATA);
+                Packet.Add(calcCheckSum(wDATA.ToArray()));
+                Packet.Add(Command.LOCK);
+                USART.Write(Packet.ToArray(), 0, Packet.Count);
+                //Приём нулей (мы ведь послали запрос)
+                //Слушаем данные
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());
+                if (rDATA[k++] != 58)
+                {
+                    trace("Ухо!58");
+                    return;
+                }
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());
+                if (rDATA[k++] != 37)
+                {
+                    trace("Ухо!37");
+                    return;
+                }
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//MC_Status
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//RTC_Status
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousOVF
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 24
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 16
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 8
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 0
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousOVF
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 24
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 16
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 8
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 0
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COC_PreviousOVF
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 8
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 0
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//CS
+                k++;
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());
+                if (rDATA[k++] != 13)
+                {
+                    trace("Ухо!13");
+                    return;
+                }
+                //сервис
+                rDATA.Clear();
+                k = 0;
+                //Цикл...(данные теже)
+                for (int i = 0; i < Cycles; i++)
+                {
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());
+                    if (rDATA[k++] != 58)
+                    {
+                        trace("Лажа!58");
+                        break;
+                    }
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());
+                    if (rDATA[k++] != 38)
+                    {
+                        trace("Лажа!38" + rDATA[k - 1]);
+                        break;
+                    }
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());
+                    if (rDATA[k++] != 3)
+                    {
+                        trace("Лажа!3");
+                        break;
+                    }
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());
+                    if (rDATA[k++] != 215)
+                    {
+                        trace("Лажа!215");
+                        break;
+                    }
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());
+                    if (rDATA[k++] != 13)
+                    {
+                        trace("Лажа!13");
+                        break;
+                    }
+                    //Если мы до сюда дошли то нужно передать данные туда (теже)
+                    USART.Write(Packet.ToArray(), 0, Packet.Count);
+                    //сервис
+                    rDATA.Clear();
+                    k = 0;
+                    //Слушаем данные
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());
+                    if (rDATA[k++] != 58)
+                    {
+                        trace("Ухо!58");
+                        break;
+                    }
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());
+                    if (rDATA[k++] != 37)
+                    {
+                        trace("Ухо!37");
+                        break;
+                    }
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//MC_Status
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//RTC_Status
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousOVF
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 24
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 16
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 8
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 0
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousOVF
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 24
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 16
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 8
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 0
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COC_PreviousOVF
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 8
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 0
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//CS
+                    k++;
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());
+                    if (rDATA[k++] != 13)
+                    {
+                        trace("Ухо!13");
+                        break;
+                    }
+                    //Results.Add((ushort)((ushort)rDATA[5] * 256 + (ushort)rDATA[6]));
+                    COA.Overflows.Add(rDATA[4]);
+                    COA.Count.Add((uint)(rDATA[5] * 16777216 + rDATA[6] * 65536 + rDATA[7] * 256 + rDATA[8]));
+                    COB.Overflows.Add(rDATA[8]);
+                    COB.Count.Add((uint)(rDATA[9] * 16777216 + rDATA[10] * 65536 + rDATA[11] * 256 + rDATA[12]));
+                    COC.Overflows.Add(rDATA[13]);
+                    COC.Count.Add((uint)(rDATA[14] * 256 + rDATA[15]));
+                    //сервис
+                    rDATA.Clear();
+                    k = 0;
+                    //break;
+                }
+                //foreach (u b in rDATA)
+                //{
+                //    trace(" $ " + b);
+                //}
+                //конец
+                if (USART.IsOpen)
+                {
+                    USART.Close();
+                }
+
+                //ushort max = 0;
+                //ushort min = 65535;
+                //int mid = 0;
+                //for (int i = 0; i < Cycles; i++)
+                //{
+                //    //try
+                //    //{
+                //    //    trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                //    //    if (Results[i] > max)
+                //    //    {
+                //    //        max = Results[i];
+                //    //    }
+                //    //    if (Results[i] < min)
+                //    //    {
+                //    //        min = Results[i];
+                //    //    }
+                //    //
+                //    //    mid += Results[i];
+                //    //}
+                //    //catch { }
+                //}
+                //mid = mid / Cycles;
+                //trace("" + min + "..." + mid + "..." + max);
+
+                return;
             }
             /// <summary>
             /// Останавливает счётчики и RTC.
@@ -641,12 +1025,12 @@ namespace Xmega32A4U_testBoard
                         //Счётчик готов. Сохраняем результаты.
                         try
                         {
-                            COA.overflows = rDATA[1];
-                            COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
-                            COB.overflows = rDATA[6];
-                            COB.Result = Convert.ToUInt32(rDATA[7] * 16777216 + rDATA[8] * 65536 + rDATA[9] * 256 + rDATA[10]);
-                            COC.overflows = rDATA[11];
-                            COC.Result = Convert.ToUInt32(rDATA[12] * 256 + rDATA[13]);
+                            //COA.overflows = rDATA[1];
+                            //COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
+                            //COB.overflows = rDATA[6];
+                            //COB.Result = Convert.ToUInt32(rDATA[7] * 16777216 + rDATA[8] * 65536 + rDATA[9] * 256 + rDATA[10]);
+                            //COC.overflows = rDATA[11];
+                            //COC.Result = Convert.ToUInt32(rDATA[12] * 256 + rDATA[13]);
                         }
                         catch (Exception)
                         {
@@ -1665,8 +2049,9 @@ namespace Xmega32A4U_testBoard
             trace("         Формирование пакета...");
             List<byte> rDATA = new List<byte>();            //Список данных, которые будут приняты
             List<byte> Packet = new List<byte>();           //Список байтов, которые будут посланы
-            //Формируем пакет по типу:  ':<response><data><CS>\r' 
-            Packet.Add(Command.KEY);                        //':' - Начало данных           
+            //Формируем пакет по типу:  ':<Length><data><CS>\r' 
+            Packet.Add(Command.KEY);                        //':' - Начало данных 
+            Packet.Add((byte)(DATA.Count + 4));             //'Length' - длинна пакета
             Packet.AddRange(DATA);                          //'<data>' - байты данных <<response><attached_data>>
             Packet.Add(calcCheckSum(DATA.ToArray()));       //'<CS>' - контрольная сумма
             Packet.Add(Command.LOCK);                       //'\r' - конец передачи

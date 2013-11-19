@@ -34,8 +34,8 @@
 #define COMMAND_RTC_set_Prescaler					34	//Команда: Задать делитель RTC
 #define COMMAND_RTC_get_Status						35	//Команда: Запросить состояние счётчика
 #define COMMAND_RTC_set_Delay						36	//Команда: Задать время задержки
-#define COMMAND_RTC_startDelay						37	//Команда: Принудительно запустить задержку (таймер)
-#define COMMAND_RTC_set_DelayPrescaler				38  //Команда: Установить предделитель RTC для задержки
+#define COMMAND_MEASURE_set_All						37	//Команда: Задать всё!
+#define COMMAND_LookAtMe							38  //Команда: LAM сигнал по окончании измерения (МК ожидает указаний)
 //Команды DAC'ам
 #define COMMAND_IonSource_set_Voltage				40	//Команда: Задать напряжение DAC'у Ионного Источника
 #define COMMAND_Detector_set_Voltage				41	//Команда: Задать напряжение DAC'у Детектора
@@ -69,7 +69,7 @@
 #define ERROR_CheckSum					4	//Ошибка декодера (Контр.сумма). Несовпадает!	
 #define ERROR_wrong_SPI_DEVICE_Number   5	//Внутренняя ошибка! SPI-устройства с таким номером нет!
 //---------------------------------------------ДЕШИФРАТОР--------------------------------------------
-#define Decode(BYTES)																							\
+/*#define Decode(BYTES)																							\
 	switch(BYTES[0])																							\
 	{																											\
 		case COMMAND_MC_get_Status:					MC_transmit_Status;											\
@@ -127,9 +127,9 @@
 		case COMMAND_Flags_set: 					checkFlags(BYTES[1]);										\
 			break;																								\
 		default: transmit_3bytes(ERROR_Token, ERROR_Decoder, BYTES[0]);											\
-	}
+	}*/
 //----------------------------------------ПРОСТЫЕ КОМАНДЫ-----------------------------------------
-#define MC_transmit_Status			transmit_2bytes(COMMAND_MC_get_Status, 1)
+#define MC_transmit_Status			transmit_2bytes(COMMAND_MC_get_Status, MC_Status)
 #define MC_transmit_Version			transmit_2bytes(COMMAND_MC_get_Version, MC_version)
 #define RTC_transmit_Status			transmit_2bytes(COMMAND_RTC_get_Status, RTC_Status)
 

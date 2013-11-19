@@ -25,19 +25,21 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										78
-#define birthday									20131031
+#define version										82
+#define birthday									20131119
 #define usartCOMP_delay								10
 #define usartTIC_delay								1
 #define usartRX_delay								2		//Задержка приёма данных иначе разобьём команду на части
 //Счётчики
-#define RTC_Status_ready							0		//Счётчик готов к работе
-#define RTC_Status_stopped							1		//Счётчик был принудительно остановлен
-#define RTC_Status_busy								2		//Счётчик ещё считает
-#define RTC_Status_delayed							3		//Счётчик считает время задержки
-#define RTC_setStatus_ready			RTC_Status =	RTC_Status_ready	 
+#define RTC_Status_notSet							0		//Счётчики не настроен
+#define RTC_Status_ready							1		//Счётчики готов к работе
+#define RTC_Status_stopped							2		//Счётчики был принудительно остановлен
+#define RTC_Status_busy								3		//Счётчики ещё считает
+#define RTC_Status_delayed							4		//RTC считает задержку
+#define RTC_setStatus_notSet		RTC_Status =	RTC_Status_notSet
+#define RTC_setStatus_ready			RTC_Status =	RTC_Status_ready
 #define RTC_setStatus_stopped		RTC_Status =	RTC_Status_stopped
-#define RTC_setStatus_busy			RTC_Status =	RTC_Status_busy	
+#define RTC_setStatus_busy			RTC_Status =	RTC_Status_busy
 #define RTC_setStatus_delayed		RTC_Status =	RTC_Status_delayed
 //SPI
 #define AD5643R_confHbyte							56
@@ -61,35 +63,48 @@
 uint8_t MC_version = version;
 uint32_t MC_birthday = birthday;
 uint8_t CommandStack = 0;
+
+uint8_t MC_Status = 0;
 //		USART
-uint8_t USART_MEM[10];						//10 байт памяти для приёма данных USART
+uint8_t USART_MEM[100];						//100 байт памяти для приёма данных USART
 uint8_t USART_MEM_length = 0;
+uint16_t MC_receiving_limit = 65535;
+uint16_t USART_receiving_time = 0;
+uint8_t MC_reciving_error = 0;
+uint8_t USART_buf = 0;
+bool	USART_recieving = false;			//Можно пристыковать для экономии памяти к USART_MEM_length
+uint8_t USART_MEM[100];						//10 байт памяти для приёма данных USART
+uint8_t USART_PACKET_length = 0;
+uint8_t USART_MEM_CheckSum = 0;
 //		Измерения
-uint8_t RTC_Status = RTC_Status_ready;		//Состояния счётчика
-uint8_t RTC_Prescaler = RTC_PRESCALER_OFF_gc; //Предделитель RTC во время измерения
-uint8_t RTC_DelayPrescaler = RTC_PRESCALER_OFF_gc;//Предделитель RTC во время задержки
-uint16_t RTC_MeasureTime = 0;				//Период RTC во время следующего измерения
-uint16_t RTC_Delay = 0;						//Период RTC во время задержки
-uint8_t RTC_DealayPrescaler = RTC_PRESCALER_OFF_gc; //Предделитель RTС во время задержки
-uint32_t COA_Measurment = 0;				//Последнее измерение счётчика COA
-uint8_t	COA_ovf = 0;						//Количество переполнений счётчика СОА в последнем измерении
-uint32_t COB_Measurment = 0;				//Последнее измерение счётчика COB
-uint8_t	COB_ovf = 0;						//Количество переполнений счётчика СОВ в последнем измерении
-uint32_t COC_Measurment = 0;				//Последнее измерение счётчика COC
-uint8_t	COC_ovf = 0;						//Количество переполнений счётчика СОС в последнем измерении
+uint8_t RTC_Status = RTC_Status_ready;					//Состояния счётчика
+uint8_t RTC_MeasurePrescaler = RTC_PRESCALER_OFF_gc;	//Предделитель RTC во время измерения
+uint8_t RTC_DelayPrescaler = RTC_PRESCALER_OFF_gc;		//Предделитель RTC во время задержки
+uint16_t RTC_MeasurePeriod = 0;							//Период RTC во время следующего измерения
+uint16_t RTC_DelayPeriod = 0;							//Период RTC во время задержки
+uint32_t COA_PreviousMeasurment = 0;					//Последнее измерение счётчика COA
+uint8_t	COA_PreviousOVF = 0;							//Количество переполнений счётчика СОА в последнем измерении
+uint8_t	COA_OVF = 0;									//Количество переполнений счётчика СОА в текущем измерении
+uint32_t COB_PreviousMeasurment = 0;					//Последнее измерение счётчика COB
+uint8_t	COB_PreviousOVF = 0;							//Количество переполнений счётчика СОА в последнем измерении
+uint8_t	COB_OVF = 0;									//Количество переполнений счётчика СОВ в текущем измерении
+uint32_t COC_PreviousMeasurment = 0;					//Последнее измерение счётчика COC
+uint8_t	COC_PreviousOVF = 0;							//Количество переполнений счётчика СОА в последнем измерении
+uint8_t	COC_OVF = 0;									//Количество переполнений счётчика СОС в текущем измерении
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 //Битовые поля
 struct _MC_Tasks
 {
 	uint8_t setDACs			:1;
 	uint8_t doNextMeasure	:1;
-	uint8_t noTasks2		:1;
-	uint8_t noTasks3		:1;
-	uint8_t noTasks4		:1;
-	uint8_t noTasks5		:1;
+	uint8_t MeasuredDataWasSended		:1;
+	uint8_t NextMeasureSettingsWasChanged		:1;
+	uint8_t MeasureDataWasOVERWRITTEN		:1;
+	uint8_t Decrypt		:1;
 	uint8_t noTasks6		:1;
 	uint8_t noTasks7		:1;
-}MC_Tasks;
+};
+struct _MC_Tasks MC_Tasks = {0,0,0,0,0,0,0,0};
 struct pinFlags
 {
 	uint8_t SPUMP		:1;
@@ -153,89 +168,122 @@ void transmit(uint8_t DATA[],uint8_t DATA_length);
 void transmit_byte(uint8_t DATA);
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2);
 void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3);
-
+void setThemAll(void);
 void MC_transmit_Birthday(void);
 void MC_transmit_CPUfreq(void);
 void MC_reset(void);
 
 void COUNTERS_transmit_Result(void);
 
-void RTC_setPrescaler(uint8_t DATA[]);
-void RTC_set_Period(uint8_t DATA[]);
+void RTC_setPrescaler(void);
+void RTC_set_Period(void);
 void COUNTERS_start(void);
 void COUNTERS_stop(void);
 void RTC_startDelay(void);
-void RTC_setDelay(uint8_t DATA[]);
-void RTC_setDelayPrescaler(uint8_t DATA[]);
+void RTC_setDelay(void);
+void RTC_setDelayPrescaler(void);
 
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
 
 void ERROR_ASYNCHR(void);
+void decode(void);
+void TIC_transmit(void);
 
-void TIC_transmit(uint8_t DATA[]);
+void SPI_send(uint8_t DEVICE_Number);
 
-void SPI_send(uint8_t DEVICE_Number, uint8_t data[]);
-
-void checkFlags(uint8_t DATA);
+void checkFlags(void);
 void updateFlags(void);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTD0_RXC_vect)
 {
-	//ПРЕРЫВАНИЕ: Пришёл байт данных по порту USART от компьютера
-	//ФУНКЦИЯ: Дешифрирование байта как команду или данные, выполнение предписанных действий
-	//Принимаем байт
-	USART_MEM[USART_MEM_length] = usart_get(USART_COMP);
-	USART_MEM_length++;
-	//задержимя иначе сразу начнём интерпретировать недослушав оставшиеся байты (флаг RXIF сбрасывается после приёма)
-	delay_us(usartRX_delay);
-	//Есть ли RXIF? Есть ли данные на приём?
-	if ((*USART_COMP.STATUS >> 7) == 0)
+	//ПРЕРЫВАНИЕ:
+	//ПОСЫЛКА: <KEY><PACKET_LENGTH><DATA[...]<CS><LOCK>
+	//			PACKET_LENGTH = полная длинна посылки
+	cli();
+	//25(0,78мкс) - неверный ключ (не реагируем)
+	//42(1,31мкс) - верный ключ (первый байт принят)
+	//38(1,19мкс) - ОШИБКА! МК не выполнил предыдущую команду
+	//43(1,34мкс) - ОШИБКА ПРИЁМА! Длинна пакета меньше минимальной
+	//35(1,09мкс) - верная длинна пакета (второй байт принят)
+	//59(1,84мкс) - приём байта данных
+	//68(2,13мкс) - приём байта контрольной суммы
+	//74(2,31мкс) - ОШИБКА ПРИЁМА! Запрещённое состояние! USART_MEM_LENGTH > USART_MAIL_Length!
+	//94(2,94мкс) - принят затвор (последний байт) Приём успешно завершён!
+	//86(2,69мкс) - ОШИБКА! Не был получен затвор!
+
+	//Принимаем байт, что бы там нибыло
+	USART_buf = *USART_COMP.DATA;//->3(95нс)
+	//Если в режиме приёма
+	if(USART_receiving_time > 0)
 	{
-		//НЕТ! Данные закончились! Значит можно интерпретировать... Но сначала "орфография"...
-		//А пришёл ли ключ?
-		if (USART_MEM[0] == COMMAND_KEY)
+		if (USART_PACKET_length == 0)
 		{
-			//Всё в порядке ключ есть, а есть ли замок?
-			if (USART_MEM[USART_MEM_length - 1] == COMMAND_LOCK)
+			//Это байт длины пакета
+			USART_PACKET_length = USART_buf;
+			if (USART_PACKET_length < 5)
 			{
-				//всё оk! Замок есть, а верна ли контрольная сумма?
-				uint8_t CheckSum = 0;
-				for (uint8_t i = 1; i < USART_MEM_length - 2; i++)
-				{
-					CheckSum -= USART_MEM[i];
-				}
-				
-				if (CheckSum == USART_MEM[USART_MEM_length - 2])
-				{
-					//всё супер, команда оформлена по протоколу, теперь её нужно переформатировать её (убрать ключ, замок и кс)
-					uint8_t command[USART_MEM_length - 2];
-					for (uint8_t i = 1; i < USART_MEM_length - 2; i++)
-					{
-						command[i-1] = USART_MEM[i];
-					}
-					CommandStack++;	//тестовое, для учёта количества выполненных команд
-					Decode(command);
-				}
-				else
-				{
-					//ОШИБКА! НЕВЕРНАЯ КОНТРОЛЬНАЯ СУММА!
-					transmit_3bytes(ERROR_Token, ERROR_CheckSum, USART_MEM[USART_MEM_length - 2]);
-				}
+				//ОШИБКА ПРИЁМА! Длинна пакета меньше минимальной
+				//Если длина посылки меньше самой короткой из возможных посылок (5 байтов), то прекратить приём, выставить флаг ошибки
+				MC_reciving_error = 1;
+				USART_receiving_time = 0;
+			}
+		}
+		else if(USART_MEM_length < (USART_PACKET_length - 4))
+		{
+			//Это байты данных, принимаем в массив
+			USART_MEM[USART_MEM_length] = USART_buf;
+			//НУЖНА ПРОВЕРКА НА ЗАТВОР!
+			USART_MEM_length++;
+		}
+		else if(USART_MEM_length == (USART_PACKET_length - 4))
+		{
+			//Этот байт контрольная сумма данных
+			USART_MEM_CheckSum = USART_buf;
+			USART_MEM_length++;//Временное увеличение,чтобы перейти на затвор для следующего принятого байта
+		}
+		else if(USART_MEM_length == (USART_PACKET_length - 3))
+		{
+			//Этот байт затвор
+			if (USART_buf == COMMAND_LOCK)
+			{
+				//Приём успешно завершён!
+				USART_MEM_length--;//Возвращаем исиннтое значение длинны принятых данных
+				USART_receiving_time = 0;//Прекращаем приём
+				MC_Tasks.Decrypt = 1;//Ставим задачу - декодировать
 			}
 			else
 			{
-				//ОШИБКА! ГДЕ ЗАМОК?
-				transmit_3bytes(ERROR_Token, ERROR_WhereIsLOCK,USART_MEM[USART_MEM_length - 1]);
+				//ОШИБКА ПРИЁМА! Ожидался затвор, а получено чёрти-что
+				MC_reciving_error = 2;
+				USART_receiving_time = 0;
 			}
 		}
 		else
 		{
-			//ОШИБКА! ГДЕ КЛЮЧ?
-			transmit_3bytes(ERROR_Token, ERROR_WhereIsKEY, USART_MEM[0]);
+			//ОШИБКА ПРИЁМА! Запрещённое состояние! USART_MEM_LENGTH > USART_MAIL_Length!
+			MC_reciving_error = 4;
+			USART_receiving_time = 0;
 		}
-		USART_MEM_length = 0;
-	}	
+	}
+	else if(USART_buf == COMMAND_KEY)
+	{
+		//Пришёл ключ!
+		if(MC_Tasks.Decrypt == 0)
+		{
+			//Если предыдущая команда ещё не выполнена
+			USART_receiving_time = 1;//Переходим в режим приёма
+			USART_MEM_length = 0;//Обнуляем счётчик принятых байтов
+			USART_PACKET_length = 0;//Обнуляем длинну пакета (готовимся к приёму байта длинны пакета)
+		}
+		else
+		{
+			//ОШИБКА! МК не выполнил предыдущую команду
+			MC_reciving_error = 255;
+			USART_receiving_time = 0;
+		}
+	}
+	sei();
 }
 ISR(USARTE0_RXC_vect)
 {
@@ -249,7 +297,7 @@ ISR(RTC_OVF_vect)
 {
 	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
 	//ФУНКЦИЯ: Остановка счётчиков импульсов
-	asm(
+	/*asm(
 		"LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
 		"STS 0x0800, R16		\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Ноль
 		"STS 0x0900, R16		\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Ноль
@@ -262,26 +310,307 @@ ISR(RTC_OVF_vect)
 	//Сюда надо проверку
 	//Если надо делать следующее измерение, то запускаем задержку и сохраняем результаты
 	
-	COA_Measurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
-	COB_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
-	COC_Measurment = TCE0.CNT;
+	COA_PreviousMeasurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
+	COB_PreviousMeasurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
+	COC_PreviousMeasurment = TCE0.CNT;
 	
 	RTC.CNT = 0;
 	RTC_setStatus_ready;//Убрать!
+	*/
+	if (RTC_Status == RTC_Status_busy)
+	{
+		asm(
+		"LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
+		"STS 0x0800, R16		\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Ноль
+		"STS 0x0900, R16		\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Ноль
+		"STS 0x0A00, R16		\n\t"//Адрес TCE0.CTRLA = 0x0A00 <-	Ноль
+		"STS 0x0840, R16		\n\t"//Адрес TCC1.CTRLA = 0x0840 <-	Ноль
+		"STS 0x0940, R16		\n\t"//Адрес TCD1.CTRLA = 0x0940 <-	Ноль
+		);
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CTRL = RTC_PRESCALER_OFF_gc;
+		if(MC_Tasks.doNextMeasure == 1)
+		{
+			while(RTC.STATUS != 0)
+			{
+				//Ждём пока можно будет обратиться к регистрам RTC
+			}
+			RTC.CNT = 0;
+			while(RTC.STATUS != 0)
+			{
+				//Ждём пока можно будет обратиться к регистрам RTC
+			}
+			RTC.PER = RTC_DelayPeriod;
+			while(RTC.STATUS != 0)
+			{
+				//Ждём пока можно будет обратиться к регистрам RTC
+			}
+			RTC.CTRL = RTC_DelayPrescaler;
+			RTC_setStatus_delayed;
+			MC_Tasks.doNextMeasure = 0;
+		}
+		else
+		{
+			RTC_setStatus_ready;
+			while(RTC.STATUS != 0)
+			{
+				//Ждём пока можно будет обратиться к регистрам RTC
+			}
+			RTC.CNT = 0;
+			transmit_2bytes(COMMAND_LookAtMe,RTC_Status); //LAM ready
+		}
+		if (MC_Tasks.MeasuredDataWasSended == 0)
+		{
+			MC_Tasks.MeasureDataWasOVERWRITTEN = 1;
+			RTC_setStatus_stopped;
+			while(RTC.STATUS != 0)
+			{
+				//Ждём пока можно будет обратиться к регистрам RTC
+			}
+			RTC.CTRL = RTC_PRESCALER_OFF_gc;
+			while(RTC.STATUS != 0)
+			{
+				//Ждём пока можно будет обратиться к регистрам RTC
+			}
+			RTC.CNT = 0;
+		}
+		else
+		{
+			//сохраняем результаты
+			COA_PreviousMeasurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
+			COB_PreviousMeasurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
+			COC_PreviousMeasurment = TCE0.CNT;
+			COA_PreviousOVF = COA_OVF;
+			COB_PreviousOVF = COB_OVF;
+			COC_PreviousOVF = COC_OVF;
+			//подготовка следующему измерению
+			COA_OVF = 0;
+			COB_OVF = 0;
+			COC_OVF = 0;
+			TCC0.CNT = 0;
+			TCC1.CNT = 0;
+			TCD0.CNT = 0;
+			TCD1.CNT = 0;
+			TCE0.CNT = 0;
+		}
+	}
+	else if (RTC_Status == RTC_Status_delayed)
+	{
+		//начинаем новое измерения
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CTRL = RTC_PRESCALER_OFF_gc;
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CNT = 0;
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.PER = RTC_MeasurePeriod;
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		asm(
+		"LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
+		"LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
+		"LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
+		//"LDS R19, 0x205F	\n\t"//RTC: Адрес RTC_Prescaler  = 0x205F
+		"LDI R20, 0x09		\n\t"//TCC1:Код канала событий 1 = 0x09
+		"LDI R21, 0x0B		\n\t"//TCD1:Код канала событий 3 = 0x0B
+		"STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
+		"STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
+		"STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
+		//"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_Prescaler(@0x205F)
+		"STS 0x0840, R20	\n\t"//Адрес TCC1.CTRLA = 0x0840 <- Канал событий 1
+		"STS 0x0940, R21	\n\t"//Адрес TCD1.CTRLA = 0x0940 <- Канал событий 3
+		);
+		RTC.CTRL = RTC_MeasurePrescaler;
+		RTC_setStatus_busy;
+		MC_Tasks.MeasuredDataWasSended = 0;
+		transmit_2bytes(COMMAND_LookAtMe,RTC_Status);//LAM delayed
+	}
+	else
+	{
+		transmit_2bytes(ERROR_Token,123);
+	}
 }
 static void ISR_TCC1(void)
  {
-	 COA_ovf++;
+	 COA_OVF++;
  }
 static void ISR_TCD1(void)
  {
-	 COB_ovf++;
+	 COB_OVF++;
  }
 static void ISR_TCE0(void)
  {
-	 COC_ovf++;
+	 COC_OVF++;
  }
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
+void decode(void)
+{
+	//ФУНКЦИЯ: Расшифровываем команду
+	switch(USART_MEM[0])																					
+	{		
+		case COMMAND_MEASURE_set_All:				setThemAll();
+		break;																								
+		case COMMAND_MC_get_Status:					MC_transmit_Status;										
+		break;																								
+		case COMMAND_MC_get_CPUfreq:				MC_transmit_CPUfreq();									
+		break;																								
+		case COMMAND_MC_get_Version:				MC_transmit_Version;									
+		break;																								
+		case COMMAND_MC_get_Birthday:				MC_transmit_Birthday();									
+		break;																								
+		case COMMAND_COUNTERS_start:				COUNTERS_start();										
+		break;																								
+		case COMMAND_RTC_set_Period:				RTC_set_Period();									
+		break;																								
+		case COMMAND_RTC_set_Prescaler:				RTC_setPrescaler();								
+		break;																								
+		case COMMAND_COUNTERS_get_Count:			COUNTERS_transmit_Result();								
+		break;																								
+		case COMMAND_COUNTERS_stop:					COUNTERS_stop();										
+		break;																								
+		case COMMAND_MC_reset:						MC_reset();												
+		break;																								
+		case COMMAND_RTC_get_Status:				RTC_transmit_Status;									
+		break;																								
+		case COMMAND_retransmitToTIC:				TIC_transmit();									
+		break;																								
+		case COMMAND_checkCommandStack:				transmit_2bytes(COMMAND_checkCommandStack,CommandStack);
+		break;																								
+		case COMMAND_IonSource_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_IonSource);		
+		break;																								
+		case COMMAND_Detector_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Detector);			
+		break;																								
+		case COMMAND_Inlet_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Inlet);			
+		break;																								
+		case COMMAND_Heater_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Inlet);			
+		break;																								
+		case COMMAND_Scaner_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Scaner);			
+		break;																								
+		case COMMAND_Condensator_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_Condensator);		
+		break;																								
+		case COMMAND_IonSource_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_IonSource);		
+		break;																								
+		case COMMAND_Detector_DV1_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector);			
+		break;																								
+		case COMMAND_Detector_DV2_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector);			
+		break;																								
+		case COMMAND_Detector_DV3_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector);			
+		break;																								
+		case COMMAND_Inlet_get_Voltage: 			SPI_send(SPI_DEVICE_Number_ADC_Inlet);			
+		break;																								
+		case COMMAND_Heater_get_Voltage: 			SPI_send(SPI_DEVICE_Number_ADC_Inlet);			
+		break;																								
+		case COMMAND_MSV_get_Voltage: 				SPI_send(SPI_DEVICE_Number_ADC_MSV);				
+		break;																								
+		case COMMAND_Flags_set: 					checkFlags();									
+		break;																								
+		default: transmit_3bytes(ERROR_Token, ERROR_Decoder, USART_MEM[0]);
+	}
+}
+void setThemAll(void)
+{
+	//СУПЕРФУНКЦИЯ: Были приняты многочисленные данные, все их надо установить
+	//ПРИНЯТЫЕ ДАННЫЕ:
+	//			[0] - <Command37 - setThemAll
+	//			[1] - <Continue>										- флаг "сделать следующее измерение"
+	//				<0>		- не делать следующее измерение
+	//				<1>		- сделать следующее измерение
+	//А НОМЕР ИЗМЕРЕНИЯ?
+	//			[2] - <RTC_MeasurePrescaler>							- задаёт предделитель следующего измерения
+	//				<0>		- не менять ни предделитель, ни период
+	//				<1...7> - возможные значения предделителя
+	//			[3..4] - <RTC_MeasurePeriod>							- задать время следующего измерения
+	//				<0...65535> - возможные значения периода (0 и 1 лучше не использовать)
+	//			[5] - <RTC_DelayPrescaler>								- задаёт предделитель следующей задержки
+	//				<0>		- не менять ни предделитель, ни период
+	//				<1...7> - возможные значения предделителя
+	//			[6..7] - <RTC_DelayPeriod>								- задать время следующей задержки
+	//				<1...65535> - возможные значения периода (0 и 1 лучше не использовать)
+	cli();
+	//Проверка - попли ли мы во время измерения (busy)? Если ready или notSet то всёравно всё установить, но SPI DAC установить сразу
+	if (RTC_Status != RTC_Status_delayed)
+	{
+		//Устанавливаем параметры RTC на следующее измерение
+		if (USART_MEM[1] == 1)
+		{
+			//<Continue> можно сделать многофункциональнее, флаговым (флаг SPI устройств, снимать\устанавливать напряги надо ли)
+			MC_Tasks.doNextMeasure = 1;
+		}
+		if (USART_MEM[2] != 0)
+		{
+			RTC_MeasurePrescaler = USART_MEM[2];
+			RTC_MeasurePeriod = (((uint16_t)USART_MEM[3]) << 8) + USART_MEM[4];
+		}
+		if (USART_MEM[5] != 0)
+		{
+			RTC_DelayPrescaler = USART_MEM[5];
+			RTC_DelayPeriod = (((uint16_t)USART_MEM[6]) << 8) + USART_MEM[7];
+		}
+		//Даём задание на SPI DAC (будет выполнено во время задержки)
+		//Снимаем показания SPI ADC
+		//Передаём предыдущие показания счётчиков и ADC (получается сейчасшные, контроль того что поставили в предыдущий раз)
+		if (MC_Tasks.MeasureDataWasOVERWRITTEN != 1)
+		{
+			uint8_t data[] = 
+			{
+				COMMAND_MEASURE_set_All, MC_Status, RTC_Status,
+				COA_PreviousOVF, (COA_PreviousMeasurment >> 24), (COA_PreviousMeasurment >> 16), (COA_PreviousMeasurment >> 8), COA_PreviousMeasurment,
+				COB_PreviousOVF, (COB_PreviousMeasurment >> 24), (COB_PreviousMeasurment >> 16), (COB_PreviousMeasurment >> 8), COB_PreviousMeasurment,
+				COC_PreviousOVF, (COC_PreviousMeasurment >> 8), COC_PreviousMeasurment
+			};
+			switch (RTC_Status)
+			{
+				case RTC_Status_busy:
+				case RTC_Status_ready:
+				transmit(data, 16);
+				MC_Tasks.MeasuredDataWasSended = 1;
+				break;
+				default:
+				//transmit_2bytes(COMMAND_COUNTERS_get_Count,RTC_Status);
+				break;
+			}
+		}
+		else
+		{
+			//transmit_2bytes(COMMAND_COUNTERS_get_Count,(255 - RTC_Status));
+		}
+	}
+	else
+	{
+		//МК в задержке!!! Ты либо опоздал, либо слишком рано!
+	}
+	sei();
+	//ПОСЫЛАЕМЫЕ ДАННЫЕ:
+	//			[0] - <Response>										- отклик
+	//				<37> - COMMAND_MEASURE_set_All
+	//А НОМЕР ИЗМЕРЕНИЯ?
+	//			[1] - <MC_Status>										- статус МК
+	//			[2] - <RTC_Status>										- статус RTC
+	//			[3] - <COA_PreciousOVF							- предыдущий результат счёта (СОА_ovf)
+	//			[4...5] - <COA_PreviousMeasurment>						- предыдущий результат счёта (СОА_CNT)
+	//			2 : <D_PRE><D_PER:2>									- задать время следующей задержки
+	//			8 : <IS_EC : 2><IS_IV : 2><IS_F1 : 2><IS_F2 : 2>		- напряжения на DAC PSIS
+	//			6 : <D_DV1 : 2><D_DV2 : 2><D_DV3 : 2>					- напряжения на DAC DPS
+	//			9 : <S_PV : 3><S_SV : 3><C_V : 3>						- напряжения на DAC MSV
+	//			8 : <Inl_Inl : 2><Inl_Heater : 2>						- напряжения на DAC Inlet
+	//			8 : <IS_EC : 2><IS_IV : 2><IS_F1 : 2><IS_F2 : 2>		- напряжения на ADC PSIS
+	//			6 : <D_DV1 : 2><D_DV2 : 2><D_DV3 : 2>					- напряжения на ADC DPS
+	//			8 : <S_PV : 2><S_SV : 2><C_Vp : 2><C_Vn : 2>			- напряжения на ADC MSV
+	//			8 : <Inl_Inl : 2><Inl_Heater : 2>						- напряжения на ADC Inlet
+}
 //USART COMP
 void transmit(uint8_t DATA[],uint8_t DATA_length)
 {
@@ -293,59 +622,40 @@ void transmit(uint8_t DATA[],uint8_t DATA_length)
 	//							<attached_data> - сами данные. Их может не быть (Приказ)
 	//					   '<CS>' - контрольная сумма
 	//					   '\r' - конец передачи
-	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	delay_us(usartCOMP_delay);
 	for (uint8_t i = 0; i < DATA_length; i++)
 	{
 		usart_putchar(USART_COMP,DATA[i]);							//<data>
-		delay_us(usartCOMP_delay);
 	}
 	usart_putchar(USART_COMP,calcCheckSum(DATA,DATA_length + 1));	//<CS>
-	delay_us(usartCOMP_delay);
-	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
+	usart_putchar(USART_COMP,COMMAND_LOCK);								//'\r'
 }
 void transmit_byte(uint8_t DATA)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,DATA);									//<data>
-	delay_us(usartCOMP_delay);
-	usart_putchar(USART_COMP, (uint8_t)(256 - DATA));						//<CS>
-	delay_us(usartCOMP_delay);
-	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
+	usart_putchar(USART_COMP, (uint8_t)(256 - DATA));				//<CS>
+	usart_putchar(USART_COMP,COMMAND_LOCK);								//'\r'
 }
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,DATA_1);
-	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP,DATA_2);									//<data>
-	delay_us(usartCOMP_delay);
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2));		//<CS>
-	delay_us(usartCOMP_delay);
-	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
+	usart_putchar(USART_COMP,COMMAND_LOCK);								//'\r'
 }
 void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	delay_us(usartCOMP_delay);
-	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	delay_us(usartCOMP_delay);
+	usart_putchar(USART_COMP,COMMAND_KEY);									//':'
 	usart_putchar(USART_COMP,DATA_1);
-	delay_us(usartCOMP_delay);
-	usart_putchar(USART_COMP,DATA_2);									//<data>
-	delay_us(usartCOMP_delay);
+	usart_putchar(USART_COMP,DATA_2);										//<data>
 	usart_putchar(USART_COMP,DATA_3);
-	delay_us(usartCOMP_delay);
-	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2 - DATA_3));		//<CS>
-	delay_us(usartCOMP_delay);
-	usart_put(USART_COMP,COMMAND_LOCK);								//'\r'
+	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2 - DATA_3));	//<CS>
+	usart_putchar(USART_COMP,COMMAND_LOCK);										//'\r'
 }
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 {
@@ -393,7 +703,7 @@ void COUNTERS_transmit_Result(void)
 {
 	//ФУНКЦИЯ: Вернуть ПК результат измерения
 	//ПОЯСНЕНИЯ: <key><response_command><RTC_Status><COA_ovf><COA_Measurement_4bytes><COB_ovf><COB_Measurement_4bytes><COC_ovf><COC_Measurement_2bytes><checkSum><lock>
-	uint8_t data[] = {COMMAND_COUNTERS_get_Count,RTC_Status,COA_ovf,0,0,0,0,COB_ovf,0,0,0,0,COC_ovf,0,0};
+	uint8_t data[] = {COMMAND_COUNTERS_get_Count,RTC_Status,COA_OVF,0,0,0,0,COB_OVF,0,0,0,0,COC_OVF,0,0};
 	
 	//Нужно чтобы результаты можно было пересылать во время измерения! То есть во время статуса Delayed и busy!
 	// Но с проверкой, не было ли перезаписи данных (не опоздал ли комп)
@@ -401,16 +711,16 @@ void COUNTERS_transmit_Result(void)
 	switch (RTC_Status)
 	{
 		case RTC_Status_ready:
-			data[3] = (COA_Measurment >> 24);
-			data[4] = (COA_Measurment >> 16);
-			data[5] = (COA_Measurment >> 8);
-			data[6] = COA_Measurment;
-			data[8] = (COB_Measurment >> 24);
-			data[9] = (COB_Measurment >> 16);
-			data[10] = (COB_Measurment >> 8);
-			data[11] = COB_Measurment;
-			data[13] = (COC_Measurment >> 8);
-			data[14] = COC_Measurment;
+			data[3] = (COA_PreviousMeasurment >> 24);
+			data[4] = (COA_PreviousMeasurment >> 16);
+			data[5] = (COA_PreviousMeasurment >> 8);
+			data[6] = COA_PreviousMeasurment;
+			data[8] = (COB_PreviousMeasurment >> 24);
+			data[9] = (COB_PreviousMeasurment >> 16);
+			data[10] = (COB_PreviousMeasurment >> 8);
+			data[11] = COB_PreviousMeasurment;
+			data[13] = (COC_PreviousMeasurment >> 8);
+			data[14] = COC_PreviousMeasurment;
 			transmit(data,15);	//15 будет для трёх счётчиков
 			break;
 		case RTC_Status_busy:
@@ -420,10 +730,10 @@ void COUNTERS_transmit_Result(void)
 			break;
 	}
 }
-void RTC_set_Period(uint8_t DATA[])
+void RTC_set_Period(void)
 {
 	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов при следующем измерении
-	RTC_MeasureTime = (((uint16_t)DATA[1])<<8) + DATA[2];
+	RTC_MeasurePeriod = (((uint16_t)USART_MEM[1])<<8) + USART_MEM[2];
 	transmit_2bytes(COMMAND_RTC_set_Period, RTC_Status);
 }
 void RTC_startDelay(void)
@@ -431,17 +741,17 @@ void RTC_startDelay(void)
 	//ФУНКЦИЯ: Начать задержку
 	
 }
-void RTC_setDelay(uint8_t DATA[])
+void RTC_setDelay(void)
 {
 	//ФУНКЦИЯ: Установить время задержки
-	RTC_Delay = (((uint16_t)DATA[1])<<8) + DATA[2];
+	RTC_DelayPeriod = (((uint16_t)USART_MEM[1])<<8) + USART_MEM[2];
 	transmit_2bytes(COMMAND_RTC_set_Delay, RTC_Status);
 }
-void RTC_setDelayPrescaler(uint8_t DATA[])
+void RTC_setDelayPrescaler(void)
 {
 	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
-	RTC_DelayPrescaler = DATA[1];
-	transmit_byte(COMMAND_RTC_set_DelayPrescaler);
+	//RTC_DelayPrescaler = USART_MEM[1];
+	//transmit_byte(COMMAND_RTC_set_DelayPrescaler);
 }
 void COUNTERS_start(void)
 {
@@ -449,18 +759,18 @@ void COUNTERS_start(void)
 	
 	//Принимать команду запуска во время busy -> ставить флажок MC_Tasks.doNextMeasure. Если флага нет - значит начинать новую серию измерений
 	
-	if (RTC_Status != RTC_Status_busy)
+	/*if (RTC_Status != RTC_Status_busy)
 	{	
-		COA_ovf = 0;
-		COB_ovf = 0;
-		COC_ovf = 0;
+		COA_OVF = 0;
+		COB_OVF = 0;
+		COC_OVF = 0;
 		TCC0.CNT = 0;
 		TCC1.CNT = 0;
 		TCD0.CNT = 0;
 		TCD1.CNT = 0;
 		TCE0.CNT = 0;
 		RTC.CNT = 0;
-		RTC.PER = RTC_MeasureTime;
+		RTC.PER = RTC_MeasurePeriod;
 		asm(	
 			"LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
 			"LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
@@ -476,6 +786,53 @@ void COUNTERS_start(void)
 			"STS 0x0940, R21	\n\t"//Адрес TCD1.CTRLA = 0x0940 <- Канал событий 3
 		);
 		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
+		RTC_setStatus_busy;
+	}
+	else
+	{
+		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
+	}*/
+	if((RTC_Status != RTC_Status_busy)&&(RTC_Status != RTC_Status_delayed))
+	{
+		//подготовка
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.PER = RTC_MeasurePeriod;
+		MC_Tasks.MeasureDataWasOVERWRITTEN = 0;
+		MC_Tasks.MeasuredDataWasSended = 1; //якобы были посланы (первый замер)
+		COA_OVF = 0;
+		COB_OVF = 0;
+		COC_OVF = 0;
+		TCC0.CNT = 0;
+		TCC1.CNT = 0;
+		TCD0.CNT = 0;
+		TCD1.CNT = 0;
+		TCE0.CNT = 0;
+		MC_Tasks.doNextMeasure = 0;
+		//начали
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		asm(
+		"LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
+		"LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
+		"LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
+		//"LDS R19, 0x205F	\n\t"//RTC: Адрес RTC_Prescaler  = 0x205F
+		"LDI R20, 0x09		\n\t"//TCC1:Код канала событий 1 = 0x09
+		"LDI R21, 0x0B		\n\t"//TCD1:Код канала событий 3 = 0x0B
+		"STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
+		"STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
+		"STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
+		//"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_Prescaler(@0x205F)
+		"STS 0x0840, R20	\n\t"//Адрес TCC1.CTRLA = 0x0840 <- Канал событий 1
+		"STS 0x0940, R21	\n\t"//Адрес TCD1.CTRLA = 0x0940 <- Канал событий 3
+		);
+		RTC.CTRL =  RTC_MeasurePrescaler;
+		//отчёт
+		//transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 		RTC_setStatus_busy;
 	}
 	else
@@ -510,22 +867,22 @@ void COUNTERS_stop(void)
 	}
 }
 //RTC
-void RTC_setPrescaler(uint8_t DATA[])
+void RTC_setPrescaler(void)
 {
 	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
-	RTC_Prescaler = DATA[1];
+	RTC_MeasurePrescaler = USART_MEM[1];
 	transmit_byte(COMMAND_RTC_set_Prescaler);
 }
 //TIC
-void TIC_transmit(uint8_t DATA[])
+void TIC_transmit(void)
 {
 	//ФУНКЦИЯ: ретранслировать команду TIC насосу
-	delay_us(usartTIC_delay);
-	for (uint8_t i = 2; i < DATA[1]; i++)
-	{
-		usart_putchar(USART_TIC,DATA[i]);				//USART_TIC
-		delay_us(usartTIC_delay);
-	}
+	//delay_us(usartTIC_delay);
+	//for (uint8_t i = 2; i < USART_MEM[1]; i++)
+	//{
+	//	usart_putchar(USART_TIC,USART_MEM[i]);				//USART_TIC
+	//	delay_us(usartTIC_delay);
+	//}
 	//ждём ответа от TIC
 	//Пересылаем ответ на ПК
 }
@@ -563,7 +920,7 @@ bool EVSYS_SetEventChannelFilter( uint8_t eventChannel,EVSYS_DIGFILT_t filterCoe
 	}
 }
 //SPI
-void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
+void SPI_send(uint8_t DEVICE_Number)
 {
 	//ФУНКЦИЯ: Посылает данные указанному SPI-устройству будь то DAC или ADC
 	//	Список устройств:
@@ -618,28 +975,28 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	if(DAC_is_AD5643R)
 	{
 		//Сконфигурированы ли ЦАПы?
-		uint8_t sdata[] = {data[1], data[2], data[3]};
+		uint8_t sdata[] = {USART_MEM[1], USART_MEM[2], USART_MEM[3]};
 		spi_select_device(&SPIC, &SPI_DEVICE);
 		spi_write_packet(&SPIC, sdata, 3);
 		spi_deselect_device(&SPIC, &SPI_DEVICE);
 		//откликаемся
-		uint8_t aswDATA[] = {data[0]};
+		uint8_t aswDATA[] = {USART_MEM[0]};
 		transmit(aswDATA, 1);
 		return;
 	}
 	//Если SPI-устройство - ЦАП, то посылаем, откликаемся и выходим. 
 	if(DEVICE_is_DAC)
 	{	
-		uint8_t sdata[] = {data[1], data[2]};
+		uint8_t sdata[] = {USART_MEM[1], USART_MEM[2]};
 		spi_select_device(&SPIC, &SPI_DEVICE);
 		spi_write_packet(&SPIC, sdata, 2);
 		spi_deselect_device(&SPIC, &SPI_DEVICE);
-		uint8_t aswDATA[] = {data[0]};
+		uint8_t aswDATA[] = {USART_MEM[0]};
 		transmit(aswDATA, 1);
 		return;
 	}
 	//Если SPI-устройство - АЦП, то посылаем, получаем ответ, отсылаем ответ.
-	uint8_t sdata[] = {data[1], data[2]};
+	uint8_t sdata[] = {USART_MEM[1], USART_MEM[2]};
 	gpio_set_pin_low(pin_iRDUN);
 	spi_write_packet(&SPIC, sdata, 2);
 	gpio_set_pin_high(pin_iRDUN);
@@ -650,18 +1007,18 @@ void SPI_send(uint8_t DEVICE_Number, uint8_t data[])
 	gpio_set_pin_high(pin_iRDUN);
 	spi_select_device(&SPIC, &SPI_DEVICE);
 	//Передём ответ на ПК по USART
-	uint8_t aswDATA[] = {data[0],SPI_rDATA[0],SPI_rDATA[1]};
+	uint8_t aswDATA[] = {USART_MEM[0],SPI_rDATA[0],SPI_rDATA[1]};
 	transmit(aswDATA, 3);
 }
 //Флаги
-void checkFlags(uint8_t DATA)
+void checkFlags(void)
 {
 	//ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
 	//ПОЯСНЕНИЯ: Формат байта: <Проверить\Установить><Операция отменена><iHVE><iEDCD><SEMV1><SEMV2><SEMV3><SPUMP>
 	//				Если первый бит <Проверить\Установить> = 0, то МК тут же возвращает текущее состояние флагов
 	//				Если первый бит <Проверить\Установить> = 1, то МК устанавливает флаги и возвращает их.
 	updateFlags();
-	Flags.checkOrSet = DATA >> 7;
+	Flags.checkOrSet = USART_MEM[1] >> 7;
 	if(Flags.checkOrSet == 0)
 	{
 		//Проверить. Выслать на ПК свеженькие данные о флагах
@@ -669,20 +1026,20 @@ void checkFlags(uint8_t DATA)
 		return;
 	}
 	//Установить! А надо ли что менять-то?
-	if(DATA != *pointer_Flags)
+	if(USART_MEM[1] != *pointer_Flags)
 	{
 		//Есть что менять!
-		uint8_t i = ((DATA & 32) >> 5);
+		uint8_t i = ((USART_MEM[1] & 32) >> 5);
 		if(Flags.iHVE  != i){if(i == 1){gpio_set_pin_high(pin_iHVE);}else{gpio_set_pin_low(pin_iHVE); MC_Tasks.setDACs = 1;}}
-		i = ((DATA & 16) >> 4);
+		i = ((USART_MEM[1] & 16) >> 4);
 		if(Flags.iEDCD != i){if(i == 1){gpio_set_pin_high(pin_iEDCD);}else{gpio_set_pin_low(pin_iEDCD);}}
-		i = ((DATA & 8) >> 3);
+		i = ((USART_MEM[1] & 8) >> 3);
 		if(Flags.SEMV1 != i){if(i == 1){gpio_set_pin_high(pin_SEMV1);}else{gpio_set_pin_low(pin_SEMV1);}}
-		i = ((DATA & 4) >> 2);
+		i = ((USART_MEM[1] & 4) >> 2);
 		if(Flags.SEMV2 != i){if(i == 1){gpio_set_pin_high(pin_SEMV2);}else{gpio_set_pin_low(pin_SEMV2);}}
-		i = ((DATA & 2) >> 1);
+		i = ((USART_MEM[1] & 2) >> 1);
 		if(Flags.SEMV3 != i){if(i == 1){gpio_set_pin_high(pin_SEMV3);}else{gpio_set_pin_low(pin_SEMV3);}}
-		i = DATA & 1;
+		i = USART_MEM[1] & 1;
 		if(Flags.SPUMP != i){if(i == 1){gpio_set_pin_high(pin_SPUMP);}else{gpio_set_pin_low(pin_SPUMP);}}
 		updateFlags();
 		transmit_2bytes(COMMAND_Flags_set, *pointer_Flags);
@@ -691,32 +1048,32 @@ void checkFlags(uint8_t DATA)
 			delay_s(2); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
 			//Высокое напряжение включеноё - конфигурируем DACи
 			//MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
-			uint8_t sdata[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};
+			uint8_t SPI_DATA[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};
 			spi_select_device(&SPIC, &DAC_Condensator);
 			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, sdata, 3);
+			spi_write_packet(&SPIC, SPI_DATA, 3);
 			spi_deselect_device(&SPIC, &DAC_Condensator);
 			spi_deselect_device(&SPIC, &DAC_Scaner);
 			//MSV DAC'и AD5643R (Конденсатор и сканер) - стартовое напряжение на первых каналах
-			sdata[0] = AD5643R_startVoltage_Hbyte;
-			sdata[1] = AD5643R_startVoltage_Mbyte;
-			sdata[2] = AD5643R_startVoltage_Lbyte;
+			SPI_DATA[0] = AD5643R_startVoltage_Hbyte;
+			SPI_DATA[1] = AD5643R_startVoltage_Mbyte;
+			SPI_DATA[2] = AD5643R_startVoltage_Lbyte;
 			spi_select_device(&SPIC, &DAC_Scaner);
 			spi_select_device(&SPIC, &DAC_Condensator);
-			spi_write_packet(&SPIC, sdata, 3);
+			spi_write_packet(&SPIC, SPI_DATA, 3);
 			spi_deselect_device(&SPIC, &DAC_Scaner);
 			spi_deselect_device(&SPIC, &DAC_Condensator);
 			//MSV DAC AD5643R (Сканер) - стартовое напряжение на первом канале
-			sdata[0] = AD5643R_startVoltage_Hbyte + 1;
+			SPI_DATA[0] = AD5643R_startVoltage_Hbyte + 1;
 			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, sdata, 3);
+			spi_write_packet(&SPIC, SPI_DATA, 3);
 			spi_deselect_device(&SPIC, &DAC_Scaner);
 			//DPS + PSIS DAC'и AD5328R (Детектор и Ионный Источник) - двойной референс
-			sdata[0] = AD5328R_confHbyte;
-			sdata[1] = AD5328R_confLbyte;
+			SPI_DATA[0] = AD5328R_confHbyte;
+			SPI_DATA[1] = AD5328R_confLbyte;
 			spi_select_device(&SPIC,&DAC_Detector);
 			spi_select_device(&SPIC,&DAC_IonSource);
-			spi_write_packet(&SPIC, sdata, 2);
+			spi_write_packet(&SPIC, SPI_DATA, 2);
 			spi_deselect_device(&SPIC,&DAC_Detector);
 			spi_deselect_device(&SPIC,&DAC_IonSource);
 			//ОТКЛЮЧЕНО по электротехническим причинам!
@@ -788,6 +1145,7 @@ int main(void)
 	EVSYS_SetEventChannelFilter( 3, EVSYS_DIGFILT_1SAMPLE_gc );
 	EVSYS_SetEventSource( 4, EVSYS_CHMUX_PORTC_PIN2_gc );
 	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );//Конечная инициализация
+	
 	pointer_Flags = &Flags;
     updateFlags();
 	RTC_setStatus_ready;
@@ -795,7 +1153,54 @@ int main(void)
 	//Инициализация завершена
 	while (1) 
 	{
-		
+		cli();
+		if (MC_Tasks.Decrypt == 1)
+		{
+			//Надо декодировать команду..
+			uint8_t CheckSum = 0;
+			//Подсчёт контрольной суммы...
+			for (uint8_t i = 0; i < USART_MEM_length; i++)
+			{
+				CheckSum -= USART_MEM[i];
+			}
+			if (CheckSum == USART_MEM_CheckSum)
+			{
+				//Контрольная сумма верная можно исполнять команду
+				sei();
+				decode();
+				MC_Tasks.Decrypt = 0;
+			}
+			else
+			{
+				//ОШИБКА ПРИЁМА! Неверная контрольная сумма!
+				MC_reciving_error = 6;
+				USART_receiving_time = 0;
+			}
+		}
+		else
+		{
+			//Полное время исполнения ~50(1,6мкс)
+			if (USART_receiving_time > 0)
+			{
+				//Отсчитываем время до следующего байта
+				USART_receiving_time++;
+				if (USART_receiving_time >= MC_receiving_limit)
+				{
+					USART_receiving_time = 0;
+					//+ ОШИБКА ПРИЁМА ДАННЫХ!
+					MC_reciving_error = 3;
+				}
+			}
+		}
+		sei();
+		//Автоустранение нежелательных состояний
+		cli();
+		if (((RTC_Status == RTC_Status_delayed)||(RTC_Status == RTC_Status_busy))&&(RTC.CTRL == 0))
+		{
+			//То мы вошли в задержку не включив RTC!
+			RTC_Status = RTC_Status_stopped;
+		}
+		sei();
 	}
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
