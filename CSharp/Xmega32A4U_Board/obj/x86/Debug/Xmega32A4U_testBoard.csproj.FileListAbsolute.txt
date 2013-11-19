@@ -14,3 +14,5 @@ D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\De
 D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Debug\Xmega32A4U_testBoard.Form1.resources
 D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Debug\Xmega32A4U_testBoard.Properties.Resources.resources
 D:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_testBoard\obj\x86\Debug\Xmega32A4U_testBoard.csproj.GenerateResource.Cache
+E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\Xmega32A4U_testBoard.exe
+E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\Xmega32A4U_testBoard.pdb
