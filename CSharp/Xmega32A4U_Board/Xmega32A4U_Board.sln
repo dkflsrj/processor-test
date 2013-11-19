@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C# Express 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xmega32A4U_testBoard", "Xmega32A4U_testBoard.csproj", "{3A5C4988-A76C-4145-9F13-CE8F783B8D65}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xmega32A4U_Board", "Xmega32A4U_Board.csproj", "{3A5C4988-A76C-4145-9F13-CE8F783B8D65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
