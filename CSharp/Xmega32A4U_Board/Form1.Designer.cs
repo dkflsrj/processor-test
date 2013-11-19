@@ -79,12 +79,13 @@
             this.BTN_reqCount = new System.Windows.Forms.Button();
             this.BTN_stopCounter = new System.Windows.Forms.Button();
             this.GRB_SPI = new System.Windows.Forms.GroupBox();
+            this.BTN_DAC_reset = new System.Windows.Forms.Button();
             this.TXB_ADC_channel = new System.Windows.Forms.TextBox();
             this.TXB_DAC_channel = new System.Windows.Forms.TextBox();
             this.CHB_ADC_DoubleRange = new System.Windows.Forms.CheckBox();
             this.TXB_DAC_voltage = new System.Windows.Forms.TextBox();
-            this.BTN_SPI_DAC_send = new System.Windows.Forms.Button();
             this.BTN_SPI_ADC_request = new System.Windows.Forms.Button();
+            this.BTN_SPI_DAC_send = new System.Windows.Forms.Button();
             this.GRB_MC = new System.Windows.Forms.GroupBox();
             this.BTN_checkCommandStack = new System.Windows.Forms.Button();
             this.BTN_COM_getMCversion = new System.Windows.Forms.Button();
@@ -211,7 +212,6 @@
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.BTN_DAC_reset = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -810,6 +810,16 @@
             this.GRB_SPI.TabStop = false;
             this.GRB_SPI.Text = "SPI";
             // 
+            // BTN_DAC_reset
+            // 
+            this.BTN_DAC_reset.Location = new System.Drawing.Point(6, 19);
+            this.BTN_DAC_reset.Name = "BTN_DAC_reset";
+            this.BTN_DAC_reset.Size = new System.Drawing.Size(55, 24);
+            this.BTN_DAC_reset.TabIndex = 9;
+            this.BTN_DAC_reset.Text = "Сброс";
+            this.BTN_DAC_reset.UseVisualStyleBackColor = true;
+            this.BTN_DAC_reset.Click += new System.EventHandler(this.BTN_DAC_reset_Click);
+            // 
             // TXB_ADC_channel
             // 
             this.TXB_ADC_channel.Location = new System.Drawing.Point(115, 51);
@@ -845,16 +855,6 @@
             this.TXB_DAC_voltage.TabIndex = 2;
             this.TXB_DAC_voltage.Text = "40";
             // 
-            // BTN_SPI_DAC_send
-            // 
-            this.BTN_SPI_DAC_send.Location = new System.Drawing.Point(67, 19);
-            this.BTN_SPI_DAC_send.Name = "BTN_SPI_DAC_send";
-            this.BTN_SPI_DAC_send.Size = new System.Drawing.Size(42, 24);
-            this.BTN_SPI_DAC_send.TabIndex = 5;
-            this.BTN_SPI_DAC_send.Text = "DAC";
-            this.BTN_SPI_DAC_send.UseVisualStyleBackColor = true;
-            this.BTN_SPI_DAC_send.Click += new System.EventHandler(this.BTN_SPI_DAC_send_Click);
-            // 
             // BTN_SPI_ADC_request
             // 
             this.BTN_SPI_ADC_request.Location = new System.Drawing.Point(6, 49);
@@ -864,6 +864,16 @@
             this.BTN_SPI_ADC_request.Text = "ADC";
             this.BTN_SPI_ADC_request.UseVisualStyleBackColor = true;
             this.BTN_SPI_ADC_request.Click += new System.EventHandler(this.BTN_SPI_ADC_request_Click);
+            // 
+            // BTN_SPI_DAC_send
+            // 
+            this.BTN_SPI_DAC_send.Location = new System.Drawing.Point(67, 19);
+            this.BTN_SPI_DAC_send.Name = "BTN_SPI_DAC_send";
+            this.BTN_SPI_DAC_send.Size = new System.Drawing.Size(42, 24);
+            this.BTN_SPI_DAC_send.TabIndex = 5;
+            this.BTN_SPI_DAC_send.Text = "DAC";
+            this.BTN_SPI_DAC_send.UseVisualStyleBackColor = true;
+            this.BTN_SPI_DAC_send.Click += new System.EventHandler(this.BTN_SPI_DAC_send_Click);
             // 
             // GRB_MC
             // 
@@ -1879,7 +1889,7 @@
             // LBL_realCOX_COC_Ovf
             // 
             this.LBL_realCOX_COC_Ovf.AutoSize = true;
-            this.LBL_realCOX_COC_Ovf.Location = new System.Drawing.Point(167, 214);
+            this.LBL_realCOX_COC_Ovf.Location = new System.Drawing.Point(289, 214);
             this.LBL_realCOX_COC_Ovf.Name = "LBL_realCOX_COC_Ovf";
             this.LBL_realCOX_COC_Ovf.Size = new System.Drawing.Size(13, 13);
             this.LBL_realCOX_COC_Ovf.TabIndex = 16;
@@ -1888,7 +1898,7 @@
             // LBL_realCOX_COB_Ovf
             // 
             this.LBL_realCOX_COB_Ovf.AutoSize = true;
-            this.LBL_realCOX_COB_Ovf.Location = new System.Drawing.Point(167, 194);
+            this.LBL_realCOX_COB_Ovf.Location = new System.Drawing.Point(289, 194);
             this.LBL_realCOX_COB_Ovf.Name = "LBL_realCOX_COB_Ovf";
             this.LBL_realCOX_COB_Ovf.Size = new System.Drawing.Size(13, 13);
             this.LBL_realCOX_COB_Ovf.TabIndex = 17;
@@ -1897,7 +1907,7 @@
             // label20
             // 
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(138, 214);
+            this.label20.Location = new System.Drawing.Point(260, 214);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(25, 13);
             this.label20.TabIndex = 16;
@@ -1906,7 +1916,7 @@
             // label19
             // 
             this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(138, 194);
+            this.label19.Location = new System.Drawing.Point(260, 194);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(25, 13);
             this.label19.TabIndex = 17;
@@ -1924,7 +1934,7 @@
             // LBL_realCOX_COA_Ovf
             // 
             this.LBL_realCOX_COA_Ovf.AutoSize = true;
-            this.LBL_realCOX_COA_Ovf.Location = new System.Drawing.Point(167, 174);
+            this.LBL_realCOX_COA_Ovf.Location = new System.Drawing.Point(289, 174);
             this.LBL_realCOX_COA_Ovf.Name = "LBL_realCOX_COA_Ovf";
             this.LBL_realCOX_COA_Ovf.Size = new System.Drawing.Size(13, 13);
             this.LBL_realCOX_COA_Ovf.TabIndex = 18;
@@ -1942,7 +1952,7 @@
             // label17
             // 
             this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(138, 174);
+            this.label17.Location = new System.Drawing.Point(260, 174);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(25, 13);
             this.label17.TabIndex = 18;
@@ -2087,6 +2097,7 @@
             // 
             // BTN_realCOX_setParameters
             // 
+            this.BTN_realCOX_setParameters.Enabled = false;
             this.BTN_realCOX_setParameters.Location = new System.Drawing.Point(6, 19);
             this.BTN_realCOX_setParameters.Name = "BTN_realCOX_setParameters";
             this.BTN_realCOX_setParameters.Size = new System.Drawing.Size(113, 23);
@@ -2116,6 +2127,7 @@
             // 
             // BTN_realCOX_check
             // 
+            this.BTN_realCOX_check.Enabled = false;
             this.BTN_realCOX_check.Location = new System.Drawing.Point(6, 128);
             this.BTN_realCOX_check.Name = "BTN_realCOX_check";
             this.BTN_realCOX_check.Size = new System.Drawing.Size(113, 23);
@@ -2126,6 +2138,7 @@
             // 
             // BTN_realCOX_stop
             // 
+            this.BTN_realCOX_stop.Enabled = false;
             this.BTN_realCOX_stop.Location = new System.Drawing.Point(6, 78);
             this.BTN_realCOX_stop.Name = "BTN_realCOX_stop";
             this.BTN_realCOX_stop.Size = new System.Drawing.Size(113, 23);
@@ -2176,16 +2189,6 @@
             // 
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
-            // 
-            // BTN_DAC_reset
-            // 
-            this.BTN_DAC_reset.Location = new System.Drawing.Point(6, 19);
-            this.BTN_DAC_reset.Name = "BTN_DAC_reset";
-            this.BTN_DAC_reset.Size = new System.Drawing.Size(55, 24);
-            this.BTN_DAC_reset.TabIndex = 9;
-            this.BTN_DAC_reset.Text = "Сброс";
-            this.BTN_DAC_reset.UseVisualStyleBackColor = true;
-            this.BTN_DAC_reset.Click += new System.EventHandler(this.BTN_DAC_reset_Click);
             // 
             // Form1
             // 

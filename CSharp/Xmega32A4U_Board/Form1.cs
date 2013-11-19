@@ -235,15 +235,17 @@ namespace Xmega32A4U_testBoard
                 //trace(true, "ОШИБКА! Неверный интервал!");
                 return;
             }
-            if (MC.Counters.startMeasure())
-            {
-                //trace(true, "COA начал счёт...");
-                PGB_COA_progress.Value = 0;
-                UI_PGB_COA_count = 0;
-                UI_PGB_COA_step = (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_COA_measureTime.Text);
-                CLK_COA.Enabled = true;
-                return;
-            }
+            //if (
+                //MC.Counters.startMeasure();
+                //)
+           //{
+           //    //trace(true, "COA начал счёт...");
+           //    PGB_COA_progress.Value = 0;
+           //    UI_PGB_COA_count = 0;
+           //    UI_PGB_COA_step = (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_COA_measureTime.Text);
+           //    CLK_COA.Enabled = true;
+           //    return;
+           //}
             //trace(true, "Ошибка! Возможно COA не начал счёт!");
 
         }
@@ -254,7 +256,7 @@ namespace Xmega32A4U_testBoard
             //trace(true, "Состояние счётчиков: " + Counters_status);
             if (Counters_status == "Ready")
             {
-                trace(true, "   Счёт: " + MC.Counters.COA.Result);
+                //trace(true, "   Счёт: " + MC.Counters.COA.Result);
             }
         }
         private void BTN_setInterval_Click(object sender, EventArgs e)
@@ -386,11 +388,11 @@ namespace Xmega32A4U_testBoard
             }
             LBL_COA_ticks.Text = "";
             //LBL_COA_ticks.Text += "(";
-            LBL_COA_ticks.Text += MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)).ToString();
+            LBL_COA_ticks.Text += MC.Counters.getRTCticks(TXB_COA_measureTime.Text).ToString();
             //LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
             //LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
-            LBL_COA_frequency.Text = MC.Counters.getRTCfrequency().ToString();
-            LBL_COA_prescaler.Text = MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text).ToString();
+            LBL_COA_frequency.Text = MC.Counters.getRTCfrequency(TXB_COA_measureTime.Text).ToString();
+            LBL_COA_prescaler.Text = MC.Counters.getRTCprescaler_long(TXB_COA_measureTime.Text).ToString();
         }
         private void CHB_enableSuperTracer_CheckedChanged(object sender, EventArgs e)
         {
@@ -625,9 +627,9 @@ namespace Xmega32A4U_testBoard
                 return;
             }
             LBL_realCOX_Tiks.Text = "";
-            LBL_realCOX_Tiks.Text += MC.Counters.getRTCticks(TXB_realCOX_MeasureTime.Text, MC.Counters.getRTCprescaler(TXB_realCOX_MeasureTime.Text)).ToString();
-            LBL_realCOX_frequency.Text = MC.Counters.getRTCfrequency().ToString();
-            LBL_realCOX_Devider.Text = MC.Counters.getRTCprescaler(TXB_realCOX_MeasureTime.Text).ToString();
+            LBL_realCOX_Tiks.Text += MC.Counters.getRTCticks(TXB_realCOX_MeasureTime.Text).ToString();
+            LBL_realCOX_frequency.Text = MC.Counters.getRTCfrequency(TXB_realCOX_MeasureTime.Text).ToString();
+            LBL_realCOX_Devider.Text = MC.Counters.getRTCprescaler_long(TXB_realCOX_MeasureTime.Text).ToString();
         }
         private void BTN_realCOX_setParameters_Click(object sender, EventArgs e)
         {
@@ -655,7 +657,145 @@ namespace Xmega32A4U_testBoard
             //    return;
             //}
             //if (
-                MC.Counters.startMeasure();
+            MC.Counters.startMeasure(Convert.ToUInt16(TXB_realCOX_MeasureTime.Text));
+            uint max = 0;
+            uint min = 4294967295;
+            uint mid = 0;
+            uint Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
+            List<uint> Results = MC.Counters.COA.Count;
+            List<byte> OVFs = new List<byte>();
+            for (int i = 0; i < Cycles; i++)
+            {
+                try
+                {
+                    //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                    if (Results[i] > max)
+                    {
+                        max = Results[i];
+                    }
+                    if (Results[i] < min)
+                    {
+                        min = Results[i];
+                    }
+                
+                    mid += Results[i];
+                }
+                catch { }
+            }
+            mid = mid / Cycles;
+            LBL_realCOX_COA_Result.Text = min + "..." + mid + "..." + max;
+
+            OVFs = MC.Counters.COA.Overflows;
+            for (int i = 0; i < Cycles; i++)
+            {
+                try
+                {
+                    //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                    if (OVFs[i] > max)
+                    {
+                        max = OVFs[i];
+                    }
+                    if (OVFs[i] < min)
+                    {
+                        min = OVFs[i];
+                    }
+
+                    mid += OVFs[i];
+                }
+                catch { }
+            }
+            mid = mid / Cycles;
+            LBL_realCOX_COA_Ovf.Text = min + "..." + mid + "..." + max;
+
+            Results = MC.Counters.COB.Count;
+            for (int i = 0; i < Cycles; i++)
+            {
+                try
+                {
+                    //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                    if (Results[i] > max)
+                    {
+                        max = Results[i];
+                    }
+                    if (Results[i] < min)
+                    {
+                        min = Results[i];
+                    }
+
+                    mid += Results[i];
+                }
+                catch { }
+            }
+            mid = mid / Cycles;
+            LBL_realCOX_COB_Result.Text = min + "..." + mid + "..." + max;
+            OVFs = MC.Counters.COB.Overflows;
+            for (int i = 0; i < Cycles; i++)
+            {
+                try
+                {
+                    //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                    if (OVFs[i] > max)
+                    {
+                        max = OVFs[i];
+                    }
+                    if (OVFs[i] < min)
+                    {
+                        min = OVFs[i];
+                    }
+
+                    mid += OVFs[i];
+                }
+                catch { }
+            }
+            mid = mid / Cycles;
+            LBL_realCOX_COB_Ovf.Text = min + "..." + mid + "..." + max;
+            Results = MC.Counters.COC.Count;
+            for (int i = 0; i < Cycles; i++)
+            {
+                try
+                {
+                    //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                    if (Results[i] > max)
+                    {
+                        max = Results[i];
+                    }
+                    if (Results[i] < min)
+                    {
+                        min = Results[i];
+                    }
+
+                    mid += Results[i];
+                }
+                catch { }
+            }
+            mid = mid / Cycles;
+            LBL_realCOX_COC_Result.Text = min + "..." + mid + "..." + max;
+            OVFs = MC.Counters.COC.Overflows;
+            for (int i = 0; i < Cycles; i++)
+            {
+                try
+                {
+                    //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                    if (OVFs[i] > max)
+                    {
+                        max = OVFs[i];
+                    }
+                    if (OVFs[i] < min)
+                    {
+                        min = OVFs[i];
+                    }
+
+                    mid += OVFs[i];
+                }
+                catch { }
+            }
+            mid = mid / Cycles;
+            LBL_realCOX_COC_Ovf.Text = min + "..." + mid + "..." + max;
+
+
+
+            //trace("" + min + "..." + mid + "..." + max);
+
             //    )
             //{
             //    //trace(true, "COA начал счёт...");
@@ -673,12 +813,12 @@ namespace Xmega32A4U_testBoard
         private void BTN_realCOX_check_Click(object sender, EventArgs e)
         {
             LBL_realCOX_RTCstate.Text = MC.Counters.receiveResults();
-            LBL_realCOX_COA_Result.Text = MC.Counters.COA.Result.ToString();
-            LBL_realCOX_COB_Result.Text = MC.Counters.COB.Result.ToString();
-            LBL_realCOX_COC_Result.Text = MC.Counters.COC.Result.ToString();
-            LBL_realCOX_COA_Ovf.Text = MC.Counters.COA.overflows.ToString();
-            LBL_realCOX_COB_Ovf.Text = MC.Counters.COB.overflows.ToString();
-            LBL_realCOX_COC_Ovf.Text = MC.Counters.COC.overflows.ToString();
+            //LBL_realCOX_COA_Result.Text = MC.Counters.COA.Result.ToString();
+            //LBL_realCOX_COB_Result.Text = MC.Counters.COB.Result.ToString();
+            //LBL_realCOX_COC_Result.Text = MC.Counters.COC.Result.ToString();
+            //LBL_realCOX_COA_Ovf.Text = MC.Counters.COA.overflows.ToString();
+            //LBL_realCOX_COB_Ovf.Text = MC.Counters.COB.overflows.ToString();
+            //LBL_realCOX_COC_Ovf.Text = MC.Counters.COC.overflows.ToString();
         }
         private void BTN_checkFlags_Click(object sender, EventArgs e)
         {

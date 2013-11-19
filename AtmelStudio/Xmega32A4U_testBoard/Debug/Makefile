@@ -160,9 +160,9 @@ src/ASF/xmega/drivers/usart/usart.d \
 src/main.d \
 src/ASF/common/boards/user_board/init.d
 
-OUTPUT_FILE_PATH +=Xmega32A4U_testBoard.elf
+OUTPUT_FILE_PATH +=Xmega32A4U_Board.elf
 
-OUTPUT_FILE_PATH_AS_ARGS +=Xmega32A4U_testBoard.elf
+OUTPUT_FILE_PATH_AS_ARGS +=Xmega32A4U_Board.elf
 
 ADDITIONAL_DEPENDENCIES:=
 
@@ -333,13 +333,13 @@ all: $(OUTPUT_FILE_PATH) $(ADDITIONAL_DEPENDENCIES)
 $(OUTPUT_FILE_PATH): $(OBJS) $(USER_OBJS) $(OUTPUT_FILE_DEP) $(LIB_DEP)
 	@echo Building target: $@
 	@echo Invoking: AVR/GNU Linker : 3.4.2
-	$(QUOTE)C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE) -o$(OUTPUT_FILE_PATH_AS_ARGS) $(OBJS_AS_ARGS) $(USER_OBJS) $(LIBS) -Wl,-Map="Xmega32A4U_testBoard.map" -Wl,--start-group  -Wl,--end-group -Wl,--gc-sections -mmcu=atxmega32a4u -Wl,--relax 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE) -o$(OUTPUT_FILE_PATH_AS_ARGS) $(OBJS_AS_ARGS) $(USER_OBJS) $(LIBS) -Wl,-Map="Xmega32A4U_Board.map" -Wl,--start-group  -Wl,--end-group -Wl,--gc-sections -mmcu=atxmega32a4u -Wl,--relax 
 	@echo Finished building target: $@
-	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-objcopy.exe" -O ihex -R .eeprom -R .fuse -R .lock -R .signature  "Xmega32A4U_testBoard.elf" "Xmega32A4U_testBoard.hex"
-	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-objcopy.exe" -j .eeprom  --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0  --no-change-warnings -O ihex "Xmega32A4U_testBoard.elf" "Xmega32A4U_testBoard.eep" || exit 0
-	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-objdump.exe" -h -S "Xmega32A4U_testBoard.elf" > "Xmega32A4U_testBoard.lss"
-	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-objcopy.exe" -O srec -R .eeprom -R .fuse -R .lock -R .signature  "Xmega32A4U_testBoard.elf" "Xmega32A4U_testBoard.srec"
-	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-size.exe" "Xmega32A4U_testBoard.elf"
+	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-objcopy.exe" -O ihex -R .eeprom -R .fuse -R .lock -R .signature  "Xmega32A4U_Board.elf" "Xmega32A4U_Board.hex"
+	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-objcopy.exe" -j .eeprom  --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0  --no-change-warnings -O ihex "Xmega32A4U_Board.elf" "Xmega32A4U_Board.eep" || exit 0
+	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-objdump.exe" -h -S "Xmega32A4U_Board.elf" > "Xmega32A4U_Board.lss"
+	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-objcopy.exe" -O srec -R .eeprom -R .fuse -R .lock -R .signature  "Xmega32A4U_Board.elf" "Xmega32A4U_Board.srec"
+	"C:\Program Files (x86)\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.2.1002\avr8-gnu-toolchain\bin\avr-size.exe" "Xmega32A4U_Board.elf"
 	
 	
 
@@ -351,5 +351,5 @@ $(OUTPUT_FILE_PATH): $(OBJS) $(USER_OBJS) $(OUTPUT_FILE_DEP) $(LIB_DEP)
 clean:
 	-$(RM) $(OBJS_AS_ARGS) $(EXECUTABLES)  
 	-$(RM) $(C_DEPS_AS_ARGS)   
-	rm -rf "Xmega32A4U_testBoard.elf" "Xmega32A4U_testBoard.a" "Xmega32A4U_testBoard.hex" "Xmega32A4U_testBoard.lss" "Xmega32A4U_testBoard.eep" "Xmega32A4U_testBoard.map" "Xmega32A4U_testBoard.srec"
+	rm -rf "Xmega32A4U_Board.elf" "Xmega32A4U_Board.a" "Xmega32A4U_Board.hex" "Xmega32A4U_Board.lss" "Xmega32A4U_Board.eep" "Xmega32A4U_Board.map" "Xmega32A4U_Board.srec"
 	
