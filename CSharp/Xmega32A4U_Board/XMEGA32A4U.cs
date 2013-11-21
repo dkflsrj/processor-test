@@ -333,6 +333,9 @@ namespace Xmega32A4U_testBoard
                 public const int min_ms_div256 = 127996;
                 public const int min_ms_div1024 = 511981;
                 public const int max_ms_div1024 = 2047925;
+                //Проча
+                public const byte LengthOfSetAllPacket = 20;
+                public const byte LengthOfLAMPacket = 6;
             }
             public class counter
             {
@@ -524,7 +527,6 @@ namespace Xmega32A4U_testBoard
                 MeasureTimes[0] = 50;
                 DelayTimes[0] = 10;
                 //Объявления
-                List<byte> Packet = new List<byte>();
                 List<byte> wDATA = new List<byte>();
                 List<byte> rDATA = new List<byte>();
                 byte[] BYTES_buf = new byte[4];
@@ -532,7 +534,6 @@ namespace Xmega32A4U_testBoard
                 byte[] MeasurePeriod = new byte[2];
                 byte DelayPrescaler = 0;
                 byte[] DelayPeriod = new byte[2];
-                byte k = 0;
                 //Подготовка к передаче первых настроек (до измерения)
                 MeasurePrescaler = getRTCprescaler(MeasureTimes[0]);
                 BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[0]));
@@ -541,335 +542,49 @@ namespace Xmega32A4U_testBoard
                 BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[0]));
                 DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
                 wDATA.Add(Command.RTC.setAll); //Команда
-                wDATA.Add(0);    //Не делать измерение
+                wDATA.Add(0);    //Не делать сделующе измерение
                 wDATA.Add(MeasurePrescaler);
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
                 wDATA.Add(DelayPrescaler);
                 wDATA.Add(DelayPeriod[1]);
                 wDATA.Add(DelayPeriod[0]);
-                Packet.Add(Command.KEY);
-                Packet.Add((byte)(wDATA.Count + 4));
-                Packet.AddRange(wDATA);
-                Packet.Add(calcCheckSum(wDATA.ToArray()));
-                Packet.Add(Command.LOCK);
-                //Передача настроек до старта
-                if (!USART.IsOpen)
-                {
-                    USART.Open();
-                }
-                USART.Write(Packet.ToArray(), 0, Packet.Count);
-                //Thread.Sleep(100);
-                //Слушаем данные
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != Command.KEY)
-                {
-                    trace("Ухо!" + Command.KEY);
-                    return;
-                }
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//Packet_Length
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != Command.RTC.setAll)
-                {
-                    trace("Ухо!" + Command.RTC.setAll);
-                    return;
-                }
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//MC_Status
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//RTC_Status
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousOVF
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 24
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 16
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 8
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 0
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousOVF
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 24
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 16
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 8
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 0
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COC_PreviousOVF
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 8
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 0
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//CS
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != Command.LOCK)
-                {
-                    trace("Ухо!" + Command.LOCK);
-                    return;
-                }
-                //сервис
-                rDATA.Clear();
-                k = 0;
+
+                transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);                    //Посылаем настройки для измерения №0, но ответ забываем
+
                 //Подготовка команды начала измерений
-                Packet.Clear();
                 wDATA.Clear();
                 wDATA.Add(Command.RTC.startMeasure);
-                Packet.Add(Command.KEY);
-                Packet.Add((byte)(wDATA.Count + 4));
-                Packet.AddRange(wDATA);
-                Packet.Add(calcCheckSum(wDATA.ToArray()));
-                Packet.Add(Command.LOCK);
-                USART.Write(Packet.ToArray(), 0, Packet.Count);
+
+                send_2(wDATA, false);                           //Посылаем команду начала измерения (не слушаем ответ), а надо бы
+
                 //Подготовка новых данных для следующего измерения
                 wDATA.Clear();
-                Packet.Clear();
                 wDATA.Add(Command.RTC.setAll); //Команда
-                wDATA.Add(1);    //Не делать измерение
+                wDATA.Add(1);    //Делать следующее измерение
                 wDATA.Add(MeasurePrescaler);
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
                 wDATA.Add(DelayPrescaler);
                 wDATA.Add(DelayPeriod[1]);
                 wDATA.Add(DelayPeriod[0]);
-                Packet.Add(Command.KEY);
-                Packet.Add((byte)(wDATA.Count + 4));
-                Packet.AddRange(wDATA);
-                Packet.Add(calcCheckSum(wDATA.ToArray()));
-                Packet.Add(Command.LOCK);
-                USART.Write(Packet.ToArray(), 0, Packet.Count);
-                //Приём нулей (мы ведь послали запрос)
-                //Слушаем данные
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != Command.KEY)
-                {
-                    trace("Ухо!" + Command.KEY);
-                    return;
-                }
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//Packet_Length
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != Command.RTC.setAll)
-                {
-                    trace("Ухо!" + Command.RTC.setAll);
-                    return;
-                }
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//MC_Status
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//RTC_Status
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousOVF
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 24
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 16
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 8
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 0
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousOVF
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 24
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 16
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 8
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 0
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COC_PreviousOVF
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 8
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 0
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());//CS
-                k++;
-                while (USART.BytesToRead == 0) { }
-                rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != Command.LOCK)
-                {
-                    trace("Ухо!" + Command.LOCK);
-                    return;
-                }
-                //сервис
-                rDATA.Clear();
-                k = 0;
+
+                transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);   //Посылаем настройки для измерения №1, но ответ забываем
+
                 //Цикл...(данные теже)
                 for (int i = 0; i < Cycles; i++)
                 {
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != Command.KEY)
-                    {
-                        trace("Лажа!" + Command.KEY);
-                        break;
-                    }
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//Packet_Length
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != Command.RTC.LAM)
-                    {
-                        trace("Лажа!" + Command.RTC.LAM + " " + rDATA[k - 1]);
-                        break;
-                    }
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 3)
-                    {
-                        trace("Лажа!3");
-                        break;
-                    }
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 220)
-                    {
-                        trace("Лажа!220");
-                        break;
-                    }
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != Command.LOCK)
-                    {
-                        trace("Лажа!" + Command.LOCK);
-                        break;
-                    }
+                    receive_2(Constants.LengthOfLAMPacket, false);
                     //Если мы до сюда дошли то нужно передать данные туда (теже)
-                    USART.Write(Packet.ToArray(), 0, Packet.Count);
+                    rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);   // Но по чеснаку надо ведь данные передать следующей ступени
+                    COA.Overflows.Add(rDATA[3]);
+                    COA.Count.Add((uint)(rDATA[4] * 16777216 + rDATA[5] * 65536 + rDATA[6] * 256 + rDATA[7]));
+                    COB.Overflows.Add(rDATA[8]);
+                    COB.Count.Add((uint)(rDATA[9] * 16777216 + rDATA[10] * 65536 + rDATA[11] * 256 + rDATA[12]));
+                    COC.Overflows.Add(rDATA[13]);
+                    COC.Count.Add((uint)(rDATA[14] * 256 + rDATA[15]));
                     //сервис
                     rDATA.Clear();
-                    k = 0;
-                    //Слушаем данные
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != Command.KEY)
-                    {
-                        trace("Ухо!"+Command.KEY);
-                        break;
-                    }
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//Packet_Length
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != Command.RTC.setAll)
-                    {
-                        trace("Ухо!" + Command.RTC.setAll);
-                        break;
-                    }
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//MC_Status
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//RTC_Status
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousOVF
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 24
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 16
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 8
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COA_PreviousMeasurement >> 0
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousOVF
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 24
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 16
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 8
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COB_PreviousMeasurement >> 0
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COC_PreviousOVF
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 8
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//COC_PreviousMeasurement >> 0
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());//CS
-                    k++;
-                    while (USART.BytesToRead == 0) { }
-                    rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != Command.LOCK)
-                    {
-                        trace("Ухо!" + Command.LOCK);
-                        break;
-                    }
-                    //Results.Add((ushort)((ushort)rDATA[5] * 256 + (ushort)rDATA[6]));
-                    COA.Overflows.Add(rDATA[5]);
-                    COA.Count.Add((uint)(rDATA[6] * 16777216 + rDATA[7] * 65536 + rDATA[8] * 256 + rDATA[9]));
-                    COB.Overflows.Add(rDATA[10]);
-                    COB.Count.Add((uint)(rDATA[11] * 16777216 + rDATA[12] * 65536 + rDATA[13] * 256 + rDATA[14]));
-                    COC.Overflows.Add(rDATA[15]);
-                    COC.Count.Add((uint)(rDATA[16] * 256 + rDATA[17]));
-                    //сервис
-                    rDATA.Clear();
-                    k = 0;
-                    //break;
                 }
                 //конец
                 if (USART.IsOpen)
@@ -1843,6 +1558,94 @@ namespace Xmega32A4U_testBoard
             }
         }
         //USART
+        static List<byte> receive_2(byte rPacketLength, bool closePort)
+        {
+            List<byte> rDATA = new List<byte>();
+            if (!USART.IsOpen)
+            {
+                USART.Open();
+            }
+            for (byte i = 0; i < rPacketLength; i++)
+            {
+                while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());
+            }
+            if (closePort && USART.IsOpen)
+            {
+                USART.Close();
+            }
+            return rDATA;
+        }
+        static List<byte> decode_2(List<byte> DATA)
+        {
+            List<byte> rDATA = DATA;
+            if (rDATA.First<byte>() == Command.KEY)
+            {
+                rDATA.RemoveAt(0);                              //Удаляем ключ
+                if (rDATA.First<byte>() == rDATA.Count + 1)
+                {
+                    rDATA.RemoveAt(0);                          //Удаляем длинну пакета
+                    if (rDATA.Last<byte>() == Command.LOCK)
+                    {
+                        rDATA.RemoveAt(rDATA.Count - 1);        //Удаляем затвор
+                        byte CheckSum = rDATA.Last<byte>();
+                        rDATA.RemoveAt(rDATA.Count - 1);        //Удаляем контрольную сумму
+                        byte calcedCheckSum = calcCheckSum(rDATA.ToArray());
+                        if (CheckSum == calcedCheckSum)
+                        {
+                            //Пакет верный, возвращаем его
+                            return rDATA;
+                        }
+                        else
+                        {
+                            trace("ОШИБКА ПРИЁМА! Неверная контрольная сумма. Получено:" + CheckSum + " Подсчитано: " + calcedCheckSum);
+                            return new List<byte>();
+                        }
+                    }
+                    else
+                    {
+                        trace("ОШИБКА ПРИЁМА! Не был получен затвор. Получено:" + rDATA.Last<byte>());
+                        return new List<byte>();
+                    }
+                }
+                else
+                {
+                    trace("ОШИБКА ПРИЁМА! Неверная длина пакета. Получено:" + rDATA.First<byte>());
+                    return new List<byte>();
+                }
+            }
+            else
+            {
+                trace("ОШИБКА ПРИЁМА! Не был получен ключ. Получено:" + rDATA.First<byte>());
+                return new List<byte>();
+            }
+        }
+        static void send_2(List<byte> DATA, bool closePort)
+        {
+            List<byte> Packet = new List<byte>();
+            Packet.Add(Command.KEY);
+            Packet.Add((byte)(DATA.Count + 4));
+            Packet.AddRange(DATA);
+            Packet.Add(calcCheckSum(DATA.ToArray()));
+            Packet.Add(Command.LOCK);
+            //Открытие порта, если он закрыт
+            if (!USART.IsOpen)
+            {
+                USART.Open();
+            }
+            //Передача
+            USART.Write(Packet.ToArray(), 0, Packet.Count);
+            if (closePort && USART.IsOpen)
+            {
+                USART.Close();
+            }
+        }
+        static List<byte> transmit_2(List<byte> wDATA, byte rPacketLength, bool closePort)
+        {
+            send_2(wDATA, false);
+            return decode_2(receive_2(rPacketLength, closePort));
+            //Декодируем
+        }
         static byte calcCheckSum(byte[] data)
         {
             //ФУНКЦИЯ: Вычисление контрольной суммы для верификации данных
