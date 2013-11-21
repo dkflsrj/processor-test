@@ -585,7 +585,7 @@ namespace Xmega32A4U_testBoard
                     //Если мы до сюда дошли то нужно передать данные туда (теже)
                     wDATA.Clear();
                     wDATA.Add(Command.RTC.setAll); //Команда
-                    if(i == Cycles - 1)
+                    if(i == Cycles - 2)
                     {
                         wDATA.Add(Constants.NextMeasure.NotDo);    //Это последнее измерение! Не делать следующее
                     }
@@ -608,6 +608,7 @@ namespace Xmega32A4U_testBoard
                     COB.Count.Add((uint)(rDATA[9] * 16777216 + rDATA[10] * 65536 + rDATA[11] * 256 + rDATA[12]));
                     COC.Overflows.Add(rDATA[13]);
                     COC.Count.Add((uint)(rDATA[14] * 256 + rDATA[15]));
+                    trace("" + i +" " + COA.Count[i]);
                     //сервис
                     rDATA.Clear();
                 }
