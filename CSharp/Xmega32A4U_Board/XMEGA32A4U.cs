@@ -568,7 +568,14 @@ namespace Xmega32A4U_testBoard
                 //Подготовка новых данных для следующего измерения
                 wDATA.Clear();
                 wDATA.Add(Command.RTC.setAll); //Команда
-                wDATA.Add(Constants.NextMeasure.Do);    //Делать следующее измерение
+                if (Cycles == 1)
+                {
+                    wDATA.Add(Constants.NextMeasure.NotDo);    //Это последнее измерение! Не делать следующее
+                }
+                else
+                {
+                    wDATA.Add(Constants.NextMeasure.Do);    //Делать следующее измерение
+                }
                 wDATA.Add(MeasurePrescaler);
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
@@ -593,7 +600,6 @@ namespace Xmega32A4U_testBoard
                     {
                         wDATA.Add(Constants.NextMeasure.Do);    //Делать следующее измерение
                     }
-                    
                     wDATA.Add(MeasurePrescaler);
                     wDATA.Add(MeasurePeriod[1]);
                     wDATA.Add(MeasurePeriod[0]);
@@ -608,7 +614,6 @@ namespace Xmega32A4U_testBoard
                     COB.Count.Add((uint)(rDATA[9] * 16777216 + rDATA[10] * 65536 + rDATA[11] * 256 + rDATA[12]));
                     COC.Overflows.Add(rDATA[13]);
                     COC.Count.Add((uint)(rDATA[14] * 256 + rDATA[15]));
-                    trace("" + i +" " + COA.Count[i]);
                     //сервис
                     rDATA.Clear();
                 }
