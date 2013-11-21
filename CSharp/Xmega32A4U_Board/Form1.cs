@@ -252,51 +252,51 @@ namespace Xmega32A4U_testBoard
         private void BTN_reqCount_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Проверям счётчик МК, если сосчитал, то принимаем результат
-            string Counters_status = MC.Counters.receiveResults();
-            //trace(true, "Состояние счётчиков: " + Counters_status);
-            if (Counters_status == "Ready")
-            {
-                //trace(true, "   Счёт: " + MC.Counters.COA.Result);
-            }
+            //string Counters_status = MC.Counters.receiveResults();
+            ////trace(true, "Состояние счётчиков: " + Counters_status);
+            //if (Counters_status == "Ready")
+            //{
+            //    //trace(true, "   Счёт: " + MC.Counters.COA.Result);
+            //}
         }
         private void BTN_setInterval_Click(object sender, EventArgs e)
         {
             //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах 
-            try
-            {
-                Convert.ToInt32(TXB_COA_measureTime.Text);
-            }
-            catch (Exception)
-            {
-                //trace(true, "ОШИБКА! Неверное время измерения!");
-                return;
-            }
-            try
-            {
-                Convert.ToByte(TXB_COA_delay.Text);
-            }
-            catch (Exception)
-            {
-                //trace(true, "ОШИБКА! Неверное время паузы!");
-                return;
-            }
-            try
-            {
-                Convert.ToUInt16(TXB_COA_quantity.Text);
-            }
-            catch (Exception)
-            {
-                //trace(true, "ОШИБКА! Неверное количество измерений!");
-                return;
-            }
-            if (MC.Counters.setMeasureTime(TXB_COA_measureTime.Text))
-            {
-                //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
-            }
-            else
-            {
-                //trace(true, "Счётчик ещё считает!");
-            }
+            //try
+            //{
+            //    Convert.ToInt32(TXB_COA_measureTime.Text);
+            //}
+            //catch (Exception)
+            //{
+            //    //trace(true, "ОШИБКА! Неверное время измерения!");
+            //    return;
+            //}
+            //try
+            //{
+            //    Convert.ToByte(TXB_COA_delay.Text);
+            //}
+            //catch (Exception)
+            //{
+            //    //trace(true, "ОШИБКА! Неверное время паузы!");
+            //    return;
+            //}
+            //try
+            //{
+            //    Convert.ToUInt16(TXB_COA_quantity.Text);
+            //}
+            //catch (Exception)
+            //{
+            //    //trace(true, "ОШИБКА! Неверное количество измерений!");
+            //    return;
+            //}
+            //if (MC.Counters.setMeasureTime(TXB_COA_measureTime.Text))
+            //{
+            //    //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
+            //}
+            //else
+            //{
+            //    //trace(true, "Счётчик ещё считает!");
+            //}
             /*if (MC.COA.setMeasureDelay(TXB_COA_delay.Text))
             {
                 trace(true, "Задана пауза между измерениями: " + TXB_COA_delay.Text + "мс (" + MC.RTC.get_Ticks(TXB_COA_delay.Text,1) + " тиков)");
@@ -447,21 +447,21 @@ namespace Xmega32A4U_testBoard
         private void WATCHER_Counters_Tick(object sender, EventArgs e)
         {
 
-            switch (MC.Counters.getStatus())
-            {
-                case "Ready": LBL_COA_status.Text = "Готов";
-                    LBL_COA_status.ForeColor = System.Drawing.Color.Green;
-                    break;
-                case "Stopped": LBL_COA_status.Text = "Остановлен";
-                    LBL_COA_status.ForeColor = System.Drawing.Color.Orange;
-                    break;
-                case "Busy": LBL_COA_status.Text = "Считает";
-                    LBL_COA_status.ForeColor = System.Drawing.Color.Orange;
-                    break;
-                default: LBL_COA_status.Text = "Ошибка состояния!";
-                    LBL_COA_status.ForeColor = System.Drawing.Color.Red;
-                    break;
-            }
+            //switch (MC.Counters.getStatus())
+            //{
+            //    case "Ready": LBL_COA_status.Text = "Готов";
+            //        LBL_COA_status.ForeColor = System.Drawing.Color.Green;
+            //        break;
+            //    case "Stopped": LBL_COA_status.Text = "Остановлен";
+            //        LBL_COA_status.ForeColor = System.Drawing.Color.Orange;
+            //        break;
+            //    case "Busy": LBL_COA_status.Text = "Считает";
+            //        LBL_COA_status.ForeColor = System.Drawing.Color.Orange;
+            //        break;
+            //    default: LBL_COA_status.Text = "Ошибка состояния!";
+            //        LBL_COA_status.ForeColor = System.Drawing.Color.Red;
+            //        break;
+            //}
         }
         private void BTN_sendSomething_Click(object sender, EventArgs e)
         {
@@ -635,7 +635,7 @@ namespace Xmega32A4U_testBoard
         {
             //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах 
             //if (
-                MC.Counters.setMeasureTime(TXB_realCOX_MeasureTime.Text);
+                //MC.Counters.setMeasureTime(TXB_realCOX_MeasureTime.Text);
             //   )
             //{
                 //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
@@ -684,7 +684,9 @@ namespace Xmega32A4U_testBoard
             }
             mid = mid / Cycles;
             LBL_realCOX_COA_Result.Text = min + "..." + mid + "..." + max;
-
+            max = 0;
+            min = 4294967295;
+            mid = 0;
             OVFs = MC.Counters.COA.Overflows;
             for (int i = 0; i < Cycles; i++)
             {
@@ -706,7 +708,9 @@ namespace Xmega32A4U_testBoard
             }
             mid = mid / Cycles;
             LBL_realCOX_COA_Ovf.Text = min + "..." + mid + "..." + max;
-
+            max = 0;
+            min = 4294967295;
+            mid = 0;
             Results = MC.Counters.COB.Count;
             for (int i = 0; i < Cycles; i++)
             {
@@ -728,6 +732,9 @@ namespace Xmega32A4U_testBoard
             }
             mid = mid / Cycles;
             LBL_realCOX_COB_Result.Text = min + "..." + mid + "..." + max;
+            max = 0;
+            min = 4294967295;
+            mid = 0;
             OVFs = MC.Counters.COB.Overflows;
             for (int i = 0; i < Cycles; i++)
             {
@@ -749,6 +756,9 @@ namespace Xmega32A4U_testBoard
             }
             mid = mid / Cycles;
             LBL_realCOX_COB_Ovf.Text = min + "..." + mid + "..." + max;
+            max = 0;
+            min = 4294967295;
+            mid = 0;
             Results = MC.Counters.COC.Count;
             for (int i = 0; i < Cycles; i++)
             {
@@ -770,6 +780,9 @@ namespace Xmega32A4U_testBoard
             }
             mid = mid / Cycles;
             LBL_realCOX_COC_Result.Text = min + "..." + mid + "..." + max;
+            max = 0;
+            min = 4294967295;
+            mid = 0;
             OVFs = MC.Counters.COC.Overflows;
             for (int i = 0; i < Cycles; i++)
             {
@@ -812,7 +825,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_realCOX_check_Click(object sender, EventArgs e)
         {
-            LBL_realCOX_RTCstate.Text = MC.Counters.receiveResults();
+           // LBL_realCOX_RTCstate.Text = MC.Counters.receiveResults();
             //LBL_realCOX_COA_Result.Text = MC.Counters.COA.Result.ToString();
             //LBL_realCOX_COB_Result.Text = MC.Counters.COB.Result.ToString();
             //LBL_realCOX_COC_Result.Text = MC.Counters.COC.Result.ToString();

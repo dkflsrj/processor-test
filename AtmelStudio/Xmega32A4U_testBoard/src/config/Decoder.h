@@ -27,15 +27,10 @@
 
 #define COMMAND_MC_get_Status						20  //Команда: Запросить состояние МК
 
-#define COMMAND_RTC_set_Period						30	//Команда: Задать интервал счёта времени
-#define COMMAND_COUNTERS_start						31	//Команда: Начать счёт импульсов
-#define COMMAND_COUNTERS_get_Count					32	//Команда: Запросить у счётчика результат
-#define COMMAND_COUNTERS_stop						33	//Команда: Остановить счётчик
-#define COMMAND_RTC_set_Prescaler					34	//Команда: Задать делитель RTC
-#define COMMAND_RTC_get_Status						35	//Команда: Запросить состояние счётчика
-#define COMMAND_RTC_set_Delay						36	//Команда: Задать время задержки
-#define COMMAND_MEASURE_set_All						37	//Команда: Задать всё!
-#define COMMAND_LookAtMe							38  //Команда: LAM сигнал по окончании измерения (МК ожидает указаний)
+#define COMMAND_COUNTERS_start						30	//Команда: Начать счёт импульсов
+#define COMMAND_COUNTERS_stop						31	//Команда: Остановить счётчик
+#define COMMAND_COUNTERS_set_All					32	//Команда: Задать всё!
+#define COMMAND_COUNTERS_LookAtMe					33  //Команда: LAM сигнал по окончании измерения (МК ожидает указаний)
 //Команды DAC'ам
 #define COMMAND_IonSource_set_Voltage				40	//Команда: Задать напряжение DAC'у Ионного Источника
 #define COMMAND_Detector_set_Voltage				41	//Команда: Задать напряжение DAC'у Детектора

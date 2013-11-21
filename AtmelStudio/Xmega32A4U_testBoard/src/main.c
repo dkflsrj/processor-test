@@ -27,9 +27,6 @@
 //МК
 #define version										82
 #define birthday									20131119
-#define usartCOMP_delay								10
-#define usartTIC_delay								1
-#define usartRX_delay								2		//Задержка приёма данных иначе разобьём команду на части
 //Счётчики
 #define RTC_Status_notSet							0		//Счётчики не настроен
 #define RTC_Status_ready							1		//Счётчики готов к работе
@@ -172,26 +169,14 @@ void setThemAll(void);
 void MC_transmit_Birthday(void);
 void MC_transmit_CPUfreq(void);
 void MC_reset(void);
-
-void COUNTERS_transmit_Result(void);
-
-void RTC_setPrescaler(void);
-void RTC_set_Period(void);
 void COUNTERS_start(void);
 void COUNTERS_stop(void);
-void RTC_startDelay(void);
-void RTC_setDelay(void);
-void RTC_setDelayPrescaler(void);
-
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
-
 void ERROR_ASYNCHR(void);
 void decode(void);
 void TIC_transmit(void);
-
 void SPI_send(uint8_t DEVICE_Number);
-
 void checkFlags(void);
 void updateFlags(void);
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
@@ -199,7 +184,7 @@ ISR(USARTD0_RXC_vect)
 {
 	//ПРЕРЫВАНИЕ:
 	//ПОСЫЛКА: <KEY><PACKET_LENGTH><DATA[...]<CS><LOCK>
-	//			PACKET_LENGTH = полная длинна посылки
+	//			PACKET_LENGTH = полная длина посылки
 	cli();
 	//25(0,78мкс) - неверный ключ (не реагируем)
 	//42(1,31мкс) - верный ключ (первый байт принят)
@@ -360,7 +345,7 @@ ISR(RTC_OVF_vect)
 				//Ждём пока можно будет обратиться к регистрам RTC
 			}
 			RTC.CNT = 0;
-			transmit_2bytes(COMMAND_LookAtMe,RTC_Status); //LAM ready
+			transmit_2bytes(COMMAND_COUNTERS_LookAtMe,RTC_Status); //LAM ready
 		}
 		if (MC_Tasks.MeasuredDataWasSended == 0)
 		{
@@ -436,7 +421,7 @@ ISR(RTC_OVF_vect)
 		RTC.CTRL = RTC_MeasurePrescaler;
 		RTC_setStatus_busy;
 		MC_Tasks.MeasuredDataWasSended = 0;
-		transmit_2bytes(COMMAND_LookAtMe,RTC_Status);//LAM delayed
+		transmit_2bytes(COMMAND_COUNTERS_LookAtMe,RTC_Status);//LAM delayed
 	}
 	else
 	{
@@ -461,7 +446,7 @@ void decode(void)
 	//ФУНКЦИЯ: Расшифровываем команду
 	switch(USART_MEM[0])																					
 	{		
-		case COMMAND_MEASURE_set_All:				setThemAll();
+		case COMMAND_COUNTERS_set_All:				setThemAll();
 		break;																								
 		case COMMAND_MC_get_Status:					MC_transmit_Status;										
 		break;																								
@@ -473,18 +458,10 @@ void decode(void)
 		break;																								
 		case COMMAND_COUNTERS_start:				COUNTERS_start();										
 		break;																								
-		case COMMAND_RTC_set_Period:				RTC_set_Period();									
-		break;																								
-		case COMMAND_RTC_set_Prescaler:				RTC_setPrescaler();								
-		break;																								
-		case COMMAND_COUNTERS_get_Count:			COUNTERS_transmit_Result();								
-		break;																								
 		case COMMAND_COUNTERS_stop:					COUNTERS_stop();										
 		break;																								
 		case COMMAND_MC_reset:						MC_reset();												
-		break;																								
-		case COMMAND_RTC_get_Status:				RTC_transmit_Status;									
-		break;																								
+		break;																							
 		case COMMAND_retransmitToTIC:				TIC_transmit();									
 		break;																								
 		case COMMAND_checkCommandStack:				transmit_2bytes(COMMAND_checkCommandStack,CommandStack);
@@ -566,7 +543,7 @@ void setThemAll(void)
 		{
 			uint8_t data[] = 
 			{
-				COMMAND_MEASURE_set_All, MC_Status, RTC_Status,
+				COMMAND_COUNTERS_set_All, MC_Status, RTC_Status,
 				COA_PreviousOVF, (COA_PreviousMeasurment >> 24), (COA_PreviousMeasurment >> 16), (COA_PreviousMeasurment >> 8), COA_PreviousMeasurment,
 				COB_PreviousOVF, (COB_PreviousMeasurment >> 24), (COB_PreviousMeasurment >> 16), (COB_PreviousMeasurment >> 8), COB_PreviousMeasurment,
 				COC_PreviousOVF, (COC_PreviousMeasurment >> 8), COC_PreviousMeasurment
@@ -699,60 +676,6 @@ void ERROR_ASYNCHR(void)
 	}
 }
 //COUNTERS
-void COUNTERS_transmit_Result(void)
-{
-	//ФУНКЦИЯ: Вернуть ПК результат измерения
-	//ПОЯСНЕНИЯ: <key><response_command><RTC_Status><COA_ovf><COA_Measurement_4bytes><COB_ovf><COB_Measurement_4bytes><COC_ovf><COC_Measurement_2bytes><checkSum><lock>
-	uint8_t data[] = {COMMAND_COUNTERS_get_Count,RTC_Status,COA_OVF,0,0,0,0,COB_OVF,0,0,0,0,COC_OVF,0,0};
-	
-	//Нужно чтобы результаты можно было пересылать во время измерения! То есть во время статуса Delayed и busy!
-	// Но с проверкой, не было ли перезаписи данных (не опоздал ли комп)
-	
-	switch (RTC_Status)
-	{
-		case RTC_Status_ready:
-			data[3] = (COA_PreviousMeasurment >> 24);
-			data[4] = (COA_PreviousMeasurment >> 16);
-			data[5] = (COA_PreviousMeasurment >> 8);
-			data[6] = COA_PreviousMeasurment;
-			data[8] = (COB_PreviousMeasurment >> 24);
-			data[9] = (COB_PreviousMeasurment >> 16);
-			data[10] = (COB_PreviousMeasurment >> 8);
-			data[11] = COB_PreviousMeasurment;
-			data[13] = (COC_PreviousMeasurment >> 8);
-			data[14] = COC_PreviousMeasurment;
-			transmit(data,15);	//15 будет для трёх счётчиков
-			break;
-		case RTC_Status_busy:
-		case RTC_Status_stopped:
-		default:
-			transmit_2bytes(COMMAND_COUNTERS_get_Count,RTC_Status);
-			break;
-	}
-}
-void RTC_set_Period(void)
-{
-	//ФУНКЦИЯ: Задаёт временной интервал во время, которого будет производиться счёт импульсов при следующем измерении
-	RTC_MeasurePeriod = (((uint16_t)USART_MEM[1])<<8) + USART_MEM[2];
-	transmit_2bytes(COMMAND_RTC_set_Period, RTC_Status);
-}
-void RTC_startDelay(void)
-{
-	//ФУНКЦИЯ: Начать задержку
-	
-}
-void RTC_setDelay(void)
-{
-	//ФУНКЦИЯ: Установить время задержки
-	RTC_DelayPeriod = (((uint16_t)USART_MEM[1])<<8) + USART_MEM[2];
-	transmit_2bytes(COMMAND_RTC_set_Delay, RTC_Status);
-}
-void RTC_setDelayPrescaler(void)
-{
-	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
-	//RTC_DelayPrescaler = USART_MEM[1];
-	//transmit_byte(COMMAND_RTC_set_DelayPrescaler);
-}
 void COUNTERS_start(void)
 {
 	//ФУНКЦИЯ: Запускаем счётчики на определённое интервалом время
@@ -865,13 +788,6 @@ void COUNTERS_stop(void)
 	{
 		transmit_2bytes(COMMAND_COUNTERS_stop, RTC_Status);
 	}
-}
-//RTC
-void RTC_setPrescaler(void)
-{
-	//ФУНКЦИЯ: Задаёт предделитель таймера реального времени
-	RTC_MeasurePrescaler = USART_MEM[1];
-	transmit_byte(COMMAND_RTC_set_Prescaler);
 }
 //TIC
 void TIC_transmit(void)
