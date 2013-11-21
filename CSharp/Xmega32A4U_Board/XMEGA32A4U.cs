@@ -371,9 +371,9 @@ namespace Xmega32A4U_testBoard
             //Настройки для измерений
             public uint[] MeasureTimes = new uint[4096];
             public uint[] DelayTimes = new uint[4096];
-            public ushort NumberOfMeasurments = 0;
+            public ushort Cycles = 0;
 
-            byte getRTCprescaler(uint MILLISECONDS)
+            public byte getRTCprescaler(uint MILLISECONDS)
             {
                 byte prescaler; //Предделитель
                 if ((MILLISECONDS >= Constants.min_ms_div1) && (MILLISECONDS < Constants.min_ms_div2))
@@ -520,7 +520,7 @@ namespace Xmega32A4U_testBoard
             /// <para>true - операция выполнена успешно. Счётчики начали счёт.</para>
             /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
             /// </summary>
-            public void startMeasure(ushort Cycles)
+            public void startMeasure()
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
                 //Очищаем листы результатов
