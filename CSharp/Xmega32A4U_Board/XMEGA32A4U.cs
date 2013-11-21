@@ -60,15 +60,10 @@ namespace Xmega32A4U_testBoard
             public struct RTC
             {
                 //Коды команд счётчиков
-                public const byte setMeasureTime =      30;
-                public const byte startMeasure =        31;
-                public const byte getResult =           32;
-                public const byte stopMeasure =         33;
-                public const byte setPrescaler =        34;
-                public const byte getStatus =           35;
-                public const byte setDelayPeriod =      36;
-                public const byte setAll =              37;
-                public const byte LAM =                 38;
+                public const byte startMeasure =        30;
+                public const byte stopMeasure =         31;
+                public const byte setAll =              32;
+                public const byte LAM =                 33;
             }
             public struct TIC
             {
@@ -510,60 +505,6 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Задаёт время измерения в миллисекундах. 
-            /// <para>Возвращает:</para>
-            /// <para>true - операция выполнена успешно</para>
-            /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
-            /// </summary>
-            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
-            public bool setMeasureTime(uint MILLISECONDS)
-            {
-                //ФУНКЦИЯ: Вычисляет, сохраняет и устанавливает предделитель, вычисляет и устанавливает количество тиков для RTC через интервал в миллисекундах
-                /*string command = "Counters.setMeasureTime(" + MILLISECONDS + ")";
-                trace_attached(Environment.NewLine);
-                ushort RTC_prescaler = getRTCprescaler(MILLISECONDS);
-                if (!setPrescaler(RTC_prescaler))
-                {
-                    addError(command + ": Операция отменена! ОШИБКА ПРЕДДЕЛИТЕЛЯ!");
-                    return false;
-                }
-                trace(command);
-                ushort ticks = getRTCticks(MILLISECONDS);
-                byte[] bytes_ticks = BitConverter.GetBytes(ticks);
-                byte[] data = { bytes_ticks[1], bytes_ticks[0] };
-                if (transmit(Command.RTC.setMeasureTime, data)[0] == 1)
-                {
-                    trace(command + ": Операция выполнена успешно! Задан временной интервал счёта: " + MILLISECONDS + "мс (" + ticks + " тиков)");
-                    return true;
-                }
-                trace(command + ": Операция отменена! Счётчики считают!");*/
-                return false;
-            }
-                /// <summary>
-            /// Задаёт время измерения в миллисекундах. 
-            /// <para>Возвращает:</para>
-            /// <para>true - операция выполнена успешно</para>
-            /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
-            /// </summary>
-            /// <param name="MILLISECONDS">Время измерения в миллисекундах от 0 до 2047925</param>
-                public bool setMeasureTime(string MILLISECONDS)
-            {
-                if (MILLISECONDS != "")
-                {
-                    uint ms;
-                    try
-                    {
-                        ms = Convert.ToUInt32(MILLISECONDS);
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                    return setMeasureTime(ms);
-                }
-                return false;
-            }
-            /// <summary>
             /// Запускает счётчики и RTC на заданный заранее промежуток времени (.setMeasureTime(MILLISECONDS)).
             /// <para>Возвращает:</para>
             /// <para>true - операция выполнена успешно. Счётчики начали счёт.</para>
@@ -572,26 +513,6 @@ namespace Xmega32A4U_testBoard
             public void startMeasure(ushort Cycles)
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
-                /*string command = "Counters.startMeasure()";
-                trace_attached(Environment.NewLine);
-                trace(command);
-                byte state = transmit(Command.RTC.startMeasure)[0];
-                switch (state)
-                {
-                    case Constants.Status_busy:
-                        trace(command + ": Операция отменена! Счётчики уже считают!");
-                        return false;
-                    case Constants.Status_ready:
-                    case Constants.Status_stopped:
-                        trace(command + ": Операция выполнена успешно!");
-                        return true;
-                    default:
-                        addError(" ! " + command + ": ОШИБКА МК! НЕИЗВЕСТНОЕ СОСТОЯНИЕ СЧЁТЧИКОВ: " + state);
-                        return false;
-                }*/
-                //ФУНКЦИЯ: Запускаем счётчики...
-                //List<ushort> Results = new List<ushort>();
-                
                 //Очищаем листы результатов
                 COA.Count.Clear();
                 COA.Overflows.Clear();
@@ -619,7 +540,7 @@ namespace Xmega32A4U_testBoard
                 DelayPrescaler = getRTCprescaler(DelayTimes[0]);
                 BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[0]));
                 DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                wDATA.Add(37); //Команда
+                wDATA.Add(Command.RTC.setAll); //Команда
                 wDATA.Add(0);    //Не делать измерение
                 wDATA.Add(MeasurePrescaler);
                 wDATA.Add(MeasurePeriod[1]);
@@ -642,16 +563,16 @@ namespace Xmega32A4U_testBoard
                 //Слушаем данные
                 while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != 58)
+                if (rDATA[k++] != Command.KEY)
                 {
-                    trace("Ухо!58");
+                    trace("Ухо!" + Command.KEY);
                     return;
                 }
                 while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != 37)
+                if (rDATA[k++] != Command.RTC.setAll)
                 {
-                    trace("Ухо!37");
+                    trace("Ухо!" + Command.RTC.setAll);
                     return;
                 }
                 while (USART.BytesToRead == 0) { }
@@ -704,9 +625,9 @@ namespace Xmega32A4U_testBoard
                 k++;
                 while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != 13)
+                if (rDATA[k++] != Command.LOCK)
                 {
-                    trace("Ухо!13");
+                    trace("Ухо!" + Command.LOCK);
                     return;
                 }
                 //сервис
@@ -715,7 +636,7 @@ namespace Xmega32A4U_testBoard
                 //Подготовка команды начала измерений
                 Packet.Clear();
                 wDATA.Clear();
-                wDATA.Add(31);
+                wDATA.Add(Command.RTC.startMeasure);
                 Packet.Add(Command.KEY);
                 Packet.Add((byte)(wDATA.Count + 4));
                 Packet.AddRange(wDATA);
@@ -725,7 +646,7 @@ namespace Xmega32A4U_testBoard
                 //Подготовка новых данных для следующего измерения
                 wDATA.Clear();
                 Packet.Clear();
-                wDATA.Add(37); //Команда
+                wDATA.Add(Command.RTC.setAll); //Команда
                 wDATA.Add(1);    //Не делать измерение
                 wDATA.Add(MeasurePrescaler);
                 wDATA.Add(MeasurePeriod[1]);
@@ -743,16 +664,16 @@ namespace Xmega32A4U_testBoard
                 //Слушаем данные
                 while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != 58)
+                if (rDATA[k++] != Command.KEY)
                 {
-                    trace("Ухо!58");
+                    trace("Ухо!" + Command.KEY);
                     return;
                 }
                 while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != 37)
+                if (rDATA[k++] != Command.RTC.setAll)
                 {
-                    trace("Ухо!37");
+                    trace("Ухо!" + Command.RTC.setAll);
                     return;
                 }
                 while (USART.BytesToRead == 0) { }
@@ -805,9 +726,9 @@ namespace Xmega32A4U_testBoard
                 k++;
                 while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
-                if (rDATA[k++] != 13)
+                if (rDATA[k++] != Command.LOCK)
                 {
-                    trace("Ухо!13");
+                    trace("Ухо!" + Command.LOCK);
                     return;
                 }
                 //сервис
@@ -818,16 +739,16 @@ namespace Xmega32A4U_testBoard
                 {
                     while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 58)
+                    if (rDATA[k++] != Command.KEY)
                     {
-                        trace("Лажа!58");
+                        trace("Лажа!" + Command.KEY);
                         break;
                     }
                     while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 38)
+                    if (rDATA[k++] != Command.RTC.LAM)
                     {
-                        trace("Лажа!38" + rDATA[k - 1]);
+                        trace("Лажа!" + Command.RTC.LAM + " " + rDATA[k - 1]);
                         break;
                     }
                     while (USART.BytesToRead == 0) { }
@@ -839,16 +760,16 @@ namespace Xmega32A4U_testBoard
                     }
                     while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 215)
+                    if (rDATA[k++] != 220)
                     {
-                        trace("Лажа!215");
+                        trace("Лажа!220");
                         break;
                     }
                     while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 13)
+                    if (rDATA[k++] != Command.LOCK)
                     {
-                        trace("Лажа!13");
+                        trace("Лажа!" + Command.LOCK);
                         break;
                     }
                     //Если мы до сюда дошли то нужно передать данные туда (теже)
@@ -859,16 +780,16 @@ namespace Xmega32A4U_testBoard
                     //Слушаем данные
                     while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 58)
+                    if (rDATA[k++] != Command.KEY)
                     {
-                        trace("Ухо!58");
+                        trace("Ухо!"+Command.KEY);
                         break;
                     }
                     while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 37)
+                    if (rDATA[k++] != Command.RTC.setAll)
                     {
-                        trace("Ухо!37");
+                        trace("Ухо!" + Command.RTC.setAll);
                         break;
                     }
                     while (USART.BytesToRead == 0) { }
@@ -921,57 +842,28 @@ namespace Xmega32A4U_testBoard
                     k++;
                     while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
-                    if (rDATA[k++] != 13)
+                    if (rDATA[k++] != Command.LOCK)
                     {
-                        trace("Ухо!13");
+                        trace("Ухо!" + Command.LOCK);
                         break;
                     }
                     //Results.Add((ushort)((ushort)rDATA[5] * 256 + (ushort)rDATA[6]));
                     COA.Overflows.Add(rDATA[4]);
                     COA.Count.Add((uint)(rDATA[5] * 16777216 + rDATA[6] * 65536 + rDATA[7] * 256 + rDATA[8]));
-                    COB.Overflows.Add(rDATA[8]);
-                    COB.Count.Add((uint)(rDATA[9] * 16777216 + rDATA[10] * 65536 + rDATA[11] * 256 + rDATA[12]));
-                    COC.Overflows.Add(rDATA[13]);
-                    COC.Count.Add((uint)(rDATA[14] * 256 + rDATA[15]));
+                    COB.Overflows.Add(rDATA[9]);
+                    COB.Count.Add((uint)(rDATA[10] * 16777216 + rDATA[11] * 65536 + rDATA[12] * 256 + rDATA[13]));
+                    COC.Overflows.Add(rDATA[14]);
+                    COC.Count.Add((uint)(rDATA[15] * 256 + rDATA[16]));
                     //сервис
                     rDATA.Clear();
                     k = 0;
                     //break;
                 }
-                //foreach (u b in rDATA)
-                //{
-                //    trace(" $ " + b);
-                //}
                 //конец
                 if (USART.IsOpen)
                 {
                     USART.Close();
                 }
-
-                //ushort max = 0;
-                //ushort min = 65535;
-                //int mid = 0;
-                //for (int i = 0; i < Cycles; i++)
-                //{
-                //    //try
-                //    //{
-                //    //    trace("Измерение №" + (i + 1) + ": " + Results[i]);
-                //    //    if (Results[i] > max)
-                //    //    {
-                //    //        max = Results[i];
-                //    //    }
-                //    //    if (Results[i] < min)
-                //    //    {
-                //    //        min = Results[i];
-                //    //    }
-                //    //
-                //    //    mid += Results[i];
-                //    //}
-                //    //catch { }
-                //}
-                //mid = mid / Cycles;
-                //trace("" + min + "..." + mid + "..." + max);
-
                 return;
             }
             /// <summary>
@@ -1002,90 +894,6 @@ namespace Xmega32A4U_testBoard
                         addError(" ! " + command + ": ОШИБКА МК! НЕИЗВЕСТНОЕ СОСТОЯНИЕ СЧЁТЧИКОВ: " + state);
                         return false;
                 }
-            }
-            /// <summary>
-            /// Запрашивает у МК состояние счётчиков, если счётчики сосчитали (не считают сейчас и не были принудительно остановлены), то запрашивает результаты измерения и сохраняет их в СОХ.Result и СОХ.overflows. 
-            /// <para>Возвращает состояние МК:</para>
-            /// <para>"Ready" - счётчик готов к работе (команда .stopMeasure() будет проигнорирована)</para>
-            /// <para>"Busy" - счётчик считает (команды .setMeasureTime(MILLISECONDS) и .startMeasure() будут проигнорированы, а команда .recieveResults() отменена)</para>
-            /// <para>"Stopped" - счётчик был принудительно остановлен командой .stopMeasure(). (команда .recieveResults() будет отменена)</para>
-            /// </summary>
-            public string receiveResults()
-            {
-                //ФУНКЦИЯ: Запрашиваем результат счёта у МК и сохраняет по счётчикам. Возвращает состояние счётчика.
-                //ПОЯСНЕНИЯ: <key><response_command><RTC_Status><COA_ovf><COA_Measurement_4bytes><COB_ovf><COB_Measurement_4bytes><COC_ovf><COC_Measurement_2bytes><checkSum><lock>
-                string command = "Counters.receiveResults()";
-                trace_attached(Environment.NewLine);
-                trace(command);
-                byte[] rDATA = transmit(Command.RTC.getResult);
-                byte Status = rDATA[0];
-                switch (Status)
-                {
-                    case Constants.Status_ready:
-                        //Счётчик готов. Сохраняем результаты.
-                        try
-                        {
-                            //COA.overflows = rDATA[1];
-                            //COA.Result = Convert.ToUInt32(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
-                            //COB.overflows = rDATA[6];
-                            //COB.Result = Convert.ToUInt32(rDATA[7] * 16777216 + rDATA[8] * 65536 + rDATA[9] * 256 + rDATA[10]);
-                            //COC.overflows = rDATA[11];
-                            //COC.Result = Convert.ToUInt32(rDATA[12] * 256 + rDATA[13]);
-                        }
-                        catch (Exception)
-                        {
-                            addError(" ! " + command + ": Ошибка при получении результатов измерения!");
-                            return "!";
-                        }
-                        trace(command + ": Статус счётчиков: Ready");
-                        trace(command + ": Операция выполнена успешно!");
-                        return "Ready";
-                    case Constants.Status_stopped:
-                        trace(command + ": Статус счётчиков: Stopped");
-                        trace(command + ": Операция отменена!");
-                        return "Stopped";
-                    case Constants.Status_busy:
-                        trace(command + ": Статус счётчиков: Busy");
-                        trace(command + ": Операция отменена!");
-                        return "Busy";
-                    default:
-                        addError(" ! " + command + ":ОШИБКА МК! Неизвестное состояние счётчиков: " + Status);
-                        return "!";
-                }
-            }
-            /// <summary>
-            /// Возвращает состояние МК:
-            /// <para>"Ready" - счётчик готов к работе (команда .stopMeasure() будет проигнорирована)</para>
-            /// <para>"Busy" - счётчик считает (команды .setMeasureTime(MILLISECONDS) и .startMeasure() будут проигнорированы)</para>
-            /// <para>"Stopped" - счётчик был принудительно остановлен командой .stopMeasure(). (команда .recieveResults(), будет проигнорирована)</para>
-            /// </summary>
-            public string getStatus()
-            {
-                //ФУНКЦИЯ: Возвращает статус счётчиков
-                string command = "Counters.getStatus()";
-                trace_attached(Environment.NewLine);
-                trace(command);
-                string answer = "";
-                byte Status = transmit(Command.RTC.getStatus)[0];
-                switch (Status)
-                {
-                    case Constants.Status_busy:
-                        answer = "Busy";
-                        break;
-                    case Constants.Status_ready:
-                        answer = "Ready";
-                        break;
-                    case Constants.Status_stopped:
-                        answer = "Stopped";
-                        break;
-                    default:
-                        addError(" ! " + command + ": ОШИБКА МК! НЕИЗВЕСТНОЕ СОСТОЯНИЕ СЧЁТЧИКОВ: " + Status);
-                        return "!";
-                }
-
-                trace(command + ": Статус счётчиков: " + answer);
-                trace(command + ": Операция выполнена успешно!");
-                return answer;
             }
         }
         public class SPI_DEVICE_DAC_CHANNEL
@@ -2031,7 +1839,7 @@ namespace Xmega32A4U_testBoard
             {
                 CheckSum -= data[i];
             }
-            trace("             Контрольная сумма: " + CheckSum);
+            //trace("             Контрольная сумма: " + CheckSum);
             return CheckSum;
         }
         static byte[] transmit(List<byte> DATA)
