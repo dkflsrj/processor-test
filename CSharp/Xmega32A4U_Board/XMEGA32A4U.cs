@@ -336,6 +336,13 @@ namespace Xmega32A4U_testBoard
                 //Проча
                 public const byte LengthOfSetAllPacket = 20;
                 public const byte LengthOfLAMPacket = 6;
+                public struct NextMeasure
+                {
+                    //Коды команд счётчиков
+                    public const byte NotDo = 0;
+                    public const byte Do = 1;
+                }
+
             }
             public class counter
             {
@@ -542,7 +549,7 @@ namespace Xmega32A4U_testBoard
                 BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[0]));
                 DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
                 wDATA.Add(Command.RTC.setAll); //Команда
-                wDATA.Add(0);    //Не делать сделующе измерение
+                wDATA.Add(Constants.NextMeasure.NotDo);    //Не делать сделующе измерение
                 wDATA.Add(MeasurePrescaler);
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
@@ -561,7 +568,7 @@ namespace Xmega32A4U_testBoard
                 //Подготовка новых данных для следующего измерения
                 wDATA.Clear();
                 wDATA.Add(Command.RTC.setAll); //Команда
-                wDATA.Add(1);    //Делать следующее измерение
+                wDATA.Add(Constants.NextMeasure.Do);    //Делать следующее измерение
                 wDATA.Add(MeasurePrescaler);
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
@@ -576,7 +583,25 @@ namespace Xmega32A4U_testBoard
                 {
                     receive_2(Constants.LengthOfLAMPacket, false);
                     //Если мы до сюда дошли то нужно передать данные туда (теже)
-                    rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);   // Но по чеснаку надо ведь данные передать следующей ступени
+                    wDATA.Clear();
+                    wDATA.Add(Command.RTC.setAll); //Команда
+                    if(i == Cycles - 1)
+                    {
+                        wDATA.Add(Constants.NextMeasure.NotDo);    //Это последнее измерение! Не делать следующее
+                    }
+                    else
+                    {
+                        wDATA.Add(Constants.NextMeasure.Do);    //Делать следующее измерение
+                    }
+                    
+                    wDATA.Add(MeasurePrescaler);
+                    wDATA.Add(MeasurePeriod[1]);
+                    wDATA.Add(MeasurePeriod[0]);
+                    wDATA.Add(DelayPrescaler);
+                    wDATA.Add(DelayPeriod[1]);
+                    wDATA.Add(DelayPeriod[0]);
+                    rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);
+                    //Сохраняем данные
                     COA.Overflows.Add(rDATA[3]);
                     COA.Count.Add((uint)(rDATA[4] * 16777216 + rDATA[5] * 65536 + rDATA[6] * 256 + rDATA[7]));
                     COB.Overflows.Add(rDATA[8]);
