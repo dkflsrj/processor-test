@@ -25,8 +25,8 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										82
-#define birthday									20131119
+#define version										84
+#define birthday									20131121
 //Счётчики
 #define RTC_Status_notSet							0		//Счётчики не настроен
 #define RTC_Status_ready							1		//Счётчики готов к работе
@@ -282,26 +282,6 @@ ISR(RTC_OVF_vect)
 {
 	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
 	//ФУНКЦИЯ: Остановка счётчиков импульсов
-	/*asm(
-		"LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
-		"STS 0x0800, R16		\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Ноль
-		"STS 0x0900, R16		\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Ноль
-		"STS 0x0A00, R16		\n\t"//Адрес TCE0.CTRLA = 0x0A00 <-	Ноль
-		"STS 0x0840, R16		\n\t"//Адрес TCC1.CTRLA = 0x0840 <-	Ноль
-		"STS 0x0940, R16		\n\t"//Адрес TCD1.CTRLA = 0x0940 <-	Ноль
-	);								 
-	RTC.CTRL = RTC_PRESCALER_OFF_gc;
-	
-	//Сюда надо проверку
-	//Если надо делать следующее измерение, то запускаем задержку и сохраняем результаты
-	
-	COA_PreviousMeasurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
-	COB_PreviousMeasurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
-	COC_PreviousMeasurment = TCE0.CNT;
-	
-	RTC.CNT = 0;
-	RTC_setStatus_ready;//Убрать!
-	*/
 	if (RTC_Status == RTC_Status_busy)
 	{
 		asm(
@@ -592,33 +572,37 @@ void setThemAll(void)
 void transmit(uint8_t DATA[],uint8_t DATA_length)
 {
 	//ФУНКЦИЯ: Посылаем заданное количество данных, оформив их по протоколу и с контрольной суммой
-	//ПОЯСНЕНИЯ: Протокол: ':<response><data><CS>\r' 
+	//ПОЯСНЕНИЯ: Пакет: ':<PACKET_LENGTH><response><data><CS>\r' 
 	//					   ':' - Начало данных
+	//					   '<PACKET_LENGTH>' - Длина пакета
 	//					   '<data>' - байты данных <<response><attached_data>>
 	//							<response> - отклик, код команды, на которую отвечает
 	//							<attached_data> - сами данные. Их может не быть (Приказ)
 	//					   '<CS>' - контрольная сумма
 	//					   '\r' - конец передачи
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
+	usart_putchar(USART_COMP,DATA_length + 4);						//'<PACKET_LENGTH>'
 	for (uint8_t i = 0; i < DATA_length; i++)
 	{
 		usart_putchar(USART_COMP,DATA[i]);							//<data>
 	}
 	usart_putchar(USART_COMP,calcCheckSum(DATA,DATA_length + 1));	//<CS>
-	usart_putchar(USART_COMP,COMMAND_LOCK);								//'\r'
+	usart_putchar(USART_COMP,COMMAND_LOCK);							//'\r'
 }
 void transmit_byte(uint8_t DATA)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
+	usart_putchar(USART_COMP, 5);									//'<PACKET_LENGTH>'
 	usart_putchar(USART_COMP,DATA);									//<data>
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA));				//<CS>
-	usart_putchar(USART_COMP,COMMAND_LOCK);								//'\r'
+	usart_putchar(USART_COMP,COMMAND_LOCK);							//'\r'
 }
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
+	usart_putchar(USART_COMP,COMMAND_KEY);								//':'
+	usart_putchar(USART_COMP,6);										//'<PACKET_LENGTH>'
 	usart_putchar(USART_COMP,DATA_1);
 	usart_putchar(USART_COMP,DATA_2);									//<data>
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2));		//<CS>
@@ -628,11 +612,12 @@ void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
 	usart_putchar(USART_COMP,COMMAND_KEY);									//':'
+	usart_putchar(USART_COMP,7);											//'<PACKET_LENGTH>'
 	usart_putchar(USART_COMP,DATA_1);
 	usart_putchar(USART_COMP,DATA_2);										//<data>
 	usart_putchar(USART_COMP,DATA_3);
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2 - DATA_3));	//<CS>
-	usart_putchar(USART_COMP,COMMAND_LOCK);										//'\r'
+	usart_putchar(USART_COMP,COMMAND_LOCK);									//'\r'
 }
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 {
@@ -1060,8 +1045,8 @@ int main(void)
 	EVSYS_SetEventSource( 3, EVSYS_CHMUX_TCD0_OVF_gc );
 	EVSYS_SetEventChannelFilter( 3, EVSYS_DIGFILT_1SAMPLE_gc );
 	EVSYS_SetEventSource( 4, EVSYS_CHMUX_PORTC_PIN2_gc );
-	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );//Конечная инициализация
-	
+	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );
+	//Конечная инициализация
 	pointer_Flags = &Flags;
     updateFlags();
 	RTC_setStatus_ready;
