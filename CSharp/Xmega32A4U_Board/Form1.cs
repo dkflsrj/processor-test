@@ -645,19 +645,230 @@ namespace Xmega32A4U_testBoard
                 //trace(true, "Счётчик ещё считает!");
             //}
         }
+        delegate void Del(string text);
+        private void fun()
+        {
+                MC.Counters.Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
+                /*
+                Thread myThread = new Thread(MC.Counters.startMeasure); //Создаем новый объект потока (Thread)
+                myThread.Priority = ThreadPriority.Highest;
+                myThread.Start(); //запускаем поток*/
+
+                //*
+                MC.Counters.startMeasure();
+                //myThread.Join();
+                uint max = 0;
+                uint min = 4294967295;
+                uint mid = 0;
+                uint Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
+                List<uint> Results = MC.Counters.COA.Count;
+                List<byte> OVFs = new List<byte>();
+                for (int i = 0; i < Cycles; i++)
+                {
+                    try
+                    {
+                        //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                        if (Results[i] > max)
+                        {
+                            max = Results[i];
+                        }
+                        if (Results[i] < min)
+                        {
+                            min = Results[i];
+                        }
+
+                        mid += Results[i];
+                    }
+                    catch { }
+                }
+                mid = mid / Cycles;
+                if (LBL_realCOX_COA_Result.InvokeRequired)
+                {
+                    LBL_realCOX_COA_Result.Invoke(new Del((s) => LBL_realCOX_COA_Result.Text = s), min + "..." + mid + "..." + max);
+                }
+                else
+                {
+                    LBL_realCOX_COA_Result.Text = min + "..." + mid + "..." + max;
+                }
+                    //LBL_realCOX_COA_Result.Text = min + "..." + mid + "..." + max;
+                
+                //LBL_realCOX_COA_Result.Text = min + "..." + mid + "..." + max;
+                max = 0;
+                min = 4294967295;
+                mid = 0;
+                OVFs = MC.Counters.COA.Overflows;
+                for (int i = 0; i < Cycles; i++)
+                {
+                    try
+                    {
+                        //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                        if (OVFs[i] > max)
+                        {
+                            max = OVFs[i];
+                        }
+                        if (OVFs[i] < min)
+                        {
+                            min = OVFs[i];
+                        }
+
+                        mid += OVFs[i];
+                    }
+                    catch { }
+                }
+                mid = mid / Cycles;
+                if (LBL_realCOX_COA_Ovf.InvokeRequired)
+                {
+                    LBL_realCOX_COA_Ovf.Invoke(new Del((s) => LBL_realCOX_COA_Ovf.Text = s), min + "..." + mid + "..." + max);
+                }
+                else
+                {
+                    LBL_realCOX_COA_Ovf.Text = min + "..." + mid + "..." + max;
+                }
+                //LBL_realCOX_COA_Ovf.Text = min + "..." + mid + "..." + max;
+                max = 0;
+                min = 4294967295;
+                mid = 0;
+                Results = MC.Counters.COB.Count;
+                for (int i = 0; i < Cycles; i++)
+                {
+                    try
+                    {
+                        //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                        if (Results[i] > max)
+                        {
+                            max = Results[i];
+                        }
+                        if (Results[i] < min)
+                        {
+                            min = Results[i];
+                        }
+
+                        mid += Results[i];
+                    }
+                    catch { }
+                }
+                mid = mid / Cycles;
+                if (LBL_realCOX_COB_Result.InvokeRequired)
+                {
+                    LBL_realCOX_COB_Result.Invoke(new Del((s) => LBL_realCOX_COB_Result.Text = s), min + "..." + mid + "..." + max);
+                }
+                else
+                {
+                    LBL_realCOX_COB_Result.Text = min + "..." + mid + "..." + max;
+                }
+                //LBL_realCOX_COB_Result.Text = min + "..." + mid + "..." + max;
+                max = 0;
+                min = 4294967295;
+                mid = 0;
+                OVFs = MC.Counters.COB.Overflows;
+                for (int i = 0; i < Cycles; i++)
+                {
+                    try
+                    {
+                        //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                        if (OVFs[i] > max)
+                        {
+                            max = OVFs[i];
+                        }
+                        if (OVFs[i] < min)
+                        {
+                            min = OVFs[i];
+                        }
+
+                        mid += OVFs[i];
+                    }
+                    catch { }
+                }
+                mid = mid / Cycles;
+                if (LBL_realCOX_COB_Ovf.InvokeRequired)
+                {
+                    LBL_realCOX_COB_Ovf.Invoke(new Del((s) => LBL_realCOX_COB_Ovf.Text = s), min + "..." + mid + "..." + max);
+                }
+                else
+                {
+                    LBL_realCOX_COB_Ovf.Text = min + "..." + mid + "..." + max;
+                }
+                //LBL_realCOX_COB_Ovf.Text = min + "..." + mid + "..." + max;
+                max = 0;
+                min = 4294967295;
+                mid = 0;
+                Results = MC.Counters.COC.Count;
+                for (int i = 0; i < Cycles; i++)
+                {
+                    try
+                    {
+                        //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                        if (Results[i] > max)
+                        {
+                            max = Results[i];
+                        }
+                        if (Results[i] < min)
+                        {
+                            min = Results[i];
+                        }
+
+                        mid += Results[i];
+                    }
+                    catch { }
+                }
+                mid = mid / Cycles;
+                if (LBL_realCOX_COC_Result.InvokeRequired)
+                {
+                    LBL_realCOX_COC_Result.Invoke(new Del((s) => LBL_realCOX_COC_Result.Text = s), min + "..." + mid + "..." + max);
+                }
+                else
+                {
+                    LBL_realCOX_COC_Result.Text = min + "..." + mid + "..." + max;
+                }
+                //LBL_realCOX_COC_Result.Text = min + "..." + mid + "..." + max;
+                max = 0;
+                min = 4294967295;
+                mid = 0;
+                OVFs = MC.Counters.COC.Overflows;
+                for (int i = 0; i < Cycles; i++)
+                {
+                    try
+                    {
+                        //trace("Измерение №" + (i + 1) + ": " + Results[i]);
+                        if (OVFs[i] > max)
+                        {
+                            max = OVFs[i];
+                        }
+                        if (OVFs[i] < min)
+                        {
+                            min = OVFs[i];
+                        }
+
+                        mid += OVFs[i];
+                    }
+                    catch { }
+                }
+                mid = mid / Cycles;
+                if (LBL_realCOX_COC_Ovf.InvokeRequired)
+                {
+                    LBL_realCOX_COC_Ovf.Invoke(new Del((s) => LBL_realCOX_COC_Ovf.Text = s), min + "..." + mid + "..." + max);
+                }
+                else
+                {
+                    LBL_realCOX_COC_Ovf.Text = min + "..." + mid + "..." + max;
+                }
+                //LBL_realCOX_COC_Ovf.Text = min + "..." + mid + "..." + max;
+                //*/
+            
+        }
+        
         private void BTN_realCOX_start_Click(object sender, EventArgs e)
         {
-            //try
-            //{
-            //    Convert.ToInt32(TXB_realCOX_MeasureTime.Text);
-            //}
-            //catch (Exception)
-            //{
-            //    //trace(true, "ОШИБКА! Неверный интервал!");
-            //    return;
-            //}
-            //if (
-            MC.Counters.startMeasure(Convert.ToUInt16(TXB_realCOX_MeasureTime.Text));
+            //MC.Counters.Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
+            /*
+            Thread myThread = new Thread(MC.Counters.startMeasure); //Создаем новый объект потока (Thread)
+            myThread.Priority = ThreadPriority.Highest;
+            myThread.Start(); //запускаем поток*/
+            Thread t = new Thread(fun);
+            t.Start();
+            /*
+            MC.Counters.startMeasure();
+            //myThread.Join();
             uint max = 0;
             uint min = 4294967295;
             uint mid = 0;
@@ -804,20 +1015,7 @@ namespace Xmega32A4U_testBoard
             }
             mid = mid / Cycles;
             LBL_realCOX_COC_Ovf.Text = min + "..." + mid + "..." + max;
-
-
-
-            //trace("" + min + "..." + mid + "..." + max);
-
-            //    )
-            //{
-            //    //trace(true, "COA начал счёт...");
-            //    PGB_COA_progress.Value = 0;
-            //    UI_PGB_COA_count = 0;
-            //    UI_PGB_COA_step = (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_COA_measureTime.Text);
-            //    CLK_COA.Enabled = true;
-            //    return;
-            //}
+            //*/
         }
         private void BTN_realCOX_stop_Click(object sender, EventArgs e)
         {
