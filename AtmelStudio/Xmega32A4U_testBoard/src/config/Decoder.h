@@ -64,69 +64,10 @@
 #define ERROR_CheckSum					4	//Ошибка декодера (Контр.сумма). Несовпадает!	
 #define ERROR_wrong_SPI_DEVICE_Number   5	//Внутренняя ошибка! SPI-устройства с таким номером нет!
 //---------------------------------------------ДЕШИФРАТОР--------------------------------------------
-/*#define Decode(BYTES)																							\
-	switch(BYTES[0])																							\
-	{																											\
-		case COMMAND_MC_get_Status:					MC_transmit_Status;											\
-			break;																								\
-		case COMMAND_MC_get_CPUfreq:				MC_transmit_CPUfreq();										\
-			break;																								\
-		case COMMAND_MC_get_Version:				MC_transmit_Version;										\
-			break;																								\
-		case COMMAND_MC_get_Birthday:				MC_transmit_Birthday();										\
-			break;																								\
-		case COMMAND_COUNTERS_start:				COUNTERS_start();											\
-			break;																								\
-		case COMMAND_RTC_set_Period:				RTC_set_Period(BYTES);										\
-			break;																								\
-		case COMMAND_RTC_set_Prescaler:				RTC_setPrescaler(BYTES);									\
-			break;																								\
-		case COMMAND_COUNTERS_get_Count:			COUNTERS_transmit_Result();									\
-			break;																								\
-		case COMMAND_COUNTERS_stop:					COUNTERS_stop();											\
-			break;																								\
-		case COMMAND_MC_reset:						MC_reset();													\
-			break;																								\
-		case COMMAND_RTC_get_Status:				RTC_transmit_Status;										\
-			break;																								\
-		case COMMAND_retransmitToTIC:				TIC_transmit(BYTES);										\
-			break;																								\
-		case COMMAND_checkCommandStack:				transmit_2bytes(COMMAND_checkCommandStack,CommandStack);	\
-			break;																								\
-		case COMMAND_IonSource_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_IonSource,BYTES);			\
-			break;																								\
-		case COMMAND_Detector_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Detector,BYTES);				\
-			break;																								\
-		case COMMAND_Inlet_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Inlet,BYTES);				\
-			break;																								\
-		case COMMAND_Heater_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Inlet,BYTES);				\
-			break;																								\
-		case COMMAND_Scaner_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Scaner,BYTES);				\
-			break;																								\
-		case COMMAND_Condensator_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_Condensator,BYTES);			\
-			break;																								\
-		case COMMAND_IonSource_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_IonSource,BYTES);			\
-			break;																								\
-		case COMMAND_Detector_DV1_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector,BYTES);				\
-			break;																								\
-		case COMMAND_Detector_DV2_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector,BYTES);				\
-			break;																								\
-		case COMMAND_Detector_DV3_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector,BYTES);				\
-			break;																								\
-		case COMMAND_Inlet_get_Voltage: 			SPI_send(SPI_DEVICE_Number_ADC_Inlet,BYTES);				\
-			break;																								\
-		case COMMAND_Heater_get_Voltage: 			SPI_send(SPI_DEVICE_Number_ADC_Inlet,BYTES);				\
-			break;																								\
-		case COMMAND_MSV_get_Voltage: 				SPI_send(SPI_DEVICE_Number_ADC_MSV,BYTES);					\
-			break;																								\
-		case COMMAND_Flags_set: 					checkFlags(BYTES[1]);										\
-			break;																								\
-		default: transmit_3bytes(ERROR_Token, ERROR_Decoder, BYTES[0]);											\
-	}*/
+
 //----------------------------------------ПРОСТЫЕ КОМАНДЫ-----------------------------------------
 #define MC_transmit_Status			transmit_2bytes(COMMAND_MC_get_Status, MC_Status)
 #define MC_transmit_Version			transmit_2bytes(COMMAND_MC_get_Version, MC_version)
-#define RTC_transmit_Status			transmit_2bytes(COMMAND_RTC_get_Status, RTC_Status)
 
 
 //============================================THE END=============================================

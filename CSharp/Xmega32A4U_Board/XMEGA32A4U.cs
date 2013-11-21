@@ -569,6 +569,9 @@ namespace Xmega32A4U_testBoard
                     return;
                 }
                 while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//Packet_Length
+                k++;
+                while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
                 if (rDATA[k++] != Command.RTC.setAll)
                 {
@@ -670,6 +673,9 @@ namespace Xmega32A4U_testBoard
                     return;
                 }
                 while (USART.BytesToRead == 0) { }
+                rDATA.Add((byte)USART.ReadByte());//Packet_Length
+                k++;
+                while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
                 if (rDATA[k++] != Command.RTC.setAll)
                 {
@@ -745,6 +751,9 @@ namespace Xmega32A4U_testBoard
                         break;
                     }
                     while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//Packet_Length
+                    k++;
+                    while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
                     if (rDATA[k++] != Command.RTC.LAM)
                     {
@@ -785,6 +794,9 @@ namespace Xmega32A4U_testBoard
                         trace("Ухо!"+Command.KEY);
                         break;
                     }
+                    while (USART.BytesToRead == 0) { }
+                    rDATA.Add((byte)USART.ReadByte());//Packet_Length
+                    k++;
                     while (USART.BytesToRead == 0) { }
                     rDATA.Add((byte)USART.ReadByte());
                     if (rDATA[k++] != Command.RTC.setAll)
@@ -848,12 +860,12 @@ namespace Xmega32A4U_testBoard
                         break;
                     }
                     //Results.Add((ushort)((ushort)rDATA[5] * 256 + (ushort)rDATA[6]));
-                    COA.Overflows.Add(rDATA[4]);
-                    COA.Count.Add((uint)(rDATA[5] * 16777216 + rDATA[6] * 65536 + rDATA[7] * 256 + rDATA[8]));
-                    COB.Overflows.Add(rDATA[9]);
-                    COB.Count.Add((uint)(rDATA[10] * 16777216 + rDATA[11] * 65536 + rDATA[12] * 256 + rDATA[13]));
-                    COC.Overflows.Add(rDATA[14]);
-                    COC.Count.Add((uint)(rDATA[15] * 256 + rDATA[16]));
+                    COA.Overflows.Add(rDATA[5]);
+                    COA.Count.Add((uint)(rDATA[6] * 16777216 + rDATA[7] * 65536 + rDATA[8] * 256 + rDATA[9]));
+                    COB.Overflows.Add(rDATA[10]);
+                    COB.Count.Add((uint)(rDATA[11] * 16777216 + rDATA[12] * 65536 + rDATA[13] * 256 + rDATA[14]));
+                    COC.Overflows.Add(rDATA[15]);
+                    COC.Count.Add((uint)(rDATA[16] * 256 + rDATA[17]));
                     //сервис
                     rDATA.Clear();
                     k = 0;
@@ -1916,48 +1928,55 @@ namespace Xmega32A4U_testBoard
             //Если последний байт затвор, то всё путём
             if (rDATA.First<byte>() == Command.KEY)
             {
-                rDATA.RemoveAt(0);                                          //Удаляем ключ
-                if (rDATA.Last<byte>() == Command.LOCK)
+                rDATA.RemoveAt(0);                                              //Удаляем ключ
+                if (rDATA.First<byte>() == rDATA.Count + 1)
                 {
-                    rDATA.RemoveAt(rDATA.Count - 1);                        //Удаляем затвор
-                    //Анализируем полученные данные
-                    byte rCheckSum = rDATA.Last();                          //Полученная КС
-                    rDATA.RemoveAt(rDATA.Count - 1);                        //Убираем КС
-                    byte CheckSum = calcCheckSum(rDATA.ToArray());          //Подсчитанная КС
-                    if (CheckSum != rCheckSum)
+                    rDATA.RemoveAt(0);                                          //Удаляем длину пакета
+                    if (rDATA.Last<byte>() == Command.LOCK)
                     {
-                        addError("             Несовпадает контрольная сумма! Получено: " + rCheckSum + " Подсчитано: " + CheckSum);
-                        tracer_enabled = tracer_enabled_before;
-                        return new byte[] { 0 };
-                    }
-                    //Проверяем данные на отклик
-                    if (rDATA[0] == command)
-                    {
-                        trace("             Отклик: " + rDATA[0]);
-                        if (BytesToReadQuantity > 4)
+                        rDATA.RemoveAt(rDATA.Count - 1);                        //Удаляем затвор
+                        //Анализируем полученные данные
+                        byte rCheckSum = rDATA.Last();                          //Полученная КС
+                        rDATA.RemoveAt(rDATA.Count - 1);                        //Убираем КС
+                        byte CheckSum = calcCheckSum(rDATA.ToArray());          //Подсчитанная КС
+                        if (CheckSum != rCheckSum)
                         {
-
-                            rDATA.RemoveAt(0);
-                            trace("         Пакет принятых данных: ");
-                            foreach (byte b in rDATA)
+                            addError("             Несовпадает контрольная сумма! Получено: " + rCheckSum + " Подсчитано: " + CheckSum);
+                            tracer_enabled = tracer_enabled_before;
+                            return new byte[] { 0 };
+                        }
+                        //Проверяем данные на отклик
+                        if (rDATA[0] == command)
+                        {
+                            trace("             Отклик: " + rDATA[0]);
+                            if (BytesToReadQuantity > 4)
                             {
-                                trace("             " + b);
+
+                                rDATA.RemoveAt(0);
+                                trace("         Пакет принятых данных: ");
+                                foreach (byte b in rDATA)
+                                {
+                                    trace("             " + b);
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        //addError(" ! ОШИБКА ОТКЛИКА! Отклик не совпадает! Ожидался отклик: " + command, rDATA.ToArray());
-                        trace("Отклик не совпадает! Значит МК сообщает об ошибке!");
-                        trace("    Расшифровка сообщения об ошибке...");
-                        defineError(rDATA.ToArray());
+                        else
+                        {
+                            //addError(" ! ОШИБКА ОТКЛИКА! Отклик не совпадает! Ожидался отклик: " + command, rDATA.ToArray());
+                            trace("Отклик не совпадает! Значит МК сообщает об ошибке!");
+                            trace("    Расшифровка сообщения об ошибке...");
+                            defineError(rDATA.ToArray());
+                            tracer_enabled = tracer_enabled_before;
+                            return new byte[] { 0 };
+                        }
                         tracer_enabled = tracer_enabled_before;
-                        return new byte[] { 0 };
+                        return rDATA.ToArray();
                     }
+                    addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Не был получен затвор!", rDATA.ToArray());
                     tracer_enabled = tracer_enabled_before;
-                    return rDATA.ToArray();
+                    return new byte[] { 0 };
                 }
-                addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Не был получен затвор!", rDATA.ToArray());
+                addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Не верная длина пакета!", rDATA.ToArray());
                 tracer_enabled = tracer_enabled_before;
                 return new byte[] { 0 };
             }
