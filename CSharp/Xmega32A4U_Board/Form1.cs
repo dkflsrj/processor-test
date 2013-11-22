@@ -1088,6 +1088,7 @@ namespace Xmega32A4U_testBoard
         private void timer1_Tick(object sender, EventArgs e)
         {
             LBL_realCOX_RTCstate.Text = MC.Counters.Status;
+            
         }
     }
 }

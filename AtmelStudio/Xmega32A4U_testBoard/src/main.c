@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										90
+#define version										91
 #define birthday									20131121
 //Счётчики
 #define RTC_Status_notSet							0		//Счётчики не настроен
@@ -496,6 +496,12 @@ void setThemAll(void)
 	//				<1...7> - возможные значения предделителя
 	//			[6..7] - <RTC_DelayPeriod>								- задать время следующей задержки
 	//				<1...65535> - возможные значения периода (0 и 1 лучше не использовать)
+	//			[8..10] - <SPI_DAC_Scaner_PS>							- задать родительское сканирующее напряжение
+	//				<[24][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]> 
+	//			[11..13] - <SPI_DAC_Scaner_S>							- задать сканирующее напряжение
+	//				<[25][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]>
+	//			[14..16] - <SPI_DAC_Condensator>							- задать напряжение на конденсаторе
+	//				<[24][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]>
 	cli();
 	//Проверка - попли ли мы во время измерения (busy)? Если ready или notSet то всёравно всё установить, но SPI DAC установить сразу
 	if (RTC_Status != RTC_Status_delayed)
@@ -517,17 +523,30 @@ void setThemAll(void)
 			RTC_DelayPeriod = (((uint16_t)USART_MEM[6]) << 8) + USART_MEM[7];
 		}
 		//Даём задание на SPI DAC (будет выполнено во время задержки)
+		uint8_t sdata[] = {USART_MEM[8], USART_MEM[9], USART_MEM[10]};
+		spi_select_device(&SPIC, &DAC_Scaner);
+		spi_write_packet(&SPIC, sdata, 3);
+		spi_deselect_device(&SPIC, &DAC_Scaner);
+		sdata[0] = USART_MEM[11];
+		sdata[1] = USART_MEM[12];
+		sdata[2] = USART_MEM[13]};
+		spi_select_device(&SPIC, &DAC_Scaner);
+		spi_write_packet(&SPIC, sdata, 3);
+		spi_deselect_device(&SPIC, &DAC_Scaner);
+		sdata[0] = USART_MEM[14];
+		sdata[1] = USART_MEM[15];
+		sdata[2] = USART_MEM[16]};
+		spi_select_device(&SPIC, &DAC_Condensator);
+		spi_write_packet(&SPIC, sdata, 3);
+		spi_deselect_device(&SPIC, &DAC_Condensator);
 		//Снимаем показания SPI ADC
 		//Передаём предыдущие показания счётчиков и ADC (получается сейчасшные, контроль того что поставили в предыдущий раз)
 		if (MC_Tasks.MeasureDataWasOVERWRITTEN != 1)
 		{
-			uint8_t data[] = 
-			{
-				COMMAND_COUNTERS_set_All, MC_Status, RTC_Status,
+			uint8_t data[] = {COMMAND_COUNTERS_set_All, MC_Status, RTC_Status,
 				COA_PreviousOVF, (COA_PreviousMeasurment >> 24), (COA_PreviousMeasurment >> 16), (COA_PreviousMeasurment >> 8), COA_PreviousMeasurment,
 				COB_PreviousOVF, (COB_PreviousMeasurment >> 24), (COB_PreviousMeasurment >> 16), (COB_PreviousMeasurment >> 8), COB_PreviousMeasurment,
-				COC_PreviousOVF, (COC_PreviousMeasurment >> 8), COC_PreviousMeasurment
-			};
+				COC_PreviousOVF, (COC_PreviousMeasurment >> 8), COC_PreviousMeasurment};
 			switch (RTC_Status)
 			{
 				case RTC_Status_busy:
