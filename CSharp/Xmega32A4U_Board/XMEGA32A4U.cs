@@ -321,26 +321,36 @@ namespace Xmega32A4U_testBoard
                 //СТРУКТУРА: Хранилище констант.
                 public const double sourceFrequency = 32.768;//кГц - опорная частота таймера
                 //Коды состояний
-                public const byte Status_ready = 0;     //Готов
-                public const byte Status_stopped = 1;   //Остановлен
-                public const byte Status_busy = 2;      //Считает
+                public struct Status
+                {
+                    public const byte notSet =              0;		//Счётчики не настроен
+                    public const string string_notSet =     "notSet";
+                    public const byte ready =               1;		//Счётчики готов к работе
+                    public const string string_ready =      "ready";
+                    public const byte stopped =             2;		//Счётчики был принудительно остановлен
+                    public const string string_stopped =    "stopped";
+                    public const byte busy =                3;		//Счётчики ещё считает
+                    public const string string_busy =       "busy";
+                    public const byte delayed =             4;		//RTC считает задержку
+                    public const string string_delayed =    "delayed";
+                }
                 //интервалы для предделителей
-                public const int min_ms_div1 = 0;
-                public const int min_ms_div2 = 2000;
-                public const int min_ms_div8 = 4000;
-                public const int min_ms_div16 = 16000;
-                public const int min_ms_div64 = 32000;
-                public const int min_ms_div256 = 127996;
-                public const int min_ms_div1024 = 511981;
-                public const int max_ms_div1024 = 2047925;
+                public const int min_ms_div1 =              0;
+                public const int min_ms_div2 =              2000;
+                public const int min_ms_div8 =              4000;
+                public const int min_ms_div16 =             16000;
+                public const int min_ms_div64 =             32000;
+                public const int min_ms_div256 =            127996;
+                public const int min_ms_div1024 =           511981;
+                public const int max_ms_div1024 =           2047925;
                 //Проча
-                public const byte LengthOfSetAllPacket = 20;
-                public const byte LengthOfLAMPacket = 6;
+                public const byte LengthOfSetAllPacket =    20;
+                public const byte LengthOfLAMPacket =       6;
                 public struct NextMeasure
                 {
                     //Коды команд счётчиков
-                    public const byte NotDo = 0;
-                    public const byte Do = 1;
+                    public const byte NotDo =               0;
+                    public const byte Do =                  1;
                 }
 
             }
@@ -372,6 +382,35 @@ namespace Xmega32A4U_testBoard
             public uint[] MeasureTimes = new uint[4096];
             public uint[] DelayTimes = new uint[4096];
             public ushort Cycles = 0;
+            public string Status = "notSet";
+
+            string convertStatus(byte Status_byte)
+            {
+                //ФУНКЦИЯ: Переводит числовой байт статуса в строку
+                string Status_string = "";
+                switch(Status_byte)
+                {
+                    case Constants.Status.notSet:
+                        Status_string = Constants.Status.string_notSet;
+                        break;
+                    case Constants.Status.ready:
+                        Status_string = Constants.Status.string_ready;
+                        break;
+                    case Constants.Status.stopped:
+                        Status_string = Constants.Status.string_stopped;
+                        break;
+                    case Constants.Status.busy:
+                        Status_string = Constants.Status.string_busy;
+                        break;
+                    case Constants.Status.delayed:
+                        Status_string = Constants.Status.string_delayed;
+                        break;
+                    default:
+                        Status_string = "НЕИЗВЕСТНОЕ СОСТОЯНИЕ!";
+                        break;
+                }
+                return Status_string;
+            }
 
             public byte getRTCprescaler(uint MILLISECONDS)
             {
@@ -520,7 +559,7 @@ namespace Xmega32A4U_testBoard
             /// <para>true - операция выполнена успешно. Счётчики начали счёт.</para>
             /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
             /// </summary>
-            public void startMeasure()
+            public bool startMeasure()
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
                 //Очищаем листы результатов
@@ -531,8 +570,8 @@ namespace Xmega32A4U_testBoard
                 COC.Count.Clear();
                 COC.Overflows.Clear();
                 //Отладочные настройки
-                MeasureTimes[0] = 50;
-                DelayTimes[0] = 10;
+                MeasureTimes[0] = 1000;
+                DelayTimes[0] = 500;
                 //Объявления
                 List<byte> wDATA = new List<byte>();
                 List<byte> rDATA = new List<byte>();
@@ -557,8 +596,9 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(DelayPeriod[1]);
                 wDATA.Add(DelayPeriod[0]);
 
-                transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);                    //Посылаем настройки для измерения №0, но ответ забываем
-
+                rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);                    //Посылаем настройки для измерения №0, но ответ забываем
+                Status = convertStatus(rDATA[2]);
+                rDATA.Clear();
                 //Подготовка команды начала измерений
                 wDATA.Clear();
                 wDATA.Add(Command.RTC.startMeasure);
@@ -583,12 +623,15 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(DelayPeriod[1]);
                 wDATA.Add(DelayPeriod[0]);
 
-                transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);   //Посылаем настройки для измерения №1, но ответ забываем
-
+                rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);   //Посылаем настройки для измерения №1, но ответ забываем
+                Status = convertStatus(rDATA[2]);
+                rDATA.Clear();
                 //Цикл...(данные теже)
                 for (int i = 0; i < Cycles; i++)
                 {
-                    receive_2(Constants.LengthOfLAMPacket, false);
+                    rDATA = decode_2(receive_2(Constants.LengthOfLAMPacket, false));
+                    Status = convertStatus(rDATA[1]);
+                    rDATA.Clear();
                     //Если мы до сюда дошли то нужно передать данные туда (теже)
                     wDATA.Clear();
                     wDATA.Add(Command.RTC.setAll); //Команда
@@ -607,6 +650,7 @@ namespace Xmega32A4U_testBoard
                     wDATA.Add(DelayPeriod[1]);
                     wDATA.Add(DelayPeriod[0]);
                     rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);
+                    Status = convertStatus(rDATA[2]);
                     //Сохраняем данные
                     COA.Overflows.Add(rDATA[3]);
                     COA.Count.Add((uint)(rDATA[4] * 16777216 + rDATA[5] * 65536 + rDATA[6] * 256 + rDATA[7]));
@@ -622,7 +666,14 @@ namespace Xmega32A4U_testBoard
                 {
                     USART.Close();
                 }
-                return;
+                if (Status == Constants.Status.string_ready)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             /// <summary>
             /// Останавливает счётчики и RTC.
@@ -639,13 +690,13 @@ namespace Xmega32A4U_testBoard
                 byte state = transmit(Command.RTC.stopMeasure)[0];
                 switch(state)
                 {
-                    case Constants.Status_busy:
+                    case Constants.Status.busy:
                         trace(command + ": Операция выполнена успешно!");
                         return true;
-                    case Constants.Status_ready:
+                    case Constants.Status.ready:
                         trace(command + ": Операция отменена! Счётчики не считают!");
                         return false;
-                    case Constants.Status_stopped:
+                    case Constants.Status.stopped:
                         trace(command + ": Операция отменена! Счётчики уже остановлены!");
                         return false;
                     default:

@@ -19,6 +19,7 @@ namespace Xmega32A4U_testBoard
         decimal UI_PGB_COA_step = 0;
         decimal UI_PGB_COA_count = 0;
         const int CLK_COA_intreval = 10;
+        bool MeasureDone = false;
         public Form1()
         {
             InitializeComponent();
@@ -646,8 +647,10 @@ namespace Xmega32A4U_testBoard
             //}
         }
         delegate void Del(string text);
+        delegate void Del_2(string text);
         private void fun()
         {
+            
                 MC.Counters.Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
                 /*
                 Thread myThread = new Thread(MC.Counters.startMeasure); //Создаем новый объект потока (Thread)
@@ -655,7 +658,37 @@ namespace Xmega32A4U_testBoard
                 myThread.Start(); //запускаем поток*/
 
                 //*
-                MC.Counters.startMeasure();
+                MeasureDone = MC.Counters.startMeasure();
+                //if (LBL_realCOX_COA_Result.InvokeRequired)
+                //{
+                //    LBL_realCOX_COA_Result.Invoke(new Del((s) => LBL_realCOX_COA_Result.Text = s), min + "..." + mid + "..." + max);
+                //}
+                //else
+                //{
+                //    LBL_realCOX_COA_Result.Text = min + "..." + mid + "..." + max;
+                //}
+                //if (answer)
+                //{
+                //    if (LBL_realCOX_COA_Result.InvokeRequired)
+                //    {
+                //        LBL_realCOX_COA_Result.Invoke(new Del((s) => trace(true, s)), "Серия завершена корректно!");
+                //    }
+                //    else
+                //    {
+                //        trace(true, "Наверное серия завершена корректно..."); ;
+                //    }
+                //}
+                //else
+                //{
+                //    if (LBL_realCOX_COA_Result.InvokeRequired)
+                //    {
+                //        LBL_realCOX_COA_Result.Invoke(new Del((s) => trace(true, s)), "Серия завершена НЕ корректно!");
+                //    }
+                //    else
+                //    {
+                //        trace(true, "Наверное серия завершена НЕ корректно..."); ;
+                //    }
+                //}
                 //myThread.Join();
                 uint max = 0;
                 uint min = 4294967295;
@@ -854,9 +887,8 @@ namespace Xmega32A4U_testBoard
                 }
                 //LBL_realCOX_COC_Ovf.Text = min + "..." + mid + "..." + max;
                 //*/
-            
+                return;
         }
-        
         private void BTN_realCOX_start_Click(object sender, EventArgs e)
         {
             //MC.Counters.Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
@@ -864,8 +896,14 @@ namespace Xmega32A4U_testBoard
             Thread myThread = new Thread(MC.Counters.startMeasure); //Создаем новый объект потока (Thread)
             myThread.Priority = ThreadPriority.Highest;
             myThread.Start(); //запускаем поток*/
+            //Thread updateForm_RTC_Status_thread = new Thread(updateForm_RTC_Status);
+            //updateForm_RTC_Status_thread.Start();
+
+            timer1.Interval = 5;
+            timer1.Start();
             Thread t = new Thread(fun);
             t.Start();
+            //fun();
             /*
             MC.Counters.startMeasure();
             //myThread.Join();
@@ -1045,6 +1083,11 @@ namespace Xmega32A4U_testBoard
         private void button1_Click(object sender, EventArgs e)
         {
             MC.setFlags(true, CHB_iHVE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            LBL_realCOX_RTCstate.Text = MC.Counters.Status;
         }
     }
 }
