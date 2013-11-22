@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										91
+#define version										92
 #define birthday									20131121
 //Счётчики
 #define RTC_Status_notSet							0		//Счётчики не настроен
@@ -88,6 +88,10 @@ uint8_t	COB_OVF = 0;									//Количество переполнений счётчика СОВ в текущем из
 uint32_t COC_PreviousMeasurment = 0;					//Последнее измерение счётчика COC
 uint8_t	COC_PreviousOVF = 0;							//Количество переполнений счётчика СОА в последнем измерении
 uint8_t	COC_OVF = 0;									//Количество переполнений счётчика СОС в текущем измерении
+//SPI
+uint8_t SPI_DAC_Scaner_PS_data[3];						//Пакет для Сканера (родительское) во время задержи серии
+uint8_t SPI_DAC_Scaner_S_data[3];						//Пакет для Сканера (сканирующее) во время задержи серии
+uint8_t SPI_DAC_Condensator_data[3];					//Пакет для Конденсатора во время задержи серии
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 //Битовые поля
 struct _MC_Tasks
@@ -282,6 +286,7 @@ ISR(RTC_OVF_vect)
 {
 	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
 	//ФУНКЦИЯ: Остановка счётчиков импульсов
+	cli();
 	if (RTC_Status == RTC_Status_busy)
 	{
 		asm(
@@ -316,6 +321,16 @@ ISR(RTC_OVF_vect)
 			RTC.CTRL = RTC_DelayPrescaler;
 			RTC_setStatus_delayed;
 			MC_Tasks.doNextMeasure = 0;
+			//Устанавливаем напряжения на следующую ступень
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, SPI_DAC_Scaner_PS_data, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			spi_select_device(&SPIC, &DAC_Condensator);
+			spi_write_packet(&SPIC, SPI_DAC_Condensator_data, 3);
+			spi_deselect_device(&SPIC, &DAC_Condensator);
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, SPI_DAC_Scaner_S_data, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
 		}
 		else
 		{
@@ -407,6 +422,7 @@ ISR(RTC_OVF_vect)
 	{
 		transmit_2bytes(ERROR_Token,123);
 	}
+	sei();
 }
 static void ISR_TCC1(void)
  {
@@ -523,22 +539,27 @@ void setThemAll(void)
 			RTC_DelayPeriod = (((uint16_t)USART_MEM[6]) << 8) + USART_MEM[7];
 		}
 		//Даём задание на SPI DAC (будет выполнено во время задержки)
-		uint8_t sdata[] = {USART_MEM[8], USART_MEM[9], USART_MEM[10]};
-		spi_select_device(&SPIC, &DAC_Scaner);
-		spi_write_packet(&SPIC, sdata, 3);
-		spi_deselect_device(&SPIC, &DAC_Scaner);
-		sdata[0] = USART_MEM[11];
-		sdata[1] = USART_MEM[12];
-		sdata[2] = USART_MEM[13]};
-		spi_select_device(&SPIC, &DAC_Scaner);
-		spi_write_packet(&SPIC, sdata, 3);
-		spi_deselect_device(&SPIC, &DAC_Scaner);
-		sdata[0] = USART_MEM[14];
-		sdata[1] = USART_MEM[15];
-		sdata[2] = USART_MEM[16]};
-		spi_select_device(&SPIC, &DAC_Condensator);
-		spi_write_packet(&SPIC, sdata, 3);
-		spi_deselect_device(&SPIC, &DAC_Condensator);
+		SPI_DAC_Scaner_PS_data[0] = USART_MEM[8];
+		SPI_DAC_Scaner_PS_data[1] = USART_MEM[9];
+		SPI_DAC_Scaner_PS_data[2] = USART_MEM[10];
+		SPI_DAC_Scaner_S_data[0] = USART_MEM[11];
+		SPI_DAC_Scaner_S_data[1] = USART_MEM[12];
+		SPI_DAC_Scaner_S_data[2] = USART_MEM[13];
+		SPI_DAC_Condensator_data[0] = USART_MEM[14];
+		SPI_DAC_Condensator_data[1] = USART_MEM[15];
+		SPI_DAC_Condensator_data[2] = USART_MEM[16];
+		if (RTC_Status != RTC_Status_busy)
+		{
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, SPI_DAC_Scaner_PS_data, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			spi_select_device(&SPIC, &DAC_Condensator);
+			spi_write_packet(&SPIC, SPI_DAC_Condensator_data, 3);
+			spi_deselect_device(&SPIC, &DAC_Condensator);
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, SPI_DAC_Scaner_S_data, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+		}
 		//Снимаем показания SPI ADC
 		//Передаём предыдущие показания счётчиков и ADC (получается сейчасшные, контроль того что поставили в предыдущий раз)
 		if (MC_Tasks.MeasureDataWasOVERWRITTEN != 1)
