@@ -212,6 +212,7 @@
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -2190,6 +2191,11 @@
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
+            // timer1
+            // 
+            this.timer1.Interval = 5;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2423,6 +2429,7 @@
         private System.Windows.Forms.CheckBox CHB_SPUMP;
         private System.Windows.Forms.CheckBox CHB_SEMV1;
         private System.Windows.Forms.Button BTN_DAC_reset;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 
