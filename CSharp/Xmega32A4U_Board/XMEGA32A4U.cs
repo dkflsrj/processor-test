@@ -154,7 +154,7 @@ namespace Xmega32A4U_testBoard
             public const byte KEY = 58;
             public struct TEST
             {
-                //Кооды команд отладки
+                //Коды команд отладки
                 public const byte showMeByte = 10;
                 public const byte checkCommandStack = 8;
             }
@@ -185,7 +185,7 @@ namespace Xmega32A4U_testBoard
                 //         |____Адрес__|_________________|       |
                 //         | 8 | 7 | 6 | Имя  | № вывода | Канал |  
                 //         |---+---+---+------+----------+-------|
-                //        | 0 | 0 | 0 | Vin0 |    16    |   1   |
+                //         | 0 | 0 | 0 | Vin0 |    16    |   1   |
                 //         | 0 | 0 | 1 | Vin1 |    15    |   2   |
                 //ADD2     | 0 | 1 | 0 | Vin2 |    14    |   3   |
                 //ADD1     | 0 | 1 | 1 | Vin3 |    13    |   4   |
@@ -379,8 +379,13 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             public counter COC = new counter();
             //Настройки для измерений
+            
             public uint[] MeasureTimes = new uint[4096];
             public uint[] DelayTimes = new uint[4096];
+            public ushort[] SPI_DAC_ParentScan = new ushort[4096];
+            public ushort[] SPI_DAC_Scan = new ushort[4096];
+            public ushort[] SPI_DAC_Condensator = new ushort[4096];
+
             public ushort Cycles = 0;
             public string Status = "notSet";
 
@@ -580,13 +585,27 @@ namespace Xmega32A4U_testBoard
                 byte[] MeasurePeriod = new byte[2];
                 byte DelayPrescaler = 0;
                 byte[] DelayPeriod = new byte[2];
-                //Подготовка к передаче первых настроек (до измерения)
-                MeasurePrescaler = getRTCprescaler(MeasureTimes[0]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[0]));
+                byte[] ParentScanerBytes = new byte[3];
+                byte[] ScanerBytes = new byte[3];
+                byte[] CondensatorBytes = new byte[3];
+                ushort N = 0; //Номер текущего измерения
+                //Вычисление байт для RTC
+                MeasurePrescaler = getRTCprescaler(MeasureTimes[N]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[N]));
                 MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                DelayPrescaler = getRTCprescaler(DelayTimes[0]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[0]));
+                DelayPrescaler = getRTCprescaler(DelayTimes[N]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[N]));
                 DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
+                //Вычисление байт для Родительского Напряжения (канал = 24)
+                BYTES_buf = BitConverter.GetBytes(SPI_DAC_ParentScan[N] << 2);
+                ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
+                //Вычисление байт для Сканирующего Напряжения (канал = 25)
+                BYTES_buf = BitConverter.GetBytes(SPI_DAC_Scan[N] << 2);
+                ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
+                //Вычисление байт для Конденсатора (канал = 24)
+                BYTES_buf = BitConverter.GetBytes(SPI_DAC_Condensator[N] << 2);
+                CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
+                //Набираем данные на отправку
                 wDATA.Add(Command.RTC.setAll); //Команда
                 wDATA.Add(Constants.NextMeasure.NotDo);    //Не делать сделующе измерение
                 wDATA.Add(MeasurePrescaler);
@@ -595,7 +614,15 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(DelayPrescaler);
                 wDATA.Add(DelayPeriod[1]);
                 wDATA.Add(DelayPeriod[0]);
-
+                wDATA.Add(ParentScanerBytes[0]);
+                wDATA.Add(ParentScanerBytes[1]);
+                wDATA.Add(ParentScanerBytes[2]);
+                wDATA.Add(ScanerBytes[0]);
+                wDATA.Add(ScanerBytes[1]);
+                wDATA.Add(ScanerBytes[2]);
+                wDATA.Add(CondensatorBytes[0]);
+                wDATA.Add(CondensatorBytes[1]);
+                wDATA.Add(CondensatorBytes[2]);
                 rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);                    //Посылаем настройки для измерения №0, но ответ забываем
                 Status = convertStatus(rDATA[2]);
                 rDATA.Clear();
@@ -605,7 +632,24 @@ namespace Xmega32A4U_testBoard
 
                 send_2(wDATA, false);                           //Посылаем команду начала измерения (не слушаем ответ), а надо бы
 
+                N = 0;//N++;
                 //Подготовка новых данных для следующего измерения
+                MeasurePrescaler = getRTCprescaler(MeasureTimes[N]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[N]));
+                MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
+                DelayPrescaler = getRTCprescaler(DelayTimes[N]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[N]));
+                DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
+                //Вычисление байт для Родительского Напряжения (канал = 24)
+                BYTES_buf = BitConverter.GetBytes(SPI_DAC_ParentScan[N] << 2);
+                ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
+                //Вычисление байт для Сканирующего Напряжения (канал = 25)
+                BYTES_buf = BitConverter.GetBytes(SPI_DAC_Scan[N] << 2);
+                ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
+                //Вычисление байт для Конденсатора (канал = 24)
+                BYTES_buf = BitConverter.GetBytes(SPI_DAC_Condensator[N] << 2);
+                CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
+                //Формирование данных
                 wDATA.Clear();
                 wDATA.Add(Command.RTC.setAll); //Команда
                 if (Cycles == 1)
@@ -622,17 +666,43 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(DelayPrescaler);
                 wDATA.Add(DelayPeriod[1]);
                 wDATA.Add(DelayPeriod[0]);
-
+                wDATA.Add(ParentScanerBytes[0]);
+                wDATA.Add(ParentScanerBytes[1]);
+                wDATA.Add(ParentScanerBytes[2]);
+                wDATA.Add(ScanerBytes[0]);
+                wDATA.Add(ScanerBytes[1]);
+                wDATA.Add(ScanerBytes[2]);
+                wDATA.Add(CondensatorBytes[0]);
+                wDATA.Add(CondensatorBytes[1]);
+                wDATA.Add(CondensatorBytes[2]);
                 rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);   //Посылаем настройки для измерения №1, но ответ забываем
                 Status = convertStatus(rDATA[2]);
                 rDATA.Clear();
-                //Цикл...(данные теже)
+                //Цикл...
                 for (int i = 0; i < Cycles; i++)
                 {
                     rDATA = decode_2(receive_2(Constants.LengthOfLAMPacket, false));
                     Status = convertStatus(rDATA[1]);
                     rDATA.Clear();
-                    //Если мы до сюда дошли то нужно передать данные туда (теже)
+
+                    N = 0;//N++;
+                    //Подготовка новых данных для следующего измерения
+                    MeasurePrescaler = getRTCprescaler(MeasureTimes[N]);
+                    BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[N]));
+                    MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
+                    DelayPrescaler = getRTCprescaler(DelayTimes[N]);
+                    BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[N]));
+                    DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
+                    //Вычисление байт для Родительского Напряжения (канал = 24)
+                    BYTES_buf = BitConverter.GetBytes(SPI_DAC_ParentScan[N] << 2);
+                    ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
+                    //Вычисление байт для Сканирующего Напряжения (канал = 25)
+                    BYTES_buf = BitConverter.GetBytes(SPI_DAC_Scan[N] << 2);
+                    ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
+                    //Вычисление байт для Конденсатора (канал = 24)
+                    BYTES_buf = BitConverter.GetBytes(SPI_DAC_Condensator[N] << 2);
+                    CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
+                    //Формирования данных
                     wDATA.Clear();
                     wDATA.Add(Command.RTC.setAll); //Команда
                     if(i == Cycles - 2)
@@ -649,6 +719,15 @@ namespace Xmega32A4U_testBoard
                     wDATA.Add(DelayPrescaler);
                     wDATA.Add(DelayPeriod[1]);
                     wDATA.Add(DelayPeriod[0]);
+                    wDATA.Add(ParentScanerBytes[0]);
+                    wDATA.Add(ParentScanerBytes[1]);
+                    wDATA.Add(ParentScanerBytes[2]);
+                    wDATA.Add(ScanerBytes[0]);
+                    wDATA.Add(ScanerBytes[1]);
+                    wDATA.Add(ScanerBytes[2]);
+                    wDATA.Add(CondensatorBytes[0]);
+                    wDATA.Add(CondensatorBytes[1]);
+                    wDATA.Add(CondensatorBytes[2]);
                     rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);
                     Status = convertStatus(rDATA[2]);
                     //Сохраняем данные
@@ -1834,7 +1913,7 @@ namespace Xmega32A4U_testBoard
                         if (rDATA[0] == command)
                         {
                             trace("             Отклик: " + rDATA[0]);
-                            if (BytesToReadQuantity > 4)
+                            if (BytesToReadQuantity > 5)
                             {
 
                                 rDATA.RemoveAt(0);
