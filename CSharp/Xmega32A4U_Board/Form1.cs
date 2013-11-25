@@ -471,6 +471,7 @@ namespace Xmega32A4U_testBoard
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
             MC.TIC.send();
+            
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
