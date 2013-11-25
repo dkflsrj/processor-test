@@ -161,157 +161,6 @@ namespace Xmega32A4U_testBoard
             public const byte setFlags = 80;
         }
 
-        /*public struct SPI_ADC
-        {
-            //СТРУКТУРА: АЦП. Тестовая
-            const byte Hbyte = 127;
-            const byte Lbyte_DoubleRange = 16;
-            const byte Lbyte_NormalRange = 48;
-            const byte ChannelStep = 4;
-
-            public bool DoubleRange;
-
-            public ushort getVoltage(byte CHANNEL)
-            {
-                //Последовательность 11 битного слова, которое надо передать ADC'у: Или это просто регистр?
-                //+-------+-----+-------+------+------+------+-----+-----+--------+-------+-------+--------+
-                //| WRITE | SEQ | DONTC | ADD2 | ADD1 | ADD0 | PM1 | PM0 | SHADOW | DONTC | RANGE | CODING |
-                //+-------+-----+-------+------+------+------+-----+-----+--------+-------+-------+--------+
-                //
-                //WRITE - 1 - тогда ADC запишет следующие 11 бит. Иначе пропустит мимо ушей
-                //SEQ - ?
-                //DONTC - не парься
-                //         _______________________________________
-                //         |____Адрес__|_________________|       |
-                //         | 8 | 7 | 6 | Имя  | № вывода | Канал |  
-                //         |---+---+---+------+----------+-------|
-                //         | 0 | 0 | 0 | Vin0 |    16    |   1   |
-                //         | 0 | 0 | 1 | Vin1 |    15    |   2   |
-                //ADD2     | 0 | 1 | 0 | Vin2 |    14    |   3   |
-                //ADD1     | 0 | 1 | 1 | Vin3 |    13    |   4   |
-                //ADD0     | 1 | 0 | 0 | Vin4 |    12    |   5   |
-                //         | 1 | 0 | 1 | Vin5 |    11    |   6   |
-                //         | 1 | 1 | 0 | Vin6 |    10    |   7   |
-                //         | 1 | 1 | 1 | Vin7 |    9     |   8   |
-                //         |---+---+---+------+----------+-------| 
-                //
-                //PM1 и PM0 - управление питанием (1 1 - нормальный режим, самый быстрый)
-                //SHADOW - ?
-                //DONTC - не парься...
-                //RANGE - 1 - стандартный диапазон 0...REF | 0 - удвоенный 0...2xREF
-                //CODING - кодирует ответ ADC: 0 - the output coding for the part is twos complement | 
-                //                             1 - the output coding from the part is straight binary (for the next conversion).
-                //                             
-                //
-                //Сладкая парочка SEQ и SHADOW:
-                // 0 0 - Каналы оцифровываются независимо. Ни какой "последовательной функцией" тут не пахнет
-                // other - какая-то муть с "последовательными функциями" оцифровки и программированием shadow-регистра
-                //
-                //Составляем слово:
-                // 1 0 0 ххх 11 0 0 1 1 '0000'
-                // 131 + 16
-                trace_attached(Environment.NewLine);
-                trace("ADC.getVoltage(" + CHANNEL + ")");
-                trace("ADC.getVoltage(" + CHANNEL + "): DoubleRange = "+DoubleRange);
-                byte Lbyte = 0;
-                if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
-                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
-                byte[] rDATA = transmit(Command.SPI.ADC_getVoltage, data);
-                ushort voltage = 0;
-                byte adress = 1;
-                adress += Convert.ToByte(rDATA[0] >> 4);
-                voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
-                trace("ADC.getVoltage(" + CHANNEL + "): Ответный адрес канала: " + adress);
-//Если адрес != Каналу - ошибка!
-                trace("ADC.getVoltage(" + CHANNEL + "): Напряжение: " + voltage);
-                return voltage;
-            }
-                public ushort getVoltage(string CHANNEL)
-            {
-                return getVoltage(Convert.ToByte(CHANNEL));
-            }
-                public ushort getVoltage(int CHANNEL)
-            {
-                return getVoltage(Convert.ToByte(CHANNEL));
-            }
-        }
-        public struct SPI_DAC
-        {
-            //СТРУКТУРА: ЦАП. Тестовая
-            const byte Reset_Hbyte = 255;
-            const byte Reset_Lbyte = 255;
-
-            public bool reset()
-            {
-                trace_attached(Environment.NewLine);
-                trace("DAC.reset()");
-                byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
-                {
-                    trace("DAC.reset(): Операция выполнена успешно!");
-                    return true;
-                }
-                trace("DAC.reset(): ОШИБКА ОТКЛИКА! Напряжения DAC'а вероятно не сброшены!");
-                return false;
-            }
-            public bool setVoltage(byte CHANNEL, ushort VOLTAGE)
-            {
-                //ФУНКЦИЯ: Посылаем DAC'у адресс канала и напряжение на нём, получаем отклик
-                //  ____________________________________________________________
-                 //*  |_____Адрес____|__________________|       |    Диапазон    |
-                 //*  | 14 | 13 | 12 |  Имя  | № вывода | Канал |ADRESS_and_Hbyte|  
-                 //*  |----+----+----+-------+----------+-------+----------------|
-                 //*  | 0  | 0  | 0  | DAC A |    4     |   1   |    0...15      |
-                 //*  | 0  | 0  | 1  | DAC B |    5     |   2   |    16...31     |
-                 //*  | 0  | 1  | 0  | DAC C |    6     |   3   |    32...47     |
-                 //*  | 0  | 1  | 1  | DAC D |    7     |   4   |    48...63     |
-                 //*  | 1  | 0  | 0  | DAC E |    10    |   5   |    64...79     |
-                 //*  | 1  | 0  | 1  | DAC F |    11    |   6   |    80...95     |
-                 //*  | 1  | 1  | 0  | DAC G |    12    |   7   |    96...111    |
-                 //*  | 1  | 1  | 1  | DAC H |    13    |   8   |    112...127   |
-                 //*  |----+----+----+-------+----------+-------+----------------| 
-                 //* 
-                 //*  ADRESS_and_Hbyte =  0      111         xxxx
-                 //*                     D\C    адрес    Старший байт 
-                 //*  Lbyte =   xxxx xxxx
-                 //*          Младший байт
-                 //* 
-                 //* D\C -> 0 - адрес + напряжение | 1 - управляющий сигнал  (1111 1111 1111 1111 - полный сброс)
-                 //* 
-                 //* VOLTAGE = 0...4095 = 0_0 ... 15_255
-                 //* 
-                 //* Настройка на двойной референс:
-                 //*                      1      00         xxxxx xx     GG2 GG1 GB2 GB1 GR2 GR1
-                 //*                     D\C   control      не парься       управляющие биты
-                 //* GG - умножение до 2хRef выходного напряжения на канале 1/0 (вкл/выкл)
-                 //* GB - включение буфферизации
-                 //* GR - установка в качестве референса Vdd
-                 //* В итоге нужно установить двойной референс и буфферизацию
-                 //*                      100х хххх хх11 1100
-                 //*                        128        60
-                //Формируем данные на отправку
-                trace_attached(Environment.NewLine);
-                trace("DAC.setVoltage("+CHANNEL+", "+VOLTAGE+")");
-                byte[] bytes = BitConverter.GetBytes(VOLTAGE);
-                byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                if (transmit(Command.SPI.DAC_setVoltage, data)[0] == Command.SPI.DAC_setVoltage)
-                {
-                    trace("DAC.setVoltage(" + CHANNEL + ", " + VOLTAGE + "): Операция выполнена успешно!");
-                    return true;
-                }
-                trace("DAC.setVoltage(" + CHANNEL + ", " + VOLTAGE + "): ОШИБКА ОТКЛИКА!");
-//ОШИБКА ОТКЛИКА!
-                return false;
-            }
-                public bool setVoltage(string CHANNEL, string VOLTAGE)
-            {
-                return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
-            }
-                public bool setVoltage(int CHANNEL, int VOLTAGE)
-            {
-                return setVoltage(Convert.ToByte(CHANNEL), Convert.ToUInt16(VOLTAGE));
-            }
-        }*/
         //---------------------------------------КЛАССЫ--------------------------------------------
         public class RTCounterAndCO
         {
@@ -793,6 +642,38 @@ namespace Xmega32A4U_testBoard
             protected bool DAC_setVoltage(byte command, byte CHANNEL, ushort VOLTAGE)
             {
                 //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
+                //  ____________________________________________________________
+                //*  |_____Адрес____|__________________|       |    Диапазон    |
+                //*  | 14 | 13 | 12 |  Имя  | № вывода | Канал |ADRESS_and_Hbyte|  
+                //*  |----+----+----+-------+----------+-------+----------------|
+                //*  | 0  | 0  | 0  | DAC A |    4     |   1   |    0...15      |
+                //*  | 0  | 0  | 1  | DAC B |    5     |   2   |    16...31     |
+                //*  | 0  | 1  | 0  | DAC C |    6     |   3   |    32...47     |
+                //*  | 0  | 1  | 1  | DAC D |    7     |   4   |    48...63     |
+                //*  | 1  | 0  | 0  | DAC E |    10    |   5   |    64...79     |
+                //*  | 1  | 0  | 1  | DAC F |    11    |   6   |    80...95     |
+                //*  | 1  | 1  | 0  | DAC G |    12    |   7   |    96...111    |
+                //*  | 1  | 1  | 1  | DAC H |    13    |   8   |    112...127   |
+                //*  |----+----+----+-------+----------+-------+----------------| 
+                //* 
+                //*  ADRESS_and_Hbyte =  0      111         xxxx
+                //*                     D\C    адрес    Старший байт 
+                //*  Lbyte =   xxxx xxxx
+                //*          Младший байт
+                //* 
+                //* D\C -> 0 - адрес + напряжение | 1 - управляющий сигнал  (1111 1111 1111 1111 - полный сброс)
+                //* 
+                //* VOLTAGE = 0...4095 = 0_0 ... 15_255
+                //* 
+                //* Настройка на двойной референс:
+                //*                      1      00         xxxxx xx     GG2 GG1 GB2 GB1 GR2 GR1
+                //*                     D\C   control      не парься       управляющие биты
+                //* GG - умножение до 2хRef выходного напряжения на канале 1/0 (вкл/выкл)
+                //* GB - включение буфферизации
+                //* GR - установка в качестве референса Vdd
+                //* В итоге нужно установить двойной референс и буфферизацию
+                //*                      100х хххх хх11 1100
+                //*                        128        60
                 string _command = "DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + ")";
                 if (VOLTAGE >= 0 && VOLTAGE <= 4095)
                 {
@@ -876,6 +757,43 @@ namespace Xmega32A4U_testBoard
             bool DoubleRange = true;
             ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
+                //Последовательность 11 битного слова, которое надо передать ADC'у: Или это просто регистр?
+                //+-------+-----+-------+------+------+------+-----+-----+--------+-------+-------+--------+
+                //| WRITE | SEQ | DONTC | ADD2 | ADD1 | ADD0 | PM1 | PM0 | SHADOW | DONTC | RANGE | CODING |
+                //+-------+-----+-------+------+------+------+-----+-----+--------+-------+-------+--------+
+                //
+                //WRITE - 1 - тогда ADC запишет следующие 11 бит. Иначе пропустит мимо ушей
+                //SEQ - ?
+                //DONTC - не парься
+                //         _______________________________________
+                //         |____Адрес__|_________________|       |
+                //         | 8 | 7 | 6 | Имя  | № вывода | Канал |  
+                //         |---+---+---+------+----------+-------|
+                //         | 0 | 0 | 0 | Vin0 |    16    |   1   |
+                //         | 0 | 0 | 1 | Vin1 |    15    |   2   |
+                //ADD2     | 0 | 1 | 0 | Vin2 |    14    |   3   |
+                //ADD1     | 0 | 1 | 1 | Vin3 |    13    |   4   |
+                //ADD0     | 1 | 0 | 0 | Vin4 |    12    |   5   |
+                //         | 1 | 0 | 1 | Vin5 |    11    |   6   |
+                //         | 1 | 1 | 0 | Vin6 |    10    |   7   |
+                //         | 1 | 1 | 1 | Vin7 |    9     |   8   |
+                //         |---+---+---+------+----------+-------| 
+                //
+                //PM1 и PM0 - управление питанием (1 1 - нормальный режим, самый быстрый)
+                //SHADOW - ?
+                //DONTC - не парься...
+                //RANGE - 1 - стандартный диапазон 0...REF | 0 - удвоенный 0...2xREF
+                //CODING - кодирует ответ ADC: 0 - the output coding for the part is twos complement | 
+                //                             1 - the output coding from the part is straight binary (for the next conversion).
+                //                             
+                //
+                //Сладкая парочка SEQ и SHADOW:
+                // 0 0 - Каналы оцифровываются независимо. Ни какой "последовательной функцией" тут не пахнет
+                // other - какая-то муть с "последовательными функциями" оцифровки и программированием shadow-регистра
+                //
+                //Составляем слово:
+                // 1 0 0 ххх 11 0 0 1 1 '0000'
+                // 131 + 16
                 string _command = "ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + ")";
                 trace_attached(Environment.NewLine);
                 trace(_command + ": DoubleRange = " + DoubleRange);
