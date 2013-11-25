@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										93
+#define version										94
 #define birthday									20131121
 //Счётчики
 #define RTC_Status_notSet							0		//Счётчики не настроен
@@ -497,27 +497,32 @@ void setThemAll(void)
 {
 	//СУПЕРФУНКЦИЯ: Были приняты многочисленные данные, все их надо установить
 	//ПРИНЯТЫЕ ДАННЫЕ:
-	//			[0] - <Command37 - setThemAll
-	//			[1] - <Continue>										- флаг "сделать следующее измерение"
-	//				<0>		- не делать следующее измерение
-	//				<1>		- сделать следующее измерение
+	//			[0] -		<Command37>										- setThemAll
+	//			[1] -		<Continue>										- флаг "сделать следующее измерение"
+	//				<0>			- не делать следующее измерение
+	//				<1>			- сделать следующее измерение
 	//А НОМЕР ИЗМЕРЕНИЯ?
-	//			[2] - <RTC_MeasurePrescaler>							- задаёт предделитель следующего измерения
-	//				<0>		- не менять ни предделитель, ни период
-	//				<1...7> - возможные значения предделителя
-	//			[3..4] - <RTC_MeasurePeriod>							- задать время следующего измерения
+	//			[2] -		<RTC_MeasurePrescaler>							- задаёт предделитель следующего измерения
+	//				<0>			- не менять ни предделитель, ни период
+	//				<1...7>		- возможные значения предделителя
+	//			[3..4] -	<RTC_MeasurePeriod>								- задать время следующего измерения
 	//				<0...65535> - возможные значения периода (0 и 1 лучше не использовать)
-	//			[5] - <RTC_DelayPrescaler>								- задаёт предделитель следующей задержки
-	//				<0>		- не менять ни предделитель, ни период
-	//				<1...7> - возможные значения предделителя
-	//			[6..7] - <RTC_DelayPeriod>								- задать время следующей задержки
+	//			[5] -		<RTC_DelayPrescaler>							- задаёт предделитель следующей задержки
+	//				<0>			- не менять ни предделитель, ни период
+	//				<1...7>		- возможные значения предделителя
+	//			[6..7] -	<RTC_DelayPeriod>								- задать время следующей задержки
 	//				<1...65535> - возможные значения периода (0 и 1 лучше не использовать)
-	//			[8..10] - <SPI_DAC_Scaner_PS>							- задать родительское сканирующее напряжение
+	//			[8..10] -	<SPI_DAC_Scaner_PS>								- задать родительское сканирующее напряжение
 	//				<[24][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]> 
-	//			[11..13] - <SPI_DAC_Scaner_S>							- задать сканирующее напряжение
+	//			[11..13] -	<SPI_DAC_Scaner_S>								- задать сканирующее напряжение
 	//				<[25][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]>
-	//			[14..16] - <SPI_DAC_Condensator>							- задать напряжение на конденсаторе
+	//			[14..16] -	<SPI_DAC_Condensator>							- задать напряжение на конденсаторе
 	//				<[24][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]>
+	//--------------------------------------------------------------------------------------------------------------------
+	//			[17..18] -	<SPI_ADC_Scaner_ParentScan>						- посылка на MSV ADC(родительское сканирующее)
+	//			[19..20] -	<SPI_ADC_Scaner_Scan>							- посылка на MSV ADC(сканирующее)
+	//			[21..22] -	<SPI_ADC_Condensator_PosVoltage>				- посылка на MSV ADC(+ конденсатор)
+	//			[23..24] -	<SPI_ADC_Condensator_NegVoltage>				- посылка на MSV ADC(- конденсатор)
 	cli();
 	//Проверка - попли ли мы во время измерения (busy)? Если ready или notSet то всёравно всё установить, но SPI DAC установить сразу
 	if (RTC_Status != RTC_Status_delayed)
@@ -564,20 +569,85 @@ void setThemAll(void)
 		//Передаём предыдущие показания счётчиков и ADC (получается сейчасшные, контроль того что поставили в предыдущий раз)
 		if (MC_Tasks.MeasureDataWasOVERWRITTEN != 1)
 		{
-			uint8_t data[] = {COMMAND_COUNTERS_set_All, MC_Status, RTC_Status,
-				COA_PreviousOVF, (COA_PreviousMeasurment >> 24), (COA_PreviousMeasurment >> 16), (COA_PreviousMeasurment >> 8), COA_PreviousMeasurment,
-				COB_PreviousOVF, (COB_PreviousMeasurment >> 24), (COB_PreviousMeasurment >> 16), (COB_PreviousMeasurment >> 8), COB_PreviousMeasurment,
-				COC_PreviousOVF, (COC_PreviousMeasurment >> 8), COC_PreviousMeasurment};
+			uint8_t SPI_wDATA[2];				//Массив для записи в устройства SPI
+			uint8_t SPI_rDATA[2];				//Массив для приёма результатов (адрес ADC + настройки(fixed DoubleRef))
+			uint8_t data[24];					//Посылка для отправки на ПК
 			switch (RTC_Status)
 			{
 				case RTC_Status_busy:
 				case RTC_Status_ready:
-				transmit(data, 16);
-				MC_Tasks.MeasuredDataWasSended = 1;
-				break;
+					data[0] = COMMAND_COUNTERS_set_All;
+					data[1] = MC_Status;
+					data[2] = RTC_Status;
+					data[3] = COA_PreviousOVF;
+					data[4] = (COA_PreviousMeasurment >> 24);
+					data[5] = (COA_PreviousMeasurment >> 16);
+					data[6] = (COA_PreviousMeasurment >> 8);
+					data[7] = COA_PreviousMeasurment;
+					data[8] = COB_PreviousOVF;
+					data[9] = (COB_PreviousMeasurment >> 24);
+					data[10] = (COB_PreviousMeasurment >> 16);
+					data[11] = (COB_PreviousMeasurment >> 8);
+					data[12] = COB_PreviousMeasurment;
+					data[13] = COC_PreviousOVF;
+					data[14] = (COC_PreviousMeasurment >> 8);
+					data[15] = COC_PreviousMeasurment;
+					//Родительское сканирующее
+					SPI_wDATA[0] = 143;
+					SPI_wDATA[1] = 16;
+					gpio_set_pin_low(pin_iRDUN);
+					spi_write_packet(&SPIC, SPI_wDATA, 2);
+					gpio_set_pin_high(pin_iRDUN);
+					spi_deselect_device(&SPIC, &ADC_MSV);
+					gpio_set_pin_low(pin_iRDUN);
+					spi_read_packet(&SPIC,SPI_rDATA,2);
+					gpio_set_pin_high(pin_iRDUN);
+					spi_select_device(&SPIC, &ADC_MSV);
+					data[16] = SPI_rDATA[0];
+					data[17] = SPI_rDATA[1];
+					//Сканирующее
+					SPI_wDATA[0] = 139;
+					gpio_set_pin_low(pin_iRDUN);
+					spi_write_packet(&SPIC, SPI_wDATA, 2);
+					gpio_set_pin_high(pin_iRDUN);
+					spi_deselect_device(&SPIC, &ADC_MSV);
+					gpio_set_pin_low(pin_iRDUN);
+					spi_read_packet(&SPIC,SPI_rDATA,2);
+					gpio_set_pin_high(pin_iRDUN);
+					spi_select_device(&SPIC, &ADC_MSV);
+					data[18] = SPI_rDATA[0];
+					data[19] = SPI_rDATA[1];
+					//Конденсатор +
+					SPI_wDATA[0] = 131;
+					gpio_set_pin_low(pin_iRDUN);
+					spi_write_packet(&SPIC, SPI_wDATA, 2);
+					gpio_set_pin_high(pin_iRDUN);
+					spi_deselect_device(&SPIC, &ADC_MSV);
+					gpio_set_pin_low(pin_iRDUN);
+					spi_read_packet(&SPIC,SPI_rDATA,2);
+					gpio_set_pin_high(pin_iRDUN);
+					spi_select_device(&SPIC, &ADC_MSV);
+					data[20] = SPI_rDATA[0];
+					data[21] = SPI_rDATA[1];
+					//Конденсатор -
+					SPI_wDATA[0] = 135;
+					gpio_set_pin_low(pin_iRDUN);
+					spi_write_packet(&SPIC, SPI_wDATA, 2);
+					gpio_set_pin_high(pin_iRDUN);
+					spi_deselect_device(&SPIC, &ADC_MSV);
+					gpio_set_pin_low(pin_iRDUN);
+					spi_read_packet(&SPIC,SPI_rDATA,2);
+					gpio_set_pin_high(pin_iRDUN);
+					spi_select_device(&SPIC, &ADC_MSV);
+					data[22] = SPI_rDATA[0];
+					data[23] = SPI_rDATA[1];
+					//Передём на ПК
+					transmit(data, 24);
+					MC_Tasks.MeasuredDataWasSended = 1;
+					break;
 				default:
-				//transmit_2bytes(COMMAND_COUNTERS_get_Count,RTC_Status);
-				break;
+					//transmit_2bytes(COMMAND_COUNTERS_get_Count,RTC_Status);
+					break;
 			}
 		}
 		else
@@ -591,14 +661,22 @@ void setThemAll(void)
 	}
 	sei();
 	//ПОСЫЛАЕМЫЕ ДАННЫЕ:
-	//			[0] - <Response>										- отклик
+	//			[0] -		<Response>										- отклик
 	//				<37> - COMMAND_MEASURE_set_All
 	//А НОМЕР ИЗМЕРЕНИЯ?
-	//			[1] - <MC_Status>										- статус МК
-	//			[2] - <RTC_Status>										- статус RTC
-	//			[3] - <COA_PreciousOVF							- предыдущий результат счёта (СОА_ovf)
-	//			[4...5] - <COA_PreviousMeasurment>						- предыдущий результат счёта (СОА_CNT)
-	//			2 : <D_PRE><D_PER:2>									- задать время следующей задержки
+	//			[1] -		<MC_Status>										- статус МК
+	//			[2] -		<RTC_Status>									- статус RTC
+	//			[3] -		<COA_PreciousOVF								- предыдущий результат счёта (СОА_ovf)
+	//			[4...7] -	<COA_PreviousMeasurment>						- предыдущий результат счёта (СОА_CNT)
+	//			[8] -		<COA_PreciousOVF								- предыдущий результат счёта (СОА_ovf)
+	//			[9...12] -	<COA_PreviousMeasurment>						- предыдущий результат счёта (СОА_CNT)
+	//			[13] -		<COA_PreciousOVF								- предыдущий результат счёта (СОА_ovf)
+	//			[14...15] - <COA_PreviousMeasurment>						- предыдущий результат счёта (СОА_CNT)
+	//			[16..17] -	<Scaner_ParentVoltage>							- напряжение с MSV ADC канал Сканера (Родительское)
+	//			[18..19] -	<Scaner_ScanVoltage>							- напряжение с MSV ADC канал Сканера (Сканирующее)
+	//			[20..21] -	<Condensator_PosVoltage>						- напряжение с MSV ADC канал Конденсатора(+)
+	//			[22..23] -	<Condensator_NegVoltage>						- напряжение с MSV ADC канал Конденсатора(-)
+	//------------------------------------------------------------------------------------------------------------------------
 	//			8 : <IS_EC : 2><IS_IV : 2><IS_F1 : 2><IS_F2 : 2>		- напряжения на DAC PSIS
 	//			6 : <D_DV1 : 2><D_DV2 : 2><D_DV3 : 2>					- напряжения на DAC DPS
 	//			9 : <S_PV : 3><S_SV : 3><C_V : 3>						- напряжения на DAC MSV

@@ -899,11 +899,77 @@ namespace Xmega32A4U_testBoard
             //Thread updateForm_RTC_Status_thread = new Thread(updateForm_RTC_Status);
             //updateForm_RTC_Status_thread.Start();
 
-            timer1.Interval = 5;
-            timer1.Start();
-            Thread t = new Thread(fun);
-            t.Start();
-            //fun();
+            //timer1.Interval = 5;
+            //timer1.Start();
+            //Thread t = new Thread(fun);
+            //t.Start();
+            //t.Join();
+            MC.Counters.MeasureTimes[0] = 1000;
+            MC.Counters.DelayTimes[0] = 500;
+            MC.Counters.SPI_DAC_ParentScan[0] = 8000;
+            MC.Counters.SPI_DAC_Scan[0] = 8000;
+            MC.Counters.SPI_DAC_Condensator[0] = 8000;
+
+            MC.Counters.MeasureTimes[1] = 100;
+            MC.Counters.DelayTimes[1] = 50;
+            MC.Counters.SPI_DAC_ParentScan[1] = 8000;
+            MC.Counters.SPI_DAC_Scan[1] = 8000;
+            MC.Counters.SPI_DAC_Condensator[1] = 8000;
+
+            MC.Counters.MeasureTimes[2] = 50;
+            MC.Counters.DelayTimes[2] = 10;
+            MC.Counters.SPI_DAC_ParentScan[2] = 8000;
+            MC.Counters.SPI_DAC_Scan[2] = 8000;
+            MC.Counters.SPI_DAC_Condensator[2] = 8000;
+
+            MC.Counters.MeasureTimes[3] = 50;
+            MC.Counters.DelayTimes[3] = 10;
+            MC.Counters.SPI_DAC_ParentScan[3] = 8000;
+            MC.Counters.SPI_DAC_Scan[3] = 8000;
+            MC.Counters.SPI_DAC_Condensator[3] = 8000;
+
+            MC.Counters.MeasureTimes[4] = 50;
+            MC.Counters.DelayTimes[4] = 10;
+            MC.Counters.SPI_DAC_ParentScan[4] = 8500;
+            MC.Counters.SPI_DAC_Scan[4] = 8000;
+            MC.Counters.SPI_DAC_Condensator[4] = 8000;
+
+            MC.Counters.MeasureTimes[5] = 50;
+            MC.Counters.DelayTimes[5] = 10;
+            MC.Counters.SPI_DAC_ParentScan[5] = 8000;
+            MC.Counters.SPI_DAC_Scan[5] = 8000;
+            MC.Counters.SPI_DAC_Condensator[5] = 8000;
+
+            MC.Counters.MeasureTimes[6] = 75;
+            MC.Counters.DelayTimes[6] = 25;
+            MC.Counters.SPI_DAC_ParentScan[6] = 8000;
+            MC.Counters.SPI_DAC_Scan[6] = 8000;
+            MC.Counters.SPI_DAC_Condensator[6] = 8000;
+
+            MC.Counters.MeasureTimes[7] = 100;
+            MC.Counters.DelayTimes[7] = 10;
+            MC.Counters.SPI_DAC_ParentScan[7] = 8000;
+            MC.Counters.SPI_DAC_Scan[7] = 8000;
+            MC.Counters.SPI_DAC_Condensator[7] = 8000;
+
+            MC.Counters.MeasureTimes[8] = 1000;
+            MC.Counters.DelayTimes[8] = 10;
+            MC.Counters.SPI_DAC_ParentScan[8] = 8000;
+            MC.Counters.SPI_DAC_Scan[8] = 8000;
+            MC.Counters.SPI_DAC_Condensator[8] = 8000;
+
+            MC.Counters.MeasureTimes[9] = 50;
+            MC.Counters.DelayTimes[9] = 500;
+            MC.Counters.SPI_DAC_ParentScan[9] = 8000;
+            MC.Counters.SPI_DAC_Scan[9] = 8000;
+            MC.Counters.SPI_DAC_Condensator[9] = 8000;
+
+            fun();
+            //for (int i = 0; i < Convert.ToInt32(TXB_realCOX_MeasureTime.Text); i++)
+            //{
+            //    trace(true,"[№"+i+"][MT:" + MC.Counters.MeasureTimes[i] + "][DT:" + MC.Counters.DelayTimes[i] + "]" + Environment.NewLine + "                       [DAC_PS:" + MC.Counters.SPI_DAC_ParentScan[i] + "][DAC_S:" + MC.Counters.SPI_DAC_Scan[i] + "][DAC_C:" + MC.Counters.SPI_DAC_Condensator[i] + "]" + Environment.NewLine + "                       [ADC_PS:" + MC.Counters.SPI_ADC_ParentScan[i] + "][ADC_S:" + MC.Counters.SPI_ADC_Scan[i] + "][ADC_Cp:" + MC.Counters.SPI_ADC_Condensator_pV[i] + "][ADC_Cn:" + MC.Counters.SPI_ADC_Condensator_nV[i] + "]");
+            //}
+            
             /*
             MC.Counters.startMeasure();
             //myThread.Join();
