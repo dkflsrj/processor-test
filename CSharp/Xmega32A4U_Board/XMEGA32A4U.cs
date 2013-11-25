@@ -232,25 +232,25 @@ namespace Xmega32A4U_testBoard
             public class _measure
             {
                 /// <summary>
-                /// Массив времени измерений в миллисекундах. (4096 измерений)
+                /// Массив времени измерений в миллисекундах от 50 до 2047925. (4096 измерений)
                 /// </summary>
                 public uint[] MeasureTimes = new uint[4096];
                 /// <summary>
-                /// Массив времени задержек между измерениями в миллисекундах. (4096 задержек)
+                /// Массив времени задержек между измерениями в миллисекундах от 50 до 2047925. (4096 задержек)
                 /// </summary>
                 public uint[] DelayTimes = new uint[4096];
                 public class _DAC
                 {
                     /// <summary>
-                    /// Массив Дополнительных Сканирующих напряжений (4096 напряжений)
+                    /// Массив Дополнительных Сканирующих напряжений от 0 до 16383 (4096 напряжений)
                     /// </summary>
                     public ushort[] ParentScan = new ushort[4096];
                     /// <summary>
-                    /// Массив Сканирующих напряжений (4096 напряжений)
+                    /// Массив Сканирующих напряжений от 0 до 16383 (4096 напряжений)
                     /// </summary>
                     public ushort[] Scan = new ushort[4096];
                     /// <summary>
-                    /// Массив напряжений Конденсатора (4096 напряжений)
+                    /// Массив напряжений Конденсатора от 0 до 16383 (4096 напряжений)
                     /// </summary>
                     public ushort[] Condensator = new ushort[4096];
                 }
@@ -260,9 +260,21 @@ namespace Xmega32A4U_testBoard
                 public _DAC DAC = new _DAC();
                 public class _ADC
                 {
+                    /// <summary>
+                    /// Массив Дополнительных Сканирующих напряжений от 0 до 16383 (4096 напряжений)
+                    /// </summary>
                     public ushort[] ParentScan = new ushort[4096];
+                    /// <summary>
+                    /// Массив Сканирующих напряжений от 0 до 16383 (4096 напряжений)
+                    /// </summary>
                     public ushort[] Scan = new ushort[4096];
+                    /// <summary>
+                    /// Массив положительных напряжений Конденсатора от 0 до 16383 (4096 напряжений)
+                    /// </summary>
                     public ushort[] Condensator_pV = new ushort[4096];
+                    /// <summary>
+                    /// Массив открицательных напряжений Конденсатора от 0 до 16383 (4096 напряжений)
+                    /// </summary>
                     public ushort[] Condensator_nV = new ushort[4096];
                 }
                 /// <summary>
@@ -273,7 +285,22 @@ namespace Xmega32A4U_testBoard
                 /// Количество ступеней измерений в серии. От 1 до 4096.
                 /// <para>По умолчанию: 1</para>
                 /// </summary>
-                public ushort Cycles = 1;
+                private ushort _Cycles = 1;
+                public ushort Cycles
+                {
+                    get { return _Cycles; }
+                    set
+                    {
+                        if ((value >= 1) && (value <= 4096))
+                        {
+                            _Cycles = value;
+                        }
+                        else
+                        {
+                            trace(".Counters.Series.Cycles: Неверное значение! Ожидалось: 1...4096. Получено: " + value);
+                        }
+                    }
+                }
             }
             /// <summary>
             /// Параметры серии измерений
@@ -477,12 +504,7 @@ namespace Xmega32A4U_testBoard
             public bool startMeasure()
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
-
-                const byte A = 2;//Отладочное (порядок байтов при обращении к ЦАПам)
-                const byte B = 1;//Отладочное (порядок байтов при обращении к ЦАПам)
-
-                ushort buf = 0; //Отладочный буффер
-
+                
                 string command = "Counters.startMeasure()";
                 trace_attached(Environment.NewLine);
                 trace(command);
@@ -491,6 +513,53 @@ namespace Xmega32A4U_testBoard
                     trace("Отмена операции! Запрещено во время счёта!");
                     return false;
                 }
+                //Предстартовая проверка всех изначальных данных, чтобы избежать неверных значений
+                for (int i = 0; i < Series.MeasureTimes.Length; i++)
+                {
+                    if((Series.MeasureTimes[i] < 50 )||(Series.MeasureTimes[i] > 2047925))
+                    {
+                        trace("Counters.Series.MeasureTimes["+i+"] имеет недопустипое значение! Ожидалось: 50...2047925. Получено: "+Series.MeasureTimes[i]);
+                        return false;
+                    }
+                }
+                for (int i = 0; i < Series.DelayTimes.Length; i++)
+                {
+                    if((Series.DelayTimes[i] < 50 )||(Series.DelayTimes[i] > 2047925))
+                    {
+                        trace("Counters.Series.DelayTimes["+i+"] имеет недопустипое значение! Ожидалось: 50...2047925. Получено: "+Series.DelayTimes[i]);
+                        return false;
+                    }
+                }
+                for (int i = 0; i < Series.DAC.Condensator.Length; i++)
+                {
+                    if(Series.DAC.Condensator[i] > 4095)
+                    {
+                        trace("Counters.Series.DAC.Condensator[" + i + "] имеет недопустипое значение! Ожидалось: 0...4095. Получено: " + Series.DAC.Condensator[i]);
+                        return false;
+                    }
+                }
+                for (int i = 0; i < Series.DAC.ParentScan.Length; i++)
+                {
+                    if (Series.DAC.ParentScan[i] > 4095)
+                    {
+                        trace("Counters.Series.DAC.ParentScan[" + i + "] имеет недопустипое значение! Ожидалось: 0...4095. Получено: " + Series.DAC.ParentScan[i]);
+                        return false;
+                    }
+                }
+                for (int i = 0; i < Series.DAC.Scan.Length; i++)
+                {
+                    if (Series.DAC.Scan[i] > 4095)
+                    {
+                        trace("Counters.Series.DAC.Scan[" + i + "] имеет недопустипое значение! Ожидалось: 0...4095. Получено: " + Series.DAC.Scan[i]);
+                        return false;
+                    }
+                }
+                //Все данные в порядке, начинаем серию
+                const byte A = 2;//Отладочное (порядок байтов при обращении к ЦАПам)
+                const byte B = 1;//Отладочное (порядок байтов при обращении к ЦАПам)
+
+                ushort buf = 0; //Отладочный буффер
+
                 RTC_is_busy = true;
                 COA.Count.Clear();
                 COA.Overflows.Clear();
