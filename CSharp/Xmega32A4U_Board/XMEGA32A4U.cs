@@ -421,7 +421,12 @@ namespace Xmega32A4U_testBoard
             public bool startMeasure()
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
-                //Очищаем листы результатов
+
+                const byte A = 2;//Отладочное (порядок байтов при обращении к ЦАПам)
+                const byte B = 1;//Отладочное (порядок байтов при обращении к ЦАПам)
+
+                ushort buf = 0; //Отладочный буффер
+
                 string command = "Counters.startMeasure()";
                 trace_attached(Environment.NewLine);
                 trace(command);
@@ -476,14 +481,14 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(DelayPeriod[1]);
                 wDATA.Add(DelayPeriod[0]);
                 wDATA.Add(ParentScanerBytes[0]);
-                wDATA.Add(ParentScanerBytes[1]);
-                wDATA.Add(ParentScanerBytes[2]);
+                wDATA.Add(ParentScanerBytes[A]);
+                wDATA.Add(ParentScanerBytes[B]);
                 wDATA.Add(ScanerBytes[0]);
-                wDATA.Add(ScanerBytes[1]);
-                wDATA.Add(ScanerBytes[2]);
+                wDATA.Add(ScanerBytes[A]);
+                wDATA.Add(ScanerBytes[B]);
                 wDATA.Add(CondensatorBytes[0]);
-                wDATA.Add(CondensatorBytes[1]);
-                wDATA.Add(CondensatorBytes[2]);
+                wDATA.Add(CondensatorBytes[A]);
+                wDATA.Add(CondensatorBytes[B]);
                 rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);                    //Посылаем настройки для измерения №0, но ответ забываем
                 Status = convertStatus(rDATA[2]);
                 rDATA.Clear();
@@ -529,14 +534,14 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(DelayPeriod[1]);
                 wDATA.Add(DelayPeriod[0]);
                 wDATA.Add(ParentScanerBytes[0]);
-                wDATA.Add(ParentScanerBytes[1]);
-                wDATA.Add(ParentScanerBytes[2]);
+                wDATA.Add(ParentScanerBytes[A]);
+                wDATA.Add(ParentScanerBytes[B]);
                 wDATA.Add(ScanerBytes[0]);
-                wDATA.Add(ScanerBytes[1]);
-                wDATA.Add(ScanerBytes[2]);
+                wDATA.Add(ScanerBytes[A]);
+                wDATA.Add(ScanerBytes[B]);
                 wDATA.Add(CondensatorBytes[0]);
-                wDATA.Add(CondensatorBytes[1]);
-                wDATA.Add(CondensatorBytes[2]);
+                wDATA.Add(CondensatorBytes[A]);
+                wDATA.Add(CondensatorBytes[B]);
                 rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);   //Посылаем настройки для измерения №1, но ответ забываем
                 Status = convertStatus(rDATA[2]);
                 rDATA.Clear();
@@ -556,6 +561,12 @@ namespace Xmega32A4U_testBoard
                     DelayPrescaler = getRTCprescaler(DelayTimes[N]);
                     BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[N]));
                     DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
+                    //Постараемся не выйти за диапозон массива измерений
+                    buf = N;
+                    if (N > Cycles - 1)
+                    {
+                        N = (ushort)(Cycles - 1);
+                    }
                     //Вычисление байт для Родительского Напряжения (канал = 24)
                     BYTES_buf = BitConverter.GetBytes(SPI_DAC_ParentScan[N] << 2);
                     ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
@@ -565,6 +576,7 @@ namespace Xmega32A4U_testBoard
                     //Вычисление байт для Конденсатора (канал = 24)
                     BYTES_buf = BitConverter.GetBytes(SPI_DAC_Condensator[N] << 2);
                     CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
+                    N = buf;
                     //Формирования данных
                     wDATA.Clear();
                     wDATA.Add(Command.RTC.setAll); //Команда
@@ -583,14 +595,14 @@ namespace Xmega32A4U_testBoard
                     wDATA.Add(DelayPeriod[1]);
                     wDATA.Add(DelayPeriod[0]);
                     wDATA.Add(ParentScanerBytes[0]);
-                    wDATA.Add(ParentScanerBytes[2]);
-                    wDATA.Add(ParentScanerBytes[1]);
+                    wDATA.Add(ParentScanerBytes[A]);
+                    wDATA.Add(ParentScanerBytes[B]);
                     wDATA.Add(ScanerBytes[0]);
-                    wDATA.Add(ScanerBytes[2]);
-                    wDATA.Add(ScanerBytes[1]);
+                    wDATA.Add(ScanerBytes[A]);
+                    wDATA.Add(ScanerBytes[B]);
                     wDATA.Add(CondensatorBytes[0]);
-                    wDATA.Add(CondensatorBytes[2]);
-                    wDATA.Add(CondensatorBytes[1]);
+                    wDATA.Add(CondensatorBytes[A]);
+                    wDATA.Add(CondensatorBytes[B]);
                     rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);
                     Status = convertStatus(rDATA[2]);
                     //Сохраняем данные
@@ -606,7 +618,7 @@ namespace Xmega32A4U_testBoard
                     SPI_ADC_Condensator_nV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[22] & 0xf) << 8) + rDATA[23]);
                     //сервис
                     rDATA.Clear();
-                    trace("[№" + (i + 1) + "][MT:" + MeasureTimes[i] + "][DT:" + DelayTimes[i] + "]" + Environment.NewLine + "        [DAC_PS:" + SPI_DAC_ParentScan[i] + "][DAC_S:" + SPI_DAC_Scan[i] + "][DAC_C:" + SPI_DAC_Condensator[i] + "]" + Environment.NewLine + "        [ADC_PS:" + SPI_ADC_ParentScan[i] + "][ADC_S:" + SPI_ADC_Scan[i] + "][ADC_Cp:" + SPI_ADC_Condensator_pV[i] + "][ADC_Cn:" + SPI_ADC_Condensator_nV[i] + "]");
+                    trace("["+N+"№" + (i + 1) + "][MT:" + MeasureTimes[i] + "][DT:" + DelayTimes[i] + "]" + Environment.NewLine + "        [DAC_PS:" + SPI_DAC_ParentScan[i] + "][DAC_S:" + SPI_DAC_Scan[i] + "][DAC_C:" + SPI_DAC_Condensator[i] + "]" + Environment.NewLine + "        [ADC_PS:" + SPI_ADC_ParentScan[i] + "][ADC_S:" + SPI_ADC_Scan[i] + "][ADC_Cp:" + SPI_ADC_Condensator_pV[i] + "][ADC_Cn:" + SPI_ADC_Condensator_nV[i] + "]");
                 }
                 //конец
                 if (USART.IsOpen)
