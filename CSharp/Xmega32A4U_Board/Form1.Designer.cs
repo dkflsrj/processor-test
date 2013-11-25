@@ -99,9 +99,7 @@
             this.BTN_TIC = new System.Windows.Forms.Button();
             this.TABpanel_4 = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.BTN_DETECTOR_reset = new System.Windows.Forms.Button();
             this.BTN_DETECTOR_getDV3voltage = new System.Windows.Forms.Button();
-            this.CHB_DETECTOR_x2 = new System.Windows.Forms.CheckBox();
             this.BTN_DETECTOR_getDV2voltage = new System.Windows.Forms.Button();
             this.BTN_DETECTOR_getDV1voltage = new System.Windows.Forms.Button();
             this.TXB_DETECTOR_setDV3voltage = new System.Windows.Forms.TextBox();
@@ -125,8 +123,6 @@
             this.CHB_SPUMP = new System.Windows.Forms.CheckBox();
             this.CHB_SEMV1 = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.BTN_IonSOURCE_reset = new System.Windows.Forms.Button();
-            this.CHB_IonSOURCE_x2 = new System.Windows.Forms.CheckBox();
             this.LBL_IonSOURCE_getF2voltage = new System.Windows.Forms.Label();
             this.LBL_IonSOURCE_getF1voltage = new System.Windows.Forms.Label();
             this.LBL_IonSOURCE_getIonizationVoltage = new System.Windows.Forms.Label();
@@ -148,7 +144,6 @@
             this.BTN_SCANER_getScanVoltage = new System.Windows.Forms.Button();
             this.BTN_SCANER_getParentScanVoltage = new System.Windows.Forms.Button();
             this.LBL_SCANER_getScanVoltage = new System.Windows.Forms.Label();
-            this.CHB_SCANER_x2 = new System.Windows.Forms.CheckBox();
             this.TXB_SCANER_setScanVoltage = new System.Windows.Forms.TextBox();
             this.TXB_SCANER_setParentScanVoltage = new System.Windows.Forms.TextBox();
             this.BTN_SCANER_setParentScanVoltage = new System.Windows.Forms.Button();
@@ -160,16 +155,13 @@
             this.BTN_CONDENSATOR_getPositiveVoltage = new System.Windows.Forms.Button();
             this.BTN_CONDENSATOR_setVoltage = new System.Windows.Forms.Button();
             this.LBL_CONDENSATOR_getPositiveVoltage = new System.Windows.Forms.Label();
-            this.CHB_CONDENSATOR_x2 = new System.Windows.Forms.CheckBox();
             this.LBL_CONDENSATOR_getNegativeVoltage = new System.Windows.Forms.Label();
             this.label18 = new System.Windows.Forms.Label();
             this.TXB_CONDENSATOR_setVoltage = new System.Windows.Forms.TextBox();
             this.GPB_Heater = new System.Windows.Forms.GroupBox();
             this.BTN_HEATER_setVoltage = new System.Windows.Forms.Button();
-            this.CHB_INLET_x2 = new System.Windows.Forms.CheckBox();
             this.LBL_HEATER_getVoltage = new System.Windows.Forms.Label();
             this.BTN_INLET_setVoltage = new System.Windows.Forms.Button();
-            this.BTN_HEATER_reset = new System.Windows.Forms.Button();
             this.TXB_HEATER_setVoltage = new System.Windows.Forms.TextBox();
             this.label15 = new System.Windows.Forms.Label();
             this.LBL_INLET_getVoltage = new System.Windows.Forms.Label();
@@ -1012,9 +1004,7 @@
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.BTN_DETECTOR_reset);
             this.groupBox2.Controls.Add(this.BTN_DETECTOR_getDV3voltage);
-            this.groupBox2.Controls.Add(this.CHB_DETECTOR_x2);
             this.groupBox2.Controls.Add(this.BTN_DETECTOR_getDV2voltage);
             this.groupBox2.Controls.Add(this.BTN_DETECTOR_getDV1voltage);
             this.groupBox2.Controls.Add(this.TXB_DETECTOR_setDV3voltage);
@@ -1035,17 +1025,6 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Детектор";
             // 
-            // BTN_DETECTOR_reset
-            // 
-            this.BTN_DETECTOR_reset.Enabled = false;
-            this.BTN_DETECTOR_reset.Location = new System.Drawing.Point(152, 9);
-            this.BTN_DETECTOR_reset.Name = "BTN_DETECTOR_reset";
-            this.BTN_DETECTOR_reset.Size = new System.Drawing.Size(48, 23);
-            this.BTN_DETECTOR_reset.TabIndex = 5;
-            this.BTN_DETECTOR_reset.Text = "Сброс";
-            this.BTN_DETECTOR_reset.UseVisualStyleBackColor = true;
-            this.BTN_DETECTOR_reset.Click += new System.EventHandler(this.BTN_DETECTOR_reset_Click);
-            // 
             // BTN_DETECTOR_getDV3voltage
             // 
             this.BTN_DETECTOR_getDV3voltage.Location = new System.Drawing.Point(103, 93);
@@ -1055,18 +1034,6 @@
             this.BTN_DETECTOR_getDV3voltage.Text = "->";
             this.BTN_DETECTOR_getDV3voltage.UseVisualStyleBackColor = true;
             this.BTN_DETECTOR_getDV3voltage.Click += new System.EventHandler(this.BTN_DETECTOR_getDV3voltage_Click);
-            // 
-            // CHB_DETECTOR_x2
-            // 
-            this.CHB_DETECTOR_x2.AutoSize = true;
-            this.CHB_DETECTOR_x2.Checked = true;
-            this.CHB_DETECTOR_x2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_DETECTOR_x2.Location = new System.Drawing.Point(115, 13);
-            this.CHB_DETECTOR_x2.Name = "CHB_DETECTOR_x2";
-            this.CHB_DETECTOR_x2.Size = new System.Drawing.Size(37, 17);
-            this.CHB_DETECTOR_x2.TabIndex = 4;
-            this.CHB_DETECTOR_x2.Text = "x2";
-            this.CHB_DETECTOR_x2.UseVisualStyleBackColor = true;
             // 
             // BTN_DETECTOR_getDV2voltage
             // 
@@ -1291,8 +1258,6 @@
             // 
             // groupBox3
             // 
-            this.groupBox3.Controls.Add(this.BTN_IonSOURCE_reset);
-            this.groupBox3.Controls.Add(this.CHB_IonSOURCE_x2);
             this.groupBox3.Controls.Add(this.LBL_IonSOURCE_getF2voltage);
             this.groupBox3.Controls.Add(this.LBL_IonSOURCE_getF1voltage);
             this.groupBox3.Controls.Add(this.LBL_IonSOURCE_getIonizationVoltage);
@@ -1316,28 +1281,6 @@
             this.groupBox3.TabIndex = 5;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Ионный источник";
-            // 
-            // BTN_IonSOURCE_reset
-            // 
-            this.BTN_IonSOURCE_reset.Location = new System.Drawing.Point(180, 11);
-            this.BTN_IonSOURCE_reset.Name = "BTN_IonSOURCE_reset";
-            this.BTN_IonSOURCE_reset.Size = new System.Drawing.Size(48, 23);
-            this.BTN_IonSOURCE_reset.TabIndex = 5;
-            this.BTN_IonSOURCE_reset.Text = "Сброс";
-            this.BTN_IonSOURCE_reset.UseVisualStyleBackColor = true;
-            this.BTN_IonSOURCE_reset.Click += new System.EventHandler(this.BTN_IonSOURCE_reset_Click);
-            // 
-            // CHB_IonSOURCE_x2
-            // 
-            this.CHB_IonSOURCE_x2.AutoSize = true;
-            this.CHB_IonSOURCE_x2.Checked = true;
-            this.CHB_IonSOURCE_x2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_IonSOURCE_x2.Location = new System.Drawing.Point(143, 15);
-            this.CHB_IonSOURCE_x2.Name = "CHB_IonSOURCE_x2";
-            this.CHB_IonSOURCE_x2.Size = new System.Drawing.Size(37, 17);
-            this.CHB_IonSOURCE_x2.TabIndex = 4;
-            this.CHB_IonSOURCE_x2.Text = "x2";
-            this.CHB_IonSOURCE_x2.UseVisualStyleBackColor = true;
             // 
             // LBL_IonSOURCE_getF2voltage
             // 
@@ -1505,7 +1448,6 @@
             this.groupBox1.Controls.Add(this.BTN_SCANER_getScanVoltage);
             this.groupBox1.Controls.Add(this.BTN_SCANER_getParentScanVoltage);
             this.groupBox1.Controls.Add(this.LBL_SCANER_getScanVoltage);
-            this.groupBox1.Controls.Add(this.CHB_SCANER_x2);
             this.groupBox1.Controls.Add(this.TXB_SCANER_setScanVoltage);
             this.groupBox1.Controls.Add(this.TXB_SCANER_setParentScanVoltage);
             this.groupBox1.Controls.Add(this.BTN_SCANER_setParentScanVoltage);
@@ -1548,18 +1490,6 @@
             this.LBL_SCANER_getScanVoltage.Size = new System.Drawing.Size(13, 13);
             this.LBL_SCANER_getScanVoltage.TabIndex = 3;
             this.LBL_SCANER_getScanVoltage.Text = "?";
-            // 
-            // CHB_SCANER_x2
-            // 
-            this.CHB_SCANER_x2.AutoSize = true;
-            this.CHB_SCANER_x2.Checked = true;
-            this.CHB_SCANER_x2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_SCANER_x2.Location = new System.Drawing.Point(149, 16);
-            this.CHB_SCANER_x2.Name = "CHB_SCANER_x2";
-            this.CHB_SCANER_x2.Size = new System.Drawing.Size(37, 17);
-            this.CHB_SCANER_x2.TabIndex = 1;
-            this.CHB_SCANER_x2.Text = "x2";
-            this.CHB_SCANER_x2.UseVisualStyleBackColor = true;
             // 
             // TXB_SCANER_setScanVoltage
             // 
@@ -1622,7 +1552,6 @@
             this.GPB_CONDER.Controls.Add(this.BTN_CONDENSATOR_getPositiveVoltage);
             this.GPB_CONDER.Controls.Add(this.BTN_CONDENSATOR_setVoltage);
             this.GPB_CONDER.Controls.Add(this.LBL_CONDENSATOR_getPositiveVoltage);
-            this.GPB_CONDER.Controls.Add(this.CHB_CONDENSATOR_x2);
             this.GPB_CONDER.Controls.Add(this.LBL_CONDENSATOR_getNegativeVoltage);
             this.GPB_CONDER.Controls.Add(this.label18);
             this.GPB_CONDER.Controls.Add(this.TXB_CONDENSATOR_setVoltage);
@@ -1673,18 +1602,6 @@
             this.LBL_CONDENSATOR_getPositiveVoltage.TabIndex = 3;
             this.LBL_CONDENSATOR_getPositiveVoltage.Text = "?";
             // 
-            // CHB_CONDENSATOR_x2
-            // 
-            this.CHB_CONDENSATOR_x2.AutoSize = true;
-            this.CHB_CONDENSATOR_x2.Checked = true;
-            this.CHB_CONDENSATOR_x2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_CONDENSATOR_x2.Location = new System.Drawing.Point(240, 12);
-            this.CHB_CONDENSATOR_x2.Name = "CHB_CONDENSATOR_x2";
-            this.CHB_CONDENSATOR_x2.Size = new System.Drawing.Size(37, 17);
-            this.CHB_CONDENSATOR_x2.TabIndex = 1;
-            this.CHB_CONDENSATOR_x2.Text = "x2";
-            this.CHB_CONDENSATOR_x2.UseVisualStyleBackColor = true;
-            // 
             // LBL_CONDENSATOR_getNegativeVoltage
             // 
             this.LBL_CONDENSATOR_getNegativeVoltage.AutoSize = true;
@@ -1715,10 +1632,8 @@
             // GPB_Heater
             // 
             this.GPB_Heater.Controls.Add(this.BTN_HEATER_setVoltage);
-            this.GPB_Heater.Controls.Add(this.CHB_INLET_x2);
             this.GPB_Heater.Controls.Add(this.LBL_HEATER_getVoltage);
             this.GPB_Heater.Controls.Add(this.BTN_INLET_setVoltage);
-            this.GPB_Heater.Controls.Add(this.BTN_HEATER_reset);
             this.GPB_Heater.Controls.Add(this.TXB_HEATER_setVoltage);
             this.GPB_Heater.Controls.Add(this.label15);
             this.GPB_Heater.Controls.Add(this.LBL_INLET_getVoltage);
@@ -1742,18 +1657,6 @@
             this.BTN_HEATER_setVoltage.UseVisualStyleBackColor = true;
             this.BTN_HEATER_setVoltage.Click += new System.EventHandler(this.BTN_HEATER_setVoltage_Click);
             // 
-            // CHB_INLET_x2
-            // 
-            this.CHB_INLET_x2.AutoSize = true;
-            this.CHB_INLET_x2.Checked = true;
-            this.CHB_INLET_x2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_INLET_x2.Location = new System.Drawing.Point(143, 17);
-            this.CHB_INLET_x2.Name = "CHB_INLET_x2";
-            this.CHB_INLET_x2.Size = new System.Drawing.Size(37, 17);
-            this.CHB_INLET_x2.TabIndex = 1;
-            this.CHB_INLET_x2.Text = "x2";
-            this.CHB_INLET_x2.UseVisualStyleBackColor = true;
-            // 
             // LBL_HEATER_getVoltage
             // 
             this.LBL_HEATER_getVoltage.AutoSize = true;
@@ -1773,17 +1676,6 @@
             this.BTN_INLET_setVoltage.Text = "Натекатель";
             this.BTN_INLET_setVoltage.UseVisualStyleBackColor = true;
             this.BTN_INLET_setVoltage.Click += new System.EventHandler(this.BTN_INLET_setVoltage_Click);
-            // 
-            // BTN_HEATER_reset
-            // 
-            this.BTN_HEATER_reset.Enabled = false;
-            this.BTN_HEATER_reset.Location = new System.Drawing.Point(180, 12);
-            this.BTN_HEATER_reset.Name = "BTN_HEATER_reset";
-            this.BTN_HEATER_reset.Size = new System.Drawing.Size(48, 23);
-            this.BTN_HEATER_reset.TabIndex = 0;
-            this.BTN_HEATER_reset.Text = "Сброс";
-            this.BTN_HEATER_reset.UseVisualStyleBackColor = true;
-            this.BTN_HEATER_reset.Click += new System.EventHandler(this.BTN_HEATER_reset_Click);
             // 
             // TXB_HEATER_setVoltage
             // 
@@ -2325,8 +2217,6 @@
         private System.Windows.Forms.Button BTN_INLET_getVoltage;
         private System.Windows.Forms.GroupBox GPB_Heater;
         private System.Windows.Forms.Button BTN_HEATER_setVoltage;
-        private System.Windows.Forms.CheckBox CHB_INLET_x2;
-        private System.Windows.Forms.Button BTN_HEATER_reset;
         private System.Windows.Forms.Label LBL_HEATER_getVoltage;
         private System.Windows.Forms.TextBox TXB_HEATER_setVoltage;
         private System.Windows.Forms.Button _BTN_HEATER_getVoltage;
@@ -2340,7 +2230,6 @@
         private System.Windows.Forms.Button BTN_IonSOURCE_setF1voltage;
         private System.Windows.Forms.Button BTN_IonSOURCE_setIonizationVoltage;
         private System.Windows.Forms.Button BTN_IonSOURCE_setEmissionCurrentVoltage;
-        private System.Windows.Forms.CheckBox CHB_IonSOURCE_x2;
         private System.Windows.Forms.Label LBL_IonSOURCE_getF2voltage;
         private System.Windows.Forms.Label LBL_IonSOURCE_getF1voltage;
         private System.Windows.Forms.Label LBL_IonSOURCE_getIonizationVoltage;
@@ -2352,10 +2241,7 @@
         private System.Windows.Forms.Button BTN_IonSOURCE_getF1voltage;
         private System.Windows.Forms.Button BTN_IonSOURCE_getIonizationVoltage;
         private System.Windows.Forms.Button BTN_IonSOURCE_getEmissionCurrentVoltage;
-        private System.Windows.Forms.Button BTN_IonSOURCE_reset;
-        private System.Windows.Forms.Button BTN_DETECTOR_reset;
         private System.Windows.Forms.Button BTN_DETECTOR_getDV3voltage;
-        private System.Windows.Forms.CheckBox CHB_DETECTOR_x2;
         private System.Windows.Forms.Button BTN_DETECTOR_getDV2voltage;
         private System.Windows.Forms.Button BTN_DETECTOR_getDV1voltage;
         private System.Windows.Forms.TextBox TXB_DETECTOR_setDV3voltage;
@@ -2377,7 +2263,6 @@
         private System.Windows.Forms.Button BTN_SCANER_getScanVoltage;
         private System.Windows.Forms.Button BTN_SCANER_getParentScanVoltage;
         private System.Windows.Forms.Label LBL_SCANER_getScanVoltage;
-        private System.Windows.Forms.CheckBox CHB_SCANER_x2;
         private System.Windows.Forms.TextBox TXB_SCANER_setScanVoltage;
         private System.Windows.Forms.TextBox TXB_SCANER_setParentScanVoltage;
         private System.Windows.Forms.Label LBL_SCANER_getParentScanVoltage;
@@ -2386,7 +2271,6 @@
         private System.Windows.Forms.Button BTN_CONDENSATOR_getNegativeVoltage;
         private System.Windows.Forms.Button BTN_CONDENSATOR_getPositiveVoltage;
         private System.Windows.Forms.Button BTN_CONDENSATOR_setVoltage;
-        private System.Windows.Forms.CheckBox CHB_CONDENSATOR_x2;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox TXB_CONDENSATOR_setVoltage;
         private System.Windows.Forms.GroupBox GPB_Flags;

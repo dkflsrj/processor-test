@@ -156,7 +156,6 @@ namespace Xmega32A4U_testBoard
             public struct TEST
             {
                 //Коды команд отладки
-                public const byte showMeByte = 10;
                 public const byte checkCommandStack = 8;
             }
             public const byte setFlags = 80;
@@ -204,6 +203,7 @@ namespace Xmega32A4U_testBoard
                 }
 
             }
+            
             public class counter
             {
                 //КЛАСС: Счётчик. Только хранит значения.
@@ -229,18 +229,64 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             public counter COC = new counter();
             //Настройки для измерений
-            
-            public uint[] MeasureTimes = new uint[4096];
-            public uint[] DelayTimes = new uint[4096];
-            public ushort[] SPI_DAC_ParentScan = new ushort[4096];
-            public ushort[] SPI_DAC_Scan = new ushort[4096];
-            public ushort[] SPI_DAC_Condensator = new ushort[4096];
-            public ushort[] SPI_ADC_ParentScan = new ushort[4096];
-            public ushort[] SPI_ADC_Scan = new ushort[4096];
-            public ushort[] SPI_ADC_Condensator_pV = new ushort[4096];
-            public ushort[] SPI_ADC_Condensator_nV = new ushort[4096];
-
-            public ushort Cycles = 0;
+            public class _measure
+            {
+                /// <summary>
+                /// Массив времени измерений в миллисекундах. (4096 измерений)
+                /// </summary>
+                public uint[] MeasureTimes = new uint[4096];
+                /// <summary>
+                /// Массив времени задержек между измерениями в миллисекундах. (4096 задержек)
+                /// </summary>
+                public uint[] DelayTimes = new uint[4096];
+                public class _DAC
+                {
+                    /// <summary>
+                    /// Массив Дополнительных Сканирующих напряжений (4096 напряжений)
+                    /// </summary>
+                    public ushort[] ParentScan = new ushort[4096];
+                    /// <summary>
+                    /// Массив Сканирующих напряжений (4096 напряжений)
+                    /// </summary>
+                    public ushort[] Scan = new ushort[4096];
+                    /// <summary>
+                    /// Массив напряжений Конденсатора (4096 напряжений)
+                    /// </summary>
+                    public ushort[] Condensator = new ushort[4096];
+                }
+                /// <summary>
+                /// Массив напряжений, которые будут выставлены МК во время задержки (4096 напряжений)
+                /// </summary>
+                public _DAC DAC = new _DAC();
+                public class _ADC
+                {
+                    public ushort[] ParentScan = new ushort[4096];
+                    public ushort[] Scan = new ushort[4096];
+                    public ushort[] Condensator_pV = new ushort[4096];
+                    public ushort[] Condensator_nV = new ushort[4096];
+                }
+                /// <summary>
+                /// Массив напряжений, которые будут считаны МК-ом во время измерния с АЦП (4096 напряжений)
+                /// </summary>
+                public _ADC ADC = new _ADC();
+                /// <summary>
+                /// Количество ступеней измерений в серии. От 1 до 4096.
+                /// <para>По умолчанию: 1</para>
+                /// </summary>
+                public ushort Cycles = 1;
+            }
+            /// <summary>
+            /// Параметры серии измерений
+            /// </summary>
+            public _measure Series = new _measure();
+            /// <summary>
+            /// Состояние счётчиков
+            /// <para>  notSet: С момента запуска МК не было установлено параметров серии измерений.</para>
+            /// <para>  ready: Счётчики готовы к работе.</para>
+            /// <para>  busy: Счётчики считают импульсы.</para>
+            /// <para>  delayed: Счётчики отключены. МК настраивает DAC MSV для следующего измерения.</para>
+            /// <para>  stopped: Серия была прервана.</para>
+            /// </summary>
             public string Status = "notSet";
 
             string convertStatus(byte Status_byte)
@@ -270,7 +316,13 @@ namespace Xmega32A4U_testBoard
                 }
                 return Status_string;
             }
-
+            //Видимые функции
+            /// <summary>
+            /// Вычисляет и возвращает предделитель RTC 
+            /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
+            /// </summary>
+            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
+            /// <returns>?</returns>
             public byte getRTCprescaler(uint MILLISECONDS)
             {
                 byte prescaler; //Предделитель
@@ -310,9 +362,8 @@ namespace Xmega32A4U_testBoard
                 }
                 return prescaler;
             }
-            //Видимые функции
             /// <summary>
-            /// Вычисляет, устанавливает и возвращает предделитель RTC 
+            /// Вычисляет и возвращает предделитель RTC в длинном формате
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
@@ -358,7 +409,7 @@ namespace Xmega32A4U_testBoard
                 return prescaler_long;
             }
             /// <summary>
-            /// Вычисляет, устанавливает и возвращает предделитель RTC 
+            /// Вычисляет и возвращает предделитель RTC (в длинном формате) 
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
@@ -368,7 +419,7 @@ namespace Xmega32A4U_testBoard
                 return getRTCprescaler_long(Convert.ToUInt32(MILLISECONDS));
             }
             /// <summary>
-            /// Возвращает частоту RTC в соответствии с предделителем
+            /// Возвращает частоту RTC в соответствии с предделителем в длинном формате
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             public double getRTCfrequency(uint MILLISECONDS)
@@ -376,6 +427,10 @@ namespace Xmega32A4U_testBoard
                 //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
                 return (Constants.sourceFrequency / getRTCprescaler_long(MILLISECONDS));
             }
+            /// <summary>
+            /// Возвращает частоту RTC в соответствии с предделителем в длинном формате
+            /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
+            /// </summary>
             public double getRTCfrequency(string MILLISECONDS)
             {
                 //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
@@ -413,10 +468,11 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Запускает счётчики и RTC на заданный заранее промежуток времени (.setMeasureTime(MILLISECONDS)).
+            /// Запускает серию измерений. Количество ступеней в серии определяется параметром Series_Cycles
+            /// <para>Параметры для каждой ступени измерений беруться из соответствующих массивов.</para>
             /// <para>Возвращает:</para>
-            /// <para>true - операция выполнена успешно. Счётчики начали счёт.</para>
-            /// <para>false - операция отменена (счётчики уже считают, в этом случае их надо сначала остановить командой .stopMeasure();)</para>
+            /// <para>true - серия успешно завершена.</para>
+            /// <para>false - ошибка при выполнении операции.</para>
             /// </summary>
             public bool startMeasure()
             {
@@ -456,20 +512,20 @@ namespace Xmega32A4U_testBoard
                 byte[] CondensatorBytes = new byte[3];
                 ushort N = 0; //Номер текущего измерения
                 //Вычисление байт для RTC
-                MeasurePrescaler = getRTCprescaler(MeasureTimes[N]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[N]));
+                MeasurePrescaler = getRTCprescaler(Series.MeasureTimes[N]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.MeasureTimes[N]));
                 MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                DelayPrescaler = getRTCprescaler(DelayTimes[N]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[N]));
+                DelayPrescaler = getRTCprescaler(Series.DelayTimes[N]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.DelayTimes[N]));
                 DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
                 //Вычисление байт для DAC'a Родительского Напряжения (канал = 24)
-                BYTES_buf = BitConverter.GetBytes(SPI_DAC_ParentScan[N] << 2);
+                BYTES_buf = BitConverter.GetBytes(Series.DAC.ParentScan[N] << 2);
                 ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
                 //Вычисление байт для DAC'a Сканирующего Напряжения (канал = 25)
-                BYTES_buf = BitConverter.GetBytes(SPI_DAC_Scan[N] << 2);
+                BYTES_buf = BitConverter.GetBytes(Series.DAC.Scan[N] << 2);
                 ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
                 //Вычисление байт для DAC'a Конденсатора (канал = 24)
-                BYTES_buf = BitConverter.GetBytes(SPI_DAC_Condensator[N] << 2);
+                BYTES_buf = BitConverter.GetBytes(Series.DAC.Condensator[N] << 2);
                 CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
                 //Набираем данные на отправку
                 wDATA.Add(Command.RTC.setAll); //Команда
@@ -501,25 +557,25 @@ namespace Xmega32A4U_testBoard
                 //N = 0;//
                 N++;
                 //Подготовка новых данных для следующего измерения
-                MeasurePrescaler = getRTCprescaler(MeasureTimes[N]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[N]));
+                MeasurePrescaler = getRTCprescaler(Series.MeasureTimes[N]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.MeasureTimes[N]));
                 MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                DelayPrescaler = getRTCprescaler(DelayTimes[N]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[N]));
+                DelayPrescaler = getRTCprescaler(Series.DelayTimes[N]);
+                BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.DelayTimes[N]));
                 DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
                 //Вычисление байт для Родительского Напряжения (канал = 24)
-                BYTES_buf = BitConverter.GetBytes(SPI_DAC_ParentScan[N] << 2);
+                BYTES_buf = BitConverter.GetBytes(Series.DAC.ParentScan[N] << 2);
                 ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
                 //Вычисление байт для Сканирующего Напряжения (канал = 25)
-                BYTES_buf = BitConverter.GetBytes(SPI_DAC_Scan[N] << 2);
+                BYTES_buf = BitConverter.GetBytes(Series.DAC.Scan[N] << 2);
                 ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
                 //Вычисление байт для Конденсатора (канал = 24)
-                BYTES_buf = BitConverter.GetBytes(SPI_DAC_Condensator[N] << 2);
+                BYTES_buf = BitConverter.GetBytes(Series.DAC.Condensator[N] << 2);
                 CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
                 //Формирование данных
                 wDATA.Clear();
                 wDATA.Add(Command.RTC.setAll); //Команда
-                if (Cycles == 1)
+                if (Series.Cycles == 1)
                 {
                     wDATA.Add(Constants.NextMeasure.NotDo);    //Это последнее измерение! Не делать следующее
                 }
@@ -546,7 +602,7 @@ namespace Xmega32A4U_testBoard
                 Status = convertStatus(rDATA[2]);
                 rDATA.Clear();
                 //Цикл...
-                for (int i = 0; i < Cycles; i++)
+                for (int i = 0; i < Series.Cycles; i++)
                 {
                     rDATA = decode_2(receive_2(Constants.LengthOfLAMPacket, false));
                     Status = convertStatus(rDATA[1]);
@@ -555,32 +611,32 @@ namespace Xmega32A4U_testBoard
                     //N = 0;//
                     N++;
                     //Подготовка новых данных для следующего измерения
-                    MeasurePrescaler = getRTCprescaler(MeasureTimes[N]);
-                    BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[N]));
+                    MeasurePrescaler = getRTCprescaler(Series.MeasureTimes[N]);
+                    BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.MeasureTimes[N]));
                     MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                    DelayPrescaler = getRTCprescaler(DelayTimes[N]);
-                    BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[N]));
+                    DelayPrescaler = getRTCprescaler(Series.DelayTimes[N]);
+                    BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.DelayTimes[N]));
                     DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
                     //Постараемся не выйти за диапозон массива измерений
                     buf = N;
-                    if (N > Cycles - 1)
+                    if (N > Series.Cycles - 1)
                     {
-                        N = (ushort)(Cycles - 1);
+                        N = (ushort)(Series.Cycles - 1);
                     }
                     //Вычисление байт для Родительского Напряжения (канал = 24)
-                    BYTES_buf = BitConverter.GetBytes(SPI_DAC_ParentScan[N] << 2);
+                    BYTES_buf = BitConverter.GetBytes(Series.DAC.ParentScan[N] << 2);
                     ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
                     //Вычисление байт для Сканирующего Напряжения (канал = 25)
-                    BYTES_buf = BitConverter.GetBytes(SPI_DAC_Scan[N] << 2);
+                    BYTES_buf = BitConverter.GetBytes(Series.DAC.Scan[N] << 2);
                     ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
                     //Вычисление байт для Конденсатора (канал = 24)
-                    BYTES_buf = BitConverter.GetBytes(SPI_DAC_Condensator[N] << 2);
+                    BYTES_buf = BitConverter.GetBytes(Series.DAC.Condensator[N] << 2);
                     CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
                     N = buf;
                     //Формирования данных
                     wDATA.Clear();
                     wDATA.Add(Command.RTC.setAll); //Команда
-                    if(i == Cycles - 2)
+                    if(i == Series.Cycles - 2)
                     {
                         wDATA.Add(Constants.NextMeasure.NotDo);    //Это последнее измерение! Не делать следующее
                     }
@@ -612,22 +668,22 @@ namespace Xmega32A4U_testBoard
                     COB.Count.Add((uint)(rDATA[9] * 16777216 + rDATA[10] * 65536 + rDATA[11] * 256 + rDATA[12]));
                     COC.Overflows.Add(rDATA[13]);
                     COC.Count.Add((uint)(rDATA[14] * 256 + rDATA[15]));
-                    SPI_ADC_ParentScan[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[16] & 0xf) << 8) + rDATA[17]);
-                    SPI_ADC_Scan[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[18] & 0xf) << 8) + rDATA[19]);
-                    SPI_ADC_Condensator_pV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[20] & 0xf) << 8) + rDATA[21]);
-                    SPI_ADC_Condensator_nV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[22] & 0xf) << 8) + rDATA[23]);
+                    Series.ADC.ParentScan[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[16] & 0xf) << 8) + rDATA[17]);
+                    Series.ADC.Scan[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[18] & 0xf) << 8) + rDATA[19]);
+                    Series.ADC.Condensator_pV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[20] & 0xf) << 8) + rDATA[21]);
+                    Series.ADC.Condensator_nV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[22] & 0xf) << 8) + rDATA[23]);
                     //сервис
                     rDATA.Clear();
-                    trace("["+N+"№" + (i + 1) + "][MT:" + MeasureTimes[i] + "][DT:" + DelayTimes[i] + "]" + Environment.NewLine + "        [DAC_PS:" + SPI_DAC_ParentScan[i] + "][DAC_S:" + SPI_DAC_Scan[i] + "][DAC_C:" + SPI_DAC_Condensator[i] + "]" + Environment.NewLine + "        [ADC_PS:" + SPI_ADC_ParentScan[i] + "][ADC_S:" + SPI_ADC_Scan[i] + "][ADC_Cp:" + SPI_ADC_Condensator_pV[i] + "][ADC_Cn:" + SPI_ADC_Condensator_nV[i] + "]");
+                    trace("["+N+"№" + (i + 1) + "][MT:" + Series.MeasureTimes[i] + "][DT:" + Series.DelayTimes[i] + "]" + Environment.NewLine + "        [DAC_PS:" + Series.DAC.ParentScan[i] + "][DAC_S:" + Series.DAC.Scan[i] + "][DAC_C:" + Series.DAC.Condensator[i] + "]" + Environment.NewLine + "        [ADC_PS:" + Series.ADC.ParentScan[i] + "][ADC_S:" + Series.ADC.Scan[i] + "][ADC_Cp:" + Series.ADC.Condensator_pV[i] + "][ADC_Cn:" + Series.ADC.Condensator_nV[i] + "]");
                 }
                 //конец
                 if (USART.IsOpen)
                 {
                     USART.Close();
                 }
-                //for (int i = 0; i < Cycles; i++)
+                //for (int i = 0; i < Series_Cycles; i++)
                 //{
-                //    trace("[№"+i+"][MT:"+MeasureTimes[i]+"][DT:"+DelayTimes[i]+"]"+Environment.NewLine+"        [DAC_PS:"+SPI_DAC_ParentScan[i]+"][DAC_S:"+SPI_DAC_Scan[i]+"][DAC_C:"+SPI_DAC_Condensator[i]+"]"+Environment.NewLine+"        [ADC_PS:"+SPI_ADC_ParentScan[i]+"][ADC_S:"+SPI_ADC_Scan[i]+"][ADC_Cp:"+SPI_ADC_Condensator_pV[i]+"][ADC_Cn:"+SPI_ADC_Condensator_nV[i]+"]");
+                //    trace("[№"+i+"][MT:"+Series_MeasureTimes[i]+"][DT:"+Series_DelayTimes[i]+"]"+Environment.NewLine+"        [DAC_PS:"+Series_DAC_ParentScan[i]+"][DAC_S:"+Series_DAC_Scan[i]+"][DAC_C:"+Series_DAC_Condensator[i]+"]"+Environment.NewLine+"        [ADC_PS:"+Series_ADC_ParentScan[i]+"][ADC_S:"+Series_ADC_Scan[i]+"][ADC_Cp:"+Series_ADC_Condensator_pV[i]+"][ADC_Cn:"+Series_ADC_Condensator_nV[i]+"]");
                 //}
                 RTC_is_busy = false;
                 if (Status == Constants.Status.string_ready)
@@ -640,12 +696,12 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Останавливает счётчики и RTC.
+            /// Останавливает серию.
             ///<para>Возвращает:</para>
-            ///<para>true - операция выполнена успешно. Счётчики принудительно остановлены (команда .recieveResults() будет проигнорирована)</para>
-            ///<para>false - операция была отменена (счётчики не считают)</para>
+            ///<para>true - операция выполнена успешно.</para>
+            ///<para>false - операция была отменена.</para>
             /// </summary>
-            public bool stopMeasure()
+            bool stopMeasure()
             {
                 //ФУНКЦИЯ: Останавливает счётчик. Возвращает true, если операция удалась. false - не удалась (счётчик не считает)
                 string command = "Counters.stopMeasure()";
@@ -865,60 +921,16 @@ namespace Xmega32A4U_testBoard
             }
             //Видимые функции
             /// <summary>
-            /// Возвращает напряжение на канале ADC.
-            /// <para>Если DoubleRange = true, то диапазон напряжения увеличен в двое.</para>
-            /// <para>Если DoubleRange = false, то диапазон напряжения соответствует выставляемому DAC'ом</para>
-            /// <para>DoubleRange задаётся командой .enableDoubleRange(bool)</para>
+            /// Возвращает напряжение на канале ADC в диапазоне от 0 до 4095.
             /// </summary>
             public ushort getVoltage()
             {
                 return ADC_getVoltage(ADC_command, ADC_channel);
             }
-            /// <summary>
-            /// .enableDoubleRange(true) - увеличивает диапазон напряжения считываемого ADC в двое.
-            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом</para>
-            /// <para>Задавать до .getVoltage()</para>
-            /// </summary>
-            public void enableDoubleRange(bool enable)
-            {
-                DoubleRange = enable;
-            }
-        }
-        public class SPI_DEVICE_CHANNEL_withReset : SPI_DEVICE_CHANNEL
-        {
-            //КЛАСС: Класс для каналов с reset()'ом для Натекателя и Нагревателя
-            const byte Reset_Hbyte = 255;
-            const byte Reset_Lbyte = 255;
-
-            public SPI_DEVICE_CHANNEL_withReset(byte DAC_CHANNEL, byte DAC_COMMAND, byte ADC_CHANNEL, byte ADC_COMMAND)
-            {
-                DAC_channel = DAC_CHANNEL;
-                ADC_channel = ADC_CHANNEL;
-                DAC_command = DAC_COMMAND;
-                ADC_command = ADC_COMMAND;
-            }
-            /// <summary>
-            /// Сбрасывает все настройки DAC'а и его напряжения 
-            /// <para>ПРИМЕЧАНИЕ: у Натекателя и Нагревателя общий DAC, иными словами общий .reset()</para>
-            /// </summary>
-            bool reset()
-            {
-                string command = "DAC_CHANNEL.reset(INLET)";
-                trace_attached(Environment.NewLine);
-                trace(command);
-                byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(DAC_command, data)[0] == DAC_command)
-                {
-                    trace(command + ": Операция выполнена успешно! Напряжения DAC'а Натекателя и Нагревателя сброшены.");
-                    return true;
-                }
-                addError(" ! " + command + ": ОШИБКА ОТКЛИКА!");
-                return false;
-            }
         }
         public class SPI_CONDENSATOR
         {
-            //КЛАСС: Каналы для конденсатора (+\-) с reset()'ом
+            //КЛАСС: Каналы для конденсатора (+\-)
             //DAC AD5643R
             byte[] ConfInnerRef_bytes = {56,0,1}; //старший, средний, младший
             protected bool Ref_is_inner = false;
@@ -1010,33 +1022,18 @@ namespace Xmega32A4U_testBoard
             }
             //Видимые функции
             /// <summary>
-            /// Возвращает напряжение положительной обкладки конденсатора
-            /// <para>Если DoubleRange = true, то диапазон напряжения увеличен в двое.</para>
-            /// <para>Если DoubleRange = false, то диапазон напряжения соответствует выставляемому DAC'ом</para>
-            /// <para>DoubleRange задаётся командой .enableDoubleRange(bool)</para>
+            /// Возвращает напряжение положительной обкладки конденсатора в диапазоне от 0 до 4095.
             /// </summary>
             public ushort getPositiveVoltage()
             {
                 return ADC_getVoltage(Command.SPI.Condensator.getPositiveVoltage, ADC_positive_channel);
             }
             /// <summary>
-            /// Возвращает напряжение отрицательной обкладки конденсатора
-            /// <para>Если DoubleRange = true, то диапазон напряжения увеличен в двое.</para>
-            /// <para>Если DoubleRange = false, то диапазон напряжения соответствует выставляемому DAC'ом</para>
-            /// <para>DoubleRange задаётся командой .enableDoubleRange(bool)</para>
+            /// Возвращает напряжение отрицательной обкладки конденсатора в диапазоне от 0 до 4095.
             /// </summary>
             public ushort getNegativeVoltage()
             {
                 return ADC_getVoltage(Command.SPI.Condensator.getNegativeVoltage, ADC_negative_channel);
-            }
-            /// <summary>
-            /// .enableDoubleRange(true) - увеличивает диапазон напряжения считываемого ADC в двое.
-            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом</para>
-            /// <para>Задавать до .getPositiveVoltage() и .getNegativeVoltage()</para>
-            /// </summary>
-            public void enableDoubleRange(bool enable)
-            {
-                DoubleRange = enable;
             }
             //Видимые функции
             /// <summary>
@@ -1083,29 +1080,10 @@ namespace Xmega32A4U_testBoard
         {
             //КЛАСС: Ионный источник - используется каналы А,B,C,D
             //DAC AD5328BR
-            const byte Reset_Hbyte = 128;//255;
-            const byte Reset_Lbyte = 60;//255;
             const byte EmissionCurrent_channel =        1;
             const byte Ionization_channel =             2;
             const byte F1_channel =                     3;
             const byte F2_channel =                     4;
-            /// <summary>
-            /// Сбрасывает все настройки DAC'а и его напряжения 
-            /// </summary>
-            public bool reset()
-            {
-                string command = "DAC_CHANNEL.reset(IonSOURCE)";
-                trace_attached(Environment.NewLine);
-                trace(command);
-                byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.IonSource.EmissionCurrent.setVoltage, data)[0] == Command.SPI.IonSource.EmissionCurrent.setVoltage)
-                {
-                    trace(command + ": Операция выполнена успешно!");
-                    return true;
-                }
-                addError(" ! " + command + ": ОШИБКА ОТКЛИКА!");
-                return false;
-            }
             //Каналы
             /// <summary>
             /// Напряжение тока эмиссии
@@ -1123,25 +1101,11 @@ namespace Xmega32A4U_testBoard
             /// Фокусирующее напряжение 2
             /// </summary>
             public SPI_DEVICE_CHANNEL F2 = new SPI_DEVICE_CHANNEL(F2_channel, Command.SPI.IonSource.F2.setVoltage, F2_channel, Command.SPI.IonSource.F2.getVoltage);
-            /// <summary>
-            /// .enableDoubleRange(true) - увеличивает диапазон напряжения в двое всем каналам ADC Ионного Источника.
-            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом всем каналам ADC Ионного Источника</para>
-            /// <para>Задавать до .getVoltage()</para>
-            /// </summary>
-            public void enableDoubleRange(bool enable)
-            {
-                EmissionCurrent.enableDoubleRange(enable);
-                Ionization.enableDoubleRange(enable);
-                F1.enableDoubleRange(enable);
-                F2.enableDoubleRange(enable);
-            }
         }
         public class SPI_DETECTOR
         {
             //КЛАСС: Ионный источник - используется каналы А,B,C,D
             //DAC AD5328BR
-            const byte Reset_Hbyte = 255;
-            const byte Reset_Lbyte = 255;
             const byte DV1_channel = 1;
             const byte DV2_channel = 2;
             const byte DV3_channel = 3;
@@ -1149,34 +1113,6 @@ namespace Xmega32A4U_testBoard
             public SPI_DEVICE_CHANNEL DV1 = new SPI_DEVICE_CHANNEL(DV1_channel, Command.SPI.Detector.DV1.setVoltage, DV1_channel, Command.SPI.Detector.DV1.getVoltage);
             public SPI_DEVICE_CHANNEL DV2 = new SPI_DEVICE_CHANNEL(DV2_channel, Command.SPI.Detector.DV2.setVoltage, DV2_channel, Command.SPI.Detector.DV2.getVoltage);
             public SPI_DEVICE_CHANNEL DV3 = new SPI_DEVICE_CHANNEL(DV3_channel, Command.SPI.Detector.DV3.setVoltage, DV3_channel, Command.SPI.Detector.DV3.getVoltage);
-            /// <summary>
-            /// Сбрасывает все настройки DAC'а и его напряжения 
-            /// </summary>
-            bool reset()
-            {
-                string command = "DAC_CHANNEL.reset(DETECTOR)";
-                trace_attached(Environment.NewLine);
-                trace(command);
-                byte[] data = { Reset_Hbyte, Reset_Lbyte };
-                if (transmit(Command.SPI.Detector.DV1.setVoltage, data)[0] == Command.SPI.Detector.DV1.setVoltage)
-                {
-                    trace(command + ": Операция выполнена успешно!");
-                    return true;
-                }
-                addError(" ! " + command + ": ОШИБКА ОТКЛИКА!");
-                return false;
-            }
-            /// <summary>
-            /// .enableDoubleRange(true) - увеличивает диапазон напряжения в двое всем каналам ADC Детектора.
-            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом всем каналам ADC Детектора</para>
-            /// <para>Задавать до .getVoltage()</para>
-            /// </summary>
-            public void enableDoubleRange(bool enable)
-            {
-                DV1.enableDoubleRange(enable);
-                DV2.enableDoubleRange(enable);
-                DV3.enableDoubleRange(enable);
-            }
         }
         public class SPI_SCANER
         {
@@ -1275,33 +1211,21 @@ namespace Xmega32A4U_testBoard
                 }
                 //Видимые функции
                 /// <summary>
-                /// Возвращает напряжение положительной обкладки конденсатора
-                /// <para>Если DoubleRange = true, то диапазон напряжения увеличен в двое.</para>
-                /// <para>Если DoubleRange = false, то диапазон напряжения соответствует выставляемому DAC'ом</para>
-                /// <para>DoubleRange задаётся командой .enableDoubleRange(bool)</para>
+                /// Возвращает напряжение положительной обкладки конденсатора в диапазоне от 0 до 4095
                 /// </summary>
                 public ushort getVoltage()
                 {
                     return ADC_getVoltage(ADC_command, ADC_channel);
                 }
-                /// <summary>
-                /// .enableDoubleRange(true) - увеличивает диапазон напряжения считываемого ADC в двое.
-                /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом</para>
-                /// <para>Задавать до .getPositiveVoltage() и .getNegativeVoltage()</para>
-                /// </summary>
-                public void enableDoubleRange(bool enable)
-                {
-                    DoubleRange = enable;
-                }
                 //Видимые функции
                 /// <summary>
                 /// Задаёт напряжение на DAC
-                /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+                /// <para>VOLTAGE - напряжение от 0 до 16383</para>
                 /// <para>Возвращает:</para>
                 /// <para>true - операция выполнена успешно</para>
-                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
+                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 16383 или ошибка отклика)</para>
                 /// </summary>
-                /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+                /// <param name="VOLTAGE">Напряжение от 0 до 16383</param>
                 /// <returns></returns>
                 public bool setVoltage(ushort VOLTAGE)
                 {
@@ -1309,12 +1233,12 @@ namespace Xmega32A4U_testBoard
                 }
                 /// <summary>
                 /// Задаёт напряжение на DAC
-                /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+                /// <para>VOLTAGE - напряжение от 0 до 16383</para>
                 /// <para>Возвращает:</para>
                 /// <para>true - операция выполнена успешно</para>
-                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
+                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 16383 или ошибка отклика)</para>
                 /// </summary>
-                /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+                /// <param name="VOLTAGE">Напряжение от 0 до 16383</param>
                 /// <returns></returns>
                 public bool setVoltage(string VOLTAGE)
                 {
@@ -1322,12 +1246,12 @@ namespace Xmega32A4U_testBoard
                 }
                 /// <summary>
                 /// Задаёт напряжение на DAC
-                /// <para>VOLTAGE - напряжение от 0 до 4095</para>
+                /// <para>VOLTAGE - напряжение от 0 до 16383</para>
                 /// <para>Возвращает:</para>
                 /// <para>true - операция выполнена успешно</para>
-                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 4095 или ошибка отклика)</para>
+                /// <para>false - операция отменена (значение VOLTAGE находтся не в диапазоне от 0 до 16383 или ошибка отклика)</para>
                 /// </summary>
-                /// <param name="VOLTAGE">Напряжение от 0 до 4095</param>
+                /// <param name="VOLTAGE">Напряжение от 0 до 16383</param>
                 /// <returns></returns>
                 public bool setVoltage(int VOLTAGE)
                 {
@@ -1343,16 +1267,6 @@ namespace Xmega32A4U_testBoard
             /// Сканирующее напряжение
             /// </summary>
             public SPI_DEVICE_CHANNEL_withAD5643R Scan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_Scan_Channel, Command.SPI.Scaner.Scan.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.Scan.getVoltage);
-            /// <summary>
-            /// .enableDoubleRange(true) - увеличивает диапазон напряжения в двое всем каналам ADC Сканера.
-            /// <para>.enableDoubleRange(false) - диапазон напряжения соответствует выставляемому DAC'ом всем каналам ADC Сканера</para>
-            /// <para>Задавать до .getVoltage()</para>
-            /// </summary>
-            public void enableDoubleRange(bool enable)
-            {
-                ParentScan.enableDoubleRange(enable);
-                Scan.enableDoubleRange(enable);
-            }
         }
         public class CHIP
         {
@@ -1538,21 +1452,6 @@ namespace Xmega32A4U_testBoard
                 trace("Tester.sendSomething(243)");
                 transmit(243);
             }
-            void showMeByte(byte BYTE)
-            {
-                //ФУНКЦИЯ: МК высвечивает на светодиодах BYTE
-                trace_attached(Environment.NewLine);
-                trace("Tester.showMeByte(" + BYTE + ")");
-                transmit(Command.TEST.showMeByte, BYTE);
-            }
-                void showMeByte(string BYTE)
-            {
-                showMeByte(Convert.ToByte(BYTE));
-            }
-                void showMeByte(uint BYTE)
-            {
-                showMeByte(Convert.ToByte(BYTE));
-            }
         }
         public class TIC_PUMP
         {
@@ -1573,7 +1472,7 @@ namespace Xmega32A4U_testBoard
             }
             //Видимые функции
             /// <summary>
-            /// Перендаём на МК данные (внутри функции), которые он пересылает на TIC контроллер вакуумного насоса (В РАЗРАБОТКЕ...)
+            /// Передаём на МК данные (внутри функции), которые он пересылает на TIC контроллер вакуумного насоса (В РАЗРАБОТКЕ...)
             /// </summary>
             public void send()
             {
@@ -1593,13 +1492,13 @@ namespace Xmega32A4U_testBoard
         /// </summary>
         public RTCounterAndCO Counters = new RTCounterAndCO();
         /// <summary>
-        /// Натекатель (имеет общий reset() с нагревателем Heater)
+        /// Натекатель
         /// </summary>
-        public SPI_DEVICE_CHANNEL_withReset Inlet = new SPI_DEVICE_CHANNEL_withReset(1, Command.SPI.Inlet.setVoltage, 1, Command.SPI.Inlet.getVoltage);
+        public SPI_DEVICE_CHANNEL Inlet = new SPI_DEVICE_CHANNEL(1, Command.SPI.Inlet.setVoltage, 1, Command.SPI.Inlet.getVoltage);
         /// <summary>
-        /// Нагреватель (имеет общий reset() с натекателем Inlet)
+        /// Нагреватель
         /// </summary>
-        public SPI_DEVICE_CHANNEL_withReset Heater = new SPI_DEVICE_CHANNEL_withReset(2, Command.SPI.Heater.setVoltage, 2, Command.SPI.Heater.getVoltage);
+        public SPI_DEVICE_CHANNEL Heater = new SPI_DEVICE_CHANNEL(2, Command.SPI.Heater.setVoltage, 2, Command.SPI.Heater.getVoltage);
         /// <summary>
         /// Ионный Источник
         /// </summary>
@@ -1647,10 +1546,13 @@ namespace Xmega32A4U_testBoard
         }
         //Флаги
         /// <summary>
-        /// МК устанавливает и возвращает флаги в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP|, где SPUM - нулевой бит
+        /// МК устанавливает и возвращает флаги в порядке:
+        /// <para>|x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP|</para> 
+        /// <para>,где SPUM - первый(нулевой) бит</para>
+        /// <para>     x - не имеет значения</para>
         /// </summary>
-        /// <param name="set_flags">true - установить следующие флаги, <para>false - не устанавливать, только проверить</para></param>
-        /// <param name="HVE">Разрешение высокого напряжения (только проверка)</param>
+        /// <param name="set_flags">true - установить следующие флаги, <para>false - не устанавливать, только проверить (последующие флаги не имеют значения)</para></param>
+        /// <param name="HVE">Разрешение высокого напряжения (впоследствии будет заменено на PRGE)</param>
         /// <param name="EDCD">Разрешение дистанционного управления</param>
         /// <param name="SEMV1">Электромагнитный вентиль 1</param>
         /// <param name="SEMV2">Электромагнитный вентиль 2</param>
