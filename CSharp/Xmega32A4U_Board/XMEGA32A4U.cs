@@ -30,6 +30,7 @@ namespace Xmega32A4U_testBoard
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
         const byte delay = 3;           //Задержка при приёме данных (см. transmit())
+        static bool RTC_is_busy = false;
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
@@ -193,7 +194,7 @@ namespace Xmega32A4U_testBoard
                 public const int min_ms_div1024 =           511981;
                 public const int max_ms_div1024 =           2047925;
                 //Проча
-                public const byte LengthOfSetAllPacket =    20;
+                public const byte LengthOfSetAllPacket =    28;
                 public const byte LengthOfLAMPacket =       6;
                 public struct NextMeasure
                 {
@@ -234,6 +235,10 @@ namespace Xmega32A4U_testBoard
             public ushort[] SPI_DAC_ParentScan = new ushort[4096];
             public ushort[] SPI_DAC_Scan = new ushort[4096];
             public ushort[] SPI_DAC_Condensator = new ushort[4096];
+            public ushort[] SPI_ADC_ParentScan = new ushort[4096];
+            public ushort[] SPI_ADC_Scan = new ushort[4096];
+            public ushort[] SPI_ADC_Condensator_pV = new ushort[4096];
+            public ushort[] SPI_ADC_Condensator_nV = new ushort[4096];
 
             public ushort Cycles = 0;
             public string Status = "notSet";
@@ -417,6 +422,15 @@ namespace Xmega32A4U_testBoard
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
                 //Очищаем листы результатов
+                string command = "Counters.startMeasure()";
+                trace_attached(Environment.NewLine);
+                trace(command);
+                if (RTC_is_busy)
+                {
+                    trace("Отмена операции! Запрещено во время счёта!");
+                    return false;
+                }
+                RTC_is_busy = true;
                 COA.Count.Clear();
                 COA.Overflows.Clear();
                 COB.Count.Clear();
@@ -424,8 +438,6 @@ namespace Xmega32A4U_testBoard
                 COC.Count.Clear();
                 COC.Overflows.Clear();
                 //Отладочные настройки
-                MeasureTimes[0] = 1000;
-                DelayTimes[0] = 500;
                 //Объявления
                 List<byte> wDATA = new List<byte>();
                 List<byte> rDATA = new List<byte>();
@@ -445,13 +457,13 @@ namespace Xmega32A4U_testBoard
                 DelayPrescaler = getRTCprescaler(DelayTimes[N]);
                 BYTES_buf = BitConverter.GetBytes(getRTCticks(DelayTimes[N]));
                 DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для Родительского Напряжения (канал = 24)
+                //Вычисление байт для DAC'a Родительского Напряжения (канал = 24)
                 BYTES_buf = BitConverter.GetBytes(SPI_DAC_ParentScan[N] << 2);
                 ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для Сканирующего Напряжения (канал = 25)
+                //Вычисление байт для DAC'a Сканирующего Напряжения (канал = 25)
                 BYTES_buf = BitConverter.GetBytes(SPI_DAC_Scan[N] << 2);
                 ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для Конденсатора (канал = 24)
+                //Вычисление байт для DAC'a Конденсатора (канал = 24)
                 BYTES_buf = BitConverter.GetBytes(SPI_DAC_Condensator[N] << 2);
                 CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
                 //Набираем данные на отправку
@@ -481,7 +493,8 @@ namespace Xmega32A4U_testBoard
 
                 send_2(wDATA, false);                           //Посылаем команду начала измерения (не слушаем ответ), а надо бы
 
-                N = 0;//N++;
+                //N = 0;//
+                N++;
                 //Подготовка новых данных для следующего измерения
                 MeasurePrescaler = getRTCprescaler(MeasureTimes[N]);
                 BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[N]));
@@ -534,7 +547,8 @@ namespace Xmega32A4U_testBoard
                     Status = convertStatus(rDATA[1]);
                     rDATA.Clear();
 
-                    N = 0;//N++;
+                    //N = 0;//
+                    N++;
                     //Подготовка новых данных для следующего измерения
                     MeasurePrescaler = getRTCprescaler(MeasureTimes[N]);
                     BYTES_buf = BitConverter.GetBytes(getRTCticks(MeasureTimes[N]));
@@ -569,14 +583,14 @@ namespace Xmega32A4U_testBoard
                     wDATA.Add(DelayPeriod[1]);
                     wDATA.Add(DelayPeriod[0]);
                     wDATA.Add(ParentScanerBytes[0]);
-                    wDATA.Add(ParentScanerBytes[1]);
                     wDATA.Add(ParentScanerBytes[2]);
+                    wDATA.Add(ParentScanerBytes[1]);
                     wDATA.Add(ScanerBytes[0]);
-                    wDATA.Add(ScanerBytes[1]);
                     wDATA.Add(ScanerBytes[2]);
+                    wDATA.Add(ScanerBytes[1]);
                     wDATA.Add(CondensatorBytes[0]);
-                    wDATA.Add(CondensatorBytes[1]);
                     wDATA.Add(CondensatorBytes[2]);
+                    wDATA.Add(CondensatorBytes[1]);
                     rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);
                     Status = convertStatus(rDATA[2]);
                     //Сохраняем данные
@@ -586,14 +600,24 @@ namespace Xmega32A4U_testBoard
                     COB.Count.Add((uint)(rDATA[9] * 16777216 + rDATA[10] * 65536 + rDATA[11] * 256 + rDATA[12]));
                     COC.Overflows.Add(rDATA[13]);
                     COC.Count.Add((uint)(rDATA[14] * 256 + rDATA[15]));
+                    SPI_ADC_ParentScan[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[16] & 0xf) << 8) + rDATA[17]);
+                    SPI_ADC_Scan[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[18] & 0xf) << 8) + rDATA[19]);
+                    SPI_ADC_Condensator_pV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[20] & 0xf) << 8) + rDATA[21]);
+                    SPI_ADC_Condensator_nV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[22] & 0xf) << 8) + rDATA[23]);
                     //сервис
                     rDATA.Clear();
+                    trace("[№" + (i + 1) + "][MT:" + MeasureTimes[i] + "][DT:" + DelayTimes[i] + "]" + Environment.NewLine + "        [DAC_PS:" + SPI_DAC_ParentScan[i] + "][DAC_S:" + SPI_DAC_Scan[i] + "][DAC_C:" + SPI_DAC_Condensator[i] + "]" + Environment.NewLine + "        [ADC_PS:" + SPI_ADC_ParentScan[i] + "][ADC_S:" + SPI_ADC_Scan[i] + "][ADC_Cp:" + SPI_ADC_Condensator_pV[i] + "][ADC_Cn:" + SPI_ADC_Condensator_nV[i] + "]");
                 }
                 //конец
                 if (USART.IsOpen)
                 {
                     USART.Close();
                 }
+                //for (int i = 0; i < Cycles; i++)
+                //{
+                //    trace("[№"+i+"][MT:"+MeasureTimes[i]+"][DT:"+DelayTimes[i]+"]"+Environment.NewLine+"        [DAC_PS:"+SPI_DAC_ParentScan[i]+"][DAC_S:"+SPI_DAC_Scan[i]+"][DAC_C:"+SPI_DAC_Condensator[i]+"]"+Environment.NewLine+"        [ADC_PS:"+SPI_ADC_ParentScan[i]+"][ADC_S:"+SPI_ADC_Scan[i]+"][ADC_Cp:"+SPI_ADC_Condensator_pV[i]+"][ADC_Cn:"+SPI_ADC_Condensator_nV[i]+"]");
+                //}
+                RTC_is_busy = false;
                 if (Status == Constants.Status.string_ready)
                 {
                     return true;
@@ -675,6 +699,11 @@ namespace Xmega32A4U_testBoard
                 //*                      100х хххх хх11 1100
                 //*                        128        60
                 string _command = "DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + ")";
+                if (RTC_is_busy)
+                {
+                    trace("Отмена операции! Запрещено во время счёта!");
+                    return false;
+                }
                 if (VOLTAGE >= 0 && VOLTAGE <= 4095)
                 {
                     trace_attached(Environment.NewLine);
@@ -797,6 +826,11 @@ namespace Xmega32A4U_testBoard
                 string _command = "ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + ")";
                 trace_attached(Environment.NewLine);
                 trace(_command + ": DoubleRange = " + DoubleRange);
+                if (RTC_is_busy)
+                {
+                    trace("Отмена операции! Запрещено во время счёта!");
+                    return 6666;
+                }
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
@@ -897,6 +931,11 @@ namespace Xmega32A4U_testBoard
                 //          или в байтах: [24/25][0..255][(0..63)<<2]
                 //                         канал    напряжение
                 string command = ".Condensator.setVoltage(" + Command.SPI.Condensator.setVoltage + "," + DAC_channel + "," + VOLTAGE + ")";
+                if (RTC_is_busy)
+                {
+                    trace("Отмена операции! Запрещено во время счёта!");
+                    return false;
+                }
                 if (VOLTAGE >= 0 && VOLTAGE <= 16383)
                 {
                     trace(command + ": AD5643R;");
@@ -932,6 +971,11 @@ namespace Xmega32A4U_testBoard
                 string _command = ".Condensator.getVoltage(" + command + ", " + CHANNEL + ")";
                 trace_attached(Environment.NewLine);
                 trace(_command + ": DoubleRange = " + DoubleRange);
+                if (RTC_is_busy)
+                {
+                    trace("Отмена операции! Запрещено во время счёта!");
+                    return 6666;
+                }
                 byte Lbyte = 0;
                 if (DoubleRange) { Lbyte = ADC_Lbyte_DoubleRange; } else { Lbyte = ADC_Lbyte_NormalRange; }
                 byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), Lbyte };
@@ -1152,6 +1196,11 @@ namespace Xmega32A4U_testBoard
                 {
                     //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
                     string command = "Condensator.setVoltage(" + DAC_command + "," + DAC_channel + "," + VOLTAGE + ")";
+                    if (RTC_is_busy)
+                    {
+                        trace("Отмена операции! Запрещено во время счёта!");
+                        return false;
+                    }
                     if (VOLTAGE >= 0 && VOLTAGE <= 16383)
                     {
                         trace_attached(Environment.NewLine);
@@ -1183,10 +1232,15 @@ namespace Xmega32A4U_testBoard
                 bool DoubleRange = true;
                 ushort ADC_getVoltage(byte command, byte CHANNEL)
                 {
-                    string _command = "Condensator.getVoltage(" + command + ", " + CHANNEL + ")";
+                    string _command = "Scaner.getVoltage(" + command + ", " + CHANNEL + ")";
                     trace_attached(Environment.NewLine);
                     trace(_command);
                     trace(_command + ": DoubleRange = " + DoubleRange);
+                    if (RTC_is_busy)
+                    {
+                        trace("Отмена операции! Запрещено во время счёта!");
+                        return 6666;
+                    }
                     byte Lbyte = 0;
                     if (DoubleRange) { Lbyte = ADC_Lbyte_DoubleRange; } else { Lbyte = ADC_Lbyte_NormalRange; }
                     byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), Lbyte };
