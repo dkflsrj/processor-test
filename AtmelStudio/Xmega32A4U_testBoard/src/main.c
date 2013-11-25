@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										97
+#define version										98
 #define birthday									20131125
 //Счётчики
 #define RTC_Status_notSet							0		//Счётчики не настроен

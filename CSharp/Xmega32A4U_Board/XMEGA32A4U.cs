@@ -496,6 +496,8 @@ namespace Xmega32A4U_testBoard
             }
             /// <summary>
             /// Запускает серию измерений. Количество ступеней в серии определяется параметром Series_Cycles
+            /// <para>На время серии ПК становится ведомым, а МК - ведущим. </para>
+            /// <para>ПК ожидает LAM сигнала от МК по завершению ступени измерения</para>
             /// <para>Параметры для каждой ступени измерений беруться из соответствующих массивов.</para>
             /// <para>Возвращает:</para>
             /// <para>true - серия успешно завершена.</para>
@@ -514,7 +516,7 @@ namespace Xmega32A4U_testBoard
                     return false;
                 }
                 //Предстартовая проверка всех изначальных данных, чтобы избежать неверных значений
-                for (int i = 0; i < Series.MeasureTimes.Length; i++)
+                for (int i = 0; i < Series.Cycles; i++)
                 {
                     if((Series.MeasureTimes[i] < 50 )||(Series.MeasureTimes[i] > 2047925))
                     {
@@ -522,7 +524,7 @@ namespace Xmega32A4U_testBoard
                         return false;
                     }
                 }
-                for (int i = 0; i < Series.DelayTimes.Length; i++)
+                for (int i = 0; i < Series.Cycles; i++)
                 {
                     if((Series.DelayTimes[i] < 50 )||(Series.DelayTimes[i] > 2047925))
                     {
@@ -530,7 +532,7 @@ namespace Xmega32A4U_testBoard
                         return false;
                     }
                 }
-                for (int i = 0; i < Series.DAC.Condensator.Length; i++)
+                for (int i = 0; i < Series.Cycles; i++)
                 {
                     if(Series.DAC.Condensator[i] > 4095)
                     {
@@ -538,7 +540,7 @@ namespace Xmega32A4U_testBoard
                         return false;
                     }
                 }
-                for (int i = 0; i < Series.DAC.ParentScan.Length; i++)
+                for (int i = 0; i < Series.Cycles; i++)
                 {
                     if (Series.DAC.ParentScan[i] > 4095)
                     {
@@ -546,7 +548,7 @@ namespace Xmega32A4U_testBoard
                         return false;
                     }
                 }
-                for (int i = 0; i < Series.DAC.Scan.Length; i++)
+                for (int i = 0; i < Series.Cycles; i++)
                 {
                     if (Series.DAC.Scan[i] > 4095)
                     {
