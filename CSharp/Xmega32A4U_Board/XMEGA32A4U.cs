@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO.Ports;
 using System.Threading;
+using System.Diagnostics;
 
 namespace Xmega32A4U_testBoard
 {
@@ -31,6 +32,7 @@ namespace Xmega32A4U_testBoard
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
         const byte delay = 3;           //Задержка при приёме данных (см. transmit())
         static bool RTC_is_busy = false;
+        const int TimeOut = 10000;// ~= 36мс (280000 = 1000 мс)
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
@@ -1685,7 +1687,17 @@ namespace Xmega32A4U_testBoard
             }
             for (byte i = 0; i < rPacketLength; i++)
             {
-                while (USART.BytesToRead == 0) { }
+                int time = 0;
+                while (USART.BytesToRead == 0) 
+                {
+                    time++;
+                    if(time > TimeOut)
+                    {
+                        trace("Приём прерыван! Время ожидания вышло!");
+                        USART.Close();
+                        return new byte[rPacketLength].ToList<byte>();
+                    }
+                }
                 rDATA.Add((byte)USART.ReadByte());
             }
             if (closePort && USART.IsOpen)
