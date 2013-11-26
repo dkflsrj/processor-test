@@ -435,7 +435,7 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
                 //Посылаем команду
-                Status = convertStatus(transmit_2(wDATA, Constants.LengthOfstartMeasurePacket, false)[1]); 
+                Status = convertStatus(transmit_2(wDATA, Constants.LengthOfstartMeasurePacket)[1]); 
                 if ((Status == Constants.Status.string_ready)||(Status == Constants.Status.string_stopped))
                 {
                     return true;
@@ -491,7 +491,7 @@ namespace Xmega32A4U_testBoard
                 List<byte> wDATA = new List<byte>();    //Данные на передачу
                 List<byte> rDATA = new List<byte>();    //Данные на приём
                 wDATA.Add(Command.RTC.receiveResults); //Команда
-                rDATA = transmit_2(wDATA, 19, false);
+                rDATA = transmit_2(wDATA, 19);
                 Status = convertStatus(rDATA[1]);
                 if (Status == Constants.Status.string_ready)
                 {
@@ -1349,7 +1349,7 @@ namespace Xmega32A4U_testBoard
             }
         }
         //USART
-        static List<byte> receive_2(byte rPacketLength, bool closePort)
+        static List<byte> receive_2(byte rPacketLength)
         {
             List<byte> rDATA = new List<byte>();
             if (!USART.IsOpen)
@@ -1370,10 +1370,6 @@ namespace Xmega32A4U_testBoard
                     }
                 }
                 rDATA.Add((byte)USART.ReadByte());
-            }
-            if (closePort && USART.IsOpen)
-            {
-                USART.Close();
             }
             return rDATA;
         }
@@ -1421,7 +1417,7 @@ namespace Xmega32A4U_testBoard
                 return new List<byte>();
             }
         }
-        static void send_2(List<byte> DATA, bool closePort)
+        static void send_2(List<byte> DATA)
         {
             List<byte> Packet = new List<byte>();
             Packet.Add(Command.KEY);
@@ -1436,15 +1432,11 @@ namespace Xmega32A4U_testBoard
             }
             //Передача
             USART.Write(Packet.ToArray(), 0, Packet.Count);
-            if (closePort && USART.IsOpen)
-            {
-                USART.Close();
-            }
         }
-        static List<byte> transmit_2(List<byte> wDATA, byte rPacketLength, bool closePort)
+        static List<byte> transmit_2(List<byte> wDATA, byte rPacketLength)
         {
-            send_2(wDATA, false);
-            return decode_2(receive_2(rPacketLength, closePort));
+            send_2(wDATA);
+            return decode_2(receive_2(rPacketLength));
             //Декодируем
         }
         static byte calcCheckSum(byte[] data)
@@ -1508,7 +1500,6 @@ namespace Xmega32A4U_testBoard
             if (BytesToReadQuantity == 0)
             {
                 addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Нет данных на приём!");
-                USART.Close();
                 tracer_enabled = tracer_enabled_before;
                 return new byte[] {0};
             }
@@ -1524,13 +1515,11 @@ namespace Xmega32A4U_testBoard
                 catch
                 {
                     addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
-                    USART.Close();
                     tracer_enabled = tracer_enabled_before;
                     return new byte[] {0};
                 }
                 rDATA.Add(rBYTE);
             }
-            USART.Close();
             trace("         Приём завершён!");
             trace("         Анализ полученной команды...");
             //Если последний байт затвор, то всё путём
@@ -1724,7 +1713,6 @@ namespace Xmega32A4U_testBoard
             byte[] wDATA = { Command.Chip.wait };
             USART.Open();
             USART.Write(wDATA, 0, 1);
-            USART.Close();
         }
         bool reset()
         {
