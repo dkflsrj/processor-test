@@ -669,5 +669,14 @@ namespace Xmega32A4U_testBoard
             //LBL_realCOX_RTCstate.Text = MC.Counters.пуеStatus;
             
         }
+
+        private void ApplicationIsAboutToClose(object sender, FormClosingEventArgs e)
+        {
+            //Соблюдаем приличия, закроем порт перед уходом.
+            if (COM_Port.IsOpen)
+            {
+                COM_Port.Close();
+            }
+        }
     }
 }
