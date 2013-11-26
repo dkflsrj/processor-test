@@ -205,6 +205,8 @@
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.TXB_realCOX_NumberOfMeasurments = new System.Windows.Forms.TextBox();
+            this.label24 = new System.Windows.Forms.Label();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -1759,6 +1761,7 @@
             this.GPB_realCOX.Controls.Add(this.labelN);
             this.GPB_realCOX.Controls.Add(this.label30);
             this.GPB_realCOX.Controls.Add(this.label16);
+            this.GPB_realCOX.Controls.Add(this.label24);
             this.GPB_realCOX.Controls.Add(this.label23);
             this.GPB_realCOX.Controls.Add(this.progressBar1);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_Tiks);
@@ -1768,6 +1771,7 @@
             this.GPB_realCOX.Controls.Add(this.label28);
             this.GPB_realCOX.Controls.Add(this.label29);
             this.GPB_realCOX.Controls.Add(this.BTN_realCOX_setParameters);
+            this.GPB_realCOX.Controls.Add(this.TXB_realCOX_NumberOfMeasurments);
             this.GPB_realCOX.Controls.Add(this.TXB_realCOX_MeasureTime);
             this.GPB_realCOX.Controls.Add(this.BTN_realCOX_start);
             this.GPB_realCOX.Controls.Add(this.BTN_realCOX_check);
@@ -2088,6 +2092,23 @@
             this.timer1.Interval = 5;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // TXB_realCOX_NumberOfMeasurments
+            // 
+            this.TXB_realCOX_NumberOfMeasurments.Location = new System.Drawing.Point(478, 21);
+            this.TXB_realCOX_NumberOfMeasurments.Name = "TXB_realCOX_NumberOfMeasurments";
+            this.TXB_realCOX_NumberOfMeasurments.Size = new System.Drawing.Size(63, 20);
+            this.TXB_realCOX_NumberOfMeasurments.TabIndex = 2;
+            this.TXB_realCOX_NumberOfMeasurments.Text = "10";
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(344, 24);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(128, 13);
+            this.label24.TabIndex = 11;
+            this.label24.Text = "Количество измерений:";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2314,6 +2335,8 @@
         private System.Windows.Forms.CheckBox CHB_SEMV1;
         private System.Windows.Forms.Button BTN_DAC_reset;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Label label24;
+        private System.Windows.Forms.TextBox TXB_realCOX_NumberOfMeasurments;
     }
 }
 

@@ -5,7 +5,6 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO.Ports;
 using System.Threading;
-using System.Diagnostics;
 
 namespace Xmega32A4U_testBoard
 {
@@ -32,7 +31,6 @@ namespace Xmega32A4U_testBoard
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
         const byte delay = 3;           //Задержка при приёме данных (см. transmit())
         static bool RTC_is_busy = false;
-        const int TimeOut = 10000;// ~= 36мс (280000 = 1000 мс)
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
@@ -528,7 +526,7 @@ namespace Xmega32A4U_testBoard
                 }
                 for (int i = 0; i < Series.Cycles; i++)
                 {
-                    if((Series.DelayTimes[i] < 50 )||(Series.DelayTimes[i] > 2047925))
+                    if((Series.DelayTimes[i] < 10 )||(Series.DelayTimes[i] > 2047925))
                     {
                         trace("Counters.Series.DelayTimes["+i+"] имеет недопустипое значение! Ожидалось: 50...2047925. Получено: "+Series.DelayTimes[i]);
                         return false;
@@ -536,25 +534,25 @@ namespace Xmega32A4U_testBoard
                 }
                 for (int i = 0; i < Series.Cycles; i++)
                 {
-                    if(Series.DAC.Condensator[i] > 4095)
+                    if(Series.DAC.Condensator[i] > 16383)
                     {
-                        trace("Counters.Series.DAC.Condensator[" + i + "] имеет недопустипое значение! Ожидалось: 0...4095. Получено: " + Series.DAC.Condensator[i]);
+                        trace("Counters.Series.DAC.Condensator[" + i + "] имеет недопустипое значение! Ожидалось: 0...16383. Получено: " + Series.DAC.Condensator[i]);
                         return false;
                     }
                 }
                 for (int i = 0; i < Series.Cycles; i++)
                 {
-                    if (Series.DAC.ParentScan[i] > 4095)
+                    if (Series.DAC.ParentScan[i] > 16383)
                     {
-                        trace("Counters.Series.DAC.ParentScan[" + i + "] имеет недопустипое значение! Ожидалось: 0...4095. Получено: " + Series.DAC.ParentScan[i]);
+                        trace("Counters.Series.DAC.ParentScan[" + i + "] имеет недопустипое значение! Ожидалось: 0...16383. Получено: " + Series.DAC.ParentScan[i]);
                         return false;
                     }
                 }
                 for (int i = 0; i < Series.Cycles; i++)
                 {
-                    if (Series.DAC.Scan[i] > 4095)
+                    if (Series.DAC.Scan[i] > 16383)
                     {
-                        trace("Counters.Series.DAC.Scan[" + i + "] имеет недопустипое значение! Ожидалось: 0...4095. Получено: " + Series.DAC.Scan[i]);
+                        trace("Counters.Series.DAC.Scan[" + i + "] имеет недопустипое значение! Ожидалось: 0...16383. Получено: " + Series.DAC.Scan[i]);
                         return false;
                     }
                 }
@@ -924,7 +922,7 @@ namespace Xmega32A4U_testBoard
             const byte Lbyte_DoubleRange = 16;
             const byte Lbyte_NormalRange = 48;
             const byte ChannelStep = 4;
-            bool DoubleRange = true;
+            const bool DoubleRange = true;
             ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 //Последовательность 11 битного слова, которое надо передать ADC'у: Или это просто регистр?
@@ -966,7 +964,6 @@ namespace Xmega32A4U_testBoard
                 // 131 + 16
                 string _command = "ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + ")";
                 trace_attached(Environment.NewLine);
-                trace(_command + ": DoubleRange = " + DoubleRange);
                 if (RTC_is_busy)
                 {
                     trace("Отмена операции! Запрещено во время счёта!");
@@ -1062,12 +1059,11 @@ namespace Xmega32A4U_testBoard
             const byte ADC_Lbyte_DoubleRange = 16;
             const byte ADC_Lbyte_NormalRange = 48;
             const byte ChannelStep = 4;
-            bool DoubleRange = true;
+            const bool DoubleRange = true;
             ushort ADC_getVoltage(byte command, byte CHANNEL)
             {
                 string _command = ".Condensator.getVoltage(" + command + ", " + CHANNEL + ")";
                 trace_attached(Environment.NewLine);
-                trace(_command + ": DoubleRange = " + DoubleRange);
                 if (RTC_is_busy)
                 {
                     trace("Отмена операции! Запрещено во время счёта!");
@@ -1250,13 +1246,12 @@ namespace Xmega32A4U_testBoard
                 const byte ADC_Lbyte_DoubleRange = 16;
                 const byte ADC_Lbyte_NormalRange = 48;
                 const byte ChannelStep = 4;
-                bool DoubleRange = true;
+                const bool DoubleRange = true;
                 ushort ADC_getVoltage(byte command, byte CHANNEL)
                 {
                     string _command = "Scaner.getVoltage(" + command + ", " + CHANNEL + ")";
                     trace_attached(Environment.NewLine);
                     trace(_command);
-                    trace(_command + ": DoubleRange = " + DoubleRange);
                     if (RTC_is_busy)
                     {
                         trace("Отмена операции! Запрещено во время счёта!");
@@ -1687,17 +1682,7 @@ namespace Xmega32A4U_testBoard
             }
             for (byte i = 0; i < rPacketLength; i++)
             {
-                int time = 0;
-                while (USART.BytesToRead == 0) 
-                {
-                    time++;
-                    if(time > TimeOut)
-                    {
-                        trace("Приём прерыван! Время ожидания вышло!");
-                        USART.Close();
-                        return new byte[rPacketLength].ToList<byte>();
-                    }
-                }
+                while (USART.BytesToRead == 0) { }
                 rDATA.Add((byte)USART.ReadByte());
             }
             if (closePort && USART.IsOpen)

@@ -471,7 +471,6 @@ namespace Xmega32A4U_testBoard
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
             MC.TIC.send();
-            
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
@@ -635,7 +634,7 @@ namespace Xmega32A4U_testBoard
         private void fun()
         {
             
-                MC.Counters.Series.Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
+                MC.Counters.Series.Cycles = Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text);
                 /*
                 Thread myThread = new Thread(MC.Counters.startMeasure); //Создаем новый объект потока (Thread)
                 myThread.Priority = ThreadPriority.Highest;
@@ -677,7 +676,7 @@ namespace Xmega32A4U_testBoard
                 uint max = 0;
                 uint min = 4294967295;
                 uint mid = 0;
-                uint Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
+                uint Cycles = Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text);
                 List<uint> Results = MC.Counters.COA.Count;
                 List<byte> OVFs = new List<byte>();
                 for (int i = 0; i < Cycles; i++)

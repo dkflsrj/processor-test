@@ -2508,7 +2508,7 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
  .debug_frame   0x00002488       0x2c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_fpcmp_parts_sf.o)
  .debug_frame   0x000024b4       0x30 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_sf_to_si.o)
 
-.debug_str      0x00000000    0x27e8d
+.debug_str      0x00000000    0x27e8e
  *(.debug_str)
  .debug_str     0x00000000    0x21bd8 src/ASF/common/services/clock/xmega/sysclk.o
                               0x22423 (size before relaxing)
@@ -2530,36 +2530,36 @@ LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr
                               0x22cdc (size before relaxing)
  .debug_str     0x000248a5      0x803 src/ASF/xmega/drivers/usart/usart.o
                               0x236b6 (size before relaxing)
- .debug_str     0x000250a8     0x2a29 src/main.o
-                              0x26542 (size before relaxing)
- .debug_str     0x00027ad1       0x36 src/ASF/common/boards/user_board/init.o
+ .debug_str     0x000250a8     0x2a2a src/main.o
+                              0x26543 (size before relaxing)
+ .debug_str     0x00027ad2       0x36 src/ASF/common/boards/user_board/init.o
                               0x2332c (size before relaxing)
- .debug_str     0x00027b07      0x10c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_fixunssfdi.o)
+ .debug_str     0x00027b08      0x10c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_fixunssfdi.o)
                                 0x197 (size before relaxing)
- .debug_str     0x00027c13        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_floatundisf.o)
+ .debug_str     0x00027c14        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_floatundisf.o)
                                 0x18d (size before relaxing)
- .debug_str     0x00027c21      0x156 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_mul_sf.o)
+ .debug_str     0x00027c22      0x156 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_mul_sf.o)
                                 0x26c (size before relaxing)
- .debug_str     0x00027d77       0x35 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_div_sf.o)
+ .debug_str     0x00027d78       0x35 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_div_sf.o)
                                 0x275 (size before relaxing)
- .debug_str     0x00027dac       0x1f c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_ge_sf.o)
+ .debug_str     0x00027dad       0x1f c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_ge_sf.o)
                                 0x241 (size before relaxing)
- .debug_str     0x00027dcb        0x8 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_lt_sf.o)
+ .debug_str     0x00027dcc        0x8 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_lt_sf.o)
                                 0x241 (size before relaxing)
- .debug_str     0x00027dd3       0x21 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_si_to_sf.o)
+ .debug_str     0x00027dd4       0x21 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_si_to_sf.o)
                                 0x21e (size before relaxing)
  .debug_str     0x00000000      0x1d1 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_thenan_sf.o)
- .debug_str     0x00027df4       0x14 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_usi_to_sf.o)
+ .debug_str     0x00027df5       0x14 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_usi_to_sf.o)
                                 0x21a (size before relaxing)
- .debug_str     0x00027e08        0xd c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_fixunssfsi.o)
+ .debug_str     0x00027e09        0xd c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_fixunssfsi.o)
                                 0x178 (size before relaxing)
- .debug_str     0x00027e15        0x7 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_pack_sf.o)
+ .debug_str     0x00027e16        0x7 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_pack_sf.o)
                                 0x22e (size before relaxing)
  .debug_str     0x00000000      0x210 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_unpack_sf.o)
- .debug_str     0x00027e1c       0x67 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_addsub_sf.o)
+ .debug_str     0x00027e1d       0x67 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_addsub_sf.o)
                                 0x2b3 (size before relaxing)
  .debug_str     0x00000000      0x1f4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_fpcmp_parts_sf.o)
- .debug_str     0x00027e83        0xa c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_sf_to_si.o)
+ .debug_str     0x00027e84        0xa c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.2.1002/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.7.2/avrxmega2\libgcc.a(_sf_to_si.o)
                                 0x23a (size before relaxing)
 
 .debug_loc      0x00000000     0x5c2c
