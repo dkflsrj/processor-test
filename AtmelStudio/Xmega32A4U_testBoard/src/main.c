@@ -25,33 +25,30 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										101
+#define version										102
 #define birthday									20131126
 //Счётчики
-#define RTC_Status_notSet							0		//Счётчики не настроен
-#define RTC_Status_ready							1		//Счётчики готов к работе
-#define RTC_Status_stopped							2		//Счётчики был принудительно остановлен
-#define RTC_Status_busy								3		//Счётчики ещё считает
-#define RTC_Status_delayed							4		//RTC считает задержку
-#define RTC_setStatus_notSet		RTC_Status =	RTC_Status_notSet
+#define RTC_Status_ready							0		//Счётчики готов к работе
+#define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
+#define RTC_Status_busy								2		//Счётчики ещё считает
 #define RTC_setStatus_ready			RTC_Status =	RTC_Status_ready
 #define RTC_setStatus_stopped		RTC_Status =	RTC_Status_stopped
 #define RTC_setStatus_busy			RTC_Status =	RTC_Status_busy
-#define RTC_setStatus_delayed		RTC_Status =	RTC_Status_delayed
-//SPI
+//Стартовые конфигурации для DAC AD5643R -> двойной референс
 #define AD5643R_confHbyte							56
 #define AD5643R_confMbyte							0
 #define AD5643R_confLbyte							1
-#define AD5643R_startVoltage_Hbyte					24	
-#define AD5643R_startVoltage_Mbyte					127
-#define AD5643R_startVoltage_Lbyte					252
-//Двойной референс
+//Стартовые напряжения для DAC AD5643R -> 8131 (половина диапазона)
+#define AD5643R_startVoltage_Hbyte					24		//Адрес
+#define AD5643R_startVoltage_Mbyte					127		//Старший байт напряжения
+#define AD5643R_startVoltage_Lbyte					252		//Младший байт напряжения с 2 пустыми младшими битами
+//Стартовые конфигурации для DAC AD5328R -> двойной референс
 #define AD5328R_confHbyte							128
 #define AD5328R_confLbyte							60
 //Стартовые напряжение PSIS EC (тока эмиссии)
 #define AD5328R_startVoltage_Hbyte_PSIS_EC			0
 #define AD5328R_startVoltage_Lbyte_PSIS_EC			82
-//Стартовые напряжения PSIS IV,F1,F2 (ионизации, фокусные)
+//Стартовые напряжения DAC PSIS IV,F1,F2 (ионизации, фокусные)
 #define AD5328R_startVoltage_Hbyte_PSIS_IV			44
 #define AD5328R_startVoltage_Lbyte_PSIS_IV			205
 
@@ -62,46 +59,40 @@ uint32_t MC_birthday = birthday;
 uint8_t CommandStack = 0;
 
 uint8_t MC_Status = 0;
-//		USART
-uint8_t USART_MEM[100];						//100 байт памяти для приёма данных USART
-uint8_t USART_MEM_length = 0;
-uint16_t MC_receiving_limit = 65535;
-uint16_t USART_receiving_time = 0;
-uint8_t MC_reciving_error = 0;
-uint8_t USART_buf = 0;
-bool	USART_recieving = false;			//Можно пристыковать для экономии памяти к USART_MEM_length
-uint8_t USART_MEM[100];						//10 байт памяти для приёма данных USART
-uint8_t USART_PACKET_length = 0;
-uint8_t USART_MEM_CheckSum = 0;
+//		USART COMP
+uint8_t  USART_MEM[100];								//100 байт памяти для приёма данных USART
+uint8_t  USART_MEM_length = 0;							//Длина записанного в USART_MEM пакета байтов.
+uint16_t MC_receiving_limit = 65535;					
+uint16_t USART_receiving_time = 0;						
+uint8_t  MC_reciving_error = 0;							
+uint8_t  USART_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже шум)
+uint8_t  USART_MEM[100];								//10 байт памяти для приёма данных USART
+uint8_t  USART_PACKET_length = 0;						//Принятая длина пакета (из пакета)
+uint8_t  USART_MEM_CheckSum = 0;						//Принятая контрольная сумма (из пакета)
+//		USART TIC
+uint8_t TIC_MEM[100];									//100 байт памяти для приёма данных от TIC
+uint8_t TIC_MEM_Length = 0;								//Длина записанного в TIC_MEM пакета байтов.
+uint8_t TIC_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже шум)
 //		Измерения
-uint8_t RTC_Status = RTC_Status_ready;					//Состояния счётчика
-uint8_t RTC_MeasurePrescaler = RTC_PRESCALER_OFF_gc;	//Предделитель RTC во время измерения
-uint8_t RTC_DelayPrescaler = RTC_PRESCALER_OFF_gc;		//Предделитель RTC во время задержки
+uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
+uint8_t  RTC_MeasurePrescaler = RTC_PRESCALER_OFF_gc;	//Предделитель RTC во время измерения
 uint16_t RTC_MeasurePeriod = 0;							//Период RTC во время следующего измерения
-uint16_t RTC_DelayPeriod = 0;							//Период RTC во время задержки
-uint32_t COA_PreviousMeasurment = 0;					//Последнее измерение счётчика COA
-uint8_t	COA_PreviousOVF = 0;							//Количество переполнений счётчика СОА в последнем измерении
-uint8_t	COA_OVF = 0;									//Количество переполнений счётчика СОА в текущем измерении
-uint32_t COB_PreviousMeasurment = 0;					//Последнее измерение счётчика COB
-uint8_t	COB_PreviousOVF = 0;							//Количество переполнений счётчика СОА в последнем измерении
-uint8_t	COB_OVF = 0;									//Количество переполнений счётчика СОВ в текущем измерении
-uint32_t COC_PreviousMeasurment = 0;					//Последнее измерение счётчика COC
-uint8_t	COC_PreviousOVF = 0;							//Количество переполнений счётчика СОА в последнем измерении
-uint8_t	COC_OVF = 0;									//Количество переполнений счётчика СОС в текущем измерении
-//SPI
-uint8_t SPI_DAC_Scaner_PS_data[3];						//Пакет для Сканера (родительское) во время задержи серии
-uint8_t SPI_DAC_Scaner_S_data[3];						//Пакет для Сканера (сканирующее) во время задержи серии
-uint8_t SPI_DAC_Condensator_data[3];					//Пакет для Конденсатора во время задержи серии
+uint32_t COA_Measurment = 0;					//Последнее измерение счётчика COA
+uint8_t	 COA_OVF = 0;									//Количество переполнений счётчика СОА в текущем измерении
+uint32_t COB_Measurment = 0;					//Последнее измерение счётчика COB
+uint8_t	 COB_OVF = 0;									//Количество переполнений счётчика СОВ в текущем измерении
+uint32_t COC_Measurment = 0;					//Последнее измерение счётчика COC
+uint8_t	 COC_OVF = 0;									//Количество переполнений счётчика СОС в текущем измерении
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 //Битовые поля
 struct _MC_Tasks
 {
 	uint8_t setDACs			:1;
-	uint8_t doNextMeasure	:1;
-	uint8_t MeasuredDataWasSended		:1;
-	uint8_t NextMeasureSettingsWasChanged		:1;
-	uint8_t MeasureDataWasOVERWRITTEN		:1;
-	uint8_t Decrypt		:1;
+	uint8_t Decrypt			:1;
+	uint8_t noTasks2		:1;
+	uint8_t noTasks3		:1;
+	uint8_t noTasks4		:1;
+	uint8_t noTasks5		:1;
 	uint8_t noTasks6		:1;
 	uint8_t noTasks7		:1;
 };
@@ -169,11 +160,11 @@ void transmit(uint8_t DATA[],uint8_t DATA_length);
 void transmit_byte(uint8_t DATA);
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2);
 void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3);
-void setThemAll(void);
 void MC_transmit_Birthday(void);
 void MC_transmit_CPUfreq(void);
 void MC_reset(void);
 void COUNTERS_start(void);
+void COUNTERS_sendResults(void);
 void COUNTERS_stop(void);
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
@@ -279,150 +270,33 @@ ISR(USARTE0_RXC_vect)
 	//ПРЕРЫВАНИЕ: Пришёл байт данных по порту USART от TIC контроллера
 	//ФУНКЦИЯ: Дешифрирование байта как команду или данные, выполнение предписанных действий
 	//Принимаем байт
-	
+	TIC_buf = *USART_TIC.DATA;//->3(95нс)
 	
 }
 ISR(RTC_OVF_vect)
 {
-	//ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
-	//ФУНКЦИЯ: Остановка счётчиков импульсов
-	cli();
-	if (RTC_Status == RTC_Status_busy)
-	{
-		asm(
-		"LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
-		"STS 0x0800, R16		\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Ноль
-		"STS 0x0900, R16		\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Ноль
-		"STS 0x0A00, R16		\n\t"//Адрес TCE0.CTRLA = 0x0A00 <-	Ноль
-		"STS 0x0840, R16		\n\t"//Адрес TCC1.CTRLA = 0x0840 <-	Ноль
-		"STS 0x0940, R16		\n\t"//Адрес TCD1.CTRLA = 0x0940 <-	Ноль
-		);
-		while(RTC.STATUS != 0)
-		{
-			//Ждём пока можно будет обратиться к регистрам RTC
-		}
-		RTC.CTRL = RTC_PRESCALER_OFF_gc;
-		if(MC_Tasks.doNextMeasure == 1)
-		{
-			while(RTC.STATUS != 0)
-			{
-				//Ждём пока можно будет обратиться к регистрам RTC
-			}
-			RTC.CNT = 0;
-			while(RTC.STATUS != 0)
-			{
-				//Ждём пока можно будет обратиться к регистрам RTC
-			}
-			RTC.PER = RTC_DelayPeriod;
-			while(RTC.STATUS != 0)
-			{
-				//Ждём пока можно будет обратиться к регистрам RTC
-			}
-			RTC.CTRL = RTC_DelayPrescaler;
-			RTC_setStatus_delayed;
-			MC_Tasks.doNextMeasure = 0;
-			//Устанавливаем напряжения на следующую ступень
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, SPI_DAC_Scaner_PS_data, 3);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-			spi_select_device(&SPIC, &DAC_Condensator);
-			spi_write_packet(&SPIC, SPI_DAC_Condensator_data, 3);
-			spi_deselect_device(&SPIC, &DAC_Condensator);
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, SPI_DAC_Scaner_S_data, 3);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-		}
-		else
-		{
-			RTC_setStatus_ready;
-			while(RTC.STATUS != 0)
-			{
-				//Ждём пока можно будет обратиться к регистрам RTC
-			}
-			RTC.CNT = 0;
-			transmit_2bytes(COMMAND_COUNTERS_LookAtMe,RTC_Status); //LAM ready
-		}
-		if (MC_Tasks.MeasuredDataWasSended == 0)
-		{
-			MC_Tasks.MeasureDataWasOVERWRITTEN = 1;
-			RTC_setStatus_stopped;
-			while(RTC.STATUS != 0)
-			{
-				//Ждём пока можно будет обратиться к регистрам RTC
-			}
-			RTC.CTRL = RTC_PRESCALER_OFF_gc;
-			while(RTC.STATUS != 0)
-			{
-				//Ждём пока можно будет обратиться к регистрам RTC
-			}
-			RTC.CNT = 0;
-		}
-		else
-		{
-			//сохраняем результаты
-			COA_PreviousMeasurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
-			COB_PreviousMeasurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
-			COC_PreviousMeasurment = TCE0.CNT;
-			COA_PreviousOVF = COA_OVF;
-			COB_PreviousOVF = COB_OVF;
-			COC_PreviousOVF = COC_OVF;
-			//подготовка следующему измерению
-			COA_OVF = 0;
-			COB_OVF = 0;
-			COC_OVF = 0;
-			TCC0.CNT = 0;
-			TCC1.CNT = 0;
-			TCD0.CNT = 0;
-			TCD1.CNT = 0;
-			TCE0.CNT = 0;
-		}
-	}
-	else if (RTC_Status == RTC_Status_delayed)
-	{
-		//начинаем новое измерения
-		while(RTC.STATUS != 0)
-		{
-			//Ждём пока можно будет обратиться к регистрам RTC
-		}
-		RTC.CTRL = RTC_PRESCALER_OFF_gc;
-		while(RTC.STATUS != 0)
-		{
-			//Ждём пока можно будет обратиться к регистрам RTC
-		}
-		RTC.CNT = 0;
-		while(RTC.STATUS != 0)
-		{
-			//Ждём пока можно будет обратиться к регистрам RTC
-		}
-		RTC.PER = RTC_MeasurePeriod;
-		while(RTC.STATUS != 0)
-		{
-			//Ждём пока можно будет обратиться к регистрам RTC
-		}
-		asm(
-		"LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
-		"LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
-		"LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
-		//"LDS R19, 0x205F	\n\t"//RTC: Адрес RTC_Prescaler  = 0x205F
-		"LDI R20, 0x09		\n\t"//TCC1:Код канала событий 1 = 0x09
-		"LDI R21, 0x0B		\n\t"//TCD1:Код канала событий 3 = 0x0B
-		"STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
-		"STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
-		"STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
-		//"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_Prescaler(@0x205F)
-		"STS 0x0840, R20	\n\t"//Адрес TCC1.CTRLA = 0x0840 <- Канал событий 1
-		"STS 0x0940, R21	\n\t"//Адрес TCD1.CTRLA = 0x0940 <- Канал событий 3
-		);
-		RTC.CTRL = RTC_MeasurePrescaler;
-		RTC_setStatus_busy;
-		MC_Tasks.MeasuredDataWasSended = 0;
-		transmit_2bytes(COMMAND_COUNTERS_LookAtMe,RTC_Status);//LAM delayed
-	}
-	else
-	{
-		transmit_2bytes(ERROR_Token,123);
-	}
-	sei();
+    //ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
+    //ФУНКЦИЯ: Остановка счётчиков импульсов
+    cli();
+    asm(
+        "LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
+        "STS 0x0800, R16		\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Ноль
+        "STS 0x0900, R16		\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Ноль
+        "STS 0x0A00, R16		\n\t"//Адрес TCE0.CTRLA = 0x0A00 <-	Ноль
+        "STS 0x0840, R16		\n\t"//Адрес TCC1.CTRLA = 0x0840 <-	Ноль
+        "STS 0x0940, R16		\n\t"//Адрес TCD1.CTRLA = 0x0940 <-	Ноль
+    );
+    while (RTC.STATUS != 0)
+    {
+        //Ждём пока можно будет обратиться к регистрам RTC
+    }
+    RTC.CTRL = RTC_PRESCALER_OFF_gc;
+    //сохраняем результаты
+    COA_Measurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
+    COB_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
+    COC_Measurment = TCE0.CNT;
+	RTC_setStatus_ready;
+    sei();
 }
 static void ISR_TCC1(void)
  {
@@ -441,9 +315,7 @@ void decode(void)
 {
 	//ФУНКЦИЯ: Расшифровываем команду
 	switch(USART_MEM[0])																					
-	{		
-		case COMMAND_COUNTERS_set_All:				setThemAll();
-		break;																								
+	{																										
 		case COMMAND_MC_get_Status:					MC_transmit_Status;										
 		break;																								
 		case COMMAND_MC_get_CPUfreq:				MC_transmit_CPUfreq();									
@@ -453,7 +325,9 @@ void decode(void)
 		case COMMAND_MC_get_Birthday:				MC_transmit_Birthday();									
 		break;																								
 		case COMMAND_COUNTERS_start:				COUNTERS_start();										
-		break;																								
+		break;	
+		case COMMAND_COUNTERS_sendResults:			COUNTERS_sendResults();
+		break;							
 		case COMMAND_COUNTERS_stop:					COUNTERS_stop();										
 		break;																								
 		case COMMAND_MC_reset:						MC_reset();												
@@ -492,199 +366,6 @@ void decode(void)
 		break;																								
 		default: transmit_3bytes(ERROR_Token, ERROR_Decoder, USART_MEM[0]);
 	}
-}
-void setThemAll(void)
-{
-	//СУПЕРФУНКЦИЯ: Были приняты многочисленные данные, все их надо установить
-	//ПРИНЯТЫЕ ДАННЫЕ:
-	//			[0] -		<Command37>										- setThemAll
-	//			[1] -		<Continue>										- флаг "сделать следующее измерение"
-	//				<0>			- не делать следующее измерение
-	//				<1>			- сделать следующее измерение
-	//А НОМЕР ИЗМЕРЕНИЯ?
-	//			[2] -		<RTC_MeasurePrescaler>							- задаёт предделитель следующего измерения
-	//				<0>			- не менять ни предделитель, ни период
-	//				<1...7>		- возможные значения предделителя
-	//			[3..4] -	<RTC_MeasurePeriod>								- задать время следующего измерения
-	//				<0...65535> - возможные значения периода (0 и 1 лучше не использовать)
-	//			[5] -		<RTC_DelayPrescaler>							- задаёт предделитель следующей задержки
-	//				<0>			- не менять ни предделитель, ни период
-	//				<1...7>		- возможные значения предделителя
-	//			[6..7] -	<RTC_DelayPeriod>								- задать время следующей задержки
-	//				<1...65535> - возможные значения периода (0 и 1 лучше не использовать)
-	//			[8..10] -	<SPI_DAC_Scaner_PS>								- задать родительское сканирующее напряжение
-	//				<[24][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]> 
-	//			[11..13] -	<SPI_DAC_Scaner_S>								- задать сканирующее напряжение
-	//				<[25][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]>
-	//			[14..16] -	<SPI_DAC_Condensator>							- задать напряжение на конденсаторе
-	//				<[24][0..255][(0..63)<<2]> = <[адрес (fixed)][Напряжение Hbyte][Напряжение Lbyte]>
-	//--------------------------------------------------------------------------------------------------------------------
-	//			[17..18] -	<SPI_ADC_Scaner_ParentScan>						- посылка на MSV ADC(родительское сканирующее)
-	//			[19..20] -	<SPI_ADC_Scaner_Scan>							- посылка на MSV ADC(сканирующее)
-	//			[21..22] -	<SPI_ADC_Condensator_PosVoltage>				- посылка на MSV ADC(+ конденсатор)
-	//			[23..24] -	<SPI_ADC_Condensator_NegVoltage>				- посылка на MSV ADC(- конденсатор)
-	cli();
-	//Проверка - попли ли мы во время измерения (busy)? Если ready или notSet то всёравно всё установить, но SPI DAC установить сразу
-	if (RTC_Status != RTC_Status_delayed)
-	{
-		//Устанавливаем параметры RTC на следующее измерение
-		if (USART_MEM[1] == 1)
-		{
-			//<Continue> можно сделать многофункциональнее, флаговым (флаг SPI устройств, снимать\устанавливать напряги надо ли)
-			MC_Tasks.doNextMeasure = 1;
-		}
-		if (USART_MEM[2] != 0)
-		{
-			RTC_MeasurePrescaler = USART_MEM[2];
-			RTC_MeasurePeriod = (((uint16_t)USART_MEM[3]) << 8) + USART_MEM[4];
-		}
-		if (USART_MEM[5] != 0)
-		{
-			RTC_DelayPrescaler = USART_MEM[5];
-			RTC_DelayPeriod = (((uint16_t)USART_MEM[6]) << 8) + USART_MEM[7];
-		}
-		//Даём задание на SPI DAC (будет выполнено во время задержки)
-		SPI_DAC_Scaner_PS_data[0] = USART_MEM[8];
-		SPI_DAC_Scaner_PS_data[1] = USART_MEM[9];
-		SPI_DAC_Scaner_PS_data[2] = USART_MEM[10];
-		SPI_DAC_Scaner_S_data[0] = USART_MEM[11];
-		SPI_DAC_Scaner_S_data[1] = USART_MEM[12];
-		SPI_DAC_Scaner_S_data[2] = USART_MEM[13];
-		SPI_DAC_Condensator_data[0] = USART_MEM[14];
-		SPI_DAC_Condensator_data[1] = USART_MEM[15];
-		SPI_DAC_Condensator_data[2] = USART_MEM[16];
-		if (RTC_Status != RTC_Status_busy)
-		{
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, SPI_DAC_Scaner_PS_data, 3);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-			spi_select_device(&SPIC, &DAC_Condensator);
-			spi_write_packet(&SPIC, SPI_DAC_Condensator_data, 3);
-			spi_deselect_device(&SPIC, &DAC_Condensator);
-			spi_select_device(&SPIC, &DAC_Scaner);
-			spi_write_packet(&SPIC, SPI_DAC_Scaner_S_data, 3);
-			spi_deselect_device(&SPIC, &DAC_Scaner);
-		}
-		//Снимаем показания SPI ADC
-		//Передаём предыдущие показания счётчиков и ADC (получается сейчасшные, контроль того что поставили в предыдущий раз)
-		if (MC_Tasks.MeasureDataWasOVERWRITTEN != 1)
-		{
-			uint8_t SPI_wDATA[2];				//Массив для записи в устройства SPI
-			uint8_t SPI_rDATA[2];				//Массив для приёма результатов (адрес ADC + настройки(fixed DoubleRef))
-			uint8_t data[24];					//Посылка для отправки на ПК
-			switch (RTC_Status)
-			{
-				case RTC_Status_busy:
-				case RTC_Status_ready:
-					data[0] = COMMAND_COUNTERS_set_All;
-					data[1] = MC_Status;
-					data[2] = RTC_Status;
-					data[3] = COA_PreviousOVF;
-					data[4] = (COA_PreviousMeasurment >> 24);
-					data[5] = (COA_PreviousMeasurment >> 16);
-					data[6] = (COA_PreviousMeasurment >> 8);
-					data[7] = COA_PreviousMeasurment;
-					data[8] = COB_PreviousOVF;
-					data[9] = (COB_PreviousMeasurment >> 24);
-					data[10] = (COB_PreviousMeasurment >> 16);
-					data[11] = (COB_PreviousMeasurment >> 8);
-					data[12] = COB_PreviousMeasurment;
-					data[13] = COC_PreviousOVF;
-					data[14] = (COC_PreviousMeasurment >> 8);
-					data[15] = COC_PreviousMeasurment;
-					//Родительское сканирующее
-					SPI_wDATA[0] = 143;
-					SPI_wDATA[1] = 16;
-					gpio_set_pin_low(pin_iRDUN);
-					spi_write_packet(&SPIC, SPI_wDATA, 2);
-					gpio_set_pin_high(pin_iRDUN);
-					spi_deselect_device(&SPIC, &ADC_MSV);
-					gpio_set_pin_low(pin_iRDUN);
-					spi_read_packet(&SPIC,SPI_rDATA,2);
-					gpio_set_pin_high(pin_iRDUN);
-					spi_select_device(&SPIC, &ADC_MSV);
-					data[16] = SPI_rDATA[0];
-					data[17] = SPI_rDATA[1];
-					//Сканирующее
-					SPI_wDATA[0] = 139;
-					gpio_set_pin_low(pin_iRDUN);
-					spi_write_packet(&SPIC, SPI_wDATA, 2);
-					gpio_set_pin_high(pin_iRDUN);
-					spi_deselect_device(&SPIC, &ADC_MSV);
-					gpio_set_pin_low(pin_iRDUN);
-					spi_read_packet(&SPIC,SPI_rDATA,2);
-					gpio_set_pin_high(pin_iRDUN);
-					spi_select_device(&SPIC, &ADC_MSV);
-					data[18] = SPI_rDATA[0];
-					data[19] = SPI_rDATA[1];
-					//Конденсатор +
-					SPI_wDATA[0] = 131;
-					gpio_set_pin_low(pin_iRDUN);
-					spi_write_packet(&SPIC, SPI_wDATA, 2);
-					gpio_set_pin_high(pin_iRDUN);
-					spi_deselect_device(&SPIC, &ADC_MSV);
-					gpio_set_pin_low(pin_iRDUN);
-					spi_read_packet(&SPIC,SPI_rDATA,2);
-					gpio_set_pin_high(pin_iRDUN);
-					spi_select_device(&SPIC, &ADC_MSV);
-					data[20] = SPI_rDATA[0];
-					data[21] = SPI_rDATA[1];
-					//Конденсатор -
-					SPI_wDATA[0] = 135;
-					gpio_set_pin_low(pin_iRDUN);
-					spi_write_packet(&SPIC, SPI_wDATA, 2);
-					gpio_set_pin_high(pin_iRDUN);
-					spi_deselect_device(&SPIC, &ADC_MSV);
-					gpio_set_pin_low(pin_iRDUN);
-					spi_read_packet(&SPIC,SPI_rDATA,2);
-					gpio_set_pin_high(pin_iRDUN);
-					spi_select_device(&SPIC, &ADC_MSV);
-					data[22] = SPI_rDATA[0];
-					data[23] = SPI_rDATA[1];
-					//Передём на ПК
-					transmit(data, 24);
-					MC_Tasks.MeasuredDataWasSended = 1;
-					break;
-				default:
-					//transmit_2bytes(COMMAND_COUNTERS_get_Count,RTC_Status);
-					break;
-			}
-		}
-		else
-		{
-			//transmit_2bytes(COMMAND_COUNTERS_get_Count,(255 - RTC_Status));
-		}
-	}
-	else
-	{
-		//МК в задержке!!! Ты либо опоздал, либо слишком рано!
-	}
-	sei();
-	//ПОСЫЛАЕМЫЕ ДАННЫЕ:
-	//			[0] -		<Response>										- отклик
-	//				<37> - COMMAND_MEASURE_set_All
-	//А НОМЕР ИЗМЕРЕНИЯ?
-	//			[1] -		<MC_Status>										- статус МК
-	//			[2] -		<RTC_Status>									- статус RTC
-	//			[3] -		<COA_PreciousOVF								- предыдущий результат счёта (СОА_ovf)
-	//			[4...7] -	<COA_PreviousMeasurment>						- предыдущий результат счёта (СОА_CNT)
-	//			[8] -		<COA_PreciousOVF								- предыдущий результат счёта (СОА_ovf)
-	//			[9...12] -	<COA_PreviousMeasurment>						- предыдущий результат счёта (СОА_CNT)
-	//			[13] -		<COA_PreciousOVF								- предыдущий результат счёта (СОА_ovf)
-	//			[14...15] - <COA_PreviousMeasurment>						- предыдущий результат счёта (СОА_CNT)
-	//			[16..17] -	<Scaner_ParentVoltage>							- напряжение с MSV ADC канал Сканера (Родительское)
-	//			[18..19] -	<Scaner_ScanVoltage>							- напряжение с MSV ADC канал Сканера (Сканирующее)
-	//			[20..21] -	<Condensator_PosVoltage>						- напряжение с MSV ADC канал Конденсатора(+)
-	//			[22..23] -	<Condensator_NegVoltage>						- напряжение с MSV ADC канал Конденсатора(-)
-	//------------------------------------------------------------------------------------------------------------------------
-	//			8 : <IS_EC : 2><IS_IV : 2><IS_F1 : 2><IS_F2 : 2>		- напряжения на DAC PSIS
-	//			6 : <D_DV1 : 2><D_DV2 : 2><D_DV3 : 2>					- напряжения на DAC DPS
-	//			9 : <S_PV : 3><S_SV : 3><C_V : 3>						- напряжения на DAC MSV
-	//			8 : <Inl_Inl : 2><Inl_Heater : 2>						- напряжения на DAC Inlet
-	//			8 : <IS_EC : 2><IS_IV : 2><IS_F1 : 2><IS_F2 : 2>		- напряжения на ADC PSIS
-	//			6 : <D_DV1 : 2><D_DV2 : 2><D_DV3 : 2>					- напряжения на ADC DPS
-	//			8 : <S_PV : 2><S_SV : 2><C_Vp : 2><C_Vn : 2>			- напряжения на ADC MSV
-	//			8 : <Inl_Inl : 2><Inl_Heater : 2>						- напряжения на ADC Inlet
 }
 //USART COMP
 void transmit(uint8_t DATA[],uint8_t DATA_length)
@@ -781,62 +462,33 @@ void ERROR_ASYNCHR(void)
 //COUNTERS
 void COUNTERS_start(void)
 {
-	//ФУНКЦИЯ: Запускаем счётчики на определённое интервалом время
-	
-	//Принимать команду запуска во время busy -> ставить флажок MC_Tasks.doNextMeasure. Если флага нет - значит начинать новую серию измерений
-	
-	/*if (RTC_Status != RTC_Status_busy)
-	{	
-		COA_OVF = 0;
-		COB_OVF = 0;
-		COC_OVF = 0;
-		TCC0.CNT = 0;
-		TCC1.CNT = 0;
-		TCD0.CNT = 0;
-		TCD1.CNT = 0;
-		TCE0.CNT = 0;
-		RTC.CNT = 0;
-		RTC.PER = RTC_MeasurePeriod;
-		asm(	
-			"LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
-			"LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
-			"LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
-			"LDS R19, 0x205F	\n\t"//RTC: Адрес RTC_Prescaler  = 0x205F
-			"LDI R20, 0x09		\n\t"//TCC1:Код канала событий 1 = 0x09
-			"LDI R21, 0x0B		\n\t"//TCD1:Код канала событий 3 = 0x0B
-			"STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
-			"STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
-			"STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
-			"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_Prescaler(@0x205F)	
-			"STS 0x0840, R20	\n\t"//Адрес TCC1.CTRLA = 0x0840 <- Канал событий 1
-			"STS 0x0940, R21	\n\t"//Адрес TCD1.CTRLA = 0x0940 <- Канал событий 3
-		);
-		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
-		RTC_setStatus_busy;
-	}
-	else
-	{
-		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
-	}*/
-	if((RTC_Status != RTC_Status_busy)&&(RTC_Status != RTC_Status_delayed))
+	//ФУНКЦИЯ: Запускаем счётчики на определённое время
+	//ДАННЫЕ: <Command><RTC_PRE><RTC_PER[1]><RTC_PER[0]>
+	cli();
+	if((RTC_Status != RTC_Status_busy))
 	{
 		//подготовка
 		while(RTC.STATUS != 0)
 		{
 			//Ждём пока можно будет обратиться к регистрам RTC
 		}
-		RTC.PER = RTC_MeasurePeriod;
-		MC_Tasks.MeasureDataWasOVERWRITTEN = 0;
-		MC_Tasks.MeasuredDataWasSended = 1; //якобы были посланы (первый замер)
+		RTC.PER = (USART_MEM[2] << 8) + USART_MEM[3];
+		COA_Measurment = 0;
+		COB_Measurment = 0;
+		COC_Measurment = 0;
 		COA_OVF = 0;
 		COB_OVF = 0;
 		COC_OVF = 0;
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CNT = 0;
 		TCC0.CNT = 0;
 		TCC1.CNT = 0;
 		TCD0.CNT = 0;
 		TCD1.CNT = 0;
 		TCE0.CNT = 0;
-		MC_Tasks.doNextMeasure = 0;
 		//начали
 		while(RTC.STATUS != 0)
 		{
@@ -856,34 +508,70 @@ void COUNTERS_start(void)
 		"STS 0x0840, R20	\n\t"//Адрес TCC1.CTRLA = 0x0840 <- Канал событий 1
 		"STS 0x0940, R21	\n\t"//Адрес TCD1.CTRLA = 0x0940 <- Канал событий 3
 		);
-		RTC.CTRL =  RTC_MeasurePrescaler;
+		RTC.CTRL =  USART_MEM[1];
 		//отчёт
-		//transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
+		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 		RTC_setStatus_busy;
 	}
 	else
 	{
+		//ЗАПРЕЩЕНО! Счётчики считают!
 		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 	}
+	sei();
 }
+void COUNTERS_sendResults(void)
+{
+	//ФУНКЦИЯ: Послать результаты счёта на ПК, если можно
+	//ДАННЫЕ: <Command><RTC_Status><COA_OVF><COA_M[3]><COA_M[2]><COA_M[1]><COA_M[0]><COВ_OVF><COВ_M[3]><COВ_M[2]><COВ_M[1]><COВ_M[0]><COС_OVF><COС_M[1]><COС_M[0]>
+	uint8_t wDATA[15];
+	wDATA[0] = COMMAND_COUNTERS_sendResults;
+	wDATA[1] = RTC_Status;
+	if(RTC_Status == RTC_Status_ready)
+	{
+		wDATA[2] = COA_OVF;
+		wDATA[3] = (COA_Measurment >> 24);
+		wDATA[4] = (COA_Measurment >> 16);
+		wDATA[5] = (COA_Measurment >> 8);
+		wDATA[6] = COA_Measurment;
+		wDATA[7] = COB_OVF;
+		wDATA[8] = (COB_Measurment >> 24);
+		wDATA[9] = (COB_Measurment >> 16);
+		wDATA[10] = (COB_Measurment >> 8);
+		wDATA[11] = COB_Measurment;
+		wDATA[12] = COC_OVF;
+		wDATA[13] = (COC_Measurment >> 8);
+		wDATA[14] = COC_Measurment;
+	}
+	transmit(wDATA,15);
+}
+
 void COUNTERS_stop(void)
 {
 	//ФУНКЦИЯ: Принудительная остановка счётчиков
 	if (RTC_Status == RTC_Status_busy)
 	{
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CTRL = RTC_PRESCALER_OFF_gc;
 		tc_write_clock_source(&TCC0, TC_CLKSEL_OFF_gc);
 		tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
 		tc_write_clock_source(&TCE0, TC_CLKSEL_OFF_gc);
-		RTC.CTRL = RTC_PRESCALER_OFF_gc;
 		tc_write_clock_source(&TCC1, TC_CLKSEL_OFF_gc);
 		tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
 		//Могут быть траблы, внимательней
-		RTC.CNT = 0;
 		TCC0.CNT = 0;
 		TCC1.CNT = 0;
 		TCD0.CNT = 0;
 		TCD1.CNT = 0;
 		TCE0.CNT = 0;
+		while(RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CNT = 0;
 		transmit_2bytes(COMMAND_COUNTERS_stop, RTC_Status);
 		RTC_setStatus_stopped;
 	}
@@ -1210,14 +898,6 @@ int main(void)
 					MC_reciving_error = 3;
 				}
 			}
-		}
-		sei();
-		//Автоустранение нежелательных состояний
-		cli();
-		if (((RTC_Status == RTC_Status_delayed)||(RTC_Status == RTC_Status_busy))&&(RTC.CTRL == 0))
-		{
-			//То мы вошли в задержку не включив RTC!
-			RTC_Status = RTC_Status_stopped;
 		}
 		sei();
 	}
