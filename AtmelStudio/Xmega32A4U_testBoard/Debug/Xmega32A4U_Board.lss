@@ -9290,6 +9290,7 @@ int main(void)
 	//Инициализация завершена
 	while (1) 
 	{
+		//21 (0,66мкс) - холостой ход
 		cli();
     45ae:	f8 94       	cli
 		if (MC_Tasks.Decrypt == 1)

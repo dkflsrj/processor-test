@@ -1338,6 +1338,7 @@ namespace Xmega32A4U_testBoard
                 }
                 else
                 {
+                    //Console.Write(TEXT);
                     tracer.AppendText(TEXT);
                     tracer.ScrollToCaret();
                 } 
@@ -1370,7 +1371,11 @@ namespace Xmega32A4U_testBoard
         {
             //СОБЫТИЕ: Пришло асинхронное сообщение. Все асинхронные сообщения одной длины (7 байт)
             //ДАННЫЕ: <Tocken><DATA_1><DATA_2>
-            Asynchr_decode(decode_2(receive_2(7)));
+            bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
+            tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
+            List<byte> rDATA = decode_2(receive_2(7));
+            tracer_enabled = tracer_enabled_before;
+            Asynchr_decode(rDATA);
         }
         static void Asynchr_decode(List<byte> DATA)
         {
@@ -1392,15 +1397,19 @@ namespace Xmega32A4U_testBoard
                     trace("Неизвестная метка асинхронного сообщения: " + DATA[0]);
                     break;
             }
+            
         }
         static List<byte> receive_2(byte rPacketLength)
         {
+            //ФУНКЦИЯ: Принимаем данные по СОМ-порту
+            trace("         Приём...");                     //Приём-приём
             List<byte> rDATA = new List<byte>();
             if (!USART.IsOpen)
             {
                 USART.Open();
             }
             uint time;
+            trace("                 Принято:");
             for (byte i = 0; i < rPacketLength; i++)
             {
                 time = 0;
@@ -1409,16 +1418,20 @@ namespace Xmega32A4U_testBoard
                     time++;
                     if (time >= TimeOut)
                     {
-                        trace("Ошибка приёма! Нет данных на приём!");
+                        addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
+                        
                         return rDATA;
                     }
                 }
                 rDATA.Add((byte)USART.ReadByte());
+                trace("                     " + rDATA.Last<byte>());
             }
+            trace("         Приём завершён!");
             return rDATA;
         }
         static List<byte> decode_2(List<byte> DATA)
         {
+            trace("         Анализ полученной команды...");
             List<byte> rDATA = DATA;
             if (rDATA.First<byte>() == Command.KEY)
             {
@@ -1435,6 +1448,14 @@ namespace Xmega32A4U_testBoard
                         if (CheckSum == calcedCheckSum)
                         {
                             //Пакет верный, возвращаем его
+                            if (tracer_enabled)
+                            {
+                                trace("         Пакет принятых данных: ");
+                                foreach (byte b in rDATA)
+                                {
+                                    trace("             " + b);
+                                }
+                            }
                             return rDATA;
                         }
                         else
@@ -1463,12 +1484,33 @@ namespace Xmega32A4U_testBoard
         }
         static void send_2(List<byte> DATA)
         {
+            //ФУНКЦИЯ: Формируем пакет, передаём его МК.
+            byte command = DATA[0];                         //Запоминаем передаваемую команду
+            trace("     Начало исполнения команды:");
+            trace("         Команда и байты данных:");
+            foreach (byte b in DATA.ToArray())
+            {
+                trace("             " + b);
+            }
+            trace("         Формирование пакета...");
             List<byte> Packet = new List<byte>();
             Packet.Add(Command.KEY);
             Packet.Add((byte)(DATA.Count + 4));
             Packet.AddRange(DATA);
             Packet.Add(calcCheckSum(DATA.ToArray()));
             Packet.Add(Command.LOCK);
+            trace("         Пакет:");
+            foreach (byte b in Packet.ToArray())
+            {
+                trace("             " + b);
+            }
+            //Выполняем передачу и приём
+            trace("         Передача...");
+            if (!USART_defined)
+            {
+                addError("СОМ-порт не определён!");
+                return;
+            }
             //Открытие порта, если он закрыт
             if (!USART.IsOpen)
             {
@@ -1476,15 +1518,20 @@ namespace Xmega32A4U_testBoard
             }
             //Передача
             USART.Write(Packet.ToArray(), 0, Packet.Count);
+            trace("         Передача завершена!");
+            CommandStack++;                                 //Увеличиваем счётчик команд (команда ушла)
         }
         static List<byte> transmit_2(List<byte> wDATA, byte rPacketLength)
         {
+            //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
+            bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
+            tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
             USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived);
             send_2(wDATA);
             List<byte> rDATA = decode_2(receive_2(rPacketLength));
             USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
+            tracer_enabled = tracer_enabled_before;
             return rDATA;
-            //Декодируем
         }
         static byte calcCheckSum(byte[] data)
         {
@@ -1497,6 +1544,7 @@ namespace Xmega32A4U_testBoard
             //trace("             Контрольная сумма: " + CheckSum);
             return CheckSum;
         }
+        
         static byte[] transmit(List<byte> DATA)
         {
             //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.

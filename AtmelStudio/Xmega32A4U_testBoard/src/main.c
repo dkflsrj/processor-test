@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										104
+#define version										105
 #define birthday									20131126
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -62,7 +62,7 @@ uint8_t MC_Status = 0;
 //		USART COMP
 uint8_t  USART_MEM[100];								//100 байт памяти для приёма данных USART
 uint8_t  USART_MEM_length = 0;							//Длина записанного в USART_MEM пакета байтов.
-uint16_t MC_receiving_limit = 65535;					
+uint16_t MC_receiving_limit = 800;						//~1,2мс ожидания следующего байта. Если не придёт, то анулируем.
 uint16_t USART_receiving_time = 0;						
 uint8_t  MC_reciving_error = 0;							
 uint8_t  USART_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже шум)
@@ -862,6 +862,7 @@ int main(void)
 	//Инициализация завершена
 	while (1) 
 	{
+		//21 (0,66мкс) - холостой ход
 		cli();
 		if (MC_Tasks.Decrypt == 1)
 		{
@@ -893,6 +894,7 @@ int main(void)
 			{
 				//Отсчитываем время до следующего байта
 				USART_receiving_time++;
+				//48 (1,5 мкс) - ход ожидания байта
 				if (USART_receiving_time >= MC_receiving_limit)
 				{
 					USART_receiving_time = 0;
