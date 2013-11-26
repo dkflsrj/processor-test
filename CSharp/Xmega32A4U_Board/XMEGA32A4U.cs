@@ -160,7 +160,11 @@ namespace Xmega32A4U_testBoard
             }
             public const byte setFlags = 80;
         }
-
+        struct LAM
+        {
+            public const byte Tocken = 1;
+            public const byte RTC_end = 1;
+        }
         //---------------------------------------КЛАССЫ--------------------------------------------
         public class RTCounterAndCO
         {
@@ -487,7 +491,6 @@ namespace Xmega32A4U_testBoard
                 trace_attached(Environment.NewLine);
                 string command = "Counters.receiveResults()";
                 trace(command);
-
                 List<byte> wDATA = new List<byte>();    //Данные на передачу
                 List<byte> rDATA = new List<byte>();    //Данные на приём
                 wDATA.Add(Command.RTC.receiveResults); //Команда
@@ -1025,7 +1028,11 @@ namespace Xmega32A4U_testBoard
                 trace("Chip.setUSART(" + COM_PORT.PortName + ")");
                 USART = COM_PORT;
                 USART_defined = true;
-                //trace("Chip.setUSART(" + COM_PORT.PortName + "): СОМ порт задан.");
+                if (!USART.IsOpen)
+                {
+                    USART.Open();
+                }
+                
             }
             /// <summary>
             /// Проверка синхронности команд ПК и МК (отладочное)
@@ -1316,6 +1323,7 @@ namespace Xmega32A4U_testBoard
             return received_flags;
         }
         //ИНТЕРФЕЙСНЫЕ
+        delegate void delegate_trace(string text);
         static void trace(string text)
         {
             //ФУНКЦИЯ: Выводит text новой строкой с датой в RichTextBox и в файл, если эти действия разарешены
@@ -1323,8 +1331,17 @@ namespace Xmega32A4U_testBoard
             if (tracer_defined && tracer_enabled)
             {
                 //Трэйсер определён и разрешён
-                tracer.AppendText(TEXT);
-                tracer.ScrollToCaret();
+                if (tracer.InvokeRequired)
+                {
+                    delegate_trace a_delegate = new delegate_trace(trace);
+                    tracer.Invoke(a_delegate, text);
+                }
+                else
+                {
+                    tracer.AppendText(TEXT);
+                    tracer.ScrollToCaret();
+                } 
+                
             }
             if (tracer_log_enabled)
             {
@@ -1349,6 +1366,33 @@ namespace Xmega32A4U_testBoard
             }
         }
         //USART
+        public static void USART_DataReceived(object sender, EventArgs e)
+        {
+            //СОБЫТИЕ: Пришло асинхронное сообщение. Все асинхронные сообщения одной длины (7 байт)
+            //ДАННЫЕ: <Tocken><DATA_1><DATA_2>
+            Asynchr_decode(decode_2(receive_2(7)));
+        }
+        static void Asynchr_decode(List<byte> DATA)
+        {
+            //ФУНКЦИЯ: Декодируем асинхронное сообщение. Длина данных любого асинхронного сообщения 3 байта
+            switch (DATA[0])
+            {
+                case LAM.Tocken:
+                    switch (DATA[1])
+                    {
+                        case LAM.RTC_end:
+                            trace("Счётчики закончили счёт!");
+                            break;
+                        default:
+                            trace("МК хочет чтобы на него обратили внимание, но не понятно почему! "+DATA[1]);
+                            break;
+                    }
+                    break;
+                default:
+                    trace("Неизвестная метка асинхронного сообщения: " + DATA[0]);
+                    break;
+            }
+        }
         static List<byte> receive_2(byte rPacketLength)
         {
             List<byte> rDATA = new List<byte>();
@@ -1435,8 +1479,11 @@ namespace Xmega32A4U_testBoard
         }
         static List<byte> transmit_2(List<byte> wDATA, byte rPacketLength)
         {
+            USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived);
             send_2(wDATA);
-            return decode_2(receive_2(rPacketLength));
+            List<byte> rDATA = decode_2(receive_2(rPacketLength));
+            USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
+            return rDATA;
             //Декодируем
         }
         static byte calcCheckSum(byte[] data)
@@ -1488,7 +1535,7 @@ namespace Xmega32A4U_testBoard
             {
                 USART.Open();
             }
-            
+            USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived);
             USART.Write(Packet.ToArray(), 0, Packet.ToArray().Length);
             trace("         Передача завершена!");
             CommandStack++;                                 //Увеличиваем счётчик команд (команда ушла)
@@ -1521,6 +1568,7 @@ namespace Xmega32A4U_testBoard
                 rDATA.Add(rBYTE);
             }
             trace("         Приём завершён!");
+            USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
             trace("         Анализ полученной команды...");
             //Если последний байт затвор, то всё путём
             if (rDATA.First<byte>() == Command.KEY)

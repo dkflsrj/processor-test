@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										103
+#define version										104
 #define birthday									20131126
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -296,6 +296,8 @@ ISR(RTC_OVF_vect)
     COB_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
     COC_Measurment = TCE0.CNT;
 	RTC_setStatus_ready;
+	//Отправляем асинхронное сообщение
+	transmit_3bytes(LAM_Tocken, LAM_RTC_end, RTC_Status);
     sei();
 }
 static void ISR_TCC1(void)
