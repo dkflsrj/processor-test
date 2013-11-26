@@ -29,8 +29,7 @@
 
 #define COMMAND_COUNTERS_start						30	//Команда: Начать счёт импульсов
 #define COMMAND_COUNTERS_stop						31	//Команда: Остановить счётчик
-#define COMMAND_COUNTERS_set_All					32	//Команда: Задать всё!
-#define COMMAND_COUNTERS_LookAtMe					33  //Команда: LAM сигнал по окончании измерения (МК ожидает указаний)
+#define COMMAND_COUNTERS_sendResults				32	//Команда: Послать результаты счёта
 //Команды DAC'ам
 #define COMMAND_IonSource_set_Voltage				40	//Команда: Задать напряжение DAC'у Ионного Источника
 #define COMMAND_Detector_set_Voltage				41	//Команда: Задать напряжение DAC'у Детектора

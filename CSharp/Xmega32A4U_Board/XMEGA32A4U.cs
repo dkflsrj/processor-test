@@ -30,7 +30,7 @@ namespace Xmega32A4U_testBoard
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
         const byte delay = 3;           //Задержка при приёме данных (см. transmit())
-        static bool RTC_is_busy = false;
+        const uint TimeOut = 10000; //260000 вроде 1 сек
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
@@ -63,8 +63,8 @@ namespace Xmega32A4U_testBoard
                 //Коды команд счётчиков
                 public const byte startMeasure =        30;
                 public const byte stopMeasure =         31;
-                public const byte setAll =              32;
-                public const byte LAM =                 33;
+                public const byte receiveResults =      32;
+                public const byte getStatus =           33;
             }
             public struct TIC
             {
@@ -172,16 +172,12 @@ namespace Xmega32A4U_testBoard
                 //Коды состояний
                 public struct Status
                 {
-                    public const byte notSet =              0;		//Счётчики не настроен
-                    public const string string_notSet =     "notSet";
-                    public const byte ready =               1;		//Счётчики готов к работе
+                    public const byte ready =               0;		//Счётчики готов к работе
                     public const string string_ready =      "ready";
-                    public const byte stopped =             2;		//Счётчики был принудительно остановлен
+                    public const byte stopped =             1;		//Счётчики был принудительно остановлен
                     public const string string_stopped =    "stopped";
-                    public const byte busy =                3;		//Счётчики ещё считает
+                    public const byte busy =                2;		//Счётчики ещё считает
                     public const string string_busy =       "busy";
-                    public const byte delayed =             4;		//RTC считает задержку
-                    public const string string_delayed =    "delayed";
                 }
                 //интервалы для предделителей
                 public const int min_ms_div1 =              0;
@@ -193,8 +189,7 @@ namespace Xmega32A4U_testBoard
                 public const int min_ms_div1024 =           511981;
                 public const int max_ms_div1024 =           2047925;
                 //Проча
-                public const byte LengthOfSetAllPacket =    28;
-                public const byte LengthOfLAMPacket =       6;
+                public const byte LengthOfstartMeasurePacket =    6;
                 public struct NextMeasure
                 {
                     //Коды команд счётчиков
@@ -210,11 +205,11 @@ namespace Xmega32A4U_testBoard
                 /// <summary>
                 /// Количество переполнений счётчика
                 /// </summary>
-                public List<byte> Overflows = new List<byte>();  //Количество переполений счётчика
+                public byte Overflows = 0;  //Количество переполений счётчика
                 /// <summary>
                 /// Сосчитанный результат
                 /// </summary>
-                public List<uint> Count = new List<uint>();   //Сосчитанный результат
+                public uint Count = 0;   //Сосчитанный результат
             }
             /// <summary>
             /// Счётчик А (32-разрядный)
@@ -228,93 +223,8 @@ namespace Xmega32A4U_testBoard
             /// Счётчик С (16-разрядный)
             /// </summary>
             public counter COC = new counter();
-            //Настройки для измерений
-            public class _measure
-            {
-                /// <summary>
-                /// Массив времени измерений в миллисекундах от 50 до 2047925. (4096 измерений)
-                /// </summary>
-                public uint[] MeasureTimes = new uint[4096];
-                /// <summary>
-                /// Массив времени задержек между измерениями в миллисекундах от 50 до 2047925. (4096 задержек)
-                /// </summary>
-                public uint[] DelayTimes = new uint[4096];
-                public class _DAC
-                {
-                    /// <summary>
-                    /// Массив Дополнительных Сканирующих напряжений от 0 до 16383 (4096 напряжений)
-                    /// </summary>
-                    public ushort[] ParentScan = new ushort[4096];
-                    /// <summary>
-                    /// Массив Сканирующих напряжений от 0 до 16383 (4096 напряжений)
-                    /// </summary>
-                    public ushort[] Scan = new ushort[4096];
-                    /// <summary>
-                    /// Массив напряжений Конденсатора от 0 до 16383 (4096 напряжений)
-                    /// </summary>
-                    public ushort[] Condensator = new ushort[4096];
-                }
-                /// <summary>
-                /// Массив напряжений, которые будут выставлены МК во время задержки (4096 напряжений)
-                /// </summary>
-                public _DAC DAC = new _DAC();
-                public class _ADC
-                {
-                    /// <summary>
-                    /// Массив Дополнительных Сканирующих напряжений от 0 до 16383 (4096 напряжений)
-                    /// </summary>
-                    public ushort[] ParentScan = new ushort[4096];
-                    /// <summary>
-                    /// Массив Сканирующих напряжений от 0 до 16383 (4096 напряжений)
-                    /// </summary>
-                    public ushort[] Scan = new ushort[4096];
-                    /// <summary>
-                    /// Массив положительных напряжений Конденсатора от 0 до 16383 (4096 напряжений)
-                    /// </summary>
-                    public ushort[] Condensator_pV = new ushort[4096];
-                    /// <summary>
-                    /// Массив открицательных напряжений Конденсатора от 0 до 16383 (4096 напряжений)
-                    /// </summary>
-                    public ushort[] Condensator_nV = new ushort[4096];
-                }
-                /// <summary>
-                /// Массив напряжений, которые будут считаны МК-ом во время измерния с АЦП (4096 напряжений)
-                /// </summary>
-                public _ADC ADC = new _ADC();
-                /// <summary>
-                /// Количество ступеней измерений в серии. От 1 до 4096.
-                /// <para>По умолчанию: 1</para>
-                /// </summary>
-                private ushort _Cycles = 1;
-                public ushort Cycles
-                {
-                    get { return _Cycles; }
-                    set
-                    {
-                        if ((value >= 1) && (value <= 4096))
-                        {
-                            _Cycles = value;
-                        }
-                        else
-                        {
-                            trace_attached(Environment.NewLine);
-                            trace(".Counters.Series.Cycles: Неверное значение! Ожидалось: 1...4096. Получено: " + value);
-                        }
-                    }
-                }
-            }
-            /// <summary>
-            /// Параметры серии измерений
-            /// </summary>
-            public _measure Series = new _measure();
-            /// <summary>
-            /// Состояние счётчиков
-            /// <para>  notSet: С момента запуска МК не было установлено параметров серии измерений.</para>
-            /// <para>  ready: Счётчики готовы к работе.</para>
-            /// <para>  busy: Счётчики считают импульсы.</para>
-            /// <para>  delayed: Счётчики отключены. МК настраивает DAC MSV для следующего измерения.</para>
-            /// <para>  stopped: Серия была прервана.</para>
-            /// </summary>
+            
+            
             public string Status = "notSet";
 
             string convertStatus(byte Status_byte)
@@ -323,9 +233,6 @@ namespace Xmega32A4U_testBoard
                 string Status_string = "";
                 switch(Status_byte)
                 {
-                    case Constants.Status.notSet:
-                        Status_string = Constants.Status.string_notSet;
-                        break;
                     case Constants.Status.ready:
                         Status_string = Constants.Status.string_ready;
                         break;
@@ -334,9 +241,6 @@ namespace Xmega32A4U_testBoard
                         break;
                     case Constants.Status.busy:
                         Status_string = Constants.Status.string_busy;
-                        break;
-                    case Constants.Status.delayed:
-                        Status_string = Constants.Status.string_delayed;
                         break;
                     default:
                         Status_string = "НЕИЗВЕСТНОЕ СОСТОЯНИЕ!";
@@ -496,270 +400,43 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Запускает серию измерений. Количество ступеней в серии определяется параметром Series_Cycles
+            /// Запускает измерение длительностью 
             /// <para>На время серии ПК становится ведомым, а МК - ведущим. </para>
-            /// <para>ПК ожидает LAM сигнала от МК по завершению ступени измерения</para>
-            /// <para>Параметры для каждой ступени измерений беруться из соответствующих массивов.</para>
             /// <para>Возвращает:</para>
-            /// <para>true - серия успешно завершена.</para>
-            /// <para>false - ошибка при выполнении операции.</para>
+            /// <para>true - счётчики начали счёт.</para>
+            /// <para>false - операция отменена.</para>
+            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 50 до 2047925</param>
             /// </summary>
-            public bool startSeries()
+            public bool startMeasure(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
                 
                 trace_attached(Environment.NewLine);
-                string command = "Counters.startSeries()";
+                string command = "Counters.startMeasure()";
                 trace(command);
-                if (RTC_is_busy)
+                //Проверка диапазона заданного интервала измерения
+                if (getRTCprescaler(MILLISECONDS) == 0)
                 {
-                    trace("Отмена операции! Запрещено во время счёта!");
                     return false;
                 }
-                //Предстартовая проверка всех изначальных данных, чтобы избежать неверных значений
-                for (int i = 0; i < Series.Cycles; i++)
-                {
-                    if((Series.MeasureTimes[i] < 50 )||(Series.MeasureTimes[i] > 2047925))
-                    {
-                        trace("Counters.Series.MeasureTimes["+i+"] имеет недопустипое значение! Ожидалось: 50...2047925. Получено: "+Series.MeasureTimes[i]);
-                        return false;
-                    }
-                }
-                for (int i = 0; i < Series.Cycles; i++)
-                {
-                    if((Series.DelayTimes[i] < 10 )||(Series.DelayTimes[i] > 2047925))
-                    {
-                        trace("Counters.Series.DelayTimes["+i+"] имеет недопустипое значение! Ожидалось: 50...2047925. Получено: "+Series.DelayTimes[i]);
-                        return false;
-                    }
-                }
-                for (int i = 0; i < Series.Cycles; i++)
-                {
-                    if(Series.DAC.Condensator[i] > 16383)
-                    {
-                        trace("Counters.Series.DAC.Condensator[" + i + "] имеет недопустипое значение! Ожидалось: 0...16383. Получено: " + Series.DAC.Condensator[i]);
-                        return false;
-                    }
-                }
-                for (int i = 0; i < Series.Cycles; i++)
-                {
-                    if (Series.DAC.ParentScan[i] > 16383)
-                    {
-                        trace("Counters.Series.DAC.ParentScan[" + i + "] имеет недопустипое значение! Ожидалось: 0...16383. Получено: " + Series.DAC.ParentScan[i]);
-                        return false;
-                    }
-                }
-                for (int i = 0; i < Series.Cycles; i++)
-                {
-                    if (Series.DAC.Scan[i] > 16383)
-                    {
-                        trace("Counters.Series.DAC.Scan[" + i + "] имеет недопустипое значение! Ожидалось: 0...16383. Получено: " + Series.DAC.Scan[i]);
-                        return false;
-                    }
-                }
-                //Все данные в порядке, начинаем серию
-                const byte A = 2;//Отладочное (порядок байтов при обращении к ЦАПам)
-                const byte B = 1;//Отладочное (порядок байтов при обращении к ЦАПам)
-
-                ushort buf = 0; //Отладочный буффер
-
-                RTC_is_busy = true;
-                COA.Count.Clear();
-                COA.Overflows.Clear();
-                COB.Count.Clear();
-                COB.Overflows.Clear();
-                COC.Count.Clear();
-                COC.Overflows.Clear();
-                //Отладочные настройки
-                //Объявления
-                List<byte> wDATA = new List<byte>();
-                List<byte> rDATA = new List<byte>();
-                byte[] BYTES_buf = new byte[4];
-                byte MeasurePrescaler = 0;
-                byte[] MeasurePeriod = new byte[2];
-                byte DelayPrescaler = 0;
-                byte[] DelayPeriod = new byte[2];
-                byte[] ParentScanerBytes = new byte[3];
-                byte[] ScanerBytes = new byte[3];
-                byte[] CondensatorBytes = new byte[3];
-                ushort N = 0; //Номер текущего измерения
-                //Вычисление байт для RTC
-                MeasurePrescaler = getRTCprescaler(Series.MeasureTimes[N]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.MeasureTimes[N]));
-                MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                DelayPrescaler = getRTCprescaler(Series.DelayTimes[N]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.DelayTimes[N]));
-                DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для DAC'a Родительского Напряжения (канал = 24)
-                BYTES_buf = BitConverter.GetBytes(Series.DAC.ParentScan[N] << 2);
-                ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для DAC'a Сканирующего Напряжения (канал = 25)
-                BYTES_buf = BitConverter.GetBytes(Series.DAC.Scan[N] << 2);
-                ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для DAC'a Конденсатора (канал = 24)
-                BYTES_buf = BitConverter.GetBytes(Series.DAC.Condensator[N] << 2);
-                CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
+                //Очистка
+                COA.Count = 0;
+                COA.Overflows = 0;
+                COB.Count = 0;
+                COB.Overflows = 0;
+                COC.Count = 0;
+                COC.Overflows = 0;
+                List<byte> wDATA = new List<byte>();    //Данные на передачу
+                //Вычисление байт для периода RTC
+                byte[]  MeasurePeriod = BitConverter.GetBytes(getRTCticks(MILLISECONDS));
                 //Набираем данные на отправку
-                wDATA.Add(Command.RTC.setAll); //Команда
-                wDATA.Add(Constants.NextMeasure.NotDo);    //Не делать сделующе измерение
-                wDATA.Add(MeasurePrescaler);
+                wDATA.Add(Command.RTC.startMeasure); //Команда
+                wDATA.Add(getRTCprescaler(MILLISECONDS));   //Предделитель
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
-                wDATA.Add(DelayPrescaler);
-                wDATA.Add(DelayPeriod[1]);
-                wDATA.Add(DelayPeriod[0]);
-                wDATA.Add(ParentScanerBytes[0]);
-                wDATA.Add(ParentScanerBytes[A]);
-                wDATA.Add(ParentScanerBytes[B]);
-                wDATA.Add(ScanerBytes[0]);
-                wDATA.Add(ScanerBytes[A]);
-                wDATA.Add(ScanerBytes[B]);
-                wDATA.Add(CondensatorBytes[0]);
-                wDATA.Add(CondensatorBytes[A]);
-                wDATA.Add(CondensatorBytes[B]);
-                rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);                    //Посылаем настройки для измерения №0, но ответ забываем
-                Status = convertStatus(rDATA[2]);
-                rDATA.Clear();
-                //Подготовка команды начала измерений
-                wDATA.Clear();
-                wDATA.Add(Command.RTC.startMeasure);
-
-                send_2(wDATA, false);                           //Посылаем команду начала измерения (не слушаем ответ), а надо бы
-
-                if (Series.Cycles > 1)
-                {
-                    N++;
-                }
-                //Подготовка новых данных для следующего измерения
-                MeasurePrescaler = getRTCprescaler(Series.MeasureTimes[N]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.MeasureTimes[N]));
-                MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                DelayPrescaler = getRTCprescaler(Series.DelayTimes[N]);
-                BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.DelayTimes[N]));
-                DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для Родительского Напряжения (канал = 24)
-                BYTES_buf = BitConverter.GetBytes(Series.DAC.ParentScan[N] << 2);
-                ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для Сканирующего Напряжения (канал = 25)
-                BYTES_buf = BitConverter.GetBytes(Series.DAC.Scan[N] << 2);
-                ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
-                //Вычисление байт для Конденсатора (канал = 24)
-                BYTES_buf = BitConverter.GetBytes(Series.DAC.Condensator[N] << 2);
-                CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
-                //Формирование данных
-                wDATA.Clear();
-                wDATA.Add(Command.RTC.setAll); //Команда
-                if (Series.Cycles == 1)
-                {
-                    wDATA.Add(Constants.NextMeasure.NotDo);    //Это последнее измерение! Не делать следующее
-                }
-                else
-                {
-                    wDATA.Add(Constants.NextMeasure.Do);    //Делать следующее измерение
-                }
-                wDATA.Add(MeasurePrescaler);
-                wDATA.Add(MeasurePeriod[1]);
-                wDATA.Add(MeasurePeriod[0]);
-                wDATA.Add(DelayPrescaler);
-                wDATA.Add(DelayPeriod[1]);
-                wDATA.Add(DelayPeriod[0]);
-                wDATA.Add(ParentScanerBytes[0]);
-                wDATA.Add(ParentScanerBytes[A]);
-                wDATA.Add(ParentScanerBytes[B]);
-                wDATA.Add(ScanerBytes[0]);
-                wDATA.Add(ScanerBytes[A]);
-                wDATA.Add(ScanerBytes[B]);
-                wDATA.Add(CondensatorBytes[0]);
-                wDATA.Add(CondensatorBytes[A]);
-                wDATA.Add(CondensatorBytes[B]);
-                rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);   //Посылаем настройки для измерения №1, но ответ забываем
-                Status = convertStatus(rDATA[2]);
-                rDATA.Clear();
-                //Цикл...
-                for (int i = 0; i < Series.Cycles; i++)
-                {
-                    rDATA = decode_2(receive_2(Constants.LengthOfLAMPacket, false));
-                    Status = convertStatus(rDATA[1]);
-                    rDATA.Clear();
-
-                    N++;
-                    //Постараемся не выйти за диапозон массива измерений
-                    buf = N;
-                    if (N > Series.Cycles - 1)
-                    {
-                        N = (ushort)(Series.Cycles - 1);
-                    }
-                    //Подготовка новых данных для следующего измерения
-                    MeasurePrescaler = getRTCprescaler(Series.MeasureTimes[N]);
-                    BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.MeasureTimes[N]));
-                    MeasurePeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                    DelayPrescaler = getRTCprescaler(Series.DelayTimes[N]);
-                    BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.DelayTimes[N]));
-                    DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                    //Вычисление байт для Родительского Напряжения (канал = 24)
-                    BYTES_buf = BitConverter.GetBytes(Series.DAC.ParentScan[N] << 2);
-                    ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
-                    //Вычисление байт для Сканирующего Напряжения (канал = 25)
-                    BYTES_buf = BitConverter.GetBytes(Series.DAC.Scan[N] << 2);
-                    ScanerBytes = new byte[] { Convert.ToByte(25), BYTES_buf[0], BYTES_buf[1] };
-                    //Вычисление байт для Конденсатора (канал = 24)
-                    BYTES_buf = BitConverter.GetBytes(Series.DAC.Condensator[N] << 2);
-                    CondensatorBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
-                    N = buf;
-                    //Формирования данных
-                    wDATA.Clear();
-                    wDATA.Add(Command.RTC.setAll); //Команда
-                    if(i == Series.Cycles - 2)
-                    {
-                        wDATA.Add(Constants.NextMeasure.NotDo);    //Это последнее измерение! Не делать следующее
-                    }
-                    else
-                    {
-                        wDATA.Add(Constants.NextMeasure.Do);    //Делать следующее измерение
-                    }
-                    wDATA.Add(MeasurePrescaler);
-                    wDATA.Add(MeasurePeriod[1]);
-                    wDATA.Add(MeasurePeriod[0]);
-                    wDATA.Add(DelayPrescaler);
-                    wDATA.Add(DelayPeriod[1]);
-                    wDATA.Add(DelayPeriod[0]);
-                    wDATA.Add(ParentScanerBytes[0]);
-                    wDATA.Add(ParentScanerBytes[A]);
-                    wDATA.Add(ParentScanerBytes[B]);
-                    wDATA.Add(ScanerBytes[0]);
-                    wDATA.Add(ScanerBytes[A]);
-                    wDATA.Add(ScanerBytes[B]);
-                    wDATA.Add(CondensatorBytes[0]);
-                    wDATA.Add(CondensatorBytes[A]);
-                    wDATA.Add(CondensatorBytes[B]);
-                    rDATA = transmit_2(wDATA, Constants.LengthOfSetAllPacket, false);
-                    Status = convertStatus(rDATA[2]);
-                    //Сохраняем данные
-                    COA.Overflows.Add(rDATA[3]);
-                    COA.Count.Add((uint)(rDATA[4] * 16777216 + rDATA[5] * 65536 + rDATA[6] * 256 + rDATA[7]));
-                    COB.Overflows.Add(rDATA[8]);
-                    COB.Count.Add((uint)(rDATA[9] * 16777216 + rDATA[10] * 65536 + rDATA[11] * 256 + rDATA[12]));
-                    COC.Overflows.Add(rDATA[13]);
-                    COC.Count.Add((uint)(rDATA[14] * 256 + rDATA[15]));
-                    Series.ADC.ParentScan[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[16] & 0xf) << 8) + rDATA[17]);
-                    Series.ADC.Scan[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[18] & 0xf) << 8) + rDATA[19]);
-                    Series.ADC.Condensator_pV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[20] & 0xf) << 8) + rDATA[21]);
-                    Series.ADC.Condensator_nV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[22] & 0xf) << 8) + rDATA[23]);
-                    //сервис
-                    rDATA.Clear();
-                    trace("["+N+"№" + (i + 0) + "][MT:" + Series.MeasureTimes[i] + "][DT:" + Series.DelayTimes[i] + "]" + Environment.NewLine + "        [DAC_PS:" + Series.DAC.ParentScan[i] + "][DAC_S:" + Series.DAC.Scan[i] + "][DAC_C:" + Series.DAC.Condensator[i] + "]" + Environment.NewLine + "        [ADC_PS:" + Series.ADC.ParentScan[i] + "][ADC_S:" + Series.ADC.Scan[i] + "][ADC_Cp:" + Series.ADC.Condensator_pV[i] + "][ADC_Cn:" + Series.ADC.Condensator_nV[i] + "]");
-                }
-                //конец
-                if (USART.IsOpen)
-                {
-                    USART.Close();
-                }
-                //for (int i = 0; i < Series_Cycles; i++)
-                //{
-                //    trace("[№"+i+"][MT:"+Series_MeasureTimes[i]+"][DT:"+Series_DelayTimes[i]+"]"+Environment.NewLine+"        [DAC_PS:"+Series_DAC_ParentScan[i]+"][DAC_S:"+Series_DAC_Scan[i]+"][DAC_C:"+Series_DAC_Condensator[i]+"]"+Environment.NewLine+"        [ADC_PS:"+Series_ADC_ParentScan[i]+"][ADC_S:"+Series_ADC_Scan[i]+"][ADC_Cp:"+Series_ADC_Condensator_pV[i]+"][ADC_Cn:"+Series_ADC_Condensator_nV[i]+"]");
-                //}
-                RTC_is_busy = false;
-                if (Status == Constants.Status.string_ready)
+                //Посылаем команду
+                Status = convertStatus(transmit_2(wDATA, Constants.LengthOfstartMeasurePacket, false)[1]); 
+                if ((Status == Constants.Status.string_ready)||(Status == Constants.Status.string_stopped))
                 {
                     return true;
                 }
@@ -774,28 +451,59 @@ namespace Xmega32A4U_testBoard
             ///<para>true - операция выполнена успешно.</para>
             ///<para>false - операция была отменена.</para>
             /// </summary>
-            bool stopMeasure()
+            public bool stopMeasure()
             {
                 //ФУНКЦИЯ: Останавливает счётчик. Возвращает true, если операция удалась. false - не удалась (счётчик не считает)
                 string command = "Counters.stopMeasure()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                byte state = transmit(Command.RTC.stopMeasure)[0];
-                switch(state)
+                Status = convertStatus(transmit(Command.RTC.stopMeasure)[0]);
+                switch (Status)
                 {
-                    case Constants.Status.busy:
+                    case Constants.Status.string_busy:
                         trace(command + ": Операция выполнена успешно!");
                         return true;
-                    case Constants.Status.ready:
+                    case Constants.Status.string_ready:
                         trace(command + ": Операция отменена! Счётчики не считают!");
                         return false;
-                    case Constants.Status.stopped:
+                    case Constants.Status.string_stopped:
                         trace(command + ": Операция отменена! Счётчики уже остановлены!");
                         return false;
                     default:
-                        addError(" ! " + command + ": ОШИБКА МК! НЕИЗВЕСТНОЕ СОСТОЯНИЕ СЧЁТЧИКОВ: " + state);
+                        addError(" ! " + command + ": ОШИБКА МК! НЕИЗВЕСТНОЕ СОСТОЯНИЕ СЧЁТЧИКОВ: " + Status);
                         return false;
                 }
+            }
+            /// <summary>
+            /// Запрашиваем результаты счёта у МК
+            /// <para> Возвращает:</para>
+            /// <para>  true - операция удалась. Результаты записаны в COA,COB и COC.</para>
+            /// <para>  false - операция отменена. Вероятно счётчики всё ещё считают.</para>
+            /// </summary>
+            public bool receiveResults()
+            {
+                //ФУНКЦИЯ: Запрашиваем результаты измерения. Если измерение завершилось успешно нам пришлют результаты и мы выйдем с true, в противном случае пришлют статус (не ready) и мы вылетим с false'м
+                //ДАННЫЕ: <Command><RTC_Status><COA_OVF><COA_M[3]><COA_M[2]><COA_M[1]><COA_M[0]><COВ_OVF><COВ_M[3]><COВ_M[2]><COВ_M[1]><COВ_M[0]><COС_OVF><COС_M[1]><COС_M[0]>
+                trace_attached(Environment.NewLine);
+                string command = "Counters.receiveResults()";
+                trace(command);
+
+                List<byte> wDATA = new List<byte>();    //Данные на передачу
+                List<byte> rDATA = new List<byte>();    //Данные на приём
+                wDATA.Add(Command.RTC.receiveResults); //Команда
+                rDATA = transmit_2(wDATA, 19, false);
+                Status = convertStatus(rDATA[1]);
+                if (Status == Constants.Status.string_ready)
+                {
+                    COA.Overflows = rDATA[2];
+                    COA.Count = (uint)(rDATA[3] * 16777216 + rDATA[4] * 65536 + rDATA[5] * 256 + rDATA[6]);
+                    COB.Overflows = rDATA[7];
+                    COB.Count = (uint)(rDATA[8] * 16777216 + rDATA[9] * 65536 + rDATA[10] * 256 + rDATA[11]);
+                    COC.Overflows = rDATA[12];
+                    COC.Count = (uint)(rDATA[13] * 256 + rDATA[14]);
+                    return true;
+                }
+                return false;
             }
         }
         public class SPI_DEVICE_DAC_CHANNEL
@@ -840,11 +548,6 @@ namespace Xmega32A4U_testBoard
                 //*                      100х хххх хх11 1100
                 //*                        128        60
                 string _command = "DAC_CHANNEL.setVoltage(" + command + ", " + CHANNEL + ", " + VOLTAGE + ")";
-                if (RTC_is_busy)
-                {
-                    trace("Отмена операции! Запрещено во время счёта!");
-                    return false;
-                }
                 if (VOLTAGE >= 0 && VOLTAGE <= 4095)
                 {
                     trace_attached(Environment.NewLine);
@@ -966,14 +669,7 @@ namespace Xmega32A4U_testBoard
                 // 131 + 16
                 string _command = "ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + ")";
                 trace_attached(Environment.NewLine);
-                if (RTC_is_busy)
-                {
-                    trace("Отмена операции! Запрещено во время счёта!");
-                    return 6666;
-                }
-                byte Lbyte = 0;
-                if (DoubleRange) { Lbyte = Lbyte_DoubleRange; } else { Lbyte = Lbyte_NormalRange; }
-                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte };
+                byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte_DoubleRange };
                 byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
                 byte adress = 1;
@@ -1027,11 +723,6 @@ namespace Xmega32A4U_testBoard
                 //          или в байтах: [24/25][0..255][(0..63)<<2]
                 //                         канал    напряжение
                 string command = ".Condensator.setVoltage(" + Command.SPI.Condensator.setVoltage + "," + DAC_channel + "," + VOLTAGE + ")";
-                if (RTC_is_busy)
-                {
-                    trace("Отмена операции! Запрещено во время счёта!");
-                    return false;
-                }
                 if (VOLTAGE >= 0 && VOLTAGE <= 16383)
                 {
                     trace(command + ": AD5643R;");
@@ -1066,14 +757,8 @@ namespace Xmega32A4U_testBoard
             {
                 string _command = ".Condensator.getVoltage(" + command + ", " + CHANNEL + ")";
                 trace_attached(Environment.NewLine);
-                if (RTC_is_busy)
-                {
-                    trace("Отмена операции! Запрещено во время счёта!");
-                    return 6666;
-                }
-                byte Lbyte = 0;
-                if (DoubleRange) { Lbyte = ADC_Lbyte_DoubleRange; } else { Lbyte = ADC_Lbyte_NormalRange; }
-                byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), Lbyte };
+
+                byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), ADC_Lbyte_DoubleRange };
                 byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
                 byte adress = 0;
@@ -1215,11 +900,6 @@ namespace Xmega32A4U_testBoard
                 {
                     //ФУНКЦИЯ: Задаёт на конкретный канал конкретного DAC'а конкретное напряжение
                     string command = "Condensator.setVoltage(" + DAC_command + "," + DAC_channel + "," + VOLTAGE + ")";
-                    if (RTC_is_busy)
-                    {
-                        trace("Отмена операции! Запрещено во время счёта!");
-                        return false;
-                    }
                     if (VOLTAGE >= 0 && VOLTAGE <= 16383)
                     {
                         trace_attached(Environment.NewLine);
@@ -1254,14 +934,8 @@ namespace Xmega32A4U_testBoard
                     string _command = "Scaner.getVoltage(" + command + ", " + CHANNEL + ")";
                     trace_attached(Environment.NewLine);
                     trace(_command);
-                    if (RTC_is_busy)
-                    {
-                        trace("Отмена операции! Запрещено во время счёта!");
-                        return 6666;
-                    }
-                    byte Lbyte = 0;
-                    if (DoubleRange) { Lbyte = ADC_Lbyte_DoubleRange; } else { Lbyte = ADC_Lbyte_NormalRange; }
-                    byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), Lbyte };
+
+                    byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), ADC_Lbyte_DoubleRange };
                     byte[] rDATA = transmit(command, data);
                     ushort voltage = 0;
                     byte adress = 0;
@@ -1682,9 +1356,19 @@ namespace Xmega32A4U_testBoard
             {
                 USART.Open();
             }
+            uint time;
             for (byte i = 0; i < rPacketLength; i++)
             {
-                while (USART.BytesToRead == 0) { }
+                time = 0;
+                while (USART.BytesToRead == 0) 
+                {
+                    time++;
+                    if (time >= TimeOut)
+                    {
+                        trace("Ошибка приёма! Нет данных на приём!");
+                        return rDATA;
+                    }
+                }
                 rDATA.Add((byte)USART.ReadByte());
             }
             if (closePort && USART.IsOpen)
@@ -1808,7 +1492,11 @@ namespace Xmega32A4U_testBoard
                 tracer_enabled = tracer_enabled_before;
                 return new byte[] {0};
             }
-            USART.Open();
+            if (!USART.IsOpen)
+            {
+                USART.Open();
+            }
+            
             USART.Write(Packet.ToArray(), 0, Packet.ToArray().Length);
             trace("         Передача завершена!");
             CommandStack++;                                 //Увеличиваем счётчик команд (команда ушла)
