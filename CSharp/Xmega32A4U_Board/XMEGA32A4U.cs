@@ -297,6 +297,7 @@ namespace Xmega32A4U_testBoard
                         }
                         else
                         {
+                            trace_attached(Environment.NewLine);
                             trace(".Counters.Series.Cycles: Неверное значение! Ожидалось: 1...4096. Получено: " + value);
                         }
                     }
@@ -503,12 +504,12 @@ namespace Xmega32A4U_testBoard
             /// <para>true - серия успешно завершена.</para>
             /// <para>false - ошибка при выполнении операции.</para>
             /// </summary>
-            public bool startMeasure()
+            public bool startSeries()
             {
                 //ФУНКЦИЯ: Запускаем счётчик, возвращает true если счёт начался, false - счётчик уже считает
                 
-                string command = "Counters.startMeasure()";
                 trace_attached(Environment.NewLine);
+                string command = "Counters.startSeries()";
                 trace(command);
                 if (RTC_is_busy)
                 {
@@ -625,8 +626,10 @@ namespace Xmega32A4U_testBoard
 
                 send_2(wDATA, false);                           //Посылаем команду начала измерения (не слушаем ответ), а надо бы
 
-                //N = 0;//
-                N++;
+                if (Series.Cycles > 1)
+                {
+                    N++;
+                }
                 //Подготовка новых данных для следующего измерения
                 MeasurePrescaler = getRTCprescaler(Series.MeasureTimes[N]);
                 BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.MeasureTimes[N]));
@@ -679,8 +682,13 @@ namespace Xmega32A4U_testBoard
                     Status = convertStatus(rDATA[1]);
                     rDATA.Clear();
 
-                    //N = 0;//
                     N++;
+                    //Постараемся не выйти за диапозон массива измерений
+                    buf = N;
+                    if (N > Series.Cycles - 1)
+                    {
+                        N = (ushort)(Series.Cycles - 1);
+                    }
                     //Подготовка новых данных для следующего измерения
                     MeasurePrescaler = getRTCprescaler(Series.MeasureTimes[N]);
                     BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.MeasureTimes[N]));
@@ -688,12 +696,6 @@ namespace Xmega32A4U_testBoard
                     DelayPrescaler = getRTCprescaler(Series.DelayTimes[N]);
                     BYTES_buf = BitConverter.GetBytes(getRTCticks(Series.DelayTimes[N]));
                     DelayPeriod = new byte[] { BYTES_buf[0], BYTES_buf[1] };
-                    //Постараемся не выйти за диапозон массива измерений
-                    buf = N;
-                    if (N > Series.Cycles - 1)
-                    {
-                        N = (ushort)(Series.Cycles - 1);
-                    }
                     //Вычисление байт для Родительского Напряжения (канал = 24)
                     BYTES_buf = BitConverter.GetBytes(Series.DAC.ParentScan[N] << 2);
                     ParentScanerBytes = new byte[] { Convert.ToByte(24), BYTES_buf[0], BYTES_buf[1] };
@@ -745,7 +747,7 @@ namespace Xmega32A4U_testBoard
                     Series.ADC.Condensator_nV[i] = Convert.ToUInt16((Convert.ToUInt16(rDATA[22] & 0xf) << 8) + rDATA[23]);
                     //сервис
                     rDATA.Clear();
-                    trace("["+N+"№" + (i + 1) + "][MT:" + Series.MeasureTimes[i] + "][DT:" + Series.DelayTimes[i] + "]" + Environment.NewLine + "        [DAC_PS:" + Series.DAC.ParentScan[i] + "][DAC_S:" + Series.DAC.Scan[i] + "][DAC_C:" + Series.DAC.Condensator[i] + "]" + Environment.NewLine + "        [ADC_PS:" + Series.ADC.ParentScan[i] + "][ADC_S:" + Series.ADC.Scan[i] + "][ADC_Cp:" + Series.ADC.Condensator_pV[i] + "][ADC_Cn:" + Series.ADC.Condensator_nV[i] + "]");
+                    trace("["+N+"№" + (i + 0) + "][MT:" + Series.MeasureTimes[i] + "][DT:" + Series.DelayTimes[i] + "]" + Environment.NewLine + "        [DAC_PS:" + Series.DAC.ParentScan[i] + "][DAC_S:" + Series.DAC.Scan[i] + "][DAC_C:" + Series.DAC.Condensator[i] + "]" + Environment.NewLine + "        [ADC_PS:" + Series.ADC.ParentScan[i] + "][ADC_S:" + Series.ADC.Scan[i] + "][ADC_Cp:" + Series.ADC.Condensator_pV[i] + "][ADC_Cn:" + Series.ADC.Condensator_nV[i] + "]");
                 }
                 //конец
                 if (USART.IsOpen)

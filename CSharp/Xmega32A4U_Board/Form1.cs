@@ -237,7 +237,7 @@ namespace Xmega32A4U_testBoard
                 return;
             }
             //if (
-                //MC.Counters.startMeasure();
+                //MC.Counters.startSeries();
                 //)
            //{
            //    //trace(true, "COA начал счёт...");
@@ -636,12 +636,12 @@ namespace Xmega32A4U_testBoard
             
                 MC.Counters.Series.Cycles = Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text);
                 /*
-                Thread myThread = new Thread(MC.Counters.startMeasure); //Создаем новый объект потока (Thread)
+                Thread myThread = new Thread(MC.Counters.startSeries); //Создаем новый объект потока (Thread)
                 myThread.Priority = ThreadPriority.Highest;
                 myThread.Start(); //запускаем поток*/
 
                 //*
-                MeasureDone = MC.Counters.startMeasure();
+                MC.Counters.startSeries();
                 //if (LBL_realCOX_COA_Result.InvokeRequired)
                 //{
                 //    LBL_realCOX_COA_Result.Invoke(new Del((s) => LBL_realCOX_COA_Result.Text = s), min + "..." + mid + "..." + max);
@@ -876,7 +876,7 @@ namespace Xmega32A4U_testBoard
         {
             //MC.Counters.Series_Cycles = Convert.ToUInt16(TXB_realCOX_MeasureTime.Text);
             /*
-            Thread myThread = new Thread(MC.Counters.startMeasure); //Создаем новый объект потока (Thread)
+            Thread myThread = new Thread(MC.Counters.startSeries); //Создаем новый объект потока (Thread)
             myThread.Priority = ThreadPriority.Highest;
             myThread.Start(); //запускаем поток*/
             //Thread updateForm_RTC_Status_thread = new Thread(updateForm_RTC_Status);
@@ -955,7 +955,7 @@ namespace Xmega32A4U_testBoard
             //}
             
             /*
-            MC.Counters.startMeasure();
+            MC.Counters.startSeries();
             //myThread.Join();
             uint max = 0;
             uint min = 4294967295;
