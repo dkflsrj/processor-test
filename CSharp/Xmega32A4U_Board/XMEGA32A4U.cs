@@ -8,11 +8,13 @@ using System.Threading;
 
 namespace Xmega32A4U_testBoard
 {
+    public delegate void EventCallBack();
     /// <summary>
     /// Класс связи ПК с ATXmega32A4U
     /// </summary>
     class XMEGA32A4U
     {
+        public static EventCallBack MeasureEnd;
         //========================================================================================
         //=========================КЛАСС СВЯЗИ ПК С XMEGA32A4U ПО RS232===========================
         //========================================================================================
@@ -29,7 +31,7 @@ namespace Xmega32A4U_testBoard
         static bool tracer_log_enabled = false;     //Ведение лога в Log.txt отключено. .Tester.enableLog(bool) - для вкл\выкл
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
-        const uint TimeOut = 1000; //260000 вроде 1 сек
+        const uint TimeOut = 1625; //260000 вроде 1 сек
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
@@ -1416,7 +1418,6 @@ namespace Xmega32A4U_testBoard
                 }
                 else
                 {
-                    //Console.Write(TEXT);
                     tracer.AppendText(TEXT);
                     tracer.ScrollToCaret();
                 } 
@@ -1435,8 +1436,16 @@ namespace Xmega32A4U_testBoard
             if (tracer_defined && tracer_enabled)
             {
                 //Трэйсер определён и разрешён
-                tracer.AppendText(TEXT);
-                tracer.ScrollToCaret();
+                if (tracer.InvokeRequired)
+                {
+                    delegate_trace a_delegate = new delegate_trace(trace);
+                    tracer.Invoke(a_delegate, text);
+                }
+                else
+                {
+                    tracer.AppendText(TEXT);
+                    tracer.ScrollToCaret();
+                }
             }
             if (tracer_log_enabled)
             {
@@ -1479,6 +1488,7 @@ namespace Xmega32A4U_testBoard
                     {
                         case LAM.RTC_end:
                             trace("Счётчики закончили счёт!");
+                            MeasureEnd.Invoke();
                             break;
                         default:
                             trace("МК хочет чтобы на него обратили внимание, но не понятно почему! "+DATA[1]);
@@ -1509,7 +1519,7 @@ namespace Xmega32A4U_testBoard
                 {
                     time = 0;
                     rDATA.Add((byte)USART.ReadByte());
-                    trace("                     " + rDATA.Last<byte>());
+                    //trace("                     " + rDATA.Last<byte>());
                 }
             }
             trace("         Приём завершён!");

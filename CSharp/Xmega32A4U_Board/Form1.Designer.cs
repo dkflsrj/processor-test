@@ -118,6 +118,7 @@
             this.BTN_checkFlags = new System.Windows.Forms.Button();
             this.CHB_iEDCD = new System.Windows.Forms.CheckBox();
             this.CHB_SEMV3 = new System.Windows.Forms.CheckBox();
+            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
             this.CHB_PRGE = new System.Windows.Forms.CheckBox();
             this.CHB_SEMV2 = new System.Windows.Forms.CheckBox();
             this.CHB_SPUMP = new System.Windows.Forms.CheckBox();
@@ -207,7 +208,6 @@
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -1218,6 +1218,19 @@
             this.CHB_SEMV3.Text = "SEMV3";
             this.CHB_SEMV3.UseVisualStyleBackColor = true;
             // 
+            // CHB_iHVE
+            // 
+            this.CHB_iHVE.AutoSize = true;
+            this.CHB_iHVE.Checked = true;
+            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Indeterminate;
+            this.CHB_iHVE.Enabled = false;
+            this.CHB_iHVE.Location = new System.Drawing.Point(74, 65);
+            this.CHB_iHVE.Name = "CHB_iHVE";
+            this.CHB_iHVE.Size = new System.Drawing.Size(50, 17);
+            this.CHB_iHVE.TabIndex = 1;
+            this.CHB_iHVE.Text = "iHVE";
+            this.CHB_iHVE.UseVisualStyleBackColor = true;
+            // 
             // CHB_PRGE
             // 
             this.CHB_PRGE.AutoSize = true;
@@ -1921,7 +1934,6 @@
             // label24
             // 
             this.label24.AutoSize = true;
-            this.label24.Enabled = false;
             this.label24.Location = new System.Drawing.Point(344, 24);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(128, 13);
@@ -2016,7 +2028,6 @@
             // 
             // TXB_realCOX_NumberOfMeasurments
             // 
-            this.TXB_realCOX_NumberOfMeasurments.Enabled = false;
             this.TXB_realCOX_NumberOfMeasurments.Location = new System.Drawing.Point(478, 21);
             this.TXB_realCOX_NumberOfMeasurments.Name = "TXB_realCOX_NumberOfMeasurments";
             this.TXB_realCOX_NumberOfMeasurments.Size = new System.Drawing.Size(63, 20);
@@ -2109,19 +2120,6 @@
             // 
             this.timer1.Interval = 5;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // CHB_iHVE
-            // 
-            this.CHB_iHVE.AutoSize = true;
-            this.CHB_iHVE.Checked = true;
-            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Indeterminate;
-            this.CHB_iHVE.Enabled = false;
-            this.CHB_iHVE.Location = new System.Drawing.Point(74, 65);
-            this.CHB_iHVE.Name = "CHB_iHVE";
-            this.CHB_iHVE.Size = new System.Drawing.Size(50, 17);
-            this.CHB_iHVE.TabIndex = 1;
-            this.CHB_iHVE.Text = "iHVE";
-            this.CHB_iHVE.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
