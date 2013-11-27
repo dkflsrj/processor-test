@@ -705,7 +705,7 @@ namespace Xmega32A4U_testBoard
                     adress += Convert.ToByte(rDATA[1] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                 }
-                catch { trace(_command + ": Ошибка данных!"); return 65535; }
+                catch { trace(_command + ": Ошибка данных!"); return ushort.MaxValue; }
                 trace(_command + ": Ответный адрес канала: " + adress);
                 trace(_command + ": Напряжение: " + voltage);
                 return voltage;
@@ -794,7 +794,7 @@ namespace Xmega32A4U_testBoard
                     adress += Convert.ToByte(rDATA[1] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                 }
-                catch { trace(command + ": Ошибка данных!"); return 65535; }
+                catch { trace(command + ": Ошибка данных!"); return ushort.MaxValue; }
                 trace(_command + ": Ответный адрес канала: " + adress);
                 trace(_command + ": Напряжение: " + voltage);
                 return voltage;
@@ -971,7 +971,7 @@ namespace Xmega32A4U_testBoard
                         address += Convert.ToByte(rDATA[1] >> 4);
                         voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                     }
-                    catch { trace(command + ": Ошибка данных!"); return 65535; }
+                    catch { trace(command + ": Ошибка данных!"); return ushort.MaxValue; }
                     trace(_command + ": Ответный адрес канала: " + address);
                     trace(_command + ": Напряжение: " + voltage);
                     return voltage;
