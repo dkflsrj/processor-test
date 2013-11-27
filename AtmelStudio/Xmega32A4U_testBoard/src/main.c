@@ -22,10 +22,8 @@
 #include <Initializator.h>
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
-#define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
-											delay_ms(50);}
 //МК
-#define version										108
+#define version										109
 #define birthday									20131127
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -60,15 +58,14 @@ uint8_t MC_CommandStack = 0;
 
 uint8_t MC_Status = 0;
 //		USART COMP
-uint8_t  COMP_MEM[100];								//100 байт памяти для приёма данных USART
+uint8_t  COMP_MEM[100];									//100 байт памяти для приёма данных USART
 uint8_t  COMP_MEM_length = 0;							//Длина записанного в USART_MEM пакета байтов.
-uint16_t COMP_receiving_limit = 800;						//~1,2мс ожидания следующего байта. Если не придёт, то анулируем.
-uint16_t COMP_receiving_time = 0;						
-uint8_t  COMP_reciving_error = 0;							
+uint16_t COMP_receiving_limit = 800;					//~1,2мс ожидания следующего байта. Если не придёт, то анулируем.
+uint16_t COMP_receiving_time = 0;						//Счётчик времени приёма и знак того что находимся в режиме приёма
+uint8_t  COMP_LOCK_received = 0;						//Булка - принят байт похожий на затвор!
 uint8_t  COMP_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже шум)
-uint8_t  COMP_MEM[100];								//10 байт памяти для приёма данных USART
-uint8_t  COMP_PACKET_length = 0;						//Принятая длина пакета (из пакета)
-uint8_t  COMP_MEM_CheckSum = 0;						//Принятая контрольная сумма (из пакета)
+uint8_t  COMP_MEM[100];									//10 байт памяти для приёма данных USART
+uint8_t  COMP_MEM_CheckSum = 0;							//Принятая контрольная сумма (из пакета)
 //		USART TIC
 uint8_t TIC_MEM[100];									//100 байт памяти для приёма данных от TIC
 uint8_t TIC_MEM_Length = 0;								//Длина записанного в TIC_MEM пакета байтов.
@@ -77,11 +74,11 @@ uint8_t TIC_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже 
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
 uint8_t  RTC_MeasurePrescaler = RTC_PRESCALER_OFF_gc;	//Предделитель RTC во время измерения
 uint16_t RTC_MeasurePeriod = 0;							//Период RTC во время следующего измерения
-uint32_t COA_Measurment = 0;					//Последнее измерение счётчика COA
+uint32_t COA_Measurment = 0;							//Последнее измерение счётчика COA
 uint8_t	 COA_OVF = 0;									//Количество переполнений счётчика СОА в текущем измерении
-uint32_t COB_Measurment = 0;					//Последнее измерение счётчика COB
+uint32_t COB_Measurment = 0;							//Последнее измерение счётчика COB
 uint8_t	 COB_OVF = 0;									//Количество переполнений счётчика СОВ в текущем измерении
-uint32_t COC_Measurment = 0;					//Последнее измерение счётчика COC
+uint32_t COC_Measurment = 0;							//Последнее измерение счётчика COC
 uint8_t	 COC_OVF = 0;									//Количество переполнений счётчика СОС в текущем измерении
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 //Битовые поля
@@ -99,7 +96,7 @@ struct struct_MC_Tasks
 struct struct_MC_Tasks MC_Tasks = {0,0,0,0,0,0,0,0};
 struct struct_Errors_USART_COMP
 {
-	uint8_t TimeOut					:1;
+	uint8_t noError1				:1;
 	uint8_t LOCKisLost				:1;
 	uint8_t TooShortPacket			:1;
 	uint8_t TooFast					:1;
@@ -208,69 +205,25 @@ ISR(USARTD0_RXC_vect)
 	//Если в режиме приёма
 	if(COMP_receiving_time > 0)
 	{
-		if (COMP_PACKET_length == 0)
-		{
-			//Это байт длины пакета
-			COMP_PACKET_length = COMP_buf;
-			if (COMP_PACKET_length < 5)
-			{
-				//ОШИБКА ПРИЁМА! Длинна пакета меньше минимальной
-				//Если длина посылки меньше самой короткой из возможных посылок (5 байтов), то прекратить приём, выставить флаг ошибки
-				Errors_USART_COMP.TooShortPacket = 1;
-				COMP_receiving_time = 0;
-			}
-		}
-		else if(COMP_MEM_length < (COMP_PACKET_length - 4))
-		{
-			//Это байты данных, принимаем в массив
-			COMP_MEM[COMP_MEM_length] = COMP_buf;
-			COMP_MEM_length++;
-		}
-		else if(COMP_MEM_length == (COMP_PACKET_length - 4))
-		{
-			//Этот байт контрольная сумма данных
-			COMP_MEM_CheckSum = COMP_buf;
-			COMP_MEM_length++;//Временное увеличение,чтобы перейти на затвор для следующего принятого байта
-		}
-		else if(COMP_MEM_length == (COMP_PACKET_length - 3))
-		{
-			//Этот байт затвор
-			if (COMP_buf == COMMAND_LOCK)
-			{
-				//Приём успешно завершён!
-				COMP_MEM_length--;//Возвращаем исиннтое значение длинны принятых данных
-				COMP_receiving_time = 0;//Прекращаем приём
-				MC_Tasks.Decrypt = 1;//Ставим задачу - декодировать
-			}
-			else
-			{
-				//ОШИБКА ПРИЁМА! Ожидался затвор, а получено чёрти-что
-				Errors_USART_COMP.LOCKisLost = 1;
-				COMP_receiving_time = 0;
-			}
-		}
-		else
-		{
-			//ОШИБКА ПРИЁМА! Запрещённое состояние! USART_MEM_LENGTH > USART_MAIL_Length!
-			transmit_3bytes(TOCKEN_INTERNAL_ERROR,INTERNAL_ERROR_USART_COMP, 0);
-			COMP_receiving_time = 0;
-		}
+		COMP_receiving_time = 1;				//Готовимся принять следующий байт
+		COMP_MEM[COMP_MEM_length] = COMP_buf;	//Сохраняем байт
+		COMP_MEM_length++;						//Увеличиваем счётчик принятых байтов
+		COMP_LOCK_received = 0;					//Предполагаем, что этот байт не затвор
+		if (COMP_buf == COMMAND_LOCK){COMP_LOCK_received = 1;}
 	}
 	else if(COMP_buf == COMMAND_KEY)
 	{
 		//Пришёл ключ!
 		if(MC_Tasks.Decrypt == 0)
 		{
-			//Если предыдущая команда ещё не выполнена
-			COMP_receiving_time = 1;//Переходим в режим приёма
-			COMP_MEM_length = 0;//Обнуляем счётчик принятых байтов
-			COMP_PACKET_length = 0;//Обнуляем длинну пакета (готовимся к приёму байта длинны пакета)
+			COMP_receiving_time = 1;	//Переходим в режим приёма
+			COMP_MEM_length = 0;		//Обнуляем счётчик принятых байтов
+			COMP_LOCK_received = 0;		//Ожидаем затвор
 		}
 		else
 		{
 			//ОШИБКА! МК не выполнил предыдущую команду
 			Errors_USART_COMP.TooFast = 1;
-			COMP_receiving_time = 0;
 		}
 	}
 	sei();
@@ -383,16 +336,14 @@ void decode(void)
 void transmit(uint8_t DATA[],uint8_t DATA_length)
 {
 	//ФУНКЦИЯ: Посылаем заданное количество данных, оформив их по протоколу и с контрольной суммой
-	//ПОЯСНЕНИЯ: Пакет: ':<PACKET_LENGTH><response><data><CS>\r' 
+	//ПОЯСНЕНИЯ: Пакет: ':<response><data><CS>\r' 
 	//					   ':' - Начало данных
-	//					   '<PACKET_LENGTH>' - Длина пакета
 	//					   '<data>' - байты данных <<response><attached_data>>
 	//							<response> - отклик, код команды, на которую отвечает
 	//							<attached_data> - сами данные. Их может не быть (Приказ)
 	//					   '<CS>' - контрольная сумма
 	//					   '\r' - конец передачи
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	usart_putchar(USART_COMP,DATA_length + 4);						//'<PACKET_LENGTH>'
 	for (uint8_t i = 0; i < DATA_length; i++)
 	{
 		usart_putchar(USART_COMP,DATA[i]);							//<data>
@@ -404,7 +355,6 @@ void transmit_byte(uint8_t DATA)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	usart_putchar(USART_COMP, 5);									//'<PACKET_LENGTH>'
 	usart_putchar(USART_COMP,DATA);									//<data>
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA));				//<CS>
 	usart_putchar(USART_COMP,COMMAND_LOCK);							//'\r'
@@ -413,7 +363,6 @@ void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
 	usart_putchar(USART_COMP,COMMAND_KEY);								//':'
-	usart_putchar(USART_COMP,6);										//'<PACKET_LENGTH>'
 	usart_putchar(USART_COMP,DATA_1);
 	usart_putchar(USART_COMP,DATA_2);									//<data>
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2));		//<CS>
@@ -423,7 +372,6 @@ void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
 	usart_putchar(USART_COMP,COMMAND_KEY);									//':'
-	usart_putchar(USART_COMP,7);											//'<PACKET_LENGTH>'
 	usart_putchar(USART_COMP,DATA_1);
 	usart_putchar(USART_COMP,DATA_2);										//<data>
 	usart_putchar(USART_COMP,DATA_3);
@@ -890,25 +838,36 @@ int main(void)
 		cli();
 		if (MC_Tasks.Decrypt == 1)
 		{
-			//Надо декодировать команду..
-			uint8_t CheckSum = 0;
-			//Подсчёт контрольной суммы...
-			for (uint8_t i = 0; i < COMP_MEM_length; i++)
+			//Проверяем длинну команды
+			if(COMP_MEM_length > 2)
 			{
-				CheckSum -= COMP_MEM[i];
-			}
-			if (CheckSum == COMP_MEM_CheckSum)
-			{
-				//Контрольная сумма верная можно исполнять команду
-				sei();
-				decode();
-				MC_Tasks.Decrypt = 0;
+				COMP_MEM_length--;	//Отсекаем последний байт (то байт затвора)
+				//Надо декодировать команду..
+				uint8_t CheckSum = 0;
+				//Подсчёт контрольной суммы...
+				for (uint8_t i = 0; i < COMP_MEM_length; i++)
+				{
+					CheckSum -= COMP_MEM[i];
+				}
+				if (CheckSum == COMP_MEM_CheckSum)
+				{
+					//Контрольная сумма верная можно исполнять команду
+					sei();
+					decode();
+					MC_Tasks.Decrypt = 0;
+				}
+				else
+				{
+					//ОШИБКА ПРИЁМА! Неверная контрольная сумма!
+					transmit_3bytes(TOCKEN_ERROR, ERROR_CheckSum, CheckSum);
+					COMP_receiving_time = 0;
+					MC_Tasks.Decrypt = 0;
+				}
 			}
 			else
 			{
-				//ОШИБКА ПРИЁМА! Неверная контрольная сумма!
-				transmit_3bytes(TOCKEN_ERROR, ERROR_CheckSum, CheckSum);
-				COMP_receiving_time = 0;
+				Errors_USART_COMP.TooShortPacket = 1;
+				MC_Tasks.Decrypt = 0;
 			}
 		}
 		else
@@ -919,11 +878,11 @@ int main(void)
 				//Отсчитываем время до следующего байта
 				COMP_receiving_time++;
 				//48 (1,5 мкс) - ход ожидания байта
-				if (COMP_receiving_time >= COMP_receiving_limit)
+				if (COMP_receiving_time > COMP_receiving_limit)
 				{
-					COMP_receiving_time = 0;
-					// ОШИБКА ПРИЁМА ДАННЫХ! Стоит ли о ней сообщать?
-					Errors_USART_COMP.TimeOut = 1;
+					COMP_receiving_time = 0;	//Завершаем приём
+					//Если последний полученый байт был затвор, то дешифруем, иначе происшествие
+					if(COMP_LOCK_received == 1){MC_Tasks.Decrypt = 1;}else{Errors_USART_COMP.LOCKisLost = 1;}
 				}
 			}
 		}
