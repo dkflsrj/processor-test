@@ -29,7 +29,6 @@ namespace Xmega32A4U_testBoard
         static bool tracer_log_enabled = false;     //Ведение лога в Log.txt отключено. .Tester.enableLog(bool) - для вкл\выкл
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
-        const byte delay = 3;           //Задержка при приёме данных (см. transmit())
         const uint TimeOut = 1000; //260000 вроде 1 сек
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
@@ -76,91 +75,47 @@ namespace Xmega32A4U_testBoard
                 public const byte startMeasure =        30;
                 public const byte stopMeasure =         31;
                 public const byte receiveResults =      32;
-                public const byte getStatus =           33;
             }
             public struct TIC
             {
                 //Коды команд для микроконтроллера насоса
-                public const byte sendToTIC = 11;
+                public const byte sendToTIC = 50;
             }
             public struct SPI
             {
                 //Коды команд для SPI устройств
-                public struct IonSource
+                public struct PSIS
                 {
                     //Коды команд Ионного Источника
-                    public struct EmissionCurrent
-                    {
-                        public const byte setVoltage = 40;
-                        public const byte getVoltage = 60;
-                    }
-                    public struct Ionization
-                    {
-                        public const byte setVoltage = 40;
-                        public const byte getVoltage = 60;
-                    }
-                    public struct F1
-                    {
-                        public const byte setVoltage = 40;
-                        public const byte getVoltage = 60;
-                    }
-                    public struct F2
-                    {
-                        public const byte setVoltage = 40;
-                        public const byte getVoltage = 60;
-                    }
+                    
+                    public const byte setVoltage = 40;
+                    public const byte getVoltage = 60;
+                    
                 }
-                public struct Detector
+                public struct DPS
                 {
                     //Коды команд Детектора
-                    public struct DV1
-                    {
-                        public const byte setVoltage = 41;
-                        public const byte getVoltage = 64;
-                    }
-                    public struct DV2
-                    {
-                        public const byte setVoltage = 41;
-                        public const byte getVoltage = 65;
-                    }
-                    public struct DV3
-                    {
-                        public const byte setVoltage = 41;
-                        public const byte getVoltage = 66;
-                    }
+                    public const byte setVoltage = 41;
+                    public const byte getVoltage = 61;
                 }
-                public struct Inlet
+                public struct PSInl
                 {
                     //Коды команд Натекателя
-                    public const byte setVoltage = 49;
-                    public const byte getVoltage = 67;
-                }
-                public struct Heater
-                {
-                    //Коды команд Нагревателя
-                    public const byte setVoltage = 50;
-                    public const byte getVoltage = 68;
+                    public const byte setVoltage = 44;
+                    public const byte getVoltage = 63;
                 }
                 public struct Scaner
                 {
                     //Коды команд Сканера
-                    public struct ParentScan
-                    {
-                        public const byte setVoltage = 42;
-                        public const byte getVoltage = 70;
-                    }
-                    public struct Scan
-                    {
-                        public const byte setVoltage = 42;
-                        public const byte getVoltage = 70;
-                    }
+                    public const byte setVoltage = 42;
+                    public const byte getVoltage = 62;
+                    
                 }
                 public struct Condensator
                 {
                     //Коды команд Конденсатора
                     public const byte setVoltage = 43;
-                    public const byte getPositiveVoltage = 70;
-                    public const byte getNegativeVoltage = 70;
+                    public const byte getVoltage = 62;
                 }
             }
             public const byte LOCK = 13;
@@ -170,7 +125,7 @@ namespace Xmega32A4U_testBoard
                 //Коды команд отладки
                 public const byte checkCommandStack = 8;
             }
-            public const byte setFlags = 80;
+            public const byte setFlags = 70;
         }
         struct Incident
         {
@@ -273,7 +228,7 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
             /// <returns>?</returns>
-            public byte getRTCprescaler(uint MILLISECONDS)
+            public byte calcRTCprescaler(uint MILLISECONDS)
             {
                 byte prescaler; //Предделитель
                 if ((MILLISECONDS >= Constants.min_ms_div1) && (MILLISECONDS < Constants.min_ms_div2))
@@ -318,7 +273,7 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
             /// <returns>?</returns>
-            public ushort getRTCprescaler_long(uint MILLISECONDS)
+            public ushort calcRTCprescaler_long(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет, сохраняет и возвращает предделитель.
                 ushort prescaler_long; //Предделитель в реальном коэффициенте деления (см. prescaler цифры в скобках)
@@ -364,27 +319,27 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
             /// <returns>?</returns>
-            public ushort getRTCprescaler_long(string MILLISECONDS)
+            public ushort calcRTCprescaler_long(string MILLISECONDS)
             {
-                return getRTCprescaler_long(Convert.ToUInt32(MILLISECONDS));
+                return calcRTCprescaler_long(Convert.ToUInt32(MILLISECONDS));
             }
             /// <summary>
             /// Возвращает частоту RTC в соответствии с предделителем в длинном формате
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
-            public double getRTCfrequency(uint MILLISECONDS)
+            public double calcRTCfrequency(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
-                return (Constants.sourceFrequency / getRTCprescaler_long(MILLISECONDS));
+                return (Constants.sourceFrequency / calcRTCprescaler_long(MILLISECONDS));
             }
             /// <summary>
             /// Возвращает частоту RTC в соответствии с предделителем в длинном формате
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
-            public double getRTCfrequency(string MILLISECONDS)
+            public double calcRTCfrequency(string MILLISECONDS)
             {
                 //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
-                return (Constants.sourceFrequency / getRTCprescaler_long(Convert.ToUInt32(MILLISECONDS)));
+                return (Constants.sourceFrequency / calcRTCprescaler_long(Convert.ToUInt32(MILLISECONDS)));
             }
             /// <summary>
             /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
@@ -393,10 +348,10 @@ namespace Xmega32A4U_testBoard
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
             /// <param name="PRESCALER_long">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
             /// <returns></returns>
-            public ushort getRTCticks(uint MILLISECONDS)
+            public ushort calcRTCticks(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет количество тиков в соответствии с временем и предделителем. Возвращает количество тиков
-                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / getRTCprescaler_long(MILLISECONDS))));
+                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / calcRTCprescaler_long(MILLISECONDS))));
                 return tiks;
             }
             /// <summary>
@@ -406,11 +361,11 @@ namespace Xmega32A4U_testBoard
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
             /// <param name="PRESCALER_long">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
             /// <returns></returns>
-            public ushort getRTCticks(string MILLISECONDS)
+            public ushort calcRTCticks(string MILLISECONDS)
             {
                 if (MILLISECONDS != "")
                 {
-                    return getRTCticks(Convert.ToUInt32(MILLISECONDS));
+                    return calcRTCticks(Convert.ToUInt32(MILLISECONDS));
                 }
                 else
                 {
@@ -433,7 +388,7 @@ namespace Xmega32A4U_testBoard
                 string command = "Counters.startMeasure()";
                 trace(command);
                 //Проверка диапазона заданного интервала измерения
-                if (getRTCprescaler(MILLISECONDS) == 0)
+                if (calcRTCprescaler(MILLISECONDS) == 0)
                 {
                     return false;
                 }
@@ -446,10 +401,10 @@ namespace Xmega32A4U_testBoard
                 COC.Overflows = 0;
                 List<byte> wDATA = new List<byte>();    //Данные на передачу
                 //Вычисление байт для периода RTC
-                byte[]  MeasurePeriod = BitConverter.GetBytes(getRTCticks(MILLISECONDS));
+                byte[]  MeasurePeriod = BitConverter.GetBytes(calcRTCticks(MILLISECONDS));
                 //Набираем данные на отправку
                 wDATA.Add(Command.RTC.startMeasure); //Команда
-                wDATA.Add(getRTCprescaler(MILLISECONDS));   //Предделитель
+                wDATA.Add(calcRTCprescaler(MILLISECONDS));   //Предделитель
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
                 //Посылаем команду
@@ -805,14 +760,14 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             public ushort getPositiveVoltage()
             {
-                return ADC_getVoltage(Command.SPI.Condensator.getPositiveVoltage, ADC_positive_channel);
+                return ADC_getVoltage(Command.SPI.Condensator.getVoltage, ADC_positive_channel);
             }
             /// <summary>
             /// Возвращает напряжение отрицательной обкладки конденсатора в диапазоне от 0 до 4095.
             /// </summary>
             public ushort getNegativeVoltage()
             {
-                return ADC_getVoltage(Command.SPI.Condensator.getNegativeVoltage, ADC_negative_channel);
+                return ADC_getVoltage(Command.SPI.Condensator.getVoltage, ADC_negative_channel);
             }
             //Видимые функции
             /// <summary>
@@ -867,19 +822,19 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Напряжение тока эмиссии
             /// </summary>
-            public SPI_DEVICE_CHANNEL EmissionCurrent = new SPI_DEVICE_CHANNEL(EmissionCurrent_channel, Command.SPI.IonSource.EmissionCurrent.setVoltage, EmissionCurrent_channel,Command.SPI.IonSource.EmissionCurrent.getVoltage);
+            public SPI_DEVICE_CHANNEL EmissionCurrent = new SPI_DEVICE_CHANNEL(EmissionCurrent_channel, Command.SPI.PSIS.setVoltage, EmissionCurrent_channel,Command.SPI.PSIS.getVoltage);
             /// <summary>
             /// Напряжение ионизации
             /// </summary>
-            public SPI_DEVICE_CHANNEL Ionization = new SPI_DEVICE_CHANNEL(Ionization_channel, Command.SPI.IonSource.Ionization.setVoltage, Ionization_channel, Command.SPI.IonSource.Ionization.getVoltage);
+            public SPI_DEVICE_CHANNEL Ionization = new SPI_DEVICE_CHANNEL(Ionization_channel, Command.SPI.PSIS.setVoltage, Ionization_channel, Command.SPI.PSIS.getVoltage);
             /// <summary>
             /// Фокусирующее напряжение 1 
             /// </summary>
-            public SPI_DEVICE_CHANNEL F1 = new SPI_DEVICE_CHANNEL(F1_channel, Command.SPI.IonSource.F1.setVoltage, F1_channel, Command.SPI.IonSource.F1.getVoltage);
+            public SPI_DEVICE_CHANNEL F1 = new SPI_DEVICE_CHANNEL(F1_channel, Command.SPI.PSIS.setVoltage, F1_channel, Command.SPI.PSIS.getVoltage);
             /// <summary>
             /// Фокусирующее напряжение 2
             /// </summary>
-            public SPI_DEVICE_CHANNEL F2 = new SPI_DEVICE_CHANNEL(F2_channel, Command.SPI.IonSource.F2.setVoltage, F2_channel, Command.SPI.IonSource.F2.getVoltage);
+            public SPI_DEVICE_CHANNEL F2 = new SPI_DEVICE_CHANNEL(F2_channel, Command.SPI.PSIS.setVoltage, F2_channel, Command.SPI.PSIS.getVoltage);
         }
         public class SPI_DETECTOR
         {
@@ -889,9 +844,9 @@ namespace Xmega32A4U_testBoard
             const byte DV2_channel = 2;
             const byte DV3_channel = 3;
             //Каналы
-            public SPI_DEVICE_CHANNEL DV1 = new SPI_DEVICE_CHANNEL(DV1_channel, Command.SPI.Detector.DV1.setVoltage, DV1_channel, Command.SPI.Detector.DV1.getVoltage);
-            public SPI_DEVICE_CHANNEL DV2 = new SPI_DEVICE_CHANNEL(DV2_channel, Command.SPI.Detector.DV2.setVoltage, DV2_channel, Command.SPI.Detector.DV2.getVoltage);
-            public SPI_DEVICE_CHANNEL DV3 = new SPI_DEVICE_CHANNEL(DV3_channel, Command.SPI.Detector.DV3.setVoltage, DV3_channel, Command.SPI.Detector.DV3.getVoltage);
+            public SPI_DEVICE_CHANNEL DV1 = new SPI_DEVICE_CHANNEL(DV1_channel, Command.SPI.DPS.setVoltage, DV1_channel, Command.SPI.DPS.getVoltage);
+            public SPI_DEVICE_CHANNEL DV2 = new SPI_DEVICE_CHANNEL(DV2_channel, Command.SPI.DPS.setVoltage, DV2_channel, Command.SPI.DPS.getVoltage);
+            public SPI_DEVICE_CHANNEL DV3 = new SPI_DEVICE_CHANNEL(DV3_channel, Command.SPI.DPS.setVoltage, DV3_channel, Command.SPI.DPS.getVoltage);
         }
         public class SPI_SCANER
         {
@@ -1029,11 +984,11 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Дополнительное сканирующее напряжение
             /// </summary>
-            public SPI_DEVICE_CHANNEL_withAD5643R ParentScan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.setVoltage, ADC_ParentScan_Channel, Command.SPI.Scaner.ParentScan.getVoltage);
+            public SPI_DEVICE_CHANNEL_withAD5643R ParentScan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_ParentScan_Channel, Command.SPI.Scaner.setVoltage, ADC_ParentScan_Channel, Command.SPI.Scaner.getVoltage);
             /// <summary>
             /// Сканирующее напряжение
             /// </summary>
-            public SPI_DEVICE_CHANNEL_withAD5643R Scan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_Scan_Channel, Command.SPI.Scaner.Scan.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.Scan.getVoltage);
+            public SPI_DEVICE_CHANNEL_withAD5643R Scan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_Scan_Channel, Command.SPI.Scaner.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.getVoltage);
         }
         public class CHIP
         {
@@ -1300,11 +1255,11 @@ namespace Xmega32A4U_testBoard
         /// <summary>
         /// Натекатель
         /// </summary>
-        public SPI_DEVICE_CHANNEL Inlet = new SPI_DEVICE_CHANNEL(1, Command.SPI.Inlet.setVoltage, 1, Command.SPI.Inlet.getVoltage);
+        public SPI_DEVICE_CHANNEL Inlet = new SPI_DEVICE_CHANNEL(1, Command.SPI.PSInl.setVoltage, 1, Command.SPI.PSInl.getVoltage);
         /// <summary>
         /// Нагреватель
         /// </summary>
-        public SPI_DEVICE_CHANNEL Heater = new SPI_DEVICE_CHANNEL(2, Command.SPI.Heater.setVoltage, 2, Command.SPI.Heater.getVoltage);
+        public SPI_DEVICE_CHANNEL Heater = new SPI_DEVICE_CHANNEL(2, Command.SPI.PSInl.setVoltage, 2, Command.SPI.PSInl.getVoltage);
         /// <summary>
         /// Ионный Источник
         /// </summary>

@@ -203,7 +203,7 @@ namespace Xmega32A4U_testBoard
             //{
             //    //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно не выставил напряжение!");
             //}
-           // MC.IonSource.F8.setVoltage(TXB_DAC_voltage.Text);
+           // MC.PSIS.F8.setVoltage(TXB_DAC_voltage.Text);
         }
         private void BTN_SPI_ADC_request_Click(object sender, EventArgs e)
         {
@@ -291,7 +291,7 @@ namespace Xmega32A4U_testBoard
             //}
             //if (MC.Counters.setMeasureTime(TXB_COA_measureTime.Text))
             //{
-            //    //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
+            //    //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.calcRTCticks(TXB_COA_measureTime.Text, MC.Counters.calcRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
             //}
             //else
             //{
@@ -388,11 +388,11 @@ namespace Xmega32A4U_testBoard
             }
             LBL_COA_ticks.Text = "";
             //LBL_COA_ticks.Text += "(";
-            LBL_COA_ticks.Text += MC.Counters.getRTCticks(TXB_COA_measureTime.Text).ToString();
+            LBL_COA_ticks.Text += MC.Counters.calcRTCticks(TXB_COA_measureTime.Text).ToString();
             //LBL_COA_ticks.Text += " + " + MC.RTC.get_Ticks(TXB_COA_delay.Text, 1).ToString() + ")";
             //LBL_COA_ticks.Text += "*" + TXB_COA_quantity.Text;
-            LBL_COA_frequency.Text = MC.Counters.getRTCfrequency(TXB_COA_measureTime.Text).ToString();
-            LBL_COA_prescaler.Text = MC.Counters.getRTCprescaler_long(TXB_COA_measureTime.Text).ToString();
+            LBL_COA_frequency.Text = MC.Counters.calcRTCfrequency(TXB_COA_measureTime.Text).ToString();
+            LBL_COA_prescaler.Text = MC.Counters.calcRTCprescaler_long(TXB_COA_measureTime.Text).ToString();
         }
         private void CHB_enableSuperTracer_CheckedChanged(object sender, EventArgs e)
         {
@@ -499,7 +499,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_HEATER_reset_Click(object sender, EventArgs e)
         {
-            //MC.Inlet.reset();
+            //MC.PSInl.reset();
         }
         //-------------------------------Ионный источник--------------------------
         private void BTN_IonSOURCE_setEmissionCurrentVoltage_Click(object sender, EventArgs e)
@@ -561,7 +561,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_DETECTOR_reset_Click(object sender, EventArgs e)
         {
-            //MC.Detector.reset();
+            //MC.DPS.reset();
         }
         private void BTN_checkCommandStack_Click(object sender, EventArgs e)
         {
@@ -610,9 +610,9 @@ namespace Xmega32A4U_testBoard
                 return;
             }
             LBL_realCOX_Tiks.Text = "";
-            LBL_realCOX_Tiks.Text += MC.Counters.getRTCticks(TXB_realCOX_MeasureTime.Text).ToString();
-            LBL_realCOX_frequency.Text = MC.Counters.getRTCfrequency(TXB_realCOX_MeasureTime.Text).ToString();
-            LBL_realCOX_Devider.Text = MC.Counters.getRTCprescaler_long(TXB_realCOX_MeasureTime.Text).ToString();
+            LBL_realCOX_Tiks.Text += MC.Counters.calcRTCticks(TXB_realCOX_MeasureTime.Text).ToString();
+            LBL_realCOX_frequency.Text = MC.Counters.calcRTCfrequency(TXB_realCOX_MeasureTime.Text).ToString();
+            LBL_realCOX_Devider.Text = MC.Counters.calcRTCprescaler_long(TXB_realCOX_MeasureTime.Text).ToString();
         }
         private void BTN_realCOX_setParameters_Click(object sender, EventArgs e)
         {
@@ -621,7 +621,7 @@ namespace Xmega32A4U_testBoard
                 //MC.Counters.setMeasureTime(TXB_realCOX_MeasureTime.Text);
             //   )
             //{
-                //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.getRTCticks(TXB_COA_measureTime.Text, MC.Counters.getRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
+                //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.calcRTCticks(TXB_COA_measureTime.Text, MC.Counters.calcRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
             //}
             //else
             //{

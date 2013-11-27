@@ -23,7 +23,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										112
+#define version										113
 #define birthday									20131127
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -301,30 +301,22 @@ void decode(void)
 		break;																								
 		case COMMAND_checkCommandStack:				transmit_2bytes(COMMAND_checkCommandStack,MC_CommandStack);
 		break;																								
-		case COMMAND_IonSource_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_IonSource);		
+		case COMMAND_PSIS_set_Voltage: 				SPI_send(SPI_DEVICE_Number_DAC_PSIS);		
 		break;																								
-		case COMMAND_Detector_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Detector);			
+		case COMMAND_DPS_set_Voltage: 				SPI_send(SPI_DEVICE_Number_DAC_DPS);			
 		break;																								
-		case COMMAND_Inlet_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Inlet);			
-		break;																								
-		case COMMAND_Heater_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Inlet);			
-		break;																								
+		case COMMAND_PSInl_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_PSInl);			
+		break;																						
 		case COMMAND_Scaner_set_Voltage: 			SPI_send(SPI_DEVICE_Number_DAC_Scaner);			
 		break;																								
 		case COMMAND_Condensator_set_Voltage: 		SPI_send(SPI_DEVICE_Number_DAC_Condensator);		
 		break;																								
-		case COMMAND_IonSource_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_IonSource);		
+		case COMMAND_PSIS_get_Voltage: 				SPI_send(SPI_DEVICE_Number_ADC_PSIS);		
 		break;																								
-		case COMMAND_Detector_DV1_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector);			
-		break;																								
-		case COMMAND_Detector_DV2_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector);			
-		break;																								
-		case COMMAND_Detector_DV3_get_Voltage: 		SPI_send(SPI_DEVICE_Number_ADC_Detector);			
-		break;																								
-		case COMMAND_Inlet_get_Voltage: 			SPI_send(SPI_DEVICE_Number_ADC_Inlet);			
-		break;																								
-		case COMMAND_Heater_get_Voltage: 			SPI_send(SPI_DEVICE_Number_ADC_Inlet);			
-		break;																								
+		case COMMAND_DPS_get_Voltage: 				SPI_send(SPI_DEVICE_Number_ADC_DPS);			
+		break;				
+		case COMMAND_PSInl_get_Voltage: 			SPI_send(SPI_DEVICE_Number_ADC_PSInl);			
+		break;																							
 		case COMMAND_MSV_get_Voltage: 				SPI_send(SPI_DEVICE_Number_ADC_MSV);				
 		break;																								
 		case COMMAND_Flags_set: 					checkFlags();									
@@ -724,8 +716,8 @@ void checkFlags(void)
     if (MC_Tasks.setDACs)
     {
 		gpio_set_pin_low(pin_iHVE); //Включаем DC-DC 24-12
-        cpu_delay_ms(2000,32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.//Необходимо заменить на cpu_delay
-        //Высокое напряжение включеноё - конфигурируем DACи
+        cpu_delay_ms(2000,32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
+        //Высокое напряжение включено - конфигурируем DACи
         //MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
         uint8_t SPI_DATA[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};
         spi_select_device(&SPIC, &DAC_Condensator);
