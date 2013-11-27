@@ -53,22 +53,29 @@
 
 #define COMMAND_Flags_set							80	//Команда: Установить флаги (SEMV1,SEMV2,SEMV3,SPUMP,iEDCD,iHVE)
 //-----------------------------------------------LAM'ы-----------------------------------------------
-#define LAM_Tocken						1
+//ПОЯСНЕНИЯ: Асинхронные сообщения информирующие ПК о чём либо.
+//Метка
+#define TOCKEN_LookAtMe					1
+//Номера асинхронных сообщений (обрати внимание)
 #define LAM_RTC_end						1
 //-----------------------------------------------ОШИБКИ----------------------------------------------
-//ПОЯСНЕНИЯ: Ошибка приходит в формате <key><ERROR_token><ErrorNum><data[]><CS><lock>
+//ПОЯСНЕНИЯ: Обычные ошибки, которые не ставят под угрозу работу системы.
 //Метка
-#define ERROR_Token						0	//Метка ошибки
+#define TOCKEN_ERROR					0	//Метка ошибки
 //ErrorNums
-#define ERROR_Decoder					1	//Ошибка декодера (команда). Нет такой.
-#define ERROR_WhereIsKEY				2	//Ошибка декодера (Ключ). Где он?
-#define ERROR_WhereIsLOCK				3	//Ошибка декодера (Затвор). Где он?
-#define ERROR_CheckSum					4	//Ошибка декодера (Контр.сумма). Несовпадает!	
-#define ERROR_wrong_SPI_DEVICE_Number   5	//Внутренняя ошибка! SPI-устройства с таким номером нет!
+#define ERROR_Decoder					1	//Ошибка декодера (нет такой команды).
+#define ERROR_CheckSum					2	//Ошибка контрольной суммы. Несовпадает!
+//------------------------------------------ВНУТРЕННИЕ ОШИБКИ----------------------------------------
+//ПОЯСНЕНИЯ: Внутренние ошибки МК. Нежелательные и запрещённые состояния.
+//Метка
+#define TOCKEN_INTERNAL_ERROR			2	//Метка внутренней ошибки
+//Номера внутренних ошибок
+#define INTERNAL_ERROR_USART_COMP		1	//Внутренняя ошибка приёма данных от ПК
+#define INTERNAL_ERROR_SPI				2	//SPI-устройства с таким номером нет!
 //---------------------------------------------ДЕШИФРАТОР--------------------------------------------
 
 //----------------------------------------ПРОСТЫЕ КОМАНДЫ-----------------------------------------
-#define MC_transmit_Status			transmit_2bytes(COMMAND_MC_get_Status, MC_Status)
+#define MC_transmit_Status			transmit_3bytes(COMMAND_MC_get_Status, MC_Status, *pointer_Errors_USART_COMP)
 #define MC_transmit_Version			transmit_2bytes(COMMAND_MC_get_Version, MC_version)
 
 

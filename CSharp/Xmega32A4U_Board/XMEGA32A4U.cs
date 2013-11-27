@@ -34,15 +34,27 @@ namespace Xmega32A4U_testBoard
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
-            //СТРУКТУРА: Хранилище констант - кодов ошибок
-            //ПОЯСНЕНИЯ: Ошибка приходит в формате <key><Error.Token><ErrorNum><data[]><CS><lock>
+            //СТРУКТУРА: Хранилище констант - кодовобычных ошибок, которые не ставят под угрозу работу системы.
             public const byte Token =           0;    //Есть ошибка
             //ErrorNums...
-            public const byte DecoderError =    1;       //Такое команды не существует
-            public const byte KeyError =        2;       //Не был получен ключ
-            public const byte LockError =       3;       //Не был получен замок
-            public const byte CheckSumError =   4;       //Неверная контрольная сумма
+            public const byte Decoder =         1;       //Такое команды не существует
+            public const byte CheckSum =        2;       //Неверная контрольная сумма
             //public const byte wrong_SPI_DEVICE_Number
+        }
+        struct LAM
+        {
+            //СТРУКТУРА: Хранилище констант - кодов асинхронных сообщений информирующие ПК о чём либо.
+            public const byte Tocken =          1;      //Метка LAM сообщения
+            //Номера асинхронных сообщений (обрати внимание)
+            public const byte RTC_end =         1;      //RTC закончил измерение
+        }
+        struct Internal_Error
+        {
+            //СТРУКТУРА: Хранилище констант - кодов внутренних ошибок МК. Нежелательные и запрещённые состояния.
+            public const byte Token =           2;      //Метка внутренней ошибки
+            //Номера внутренних ошибок     
+            public const byte USART_COMP =      1;       //Внутренняя ошибка приёма данных от ПК
+            public const byte SPI =             2;       //SPI-устройства с таким номером нет  
         }
         struct Command
         {
@@ -160,10 +172,13 @@ namespace Xmega32A4U_testBoard
             }
             public const byte setFlags = 80;
         }
-        struct LAM
+        struct Incident
         {
-            public const byte Tocken = 1;
-            public const byte RTC_end = 1;
+            //СТРУКТУРА: Хранилище констант - кодов происшествий, которые передаются при опросе статуса МК
+            public const byte TimeOut =         1;  //МК принимал пакет, ожидал следующий байт, но не получил его
+            public const byte LOCKisLost =      2;  //МК принимал пакет, но в последний байт пакета не затвор
+            public const byte TooShortPacket =  4;  //байт длинны пакета меньше минимального (5)
+            public const byte TooFast =         8;  //МК ещё не выполнил предыдущую команду, а уже приходит другая.
         }
         //---------------------------------------КЛАССЫ--------------------------------------------
         public class RTCounterAndCO
@@ -1056,13 +1071,35 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             public byte getStatus()
             {
-                //ФУНКЦИЯ: Возвращает статус самого микроконтроллера
+                //ФУНКЦИЯ: Возвращает статус самого микроконтроллера и список проишествий
                 string command = "Chip.getStatus()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                byte answer = transmit(Command.Chip.getStatus)[0];
-                trace(command + ": Статус МК: " + answer);
-                return answer;
+                byte[] answer = transmit(Command.Chip.getStatus);
+                trace(command + ": Статус МК: " + answer[0]);
+                byte incedent = answer[1];
+                if (incedent == 0)
+                {
+                    return answer[0];
+                }
+                trace(command + ": Проишествия: ");
+                if ((incedent & Incident.TimeOut) == Incident.TimeOut)
+                {
+                    trace("         TimeOut");
+                }
+                if ((incedent & Incident.LOCKisLost) == Incident.LOCKisLost)
+                {
+                    trace("         LOCKisLost");
+                }
+                if ((incedent & Incident.TooShortPacket) == Incident.TooShortPacket)
+                {
+                    trace("         TooShortPacket");
+                }
+                if ((incedent & Incident.TooFast) == Incident.TooFast)
+                {
+                    trace("         TooFast");
+                }
+                return answer[0];
             }
             /// <summary>
             /// Возвращает версию прошивки МК
@@ -1201,7 +1238,9 @@ namespace Xmega32A4U_testBoard
                 //ФУНКЦИЯ: Просто посылает число микроконтроллеру.
                 trace_attached(Environment.NewLine);
                 trace("Tester.sendSomething(243)");
-                transmit(243);
+                //transmit(243);
+                byte[] b = {58, 5, 0, 23, 8};
+                USART.Write(b,0,b.Length);
             }
         }
         public class TIC_PUMP
@@ -1298,18 +1337,19 @@ namespace Xmega32A4U_testBoard
         //Флаги
         /// <summary>
         /// МК устанавливает и возвращает флаги в порядке:
-        /// <para>|x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP|</para> 
-        /// <para>,где SPUM - первый(нулевой) бит</para>
-        /// <para>     x - не имеет значения</para>
+        /// <para>&lt;[Проверить\Установить][iHVE][PRGE][iEDCD][SEMV1][SEMV2][SEMV3][SPUMP]&gt;</para> 
+        /// <para>,где [SPUM] - первый(нулевой) бит</para>
+        /// <para>     [iHVE] - Разрешение высокого напряжения от TIC (readOnly)</para>
+        /// <para>     [Проверить\Установить] - МК возвращает 1, если хотябы один из параметров был изменён, иначе 0</para>
         /// </summary>
         /// <param name="set_flags">true - установить следующие флаги, <para>false - не устанавливать, только проверить (последующие флаги не имеют значения)</para></param>
-        /// <param name="HVE">Разрешение высокого напряжения (впоследствии будет заменено на PRGE)</param>
+        /// <param name="PRGE">Разрешение высокого напряжения от оператора</param>
         /// <param name="EDCD">Разрешение дистанционного управления</param>
         /// <param name="SEMV1">Электромагнитный вентиль 1</param>
         /// <param name="SEMV2">Электромагнитный вентиль 2</param>
         /// <param name="SEMV3">Электромагнитный вентиль 3</param>
         /// <param name="SPUMP">Включение насоса?</param>
-        /// <returns>Байт флагов в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP| </returns>
+        /// <returns>Байт флагов в порядке &lt;[Изменено][iHVE][PRGE][iEDCD][SEMV1][SEMV2][SEMV3][SPUMP]&gt;</returns>
         public byte setFlags(bool set_flags, bool PRGE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
         {
             //ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
@@ -1730,16 +1770,10 @@ namespace Xmega32A4U_testBoard
                             {
                                 switch (DATA[1])
                                 {
-                                    case Error.DecoderError:
+                                    case Error.Decoder:
                                         addError(" !! МК СООБЩАЕТ ОБ ОШИБКЕ ДЕКОДЕРА! Неизвестная команда: " + DATA[2], DATA);
                                         break;
-                                    case Error.KeyError:
-                                        addError(" !! МК СООБЩАЕТ ОБ ОШИБКЕ! НЕ БЫЛ ПОЛУЧЕН КЛЮЧ! Ключ: " + DATA[2], DATA);
-                                        break;
-                                    case Error.LockError:
-                                        addError(" !! МК СООБЩАЕТ ОБ ОШИБКЕ! НЕ БЫЛ ПОЛУЧЕН ЗАМОК! Замок: " + DATA[2], DATA);
-                                        break;
-                                    case Error.CheckSumError:
+                                    case Error.CheckSum:
                                         addError(" !! МК СООБЩАЕТ ОБ ОШИБКЕ! Неверная контрольная сумма: " + DATA[2], DATA);
                                         break;
                                     default:
