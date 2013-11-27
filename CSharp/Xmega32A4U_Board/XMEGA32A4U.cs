@@ -30,12 +30,12 @@ namespace Xmega32A4U_testBoard
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
         const byte delay = 3;           //Задержка при приёме данных (см. transmit())
-        const uint TimeOut = 20000; //260000 вроде 1 сек
+        const uint TimeOut = 1000; //260000 вроде 1 сек
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
             //СТРУКТУРА: Хранилище констант - кодовобычных ошибок, которые не ставят под угрозу работу системы.
-            public const byte Token =           0;    //Есть ошибка
+            public const byte Token =           255;    //Есть ошибка
             //ErrorNums...
             public const byte Decoder =         1;       //Такое команды не существует
             public const byte CheckSum =        2;       //Неверная контрольная сумма
@@ -44,14 +44,14 @@ namespace Xmega32A4U_testBoard
         struct LAM
         {
             //СТРУКТУРА: Хранилище констант - кодов асинхронных сообщений информирующие ПК о чём либо.
-            public const byte Tocken =          1;      //Метка LAM сообщения
+            public const byte Tocken =          254;      //Метка LAM сообщения
             //Номера асинхронных сообщений (обрати внимание)
             public const byte RTC_end =         1;      //RTC закончил измерение
         }
         struct Internal_Error
         {
             //СТРУКТУРА: Хранилище констант - кодов внутренних ошибок МК. Нежелательные и запрещённые состояния.
-            public const byte Token =           2;      //Метка внутренней ошибки
+            public const byte Token =           253;      //Метка внутренней ошибки
             //Номера внутренних ошибок     
             public const byte USART_COMP =      1;       //Внутренняя ошибка приёма данных от ПК
             public const byte SPI =             2;       //SPI-устройства с таким номером нет  
@@ -175,7 +175,6 @@ namespace Xmega32A4U_testBoard
         struct Incident
         {
             //СТРУКТУРА: Хранилище констант - кодов происшествий, которые передаются при опросе статуса МК
-            public const byte TimeOut =         1;  //МК принимал пакет, ожидал следующий байт, но не получил его
             public const byte LOCKisLost =      2;  //МК принимал пакет, но в последний байт пакета не затвор
             public const byte TooShortPacket =  4;  //байт длинны пакета меньше минимального (5)
             public const byte TooFast =         8;  //МК ещё не выполнил предыдущую команду, а уже приходит другая.
@@ -1084,10 +1083,6 @@ namespace Xmega32A4U_testBoard
                     return answer[0];
                 }
                 trace(command + ": Проишествия: ");
-                if ((incedent & Incident.TimeOut) == Incident.TimeOut)
-                {
-                    trace("         TimeOut");
-                }
                 if ((incedent & Incident.LOCKisLost) == Incident.LOCKisLost)
                 {
                     trace("         LOCKisLost");
@@ -1240,7 +1235,7 @@ namespace Xmega32A4U_testBoard
                 trace_attached(Environment.NewLine);
                 trace("Tester.sendSomething(243)");
                 //transmit(243);
-                byte[] b = {58, 5, 0, 23, 8};
+                byte[] b = {58};
                 USART.Write(b,0,b.Length);
             }
         }
@@ -1268,7 +1263,7 @@ namespace Xmega32A4U_testBoard
             public void send()
             {
                 //ФУНКЦИЯ: Посылает данные TIC'у
-                byte[] msg = { 45, 76, 78, 34 };
+                byte[] msg = { 58,23,13 };
                 byte[] data = transmit_toTIC(msg);
                 trace("Получено от TIC'а: (пока отражение)");
                 foreach (byte b in data)
@@ -1418,7 +1413,7 @@ namespace Xmega32A4U_testBoard
             //ДАННЫЕ: <Tocken><DATA_1><DATA_2>
             bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
             tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
-            List<byte> rDATA = decode_2(receive_2());
+            List<byte> rDATA = decode(receive());
             tracer_enabled = tracer_enabled_before;
             Asynchr_decode(rDATA);
         }
@@ -1444,7 +1439,7 @@ namespace Xmega32A4U_testBoard
             }
             
         }
-        static List<byte> receive_2()
+        static List<byte> receive()
         {
             //ФУНКЦИЯ: Принимаем данные по СОМ-порту
             trace("         Приём...");                     //Приём-приём
@@ -1468,10 +1463,10 @@ namespace Xmega32A4U_testBoard
             trace("         Приём завершён!");
             return rDATA;
         }
-        static List<byte> decode_2(List<byte> DATA)
+        static List<byte> decode(List<byte> DATA)
         {
             trace("         Анализ полученной команды...");
-            if (DATA.Count < 5)
+            if (DATA.Count < 3)
             {
                 trace("Полученная команда слишком коротка!");
                 return new List<byte>();
@@ -1480,43 +1475,34 @@ namespace Xmega32A4U_testBoard
             if (rDATA.First<byte>() == Command.KEY)
             {
                 rDATA.RemoveAt(0);                              //Удаляем ключ
-                if (rDATA.First<byte>() == rDATA.Count + 1)
+                if (rDATA.Last<byte>() == Command.LOCK)
                 {
-                    rDATA.RemoveAt(0);                          //Удаляем длинну пакета
-                    if (rDATA.Last<byte>() == Command.LOCK)
+                    rDATA.RemoveAt(rDATA.Count - 1);        //Удаляем затвор
+                    byte CheckSum = rDATA.Last<byte>();
+                    rDATA.RemoveAt(rDATA.Count - 1);        //Удаляем контрольную сумму
+                    byte calcedCheckSum = calcCheckSum(rDATA.ToArray());
+                    if (CheckSum == calcedCheckSum)
                     {
-                        rDATA.RemoveAt(rDATA.Count - 1);        //Удаляем затвор
-                        byte CheckSum = rDATA.Last<byte>();
-                        rDATA.RemoveAt(rDATA.Count - 1);        //Удаляем контрольную сумму
-                        byte calcedCheckSum = calcCheckSum(rDATA.ToArray());
-                        if (CheckSum == calcedCheckSum)
+                        //Пакет верный, возвращаем его
+                        if (tracer_enabled)
                         {
-                            //Пакет верный, возвращаем его
-                            if (tracer_enabled)
+                            trace("         Пакет принятых данных: ");
+                            foreach (byte b in rDATA)
                             {
-                                trace("         Пакет принятых данных: ");
-                                foreach (byte b in rDATA)
-                                {
-                                    trace("             " + b);
-                                }
+                                trace("             " + b);
                             }
-                            return rDATA;
                         }
-                        else
-                        {
-                            trace("ОШИБКА ПРИЁМА! Неверная контрольная сумма. Получено:" + CheckSum + " Подсчитано: " + calcedCheckSum);
-                            return new List<byte>();
-                        }
+                        return rDATA;
                     }
                     else
                     {
-                        trace("ОШИБКА ПРИЁМА! Не был получен затвор. Получено:" + rDATA.Last<byte>());
+                        trace("ОШИБКА ПРИЁМА! Неверная контрольная сумма. Получено:" + CheckSum + " Подсчитано: " + calcedCheckSum);
                         return new List<byte>();
                     }
                 }
                 else
                 {
-                    trace("ОШИБКА ПРИЁМА! Неверная длина пакета. Получено:" + rDATA.First<byte>());
+                    trace("ОШИБКА ПРИЁМА! Не был получен затвор. Получено:" + rDATA.Last<byte>());
                     return new List<byte>();
                 }
             }
@@ -1537,7 +1523,7 @@ namespace Xmega32A4U_testBoard
             //trace("             Контрольная сумма: " + CheckSum);
             return CheckSum;
         }
-        static void send_2(List<byte> DATA)
+        static void send(List<byte> DATA)
         {
             //ФУНКЦИЯ: Формируем пакет, передаём его МК.
             byte command = DATA[0];                         //Запоминаем передаваемую команду
@@ -1550,7 +1536,7 @@ namespace Xmega32A4U_testBoard
             trace("         Формирование пакета...");
             List<byte> Packet = new List<byte>();
             Packet.Add(Command.KEY);
-            Packet.Add((byte)(DATA.Count + 4));
+            //Packet.Add((byte)(DATA.Count + 4));
             Packet.AddRange(DATA);
             Packet.Add(calcCheckSum(DATA.ToArray()));
             Packet.Add(Command.LOCK);
@@ -1582,8 +1568,8 @@ namespace Xmega32A4U_testBoard
             bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
             tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
             USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived);
-            send_2(wDATA);
-            List<byte> rDATA = decode_2(receive_2());
+            send(wDATA);
+            List<byte> rDATA = decode(receive());
             USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
             tracer_enabled = tracer_enabled_before;
             return rDATA;
