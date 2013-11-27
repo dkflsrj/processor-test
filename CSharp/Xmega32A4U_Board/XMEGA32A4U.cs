@@ -30,7 +30,7 @@ namespace Xmega32A4U_testBoard
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
         static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
         const byte delay = 3;           //Задержка при приёме данных (см. transmit())
-        const uint TimeOut = 10000; //260000 вроде 1 сек
+        const uint TimeOut = 20000; //260000 вроде 1 сек
         //-------------------------------------СТРУКТУРЫ------------------------------------------
         struct Error
         {
@@ -454,7 +454,7 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
                 //Посылаем команду
-                Status = convertStatus(transmit_2(wDATA, Constants.LengthOfstartMeasurePacket)[1]); 
+                Status = convertStatus(transmit(wDATA)[1]); 
                 if ((Status == Constants.Status.string_ready)||(Status == Constants.Status.string_stopped))
                 {
                     return true;
@@ -476,7 +476,7 @@ namespace Xmega32A4U_testBoard
                 string command = "Counters.stopMeasure()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                Status = convertStatus(transmit(Command.RTC.stopMeasure)[0]);
+                Status = convertStatus(transmit(Command.RTC.stopMeasure)[1]);
                 switch (Status)
                 {
                     case Constants.Status.string_busy:
@@ -509,7 +509,7 @@ namespace Xmega32A4U_testBoard
                 List<byte> wDATA = new List<byte>();    //Данные на передачу
                 List<byte> rDATA = new List<byte>();    //Данные на приём
                 wDATA.Add(Command.RTC.receiveResults); //Команда
-                rDATA = transmit_2(wDATA, 19);
+                rDATA = transmit(wDATA);
                 Status = convertStatus(rDATA[1]);
                 if (Status == Constants.Status.string_ready)
                 {
@@ -691,10 +691,10 @@ namespace Xmega32A4U_testBoard
                 byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
                 byte adress = 1;
-                adress += Convert.ToByte(rDATA[0] >> 4);
+                adress += Convert.ToByte(rDATA[1] >> 4);
                 try
                 {
-                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                 }
                 catch (Exception)
                 {
@@ -780,10 +780,10 @@ namespace Xmega32A4U_testBoard
                 byte[] rDATA = transmit(command, data);
                 ushort voltage = 0;
                 byte adress = 0;
-                adress += Convert.ToByte(rDATA[0] >> 4);
+                adress += Convert.ToByte(rDATA[1] >> 4);
                 try
                 {
-                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                    voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                 }
                 catch (Exception)
                 {
@@ -957,10 +957,10 @@ namespace Xmega32A4U_testBoard
                     byte[] rDATA = transmit(command, data);
                     ushort voltage = 0;
                     byte adress = 0;
-                    adress += Convert.ToByte(rDATA[0] >> 4);
+                    adress += Convert.ToByte(rDATA[1] >> 4);
                     try
                     {
-                        voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[0] & 0xf) << 8) + rDATA[1]);
+                        voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                     }
                     catch (Exception)
                     {
@@ -1058,7 +1058,7 @@ namespace Xmega32A4U_testBoard
                 string command = "Chip.checkCommandStack()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                if (transmit(Command.TEST.checkCommandStack)[0] == CommandStack)
+                if (transmit(Command.TEST.checkCommandStack)[1] == CommandStack)
                 {
                     trace(command = ": Команды идут синхронно. (" + CommandStack + ")");
                     return true;
@@ -1076,10 +1076,11 @@ namespace Xmega32A4U_testBoard
                 trace_attached(Environment.NewLine);
                 trace(command);
                 byte[] answer = transmit(Command.Chip.getStatus);
-                trace(command + ": Статус МК: " + answer[0]);
-                byte incedent = answer[1];
+                trace(command + ": Статус МК: " + answer[1]);
+                byte incedent = answer[2];
                 if (incedent == 0)
                 {
+                    trace(command + ": За время работы проишествий не было. ");
                     return answer[0];
                 }
                 trace(command + ": Проишествия: ");
@@ -1110,7 +1111,7 @@ namespace Xmega32A4U_testBoard
                 string command = "Chip.getVersion()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                byte answer = transmit(Command.Chip.getVersion)[0];
+                byte answer = transmit(Command.Chip.getVersion)[1];
                 trace(command + ": Версия прошивки МК: " + answer);
                 return answer;
             }
@@ -1128,7 +1129,7 @@ namespace Xmega32A4U_testBoard
                 byte[] recDATA = transmit(Command.Chip.getBirthday);
                 try
                 {
-                    birthday = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                    birthday = Convert.ToUInt32(recDATA[4]) * 16777216 + Convert.ToUInt32(recDATA[3]) * 65536 + Convert.ToUInt32(recDATA[2]) * 256 + Convert.ToUInt32(recDATA[1]);
                 }
                 catch (Exception)
                 {
@@ -1136,7 +1137,7 @@ namespace Xmega32A4U_testBoard
                     return answer;
                 }
                 answer = birthday.ToString();
-                answer = answer[6] + "" + answer[7] + " " + answer[4] + answer[5] + " " + answer[0] + answer[1] + answer[2] + answer[3];
+                answer = answer[6] + "" + answer[7] + "." + answer[4] + answer[5] + "." + answer[0] + answer[1] + answer[2] + answer[3];
                 trace(command + ": Дата создания прошивки МК: " + answer);
                 return answer;
             }
@@ -1150,10 +1151,10 @@ namespace Xmega32A4U_testBoard
                 trace_attached(Environment.NewLine);
                 trace(command);
                 UInt32 frequency = 0;
-                byte[] recDATA = transmit(Command.Chip.getCPUfrequency);
+                byte[] rDATA = transmit(Command.Chip.getCPUfrequency);
                 try
                 {
-                    frequency = Convert.ToUInt32(recDATA[3]) * 16777216 + Convert.ToUInt32(recDATA[2]) * 65536 + Convert.ToUInt32(recDATA[1]) * 256 + Convert.ToUInt32(recDATA[0]);
+                    frequency = Convert.ToUInt32(rDATA[4]) * 16777216 + Convert.ToUInt32(rDATA[3]) * 65536 + Convert.ToUInt32(rDATA[2]) * 256 + Convert.ToUInt32(rDATA[1]);
                 }
                 catch (Exception)
                 {
@@ -1362,7 +1363,7 @@ namespace Xmega32A4U_testBoard
             trace_attached(Environment.NewLine);
             trace(command);
             byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(PRGE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
-            byte received_flags = transmit(Command.setFlags, flags)[0];
+            byte received_flags = transmit(Command.setFlags, flags)[1];
             if ((received_flags & 128) == 0) { trace(command + ": Операция отменена! Нечего менять!"); }
             return received_flags;
         }
@@ -1417,7 +1418,7 @@ namespace Xmega32A4U_testBoard
             //ДАННЫЕ: <Tocken><DATA_1><DATA_2>
             bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
             tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
-            List<byte> rDATA = decode_2(receive_2(7));
+            List<byte> rDATA = decode_2(receive_2());
             tracer_enabled = tracer_enabled_before;
             Asynchr_decode(rDATA);
         }
@@ -1443,32 +1444,26 @@ namespace Xmega32A4U_testBoard
             }
             
         }
-        static List<byte> receive_2(byte rPacketLength)
+        static List<byte> receive_2()
         {
             //ФУНКЦИЯ: Принимаем данные по СОМ-порту
             trace("         Приём...");                     //Приём-приём
             List<byte> rDATA = new List<byte>();
             if (!USART.IsOpen)
             {
-                USART.Open();
+                trace("ОШИБКА ПРИЁМА! Порт закрыт!");
+                return rDATA;
             }
-            uint time;
             trace("                 Принято:");
-            for (byte i = 0; i < rPacketLength; i++)
+            //Входим в цикл приёма ждём байт до TimeOut
+            for (uint time = 0; time < TimeOut; time++)
             {
-                time = 0;
-                while (USART.BytesToRead == 0) 
+                if(USART.BytesToRead > 0)
                 {
-                    time++;
-                    if (time >= TimeOut)
-                    {
-                        addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
-                        
-                        return rDATA;
-                    }
+                    time = 0;
+                    rDATA.Add((byte)USART.ReadByte());
+                    trace("                     " + rDATA.Last<byte>());
                 }
-                rDATA.Add((byte)USART.ReadByte());
-                trace("                     " + rDATA.Last<byte>());
             }
             trace("         Приём завершён!");
             return rDATA;
@@ -1476,6 +1471,11 @@ namespace Xmega32A4U_testBoard
         static List<byte> decode_2(List<byte> DATA)
         {
             trace("         Анализ полученной команды...");
+            if (DATA.Count < 5)
+            {
+                trace("Полученная команда слишком коротка!");
+                return new List<byte>();
+            }
             List<byte> rDATA = DATA;
             if (rDATA.First<byte>() == Command.KEY)
             {
@@ -1526,6 +1526,17 @@ namespace Xmega32A4U_testBoard
                 return new List<byte>();
             }
         }
+        static byte calcCheckSum(byte[] data)
+        {
+            //ФУНКЦИЯ: Вычисление контрольной суммы для верификации данных
+            byte CheckSum = 0;
+            for (int i = 0; i < data.Length; i++)
+            {
+                CheckSum -= data[i];
+            }
+            //trace("             Контрольная сумма: " + CheckSum);
+            return CheckSum;
+        }
         static void send_2(List<byte> DATA)
         {
             //ФУНКЦИЯ: Формируем пакет, передаём его МК.
@@ -1565,186 +1576,42 @@ namespace Xmega32A4U_testBoard
             trace("         Передача завершена!");
             CommandStack++;                                 //Увеличиваем счётчик команд (команда ушла)
         }
-        static List<byte> transmit_2(List<byte> wDATA, byte rPacketLength)
+        static List<byte> transmit(List<byte> wDATA)
         {
             //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
             bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
             tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
             USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived);
             send_2(wDATA);
-            List<byte> rDATA = decode_2(receive_2(rPacketLength));
+            List<byte> rDATA = decode_2(receive_2());
             USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
             tracer_enabled = tracer_enabled_before;
             return rDATA;
         }
-        static byte calcCheckSum(byte[] data)
-        {
-            //ФУНКЦИЯ: Вычисление контрольной суммы для верификации данных
-            byte CheckSum = 0;
-            for (int i = 0; i < data.Length; i++)
-            {
-                CheckSum -= data[i];
-            }
-            //trace("             Контрольная сумма: " + CheckSum);
-            return CheckSum;
-        }
-        
-        static byte[] transmit(List<byte> DATA)
-        {
-            //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
-            bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
-            tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
-            byte command = DATA[0];                         //Запоминаем передаваемую команду
-            trace("     Начало исполнения команды:");
-            trace("         Команда и байты данных:");
-            foreach(byte b in DATA.ToArray())
-            {
-                trace("             " + b);
-            }
-            trace("         Формирование пакета...");
-            List<byte> rDATA = new List<byte>();            //Список данных, которые будут приняты
-            List<byte> Packet = new List<byte>();           //Список байтов, которые будут посланы
-            //Формируем пакет по типу:  ':<Length><data><CS>\r' 
-            Packet.Add(Command.KEY);                        //':' - Начало данных 
-            Packet.Add((byte)(DATA.Count + 4));             //'Length' - длинна пакета
-            Packet.AddRange(DATA);                          //'<data>' - байты данных <<response><attached_data>>
-            Packet.Add(calcCheckSum(DATA.ToArray()));       //'<CS>' - контрольная сумма
-            Packet.Add(Command.LOCK);                       //'\r' - конец передачи
-            trace("         Пакет:");
-            foreach (byte b in Packet.ToArray())
-            {
-                trace("             " + b);
-            }
-            //Выполняем передачу и приём
-            trace("         Передача...");
-            if (!USART_defined)
-            {
-                addError("СОМ-порт не определён!");
-                tracer_enabled = tracer_enabled_before;
-                return new byte[] {0};
-            }
-            if (!USART.IsOpen)
-            {
-                USART.Open();
-            }
-            USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived);
-            USART.Write(Packet.ToArray(), 0, Packet.ToArray().Length);
-            trace("         Передача завершена!");
-            CommandStack++;                                 //Увеличиваем счётчик команд (команда ушла)
-            Thread.Sleep(delay);                            //Задерживаемся, потом принимаем данные            
-            trace("         Приём...");                     //Приём-приём
-            byte rBYTE;                                     //Принятый байт
-            byte BytesToReadQuantity = Convert.ToByte(USART.BytesToRead);
-            trace("             Данные на приём: " + BytesToReadQuantity);
-            if (BytesToReadQuantity == 0)
-            {
-                addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Нет данных на приём!");
-                tracer_enabled = tracer_enabled_before;
-                return new byte[] {0};
-            }
-            trace("                 Принято:");
-            //Принимаем данные пока есть что принимать
-            while (USART.BytesToRead > 0)
-            {
-                try
-                {
-                    rBYTE = (byte)USART.ReadByte();
-                    trace("                     "+rBYTE);
-                }
-                catch
-                {
-                    addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Приём не удался!");
-                    tracer_enabled = tracer_enabled_before;
-                    return new byte[] {0};
-                }
-                rDATA.Add(rBYTE);
-            }
-            trace("         Приём завершён!");
-            USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
-            trace("         Анализ полученной команды...");
-            //Если последний байт затвор, то всё путём
-            if (rDATA.First<byte>() == Command.KEY)
-            {
-                rDATA.RemoveAt(0);                                              //Удаляем ключ
-                if (rDATA.First<byte>() == rDATA.Count + 1)
-                {
-                    rDATA.RemoveAt(0);                                          //Удаляем длину пакета
-                    if (rDATA.Last<byte>() == Command.LOCK)
-                    {
-                        rDATA.RemoveAt(rDATA.Count - 1);                        //Удаляем затвор
-                        //Анализируем полученные данные
-                        byte rCheckSum = rDATA.Last();                          //Полученная КС
-                        rDATA.RemoveAt(rDATA.Count - 1);                        //Убираем КС
-                        byte CheckSum = calcCheckSum(rDATA.ToArray());          //Подсчитанная КС
-                        if (CheckSum != rCheckSum)
-                        {
-                            addError("             Несовпадает контрольная сумма! Получено: " + rCheckSum + " Подсчитано: " + CheckSum);
-                            tracer_enabled = tracer_enabled_before;
-                            return new byte[] { 0 };
-                        }
-                        //Проверяем данные на отклик
-                        if (rDATA[0] == command)
-                        {
-                            trace("             Отклик: " + rDATA[0]);
-                            if (BytesToReadQuantity > 5)
-                            {
-
-                                rDATA.RemoveAt(0);
-                                trace("         Пакет принятых данных: ");
-                                foreach (byte b in rDATA)
-                                {
-                                    trace("             " + b);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //addError(" ! ОШИБКА ОТКЛИКА! Отклик не совпадает! Ожидался отклик: " + command, rDATA.ToArray());
-                            trace("Отклик не совпадает! Значит МК сообщает об ошибке!");
-                            trace("    Расшифровка сообщения об ошибке...");
-                            defineError(rDATA.ToArray());
-                            tracer_enabled = tracer_enabled_before;
-                            return new byte[] { 0 };
-                        }
-                        tracer_enabled = tracer_enabled_before;
-                        return rDATA.ToArray();
-                    }
-                    addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Не был получен затвор!", rDATA.ToArray());
-                    tracer_enabled = tracer_enabled_before;
-                    return new byte[] { 0 };
-                }
-                addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Не верная длина пакета!", rDATA.ToArray());
-                tracer_enabled = tracer_enabled_before;
-                return new byte[] { 0 };
-            }
-            addError(" ! ОШИБКА ПРИЁМА ДАННЫХ! Не был получен ключ!", rDATA.ToArray());
-            tracer_enabled = tracer_enabled_before;
-            return new byte[] { 0 };
-        }
             static byte[] transmit(byte[] DATA)
         {
-            return transmit(DATA.ToList());
+            return transmit(DATA.ToList()).ToArray();
         }
             static byte[] transmit(byte COMMAND)
         {
-            return transmit((new byte[] { COMMAND }).ToList());
+            return transmit((new byte[] { COMMAND }).ToList()).ToArray();
         }
             static byte[] transmit(byte COMMAND, byte DATA)
         {
-            return transmit((new byte[] { COMMAND, DATA }).ToList());
+            return transmit((new byte[] { COMMAND, DATA }).ToList()).ToArray();
         }
             static byte[] transmit(byte COMMAND, byte[] DATA)
         {
             List<byte> data = new List<byte>();
             data.Add(COMMAND);
             data.AddRange(DATA);
-            return transmit(data);
+            return transmit(data).ToArray();
         }
             static byte[] transmit(byte COMMAND, List<byte> DATA)
         {
             //Проверить - не надо ли создавать новый список
             DATA.Insert(0, COMMAND);
-            return transmit(DATA);
+            return transmit(DATA).ToArray();
         }
 
         //ОТЛАДОЧНЫЕ
@@ -1851,7 +1718,7 @@ namespace Xmega32A4U_testBoard
         bool reset()
         {
             //ФУНКЦИЯ: Програмная перезагрузка микроконтроллера
-            return (transmit(Command.Chip.reset)[0] == Command.Chip.reset);
+            return (transmit(Command.Chip.reset)[1] == Command.Chip.reset);
         }
         //--------------------------------------ЗАМЕТКИ-------------------------------------------
         //public void AsyncEndable(bool enable)
