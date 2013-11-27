@@ -1310,16 +1310,20 @@ namespace Xmega32A4U_testBoard
         /// <param name="SEMV3">Электромагнитный вентиль 3</param>
         /// <param name="SPUMP">Включение насоса?</param>
         /// <returns>Байт флагов в порядке |x|x|iHVE|iEDCD|SEMV1|SEMV2|SEMV3|SPUMP| </returns>
-        public byte setFlags(bool set_flags, bool HVE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
+        public byte setFlags(bool set_flags, bool PRGE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
         {
             //ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
-            //ПОЯСНЕНИЯ: Формат байта: <Проверить\Установить><0><iHVE><iEDCD><SEMV1><SEMV2><SEMV3><SPUMP>
-            string command = "setFlags( set = " + Convert.ToInt16(set_flags) + " | " + 0 + " | " + Convert.ToInt16(HVE) + " | EDCD = " + Convert.ToInt16(EDCD) + " | SEMV1 = " + Convert.ToInt16(SEMV1) + " | SEMV2 = " + Convert.ToInt16(SEMV2) + " | SEMV3 = " + Convert.ToInt16(SEMV3) + " | SPUMP = " + Convert.ToInt16(SPUMP) + ")";
+            //ДАННЫЕ: <Command><[Проверить\Установить][iHVE][PRGE][iEDCD][SEMV1][SEMV2][SEMV3][SPUMP]>
+            //				Если первый бит <Проверить\Установить> = 0, то МК тут же возвращает текущее состояние флагов
+            //				Если первый бит <Проверить\Установить> = 1, то МК устанавливает флаги (кроме iHVE) и возвращает их.
+            //				iHVE - только чтение
+            //				Ответ МК битом [Проверить\Установить] -> 1 - параметры были изменены, 0 - нечего менять
+            string command = "setFlags( set = " + Convert.ToInt16(set_flags) + " | iHVE(readOnly) | PRGE = " + Convert.ToInt16(PRGE) + " | EDCD = " + Convert.ToInt16(EDCD) + " | SEMV1 = " + Convert.ToInt16(SEMV1) + " | SEMV2 = " + Convert.ToInt16(SEMV2) + " | SEMV3 = " + Convert.ToInt16(SEMV3) + " | SPUMP = " + Convert.ToInt16(SPUMP) + ")";
             trace_attached(Environment.NewLine);
             trace(command);
-            byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(HVE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
+            byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(PRGE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
             byte received_flags = transmit(Command.setFlags, flags)[0];
-            if ((received_flags & 64) == 64) { trace(command + ": Операция отменена! Нечего менять!"); }
+            if ((received_flags & 128) == 0) { trace(command + ": Операция отменена! Нечего менять!"); }
             return received_flags;
         }
         //ИНТЕРФЕЙСНЫЕ

@@ -651,17 +651,18 @@ namespace Xmega32A4U_testBoard
         private void BTN_checkFlags_Click(object sender, EventArgs e)
         {
            
-            byte flags = MC.setFlags(false, CHB_iHVE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
+            byte flags = MC.setFlags(false, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
             if ((flags & 1) == 1){CHB_SPUMP.Checked = true;}else{CHB_SPUMP.Checked = false;}
             if ((flags & 2) == 2) { CHB_SEMV3.Checked = true; } else { CHB_SEMV3.Checked = false; }
             if ((flags & 4) == 4) { CHB_SEMV2.Checked = true; } else { CHB_SEMV2.Checked = false; }
             if ((flags & 8) == 8) { CHB_SEMV1.Checked = true; } else { CHB_SEMV1.Checked = false; }
             if ((flags & 16) == 16) { CHB_iEDCD.Checked = true; } else { CHB_iEDCD.Checked = false; }
-            if ((flags & 32) == 32) { CHB_iHVE.Checked = true; } else { CHB_iHVE.Checked = false; }
+            if ((flags & 32) == 32) { CHB_PRGE.Checked = true; } else { CHB_PRGE.Checked = false; }
+            if ((flags & 64) == 64) { CHB_iHVE.CheckState = CheckState.Checked; } else { CHB_iHVE.CheckState = CheckState.Unchecked; }
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            MC.setFlags(true, CHB_iHVE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
+            MC.setFlags(true, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
