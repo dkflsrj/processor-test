@@ -687,7 +687,7 @@ namespace Xmega32A4U_testBoard
                 string _command = "ADC_CHANNEL.getVoltage(" + command + ", " + CHANNEL + ")";
                 trace_attached(Environment.NewLine);
                 byte[] data = { Convert.ToByte(Hbyte + ChannelStep * CHANNEL), Lbyte_DoubleRange };
-                byte[] rDATA = transmit(command, data);
+                List<byte> rDATA = transmit(command, data);
                 ushort voltage = 0;
                 byte adress = 1;
                 adress += Convert.ToByte(rDATA[1] >> 4);
@@ -776,7 +776,7 @@ namespace Xmega32A4U_testBoard
                 trace_attached(Environment.NewLine);
 
                 byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), ADC_Lbyte_DoubleRange };
-                byte[] rDATA = transmit(command, data);
+                List<byte> rDATA = transmit(command, data);
                 ushort voltage = 0;
                 byte adress = 0;
                 adress += Convert.ToByte(rDATA[1] >> 4);
@@ -953,7 +953,7 @@ namespace Xmega32A4U_testBoard
                     trace(_command);
 
                     byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), ADC_Lbyte_DoubleRange };
-                    byte[] rDATA = transmit(command, data);
+                    List<byte> rDATA = transmit(command, data);
                     ushort voltage = 0;
                     byte adress = 0;
                     adress += Convert.ToByte(rDATA[1] >> 4);
@@ -1074,7 +1074,7 @@ namespace Xmega32A4U_testBoard
                 string command = "Chip.getStatus()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                byte[] answer = transmit(Command.Chip.getStatus);
+                List<byte> answer = transmit(Command.Chip.getStatus);
                 trace(command + ": Статус МК: " + answer[1]);
                 byte incedent = answer[2];
                 if (incedent == 0)
@@ -1121,10 +1121,10 @@ namespace Xmega32A4U_testBoard
                 trace(command);
                 UInt32 birthday = 0;
                 string answer = "00000000";
-                byte[] recDATA = transmit(Command.Chip.getBirthday);
+                List<byte> rDATA = transmit(Command.Chip.getBirthday);
                 try
                 {
-                    birthday = Convert.ToUInt32(recDATA[4]) * 16777216 + Convert.ToUInt32(recDATA[3]) * 65536 + Convert.ToUInt32(recDATA[2]) * 256 + Convert.ToUInt32(recDATA[1]);
+                    birthday = Convert.ToUInt32(rDATA[4]) * 16777216 + Convert.ToUInt32(rDATA[3]) * 65536 + Convert.ToUInt32(rDATA[2]) * 256 + Convert.ToUInt32(rDATA[1]);
                 }
                 catch (Exception)
                 {
@@ -1146,7 +1146,7 @@ namespace Xmega32A4U_testBoard
                 trace_attached(Environment.NewLine);
                 trace(command);
                 UInt32 frequency = 0;
-                byte[] rDATA = transmit(Command.Chip.getCPUfrequency);
+                List<byte> rDATA = transmit(Command.Chip.getCPUfrequency);
                 try
                 {
                     frequency = Convert.ToUInt32(rDATA[4]) * 16777216 + Convert.ToUInt32(rDATA[3]) * 65536 + Convert.ToUInt32(rDATA[2]) * 256 + Convert.ToUInt32(rDATA[1]);
@@ -1245,7 +1245,7 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Перендаём на МК данные DATA, которые он пересылает на TIC контроллер вакуумного насоса (В РАЗРАБОТКЕ...)
             /// </summary>
-            byte[] transmit_toTIC(byte[] DATA)
+            List<byte> transmit_toTIC(byte[] DATA)
             {
                 //ФУНКЦИЯ: Посылает данные TIC контроллеру
                 //ПОЯСНЕНИЯ: ПК->МК: <key><Command.retransmitToTIC><lengthOfMessage><MessageToTIC><CS><lock>
@@ -1254,7 +1254,7 @@ namespace Xmega32A4U_testBoard
                 formedDATA.Add(Command.TIC.sendToTIC);
                 formedDATA.Add((byte)(DATA.Length + 2)); //+2 для смещения относительно команды и байта длины
                 formedDATA.AddRange(DATA);
-                return transmit(formedDATA.ToArray());
+                return transmit(formedDATA);
             }
             //Видимые функции
             /// <summary>
@@ -1264,7 +1264,7 @@ namespace Xmega32A4U_testBoard
             {
                 //ФУНКЦИЯ: Посылает данные TIC'у
                 byte[] msg = { 58,23,13 };
-                byte[] data = transmit_toTIC(msg);
+                List<byte> data = transmit_toTIC(msg);
                 trace("Получено от TIC'а: (пока отражение)");
                 foreach (byte b in data)
                 {
@@ -1420,6 +1420,20 @@ namespace Xmega32A4U_testBoard
         static void Asynchr_decode(List<byte> DATA)
         {
             //ФУНКЦИЯ: Декодируем асинхронное сообщение. Длина данных любого асинхронного сообщения 3 байта
+            if(DATA.Count < 3)
+            {
+                if (DATA.Count == 0)
+                {
+                    trace("Скачёк на линии!");
+                    return;
+                }
+                trace("НЕЧТО ТВОРИТЬСЯ НА ЛИНИИ:");
+                foreach (byte b in DATA)
+                {
+                    trace("             " + b);
+                }
+                return;
+            }
             switch (DATA[0])
             {
                 case LAM.Tocken:
@@ -1529,7 +1543,7 @@ namespace Xmega32A4U_testBoard
             byte command = DATA[0];                         //Запоминаем передаваемую команду
             trace("     Начало исполнения команды:");
             trace("         Команда и байты данных:");
-            foreach (byte b in DATA.ToArray())
+            foreach (byte b in DATA)
             {
                 trace("             " + b);
             }
@@ -1541,7 +1555,7 @@ namespace Xmega32A4U_testBoard
             Packet.Add(calcCheckSum(DATA.ToArray()));
             Packet.Add(Command.LOCK);
             trace("         Пакет:");
-            foreach (byte b in Packet.ToArray())
+            foreach (byte b in Packet)
             {
                 trace("             " + b);
             }
@@ -1574,30 +1588,30 @@ namespace Xmega32A4U_testBoard
             tracer_enabled = tracer_enabled_before;
             return rDATA;
         }
-            static byte[] transmit(byte[] DATA)
+        static List<byte> transmit(byte[] wDATA)
         {
-            return transmit(DATA.ToList()).ToArray();
+            return transmit(wDATA.ToList());
         }
-            static byte[] transmit(byte COMMAND)
+        static List<byte> transmit(byte COMMAND)
         {
-            return transmit((new byte[] { COMMAND }).ToList()).ToArray();
+            return transmit((new byte[] { COMMAND }).ToList());
         }
-            static byte[] transmit(byte COMMAND, byte DATA)
+        static List<byte> transmit(byte COMMAND, byte DATA)
         {
-            return transmit((new byte[] { COMMAND, DATA }).ToList()).ToArray();
+            return transmit((new byte[] { COMMAND, DATA }).ToList());
         }
-            static byte[] transmit(byte COMMAND, byte[] DATA)
+        static List<byte> transmit(byte COMMAND, byte[] DATA)
         {
             List<byte> data = new List<byte>();
             data.Add(COMMAND);
             data.AddRange(DATA);
-            return transmit(data).ToArray();
+            return transmit(data);
         }
-            static byte[] transmit(byte COMMAND, List<byte> DATA)
+        static List<byte> transmit(byte COMMAND, List<byte> DATA)
         {
             //Проверить - не надо ли создавать новый список
             DATA.Insert(0, COMMAND);
-            return transmit(DATA).ToArray();
+            return transmit(DATA);
         }
 
         //ОТЛАДОЧНЫЕ
