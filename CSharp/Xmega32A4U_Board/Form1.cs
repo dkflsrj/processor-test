@@ -32,7 +32,7 @@ namespace Xmega32A4U_testBoard
 
             MC = new XMEGA32A4U();
 
-            trace(false, "Программа инициирована!");
+            trace( "Программа инициирована!");
 
             if (findCOM())
             {
@@ -48,19 +48,19 @@ namespace Xmega32A4U_testBoard
             CLK_timer.Enabled = false;
         }
         //Функции интерфейса
-        void trace(bool newLine, string text)
+        delegate void delegate_trace(string text);
+        void trace(string text)
         {
-            if (newLine)
+            if (Log.InvokeRequired)
             {
-                Log.AppendText(Environment.NewLine + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text);
-                //Log.AppendText(Environment.NewLine + text);
-
+                delegate_trace a_delegate = new delegate_trace(trace);
+                Log.Invoke(a_delegate, text);
             }
             else
             {
-                Log.AppendText(text);
+                Log.AppendText(Environment.NewLine + "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + text);
+                Log.ScrollToCaret();
             }
-            Log.ScrollToCaret();
         }
         //Функции COM порта
         private void BTN_COM_find_Click(object sender, EventArgs e)
@@ -131,23 +131,23 @@ namespace Xmega32A4U_testBoard
             //COM_Port.Handshake = l_handshake;
             COM_Port.ReadTimeout = 2000;
             COM_Port.WriteTimeout = 2000;
-            trace(true, "Установка параметров COM порта: " + COM_Port.PortName);
-            trace(true, "   Бит в секунду: " + COM_Port.BaudRate.ToString());
-            trace(true, "   Чётность: " + COM_Port.Parity.ToString());
-            trace(true, "   Биты данных: " + COM_Port.DataBits.ToString());
-            trace(true, "   Стоповые биты: " + COM_Port.StopBits.ToString());
+            trace( "Установка параметров COM порта: " + COM_Port.PortName);
+            trace( "   Бит в секунду: " + COM_Port.BaudRate.ToString());
+            trace( "   Чётность: " + COM_Port.Parity.ToString());
+            trace( "   Биты данных: " + COM_Port.DataBits.ToString());
+            trace( "   Стоповые биты: " + COM_Port.StopBits.ToString());
         }
         bool findCOM()
         {
-            trace(true, "Поиск COM портов...");
+            trace( "Поиск COM портов...");
             string[] Ports = SerialPort.GetPortNames();
             if (Ports.Length > 0)
             {
-                trace(true, "   Список обнаруженных COM портов:");
+                trace( "   Список обнаруженных COM портов:");
                 for (int i = 0; i < Ports.Length; i++)
                 {
                     cBox_COM.Items.Add(Ports[i]);
-                    trace(true, "       - " + Ports[i]);
+                    trace("       - " + Ports[i]);
                 }
                 cBox_COM.Text = Ports[0];
                 //Включаем настройки
@@ -161,7 +161,7 @@ namespace Xmega32A4U_testBoard
             }
             else
             {
-                trace(true, "ОШИБКА: Ни один COM порт не найден!");
+                trace( "ОШИБКА: Ни один COM порт не найден!");
                 return false;
             }
 
@@ -475,7 +475,7 @@ namespace Xmega32A4U_testBoard
         {
             foreach (string error in MC.getErrorList().ToArray())
             {
-                trace(true, error);
+                trace( error);
             }
         }
         //==================================REAL=================================
@@ -628,10 +628,45 @@ namespace Xmega32A4U_testBoard
                 //trace(true, "Счётчик ещё считает!");
             //}
         }
+        byte Cycles;
         private void BTN_realCOX_start_Click(object sender, EventArgs e)
         {
-           MC.Counters.startMeasure(Convert.ToUInt32(TXB_realCOX_MeasureTime.Text));
-           
+            XMEGA32A4U.MeasureEnd += new EventCallBack(EventHandler);
+            Cycles = Convert.ToByte(TXB_realCOX_NumberOfMeasurments.Text);
+            Thread flow = new Thread(startMeasure);
+            flow.Start();
+        }
+        void startMeasure()
+        {
+            MC.Counters.startMeasure(Convert.ToUInt32(TXB_realCOX_MeasureTime.Text));
+        }
+        delegate void delegate_void();
+        public void EventHandler()
+        {
+            MC.Counters.receiveResults();
+            if (GPB_realCOX.InvokeRequired)
+            {
+                delegate_void a_delegate_2 = new delegate_void(EventHandler);
+                GPB_realCOX.Invoke(a_delegate_2);
+            }
+            else
+            {
+                LBL_realCOX_RTCstate.Text = MC.Counters.Status;
+                LBL_realCOX_COA_Result.Text = MC.Counters.COA.Count.ToString();
+                LBL_realCOX_COB_Result.Text = MC.Counters.COB.Count.ToString();
+                LBL_realCOX_COC_Result.Text = MC.Counters.COC.Count.ToString();
+                LBL_realCOX_COA_Ovf.Text = MC.Counters.COA.Overflows.ToString();
+                LBL_realCOX_COB_Ovf.Text = MC.Counters.COB.Overflows.ToString();
+                LBL_realCOX_COC_Ovf.Text = MC.Counters.COC.Overflows.ToString();
+                TXB_realCOX_NumberOfMeasurments.Text = Cycles.ToString();
+            }
+            if (Cycles > 0)
+            {
+                Cycles--;
+                //Тут настройки SPI
+                Thread.Sleep(10);
+                startMeasure();
+            }
         }
         private void BTN_realCOX_stop_Click(object sender, EventArgs e)
         {
@@ -639,14 +674,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_realCOX_check_Click(object sender, EventArgs e)
         {
-            MC.Counters.receiveResults();
-            LBL_realCOX_RTCstate.Text = MC.Counters.Status;
-            LBL_realCOX_COA_Result.Text = MC.Counters.COA.Count.ToString();
-            LBL_realCOX_COB_Result.Text = MC.Counters.COB.Count.ToString();
-            LBL_realCOX_COC_Result.Text = MC.Counters.COC.Count.ToString();
-            LBL_realCOX_COA_Ovf.Text = MC.Counters.COA.Overflows.ToString();
-            LBL_realCOX_COB_Ovf.Text = MC.Counters.COB.Overflows.ToString();
-            LBL_realCOX_COC_Ovf.Text = MC.Counters.COC.Overflows.ToString();
+            EventHandler();
         }
         private void BTN_checkFlags_Click(object sender, EventArgs e)
         {
