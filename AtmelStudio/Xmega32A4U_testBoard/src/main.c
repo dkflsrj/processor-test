@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //ћ 
-#define version										107
+#define version										108
 #define birthday									20131127
 //—чЄтчики
 #define RTC_Status_ready							0		//—чЄтчики готов к работе
