@@ -453,7 +453,8 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(MeasurePeriod[1]);
                 wDATA.Add(MeasurePeriod[0]);
                 //Посылаем команду
-                Status = convertStatus(transmit(wDATA)[1]); 
+                try { Status = convertStatus(transmit(wDATA)[1]); }
+                catch { trace(command + ": Ошибка данных!"); return false; }
                 if ((Status == Constants.Status.string_ready)||(Status == Constants.Status.string_stopped))
                 {
                     return true;
@@ -475,7 +476,8 @@ namespace Xmega32A4U_testBoard
                 string command = "Counters.stopMeasure()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                Status = convertStatus(transmit(Command.RTC.stopMeasure)[1]);
+                try {Status = convertStatus(transmit(Command.RTC.stopMeasure)[1]); }
+                catch { trace(command + ": Ошибка данных!"); return false; }
                 switch (Status)
                 {
                     case Constants.Status.string_busy:
@@ -509,17 +511,21 @@ namespace Xmega32A4U_testBoard
                 List<byte> rDATA = new List<byte>();    //Данные на приём
                 wDATA.Add(Command.RTC.receiveResults); //Команда
                 rDATA = transmit(wDATA);
-                Status = convertStatus(rDATA[1]);
-                if (Status == Constants.Status.string_ready)
+                try
                 {
-                    COA.Overflows = rDATA[2];
-                    COA.Count = (uint)(rDATA[3] * 16777216 + rDATA[4] * 65536 + rDATA[5] * 256 + rDATA[6]);
-                    COB.Overflows = rDATA[7];
-                    COB.Count = (uint)(rDATA[8] * 16777216 + rDATA[9] * 65536 + rDATA[10] * 256 + rDATA[11]);
-                    COC.Overflows = rDATA[12];
-                    COC.Count = (uint)(rDATA[13] * 256 + rDATA[14]);
-                    return true;
+                    Status = convertStatus(rDATA[1]);
+                    if (Status == Constants.Status.string_ready)
+                    {
+                        COA.Overflows = rDATA[2];
+                        COA.Count = (uint)(rDATA[3] * 16777216 + rDATA[4] * 65536 + rDATA[5] * 256 + rDATA[6]);
+                        COB.Overflows = rDATA[7];
+                        COB.Count = (uint)(rDATA[8] * 16777216 + rDATA[9] * 65536 + rDATA[10] * 256 + rDATA[11]);
+                        COC.Overflows = rDATA[12];
+                        COC.Count = (uint)(rDATA[13] * 256 + rDATA[14]);
+                        return true;
+                    }
                 }
+                catch { trace(command + ": Ошибка данных!"); }
                 return false;
             }
         }
@@ -571,11 +577,15 @@ namespace Xmega32A4U_testBoard
                     trace(_command);
                     byte[] bytes = BitConverter.GetBytes(VOLTAGE);
                     byte[] data = { Convert.ToByte((CHANNEL - 1) * 16 + bytes[1]), bytes[0] };
-                    if (transmit(command, data)[0] == DAC_command)
+                    try
                     {
-                        trace(_command + ": Операция выполнена успешно!");
-                        return true;
+                        if (transmit(command, data)[0] == DAC_command)
+                        {
+                            trace(_command + ": Операция выполнена успешно!");
+                            return true;
+                        } 
                     }
+                    catch { trace(_command + ": Ошибка данных!"); return false; }
                     addError(" ! " + _command + ": ОШИБКА ОТКЛИКА!");
                 }
                 trace(_command + ": Операция отменена! Значение VOLTAGE ожидалось от 0 до 4095!");
@@ -690,16 +700,12 @@ namespace Xmega32A4U_testBoard
                 List<byte> rDATA = transmit(command, data);
                 ushort voltage = 0;
                 byte adress = 1;
-                adress += Convert.ToByte(rDATA[1] >> 4);
                 try
                 {
+                    adress += Convert.ToByte(rDATA[1] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                 }
-                catch (Exception)
-                {
-                    addError(" ! " + _command + ":Ошибка при получении данных!");
-                    return 4095;
-                }
+                catch { trace(_command + ": Ошибка данных!"); return 65535; }
                 trace(_command + ": Ответный адрес канала: " + adress);
                 trace(_command + ": Напряжение: " + voltage);
                 return voltage;
@@ -751,13 +757,17 @@ namespace Xmega32A4U_testBoard
                     byte Mbyte = bytes[1];
                     byte Lbyte = bytes[0];
                     byte[] data = new byte[] { Hbyte, Mbyte, Lbyte };
-                    if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
+                    try
                     {
-                        trace(command + ": Операция выполнена успешно!");
-                        return true;
+                        if (transmit(Command.SPI.Condensator.setVoltage, data)[0] == Command.SPI.Condensator.setVoltage)
+                        {
+                            trace(command + ": Операция выполнена успешно!");
+                            return true;
+                        }
+                        addError(command + ": ОШИБКА ОТКЛИКА!");
+                        return false;
                     }
-                    addError(command + ": ОШИБКА ОТКЛИКА!");
-                    return false;
+                    catch { trace(command + ": Ошибка данных!"); return false; }
                 }
                 trace(command + ": Операция отменена! Значение VOLTAGE ожидалось от 0 до 16383!");
                 return false;
@@ -779,16 +789,12 @@ namespace Xmega32A4U_testBoard
                 List<byte> rDATA = transmit(command, data);
                 ushort voltage = 0;
                 byte adress = 0;
-                adress += Convert.ToByte(rDATA[1] >> 4);
                 try
                 {
+                    adress += Convert.ToByte(rDATA[1] >> 4);
                     voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                 }
-                catch (Exception)
-                {
-                    addError(" ! " + _command + ":Ошибка при получении данных!");
-                    return 16383;
-                }
+                catch { trace(command + ": Ошибка данных!"); return 65535; }
                 trace(_command + ": Ответный адрес канала: " + adress);
                 trace(_command + ": Напряжение: " + voltage);
                 return voltage;
@@ -929,13 +935,17 @@ namespace Xmega32A4U_testBoard
                         byte Mbyte = bytes[1];
                         byte Lbyte = bytes[0];
                         byte[] data = new byte[] { Hbyte, Mbyte, Lbyte };
-                        if (transmit(DAC_command, data)[0] == DAC_command)
+                        try
                         {
-                            trace(command + ": Операция выполнена успешно!");
-                            return true;
+                            if (transmit(DAC_command, data)[0] == DAC_command)
+                            {
+                                trace(command + ": Операция выполнена успешно!");
+                                return true;
+                            }
+                            addError(" ! " + command + ": ОШИБКА ОТКЛИКА!");
+                            return false;
                         }
-                        addError(" ! " + command + ": ОШИБКА ОТКЛИКА!");
-                        return false;
+                        catch { trace(command + ": Ошибка данных!"); return false; }
                     }
                     trace(command + ": Операция отменена! Значение VOLTAGE ожидалось от 0 до 16383!");
                     return false;
@@ -955,18 +965,14 @@ namespace Xmega32A4U_testBoard
                     byte[] data = { Convert.ToByte(ADC_Hbyte + ChannelStep * CHANNEL), ADC_Lbyte_DoubleRange };
                     List<byte> rDATA = transmit(command, data);
                     ushort voltage = 0;
-                    byte adress = 0;
-                    adress += Convert.ToByte(rDATA[1] >> 4);
+                    byte address = 0;
                     try
-                    {
+                    {   
+                        address += Convert.ToByte(rDATA[1] >> 4);
                         voltage = Convert.ToUInt16((Convert.ToUInt16(rDATA[1] & 0xf) << 8) + rDATA[2]);
                     }
-                    catch (Exception)
-                    {
-                        addError(" ! " + _command + ":Ошибка при получении данных!");
-                        return 16383;
-                    }
-                    trace(_command + ": Ответный адрес канала: " + adress);
+                    catch { trace(command + ": Ошибка данных!"); return 65535; }
+                    trace(_command + ": Ответный адрес канала: " + address);
                     trace(_command + ": Напряжение: " + voltage);
                     return voltage;
                 }
@@ -1057,11 +1063,15 @@ namespace Xmega32A4U_testBoard
                 string command = "Chip.checkCommandStack()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                if (transmit(Command.TEST.checkCommandStack)[1] == CommandStack)
+                try
                 {
-                    trace(command = ": Команды идут синхронно. (" + CommandStack + ")");
-                    return true;
+                    if (transmit(Command.TEST.checkCommandStack)[1] == CommandStack)
+                    {
+                        trace(command = ": Команды идут синхронно. (" + CommandStack + ")");
+                        return true;
+                    }
                 }
+                catch { trace(command + ": Ошибка данных!"); return false;}
                 trace(command + ": Команды идут НЕ синхронно! (" + CommandStack + ")");
                 return false;
             }
@@ -1075,8 +1085,13 @@ namespace Xmega32A4U_testBoard
                 trace_attached(Environment.NewLine);
                 trace(command);
                 List<byte> answer = transmit(Command.Chip.getStatus);
-                trace(command + ": Статус МК: " + answer[1]);
-                byte incedent = answer[2];
+                byte incedent;
+                try
+                { 
+                    trace(command + ": Статус МК: " + answer[1]); 
+                    incedent = answer[2];
+                }
+                catch { trace(command + ": Ошибка данных!"); return byte.MaxValue; }
                 if (incedent == 0)
                 {
                     trace(command + ": За время работы проишествий не было. ");
@@ -1106,7 +1121,12 @@ namespace Xmega32A4U_testBoard
                 string command = "Chip.getVersion()";
                 trace_attached(Environment.NewLine);
                 trace(command);
-                byte answer = transmit(Command.Chip.getVersion)[1];
+                byte answer;
+                try 
+                {
+                    answer = transmit(Command.Chip.getVersion)[1];
+                }
+                catch { trace(command + ": Ошибка данных!"); return byte.MaxValue; }
                 trace(command + ": Версия прошивки МК: " + answer);
                 return answer;
             }
@@ -1358,7 +1378,9 @@ namespace Xmega32A4U_testBoard
             trace_attached(Environment.NewLine);
             trace(command);
             byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(PRGE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
-            byte received_flags = transmit(Command.setFlags, flags)[1];
+            byte received_flags;
+            try { received_flags = transmit(Command.setFlags, flags)[1];}
+            catch { trace(command + ": Ошибка данных!"); return byte.MaxValue; }
             if ((received_flags & 128) == 0) { trace(command + ": Операция отменена! Нечего менять!"); }
             return received_flags;
         }
