@@ -25,7 +25,7 @@
 #define FATAL_transmit_ERROR			while(1){transmit(255,254);								\
 											delay_ms(50);}
 //МК
-#define version										106
+#define version										107
 #define birthday									20131127
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -85,7 +85,7 @@ uint32_t COC_Measurment = 0;					//Последнее измерение счётчика COC
 uint8_t	 COC_OVF = 0;									//Количество переполнений счётчика СОС в текущем измерении
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 //Битовые поля
-struct _MC_Tasks
+struct struct_MC_Tasks
 {
 	uint8_t setDACs			:1;
 	uint8_t Decrypt			:1;
@@ -96,8 +96,20 @@ struct _MC_Tasks
 	uint8_t noTasks6		:1;
 	uint8_t noTasks7		:1;
 };
-struct _MC_Tasks MC_Tasks = {0,0,0,0,0,0,0,0};
-struct pinFlags
+struct struct_MC_Tasks MC_Tasks = {0,0,0,0,0,0,0,0};
+struct struct_Errors_USART_COMP
+{
+	uint8_t TimeOut					:1;
+	uint8_t LOCKisLost				:1;
+	uint8_t TooShortPacket			:1;
+	uint8_t TooFast					:1;
+	uint8_t noError4				:1;
+	uint8_t noError5				:1;
+	uint8_t noError6				:1;
+	uint8_t noError7				:1;
+};
+struct struct_Errors_USART_COMP Errors_USART_COMP = {0,0,0,0,0,0,0,0};
+struct struct_Flags
 {
 	uint8_t SPUMP		:1;
 	uint8_t SEMV3		:1;
@@ -152,9 +164,9 @@ struct spi_device ADC_MSV = {
 //ADC у конденсатора тот же что и у сканера
 //-----------------------------------------УКАЗАТЕЛИ----------------------------------------------
 uint8_t *pointer_MC_Tasks;
+uint8_t *pointer_Errors_USART_COMP;
 uint8_t *pointer_Flags;
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
-//
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
 void transmit(uint8_t DATA[],uint8_t DATA_length);
 void transmit_byte(uint8_t DATA);
@@ -168,7 +180,6 @@ void COUNTERS_sendResults(void);
 void COUNTERS_stop(void);
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
-void ERROR_ASYNCHR(void);
 void decode(void);
 void TIC_transmit(void);
 void SPI_send(uint8_t DEVICE_Number);
@@ -205,7 +216,7 @@ ISR(USARTD0_RXC_vect)
 			{
 				//ОШИБКА ПРИЁМА! Длинна пакета меньше минимальной
 				//Если длина посылки меньше самой короткой из возможных посылок (5 байтов), то прекратить приём, выставить флаг ошибки
-				COMP_reciving_error = 1;
+				Errors_USART_COMP.TooShortPacket = 1;
 				COMP_receiving_time = 0;
 			}
 		}
@@ -213,7 +224,6 @@ ISR(USARTD0_RXC_vect)
 		{
 			//Это байты данных, принимаем в массив
 			COMP_MEM[COMP_MEM_length] = COMP_buf;
-			//НУЖНА ПРОВЕРКА НА ЗАТВОР!
 			COMP_MEM_length++;
 		}
 		else if(COMP_MEM_length == (COMP_PACKET_length - 4))
@@ -235,14 +245,14 @@ ISR(USARTD0_RXC_vect)
 			else
 			{
 				//ОШИБКА ПРИЁМА! Ожидался затвор, а получено чёрти-что
-				COMP_reciving_error = 2;
+				Errors_USART_COMP.LOCKisLost = 1;
 				COMP_receiving_time = 0;
 			}
 		}
 		else
 		{
 			//ОШИБКА ПРИЁМА! Запрещённое состояние! USART_MEM_LENGTH > USART_MAIL_Length!
-			COMP_reciving_error = 4;
+			transmit_3bytes(TOCKEN_INTERNAL_ERROR,INTERNAL_ERROR_USART_COMP, 0);
 			COMP_receiving_time = 0;
 		}
 	}
@@ -259,7 +269,7 @@ ISR(USARTD0_RXC_vect)
 		else
 		{
 			//ОШИБКА! МК не выполнил предыдущую команду
-			COMP_reciving_error = 255;
+			Errors_USART_COMP.TooFast = 1;
 			COMP_receiving_time = 0;
 		}
 	}
@@ -297,7 +307,7 @@ ISR(RTC_OVF_vect)
     COC_Measurment = TCE0.CNT;
 	RTC_setStatus_ready;
 	//Отправляем асинхронное сообщение
-	transmit_3bytes(LAM_Tocken, LAM_RTC_end, RTC_Status);
+	transmit_3bytes(TOCKEN_LookAtMe, LAM_RTC_end, RTC_Status);
     sei();
 }
 static void ISR_TCC1(void)
@@ -366,7 +376,7 @@ void decode(void)
 		break;																								
 		case COMMAND_Flags_set: 					checkFlags();									
 		break;																								
-		default: transmit_3bytes(ERROR_Token, ERROR_Decoder, COMP_MEM[0]);
+		default: transmit_3bytes(TOCKEN_ERROR, ERROR_Decoder, COMP_MEM[0]);
 	}
 }
 //USART COMP
@@ -451,15 +461,6 @@ void MC_reset(void)
 	transmit(data,1);
 	
 	RST.CTRL = 1;
-}
-void ERROR_ASYNCHR(void)
-{
-	//showMeByte(255);
-	uint8_t ERROR[] = {25,24,15};
-	while(1)
-	{
-		transmit(ERROR,3);
-	}
 }
 //COUNTERS
 void COUNTERS_start(void)
@@ -676,7 +677,7 @@ void SPI_send(uint8_t DEVICE_Number)
 			DEVICE_is_DAC = false;
 			break;
 		default:
-			transmit_3bytes(ERROR_Token, ERROR_wrong_SPI_DEVICE_Number, DEVICE_Number);
+			transmit_3bytes(TOCKEN_ERROR, INTERNAL_ERROR_SPI, DEVICE_Number);
 			return;
 	}
 	uint8_t SPI_rDATA[] = {0,0};				//Память SPI для приёма данных (два байта)
@@ -840,6 +841,7 @@ void updateFlags(void)
 {
 	//ФУНКЦИЯ: МК осматривает флаговые пины портов и собирает их в байт Flags
 	//Flags.iHVE =  (PORTC.OUT & 8  ) >> 3;
+	//Необходимо запросить у TIC'а параметры iHVE
 	Flags.iEDCD = (PORTA.OUT & 128) >> 7;
 	Flags.SEMV1 = (PORTD.OUT & 2  ) >> 1;
 	Flags.SEMV2 = (PORTD.OUT & 16 ) >> 4;
@@ -873,13 +875,14 @@ int main(void)
 	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );
 	//Конечная инициализация
 	pointer_Flags = &Flags;
+	pointer_Errors_USART_COMP = &Errors_USART_COMP;
     updateFlags();
 	RTC_setStatus_ready;
+	Flags.iHVE = 1; //Запрещаем высокое напряжение, до тех пор пока от TIC на придёт разрешение
+	Flags.PRGE = 0;	//Изночально ператор запрещает высокое напряжение (При запрещении от TIC операторская тоже должна запрещаться!)
 	cpu_irq_enable();					//Разрешаем прерывания	
 	
-	Flags.iHVE = 1; //Запрещаем вообще!
-	Flags.PRGE = 0;	//Оператор запрещает
-	
+
 	//Инициализация завершена
 	while (1) 
 	{
@@ -904,7 +907,7 @@ int main(void)
 			else
 			{
 				//ОШИБКА ПРИЁМА! Неверная контрольная сумма!
-				COMP_reciving_error = 6;
+				transmit_3bytes(TOCKEN_ERROR, ERROR_CheckSum, CheckSum);
 				COMP_receiving_time = 0;
 			}
 		}
@@ -919,8 +922,8 @@ int main(void)
 				if (COMP_receiving_time >= COMP_receiving_limit)
 				{
 					COMP_receiving_time = 0;
-					//+ ОШИБКА ПРИЁМА ДАННЫХ!
-					COMP_reciving_error = 3;
+					// ОШИБКА ПРИЁМА ДАННЫХ! Стоит ли о ней сообщать?
+					Errors_USART_COMP.TimeOut = 1;
 				}
 			}
 		}

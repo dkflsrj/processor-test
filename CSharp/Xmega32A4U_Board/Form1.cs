@@ -650,7 +650,6 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_checkFlags_Click(object sender, EventArgs e)
         {
-           
             byte flags = MC.setFlags(false, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
             if ((flags & 1) == 1){CHB_SPUMP.Checked = true;}else{CHB_SPUMP.Checked = false;}
             if ((flags & 2) == 2) { CHB_SEMV3.Checked = true; } else { CHB_SEMV3.Checked = false; }
