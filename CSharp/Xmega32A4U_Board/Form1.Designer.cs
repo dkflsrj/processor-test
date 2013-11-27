@@ -118,7 +118,7 @@
             this.BTN_checkFlags = new System.Windows.Forms.Button();
             this.CHB_iEDCD = new System.Windows.Forms.CheckBox();
             this.CHB_SEMV3 = new System.Windows.Forms.CheckBox();
-            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
+            this.CHB_PRGE = new System.Windows.Forms.CheckBox();
             this.CHB_SEMV2 = new System.Windows.Forms.CheckBox();
             this.CHB_SPUMP = new System.Windows.Forms.CheckBox();
             this.CHB_SEMV1 = new System.Windows.Forms.CheckBox();
@@ -207,6 +207,7 @@
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -1164,19 +1165,20 @@
             this.GPB_Flags.Controls.Add(this.CHB_iEDCD);
             this.GPB_Flags.Controls.Add(this.CHB_SEMV3);
             this.GPB_Flags.Controls.Add(this.CHB_iHVE);
+            this.GPB_Flags.Controls.Add(this.CHB_PRGE);
             this.GPB_Flags.Controls.Add(this.CHB_SEMV2);
             this.GPB_Flags.Controls.Add(this.CHB_SPUMP);
             this.GPB_Flags.Controls.Add(this.CHB_SEMV1);
-            this.GPB_Flags.Location = new System.Drawing.Point(500, 159);
+            this.GPB_Flags.Location = new System.Drawing.Point(500, 141);
             this.GPB_Flags.Name = "GPB_Flags";
-            this.GPB_Flags.Size = new System.Drawing.Size(143, 153);
+            this.GPB_Flags.Size = new System.Drawing.Size(143, 171);
             this.GPB_Flags.TabIndex = 5;
             this.GPB_Flags.TabStop = false;
             this.GPB_Flags.Text = "Флаги";
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(6, 117);
+            this.button1.Location = new System.Drawing.Point(6, 139);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(130, 23);
             this.button1.TabIndex = 6;
@@ -1186,7 +1188,7 @@
             // 
             // BTN_checkFlags
             // 
-            this.BTN_checkFlags.Location = new System.Drawing.Point(7, 88);
+            this.BTN_checkFlags.Location = new System.Drawing.Point(7, 110);
             this.BTN_checkFlags.Name = "BTN_checkFlags";
             this.BTN_checkFlags.Size = new System.Drawing.Size(130, 23);
             this.BTN_checkFlags.TabIndex = 6;
@@ -1199,7 +1201,7 @@
             this.CHB_iEDCD.AutoSize = true;
             this.CHB_iEDCD.Checked = true;
             this.CHB_iEDCD.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_iEDCD.Location = new System.Drawing.Point(74, 65);
+            this.CHB_iEDCD.Location = new System.Drawing.Point(7, 85);
             this.CHB_iEDCD.Name = "CHB_iEDCD";
             this.CHB_iEDCD.Size = new System.Drawing.Size(56, 17);
             this.CHB_iEDCD.TabIndex = 1;
@@ -1216,17 +1218,15 @@
             this.CHB_SEMV3.Text = "SEMV3";
             this.CHB_SEMV3.UseVisualStyleBackColor = true;
             // 
-            // CHB_iHVE
+            // CHB_PRGE
             // 
-            this.CHB_iHVE.AutoSize = true;
-            this.CHB_iHVE.Checked = true;
-            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CHB_iHVE.Location = new System.Drawing.Point(74, 42);
-            this.CHB_iHVE.Name = "CHB_iHVE";
-            this.CHB_iHVE.Size = new System.Drawing.Size(48, 17);
-            this.CHB_iHVE.TabIndex = 1;
-            this.CHB_iHVE.Text = "HVE";
-            this.CHB_iHVE.UseVisualStyleBackColor = true;
+            this.CHB_PRGE.AutoSize = true;
+            this.CHB_PRGE.Location = new System.Drawing.Point(74, 42);
+            this.CHB_PRGE.Name = "CHB_PRGE";
+            this.CHB_PRGE.Size = new System.Drawing.Size(56, 17);
+            this.CHB_PRGE.TabIndex = 1;
+            this.CHB_PRGE.Text = "PRGE";
+            this.CHB_PRGE.UseVisualStyleBackColor = true;
             // 
             // CHB_SEMV2
             // 
@@ -2110,6 +2110,19 @@
             this.timer1.Interval = 5;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // CHB_iHVE
+            // 
+            this.CHB_iHVE.AutoSize = true;
+            this.CHB_iHVE.Checked = true;
+            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Indeterminate;
+            this.CHB_iHVE.Enabled = false;
+            this.CHB_iHVE.Location = new System.Drawing.Point(74, 65);
+            this.CHB_iHVE.Name = "CHB_iHVE";
+            this.CHB_iHVE.Size = new System.Drawing.Size(50, 17);
+            this.CHB_iHVE.TabIndex = 1;
+            this.CHB_iHVE.Text = "iHVE";
+            this.CHB_iHVE.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2331,7 +2344,7 @@
         private System.Windows.Forms.Button BTN_checkFlags;
         private System.Windows.Forms.CheckBox CHB_iEDCD;
         private System.Windows.Forms.CheckBox CHB_SEMV3;
-        private System.Windows.Forms.CheckBox CHB_iHVE;
+        private System.Windows.Forms.CheckBox CHB_PRGE;
         private System.Windows.Forms.CheckBox CHB_SEMV2;
         private System.Windows.Forms.CheckBox CHB_SPUMP;
         private System.Windows.Forms.CheckBox CHB_SEMV1;
@@ -2339,6 +2352,7 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.TextBox TXB_realCOX_NumberOfMeasurments;
+        private System.Windows.Forms.CheckBox CHB_iHVE;
     }
 }
 
