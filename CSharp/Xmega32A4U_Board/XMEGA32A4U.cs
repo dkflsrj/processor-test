@@ -14,7 +14,7 @@ namespace Xmega32A4U_testBoard
     /// </summary>
     class XMEGA32A4U
     {
-        public static EventCallBack MeasureEnd;
+        static EventCallBack _MeasureEnd;
         //========================================================================================
         //=========================КЛАСС СВЯЗИ ПК С XMEGA32A4U ПО RS232===========================
         //========================================================================================
@@ -173,7 +173,14 @@ namespace Xmega32A4U_testBoard
                 }
 
             }
-            
+            /// <summary>
+            /// Событие: счётчики закончили счёт.
+            /// </summary>
+            public EventCallBack MeasureEnd
+            {
+                set { _MeasureEnd = value; }
+                get { return _MeasureEnd; }
+            }
             public class counter
             {
                 //КЛАСС: Счётчик. Только хранит значения.
@@ -263,7 +270,7 @@ namespace Xmega32A4U_testBoard
                 }
                 else
                 {
-                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MeasureTime_ms < 2047967; Получено: " + MILLISECONDS);
+                    trace("Counters.calcRTCprescaler(" + MILLISECONDS + "):Неверное значение! Ожидалось: 50...2047925 мс. Получено: " + MILLISECONDS);
                     prescaler = 0;
                     return 0;
                 }
@@ -309,7 +316,7 @@ namespace Xmega32A4U_testBoard
                 }
                 else
                 {
-                    trace("ОШИБКА! Неверный интервал! Ожидалось: 0 < MeasureTime_ms < 2047967; Получено: " + MILLISECONDS);
+                    trace("Counters.calcRTCprescaler_long(" + MILLISECONDS + "):Неверное значение! Ожидалось: 50...2047925 мс. Получено: " + MILLISECONDS);
                     prescaler_long = 0;
                     return 0;
                 }
@@ -323,7 +330,8 @@ namespace Xmega32A4U_testBoard
             /// <returns>?</returns>
             public ushort calcRTCprescaler_long(string MILLISECONDS)
             {
-                return calcRTCprescaler_long(Convert.ToUInt32(MILLISECONDS));
+                try { return calcRTCprescaler_long(Convert.ToUInt32(MILLISECONDS)); }
+                catch { trace("Counters.calcRTCprescaler_long(" + MILLISECONDS + "):Неверное значение!"); return ushort.MaxValue; };
             }
             /// <summary>
             /// Возвращает частоту RTC в соответствии с предделителем в длинном формате
@@ -341,7 +349,7 @@ namespace Xmega32A4U_testBoard
             public double calcRTCfrequency(string MILLISECONDS)
             {
                 //ФУНКЦИЯ: Возвращает итоговую частоту RTC в соответствии с сохраннённым предделителем.
-                return (Constants.sourceFrequency / calcRTCprescaler_long(Convert.ToUInt32(MILLISECONDS)));
+                return (Constants.sourceFrequency / calcRTCprescaler_long(MILLISECONDS));
             }
             /// <summary>
             /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
@@ -353,7 +361,13 @@ namespace Xmega32A4U_testBoard
             public ushort calcRTCticks(uint MILLISECONDS)
             {
                 //ФУНКЦИЯ: Вычисляет количество тиков в соответствии с временем и предделителем. Возвращает количество тиков
-                ushort tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / calcRTCprescaler_long(MILLISECONDS))));
+                ushort tiks;
+                if ((MILLISECONDS < 50)||(calcRTCprescaler(MILLISECONDS) == 0))
+                { 
+                    trace("Counters.calcRTCticks(" + MILLISECONDS + ")" + ": Отмена операции! Неверное значение! Ожидалось: 50...2047925 мс. Получено: " + MILLISECONDS); 
+                    return ushort.MaxValue; 
+                }
+                tiks = Convert.ToUInt16(Math.Round(Convert.ToDouble(MILLISECONDS) * (Constants.sourceFrequency / calcRTCprescaler_long(MILLISECONDS))));
                 return tiks;
             }
             /// <summary>
@@ -365,18 +379,13 @@ namespace Xmega32A4U_testBoard
             /// <returns></returns>
             public ushort calcRTCticks(string MILLISECONDS)
             {
-                if (MILLISECONDS != "")
-                {
-                    return calcRTCticks(Convert.ToUInt32(MILLISECONDS));
-                }
-                else
-                {
-                    return 0;
-                }
+                try { return calcRTCticks(Convert.ToUInt32(MILLISECONDS)); }
+                catch { trace("Counters.calcRTCticks(" + MILLISECONDS + "):Неверное значение!"); return ushort.MaxValue; };
             }
             /// <summary>
             /// Запускает измерение длительностью MILLISECONDS
             /// <para>По окончанию измерения МК пришлёт асинхронное LookAtMe сообщение </para>
+            /// <para>, которое вызовет EventCallBack MeasureEnd.  </para>
             /// <para>Возвращает:</para>
             /// <para>true - счётчики начали счёт.</para>
             /// <para>false - операция отменена.</para>
@@ -389,7 +398,11 @@ namespace Xmega32A4U_testBoard
                 string command = "Counters.startMeasure()";
                 trace(command);
                 //Проверка диапазона заданного интервала измерения
-                if (calcRTCprescaler(MILLISECONDS) == 0) { return false; }
+                if ((MILLISECONDS < 50)||(calcRTCprescaler(MILLISECONDS) == 0))
+                {
+                    trace(command + ": Отмена операции! Неверное значение! Ожидалось: 50...2047925 мс. Получено: " + MILLISECONDS); 
+                    return false; 
+                }
                 //Очистка
                 COA.Count = 0;
                 COA.Overflows = 0;
@@ -419,8 +432,22 @@ namespace Xmega32A4U_testBoard
                 }
                 catch { addError(command + ": Ошибка данных!", rDATA); return false; }
                 if ((Status == Constants.Status.string_ready) || (Status == Constants.Status.string_stopped))
-                { return true; }
-                return false;
+                { trace(command + ": Счётчики начали счёт."); return true; }
+                trace(command + ": Операция отменена! Счётчики уже считают!"); return false;
+            }
+            /// <summary>
+            /// Запускает измерение длительностью MILLISECONDS
+            /// <para>По окончанию измерения МК пришлёт асинхронное LookAtMe сообщение </para>
+            /// <para>, которое вызовет EventCallBack MeasureEnd.  </para>
+            /// <para>Возвращает:</para>
+            /// <para>true - счётчики начали счёт.</para>
+            /// <para>false - операция отменена.</para>
+            /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 50 до 2047925</param>
+            /// </summary>
+            public bool startMeasure(string MILLISECONDS)
+            {
+                try { return startMeasure(Convert.ToUInt32(MILLISECONDS)); }
+                catch { trace("Counters.startMeasure(" + MILLISECONDS + "):Неверное значение!"); return false; };
             }
             /// <summary>
             /// Останавливает серию.
@@ -492,6 +519,7 @@ namespace Xmega32A4U_testBoard
                         COB.Count = (uint)(rDATA[8] * 16777216 + rDATA[9] * 65536 + rDATA[10] * 256 + rDATA[11]);
                         COC.Overflows = rDATA[12];
                         COC.Count = (uint)(rDATA[13] * 256 + rDATA[14]);
+                        trace(command + ":Результаты успешно получены!");
                         return true;
                     }
                 }
@@ -1438,7 +1466,7 @@ namespace Xmega32A4U_testBoard
                 //Трэйсер определён и разрешён
                 if (tracer.InvokeRequired)
                 {
-                    delegate_trace a_delegate = new delegate_trace(trace);
+                    delegate_trace a_delegate = new delegate_trace(trace_attached);
                     tracer.Invoke(a_delegate, text);
                 }
                 else
@@ -1487,8 +1515,9 @@ namespace Xmega32A4U_testBoard
                     switch (DATA[1])
                     {
                         case LAM.RTC_end:
-                            trace("Счётчики закончили счёт!");
-                            MeasureEnd.Invoke();
+                            trace_attached(Environment.NewLine);
+                            trace("LAM:Счётчики закончили счёт!");
+                            _MeasureEnd.Invoke();
                             break;
                         default:
                             trace("МК хочет чтобы на него обратили внимание, но не понятно почему! "+DATA[1]);
