@@ -1,9 +1,0 @@
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\bin\Debug\Xmega32A4U_testBoard.exe
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\bin\Debug\Xmega32A4U_testBoard.pdb
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\ResolveAssemblyReference.cache
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\Xmega32A4U_testBoard.Form1.resources
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\Xmega32A4U_testBoard.Properties.Resources.resources
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\GenerateResource.read.1.tlog
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\GenerateResource.write.1.tlog
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\Xmega32A4U_testBoard.exe
-E:\AlexThunder\Projects\[Active]Processor\CSharp\Xmega32A4U_Board\obj\x86\Debug\Xmega32A4U_testBoard.pdb
