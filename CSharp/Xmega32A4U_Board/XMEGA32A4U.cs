@@ -615,7 +615,9 @@ namespace Xmega32A4U_testBoard
             /// <returns></returns>
                 public bool setVoltage(string VOLTAGE)
             {
-                return setVoltage(Convert.ToUInt16(VOLTAGE));
+                try { return setVoltage(Convert.ToUInt16(VOLTAGE)); }
+                catch { trace("DAC_CHANNEL.setVoltage():Неверное значение!"); return false; }
+                
             }
                 /// <summary>
                 /// Задаёт напряжение на DAC
@@ -628,7 +630,8 @@ namespace Xmega32A4U_testBoard
                 /// <returns></returns>
                 public bool setVoltage(int VOLTAGE)
             {
-                return setVoltage(Convert.ToUInt16(VOLTAGE));
+                try { return setVoltage(Convert.ToUInt16(VOLTAGE)); }
+                catch { trace("DAC_CHANNEL.setVoltage():Неверное значение!"); return false; }
             }
         }
         public class SPI_DEVICE_CHANNEL : SPI_DEVICE_DAC_CHANNEL
@@ -849,7 +852,8 @@ namespace Xmega32A4U_testBoard
             /// <returns></returns>
             public bool setVoltage(string VOLTAGE)
             {
-                return setVoltage(Convert.ToUInt16(VOLTAGE));
+                try { return setVoltage(Convert.ToUInt16(VOLTAGE)); }
+                catch { trace("DAC_CHANNEL.setVoltage():Неверное значение!"); return false; }
             }
             /// <summary>
             /// Задаёт напряжение на DAC
@@ -862,7 +866,8 @@ namespace Xmega32A4U_testBoard
             /// <returns></returns>
             public bool setVoltage(int VOLTAGE)
             {
-                return setVoltage(Convert.ToUInt16(VOLTAGE));
+                try { return setVoltage(Convert.ToUInt16(VOLTAGE)); }
+                catch { trace("DAC_CHANNEL.setVoltage():Неверное значение!"); return false; }
             }
         }
         public class SPI_IonSOURCE
@@ -1300,6 +1305,14 @@ namespace Xmega32A4U_testBoard
                 //transmit(243);
                 byte[] b = {58};
                 USART.Write(b,0,b.Length);
+            }
+            /// <summary>
+            /// Выводит сообщение в указанный Tracer
+            /// </summary>
+            /// <param name="text">Любой текст</param>
+            public void traceIt(string text)
+            {
+                trace(text);
             }
         }
         public class TIC_PUMP

@@ -22,7 +22,9 @@ namespace Xmega32A4U_testBoard
         public Form1()
         {
             InitializeComponent();
-
+            MC = new XMEGA32A4U();
+            MC.Tester.setTracer(Log);
+            MC.Tester.traceIt("Программа инициирована!");
             CMB_COM_BaudRate.Enabled = false;
             CMB_COM_DataBits.Enabled = false;
             CMB_COM_Handshake.Enabled = false;
@@ -30,9 +32,8 @@ namespace Xmega32A4U_testBoard
             CMB_COM_StopBits.Enabled = false;
             BTN_COM_setParams.Enabled = false;
 
-            MC = new XMEGA32A4U();
-
-            trace( "Программа инициирована!");
+            
+            
 
             if (findCOM())
             {
@@ -42,8 +43,7 @@ namespace Xmega32A4U_testBoard
 
                 MC.Chip.setUSART(COM_Port);
             }
-            MC.Tester.setTracer(Log);
-
+            
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
         }
