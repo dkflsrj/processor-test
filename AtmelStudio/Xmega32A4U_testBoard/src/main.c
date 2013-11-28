@@ -23,7 +23,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										118
+#define version										119
 #define birthday									20131128
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -261,7 +261,6 @@ ISR(RTC_OVF_vect)
 	RTC_setStatus_ready;
 	//Отправляем асинхронное сообщение
 	transmit_3bytes(TOCKEN_LookAtMe, LAM_RTC_end, RTC_Status);
-    sei();
 }
 static void ISR_TCC1(void)
  {
@@ -335,6 +334,7 @@ void transmit(uint8_t DATA[],uint8_t DATA_length)
 	//							<attached_data> - сами данные. Их может не быть (Приказ)
 	//					   '<CS>' - контрольная сумма
 	//					   '\r' - конец передачи
+	cli();
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
 	for (uint8_t i = 0; i < DATA_length; i++)
 	{
@@ -342,33 +342,40 @@ void transmit(uint8_t DATA[],uint8_t DATA_length)
 	}
 	usart_putchar(USART_COMP,calcCheckSum(DATA,DATA_length + 1));	//<CS>
 	usart_putchar(USART_COMP,COMMAND_LOCK);							//'\r'
+	sei();
 }
 void transmit_byte(uint8_t DATA)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
+	cli();
 	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
 	usart_putchar(USART_COMP,DATA);									//<data>
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA));				//<CS>
 	usart_putchar(USART_COMP,COMMAND_LOCK);							//'\r'
+	sei();
 }
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
+	cli();
 	usart_putchar(USART_COMP,COMMAND_KEY);								//':'
 	usart_putchar(USART_COMP,DATA_1);
 	usart_putchar(USART_COMP,DATA_2);									//<data>
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2));		//<CS>
 	usart_putchar(USART_COMP,COMMAND_LOCK);								//'\r'
+	sei();
 }
 void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
+	cli();
 	usart_putchar(USART_COMP,COMMAND_KEY);									//':'
 	usart_putchar(USART_COMP,DATA_1);
 	usart_putchar(USART_COMP,DATA_2);										//<data>
 	usart_putchar(USART_COMP,DATA_3);
 	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2 - DATA_3));	//<CS>
 	usart_putchar(USART_COMP,COMMAND_LOCK);									//'\r'
+	sei();
 }
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 {
