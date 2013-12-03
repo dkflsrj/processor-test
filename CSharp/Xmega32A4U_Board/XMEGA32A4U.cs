@@ -18,21 +18,20 @@ namespace Xmega32A4U_testBoard
         //========================================================================================
         //=========================КЛАСС СВЯЗИ ПК С XMEGA32A4U ПО RS232===========================
         //========================================================================================
-        //
-        //-------------------------------------ПОЯСНЕНИЯ------------------------------------------
-        //
-        //-------------------------------------ПЕРЕМЕННЫЕ-----------------------------------------
-        static SerialPort USART;        //COM порт, его необходимо задать .Chip.setUSART(SerialPort)
-        static bool USART_defined = false;  //СОМ-порт не определён.
-        static RichTextBox tracer;      //Трэйсер отладочных сообщений, задаётся .Tester.setTracer(RichTextBox)
-        static bool tracer_defined = false;  //Трэйсер не задан. 
-        static bool tracer_enabled = true;   //Трэйсер включен. .Tester.enableTracer(bool) - для вкл\выкл
+        #region-------------------------------------ПЕРЕМЕННЫЕ-----------------------------------------
+        static SerialPort USART;                    //COM порт, его необходимо задать .Chip.setUSART(SerialPort)
+        static bool USART_defined = false;          //СОМ-порт не определён.
+        static RichTextBox tracer;                  //Трэйсер отладочных сообщений, задаётся .Tester.setTracer(RichTextBox)
+        static bool tracer_defined = false;         //Трэйсер не задан. 
+        static bool tracer_enabled = true;          //Трэйсер включен. .Tester.enableTracer(bool) - для вкл\выкл
         static bool tracer_transmit_enabled = true; //Трейсер в функции transmit включён\выключен
         static bool tracer_log_enabled = false;     //Ведение лога в Log.txt отключено. .Tester.enableLog(bool) - для вкл\выкл
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
-        static byte CommandStack;       //Счётчик выполненных команд (см. .Chip.checkCommandStack())
-        const uint TimeOut = 1625; //260000 вроде 1 сек
-        //-------------------------------------СТРУКТУРЫ------------------------------------------
+        static byte CommandStack;                   //Счётчик выполненных команд (см. .Chip.checkCommandStack())
+        const uint TimeOut = 1625;                  //260000 вроде 1 сек для данной машины
+        #endregion
+        #region-------------------------------------СТРУКТУРЫ------------------------------------------
+        #region Коды ошибок
         struct Error
         {
             //СТРУКТУРА: Хранилище констант - кодовобычных ошибок, которые не ставят под угрозу работу системы.
@@ -42,6 +41,8 @@ namespace Xmega32A4U_testBoard
             public const byte CheckSum =        2;       //Неверная контрольная сумма
             //public const byte wrong_SPI_DEVICE_Number
         }
+        #endregion
+        #region Коды LAM сигналов
         struct LAM
         {
             //СТРУКТУРА: Хранилище констант - кодов асинхронных сообщений информирующие ПК о чём либо.
@@ -49,6 +50,8 @@ namespace Xmega32A4U_testBoard
             //Номера асинхронных сообщений (обрати внимание)
             public const byte RTC_end =         1;      //RTC закончил измерение
         }
+        #endregion
+        #region Коды внутренних ошибок
         struct Internal_Error
         {
             //СТРУКТУРА: Хранилище констант - кодов внутренних ошибок МК. Нежелательные и запрещённые состояния.
@@ -57,6 +60,8 @@ namespace Xmega32A4U_testBoard
             public const byte USART_COMP =      1;       //Внутренняя ошибка приёма данных от ПК
             public const byte SPI =             2;       //SPI-устройства с таким номером нет  
         }
+        #endregion
+        #region Коды команд
         struct Command
         {
             //СТРУКТУРА: Хранилище констант - кодов команд
@@ -129,6 +134,8 @@ namespace Xmega32A4U_testBoard
             }
             public const byte setFlags = 70;
         }
+        #endregion
+        #region Коды событий
         struct Incident
         {
             //СТРУКТУРА: Хранилище констант - кодов происшествий, которые передаются при опросе статуса МК
@@ -136,10 +143,13 @@ namespace Xmega32A4U_testBoard
             public const byte TooShortPacket =  4;  //байт длинны пакета меньше минимального (5)
             public const byte TooFast =         8;  //МК ещё не выполнил предыдущую команду, а уже приходит другая.
         }
-        //---------------------------------------КЛАССЫ--------------------------------------------
+        #endregion
+        #endregion
+        #region---------------------------------------КЛАССЫ-------------------------------------------
+        #region Таймер и счётчики
         public class RTCounterAndCO
         {
-            //КЛАСС: Счётчик реального времени и счётчики импульсов
+            
             struct Constants
             {
                 //СТРУКТУРА: Хранилище констант.
@@ -527,6 +537,9 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
         }
+        #endregion
+        #region SPI каналы
+        #region DAC
         public class SPI_DEVICE_DAC_CHANNEL
         {
             //КЛАСС:Отдельнй канал отдельного DAC'а. 
@@ -634,6 +647,8 @@ namespace Xmega32A4U_testBoard
                 catch { trace("DAC_CHANNEL.setVoltage():Неверное значение!"); return false; }
             }
         }
+        #endregion
+        #region ADC
         public class SPI_DEVICE_CHANNEL : SPI_DEVICE_DAC_CHANNEL
         {
             //КЛАСС: Два канала: DAC и ADC. Используется. Кроме Натекателя, Нагревателя и Конденсатора.
@@ -726,6 +741,9 @@ namespace Xmega32A4U_testBoard
                 return ADC_getVoltage(ADC_command, ADC_channel);
             }
         }
+        #endregion
+        #endregion
+        #region Конденсатор
         public class SPI_CONDENSATOR
         {
             //КЛАСС: Каналы для конденсатора (+\-)
@@ -870,6 +888,8 @@ namespace Xmega32A4U_testBoard
                 catch { trace("DAC_CHANNEL.setVoltage():Неверное значение!"); return false; }
             }
         }
+        #endregion
+        #region Ионный Источник
         public class SPI_IonSOURCE
         {
             //КЛАСС: Ионный источник - используется каналы А,B,C,D
@@ -896,6 +916,8 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             public SPI_DEVICE_CHANNEL F2 = new SPI_DEVICE_CHANNEL(F2_channel, Command.SPI.PSIS.setVoltage, F2_channel, Command.SPI.PSIS.getVoltage);
         }
+        #endregion
+        #region Детектор
         public class SPI_DETECTOR
         {
             //КЛАСС: Ионный источник - используется каналы А,B,C,D
@@ -908,6 +930,8 @@ namespace Xmega32A4U_testBoard
             public SPI_DEVICE_CHANNEL DV2 = new SPI_DEVICE_CHANNEL(DV2_channel, Command.SPI.DPS.setVoltage, DV2_channel, Command.SPI.DPS.getVoltage);
             public SPI_DEVICE_CHANNEL DV3 = new SPI_DEVICE_CHANNEL(DV3_channel, Command.SPI.DPS.setVoltage, DV3_channel, Command.SPI.DPS.getVoltage);
         }
+        #endregion
+        #region Сканер
         public class SPI_SCANER
         {
             //КЛАСС: Сканер (Сканирющее напряжение).
@@ -1056,25 +1080,11 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             public SPI_DEVICE_CHANNEL_withAD5643R Scan = new SPI_DEVICE_CHANNEL_withAD5643R(DAC_Scan_Channel, Command.SPI.Scaner.setVoltage, ADC_Scan_Channel, Command.SPI.Scaner.getVoltage);
         }
+        #endregion
+        #region Микроконтроллер
         public class CHIP
         {
             //КЛАСС: Микросхема, сам микроконтроллер.
-            /// <summary>
-            /// Задаёт СОМ-порт для связи ПК с МК
-            /// </summary>
-            public void setUSART(SerialPort COM_PORT)
-            {
-                //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
-                trace_attached(Environment.NewLine);
-                trace("Chip.setUSART(" + COM_PORT.PortName + ")");
-                USART = COM_PORT;
-                USART_defined = true;
-                if (!USART.IsOpen)
-                {
-                    USART.Open();
-                }
-                
-            }
             /// <summary>
             /// Проверка синхронности команд ПК и МК (отладочное)
             /// </summary>
@@ -1228,6 +1238,8 @@ namespace Xmega32A4U_testBoard
                 return frequency.ToString() + " Гц";
             }
         }
+        #endregion
+        #region Функции для отладки
         public class TEST
         {
             //КЛАСС: Класс для тестовых функций и отладки.
@@ -1315,7 +1327,9 @@ namespace Xmega32A4U_testBoard
                 trace(text);
             }
         }
-        public class TIC_PUMP
+        #endregion
+        #region Микроконтроллер TIC
+        public class TIC_mc
         {
             //КЛАСС: Микроконтроллер насоса
             /// <summary>
@@ -1348,7 +1362,9 @@ namespace Xmega32A4U_testBoard
                 }
             }
         }
-        //--------------------------------------ОБЪЕКТЫ-------------------------------------------
+        #endregion
+        #endregion
+        #region--------------------------------------ОБЪЕКТЫ-------------------------------------------
         /// <summary>
         /// Счётчки импульсов
         /// </summary>
@@ -1388,8 +1404,9 @@ namespace Xmega32A4U_testBoard
         /// <summary>
         /// Микроконтроллер вакуумного насоса
         /// </summary>
-        public TIC_PUMP TIC = new TIC_PUMP();
-        //--------------------------------------ВИДИМЫЕ ФУНКЦИИ-------------------------------------------
+        public TIC_mc TIC = new TIC_mc();
+        #endregion
+        #region----------------------------------ВИДИМЫЕ ФУНКЦИИ---------------------------------------
         /// <summary>
         /// Возвращает List(string) всех возникших ошибок (В РАЗРАБОТКЕ...)
         /// </summary>
@@ -1400,7 +1417,24 @@ namespace Xmega32A4U_testBoard
             trace(".getErrorList()");
             return ErrorList;
         }
-        //--------------------------------------ВНУТРЕННИЕ ФУНКЦИИ-------------------------------------------
+        /// <summary>
+        /// Задаёт СОМ-порт для связи ПК с МК
+        /// </summary>
+        public void setUSART(SerialPort COM_PORT)
+        {
+            //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
+            trace_attached(Environment.NewLine);
+            trace(".setUSART(" + COM_PORT.PortName + ")");
+            USART = COM_PORT;
+            USART_defined = true;
+            if (!USART.IsOpen)
+            {
+                USART.Open();
+            }
+
+        }
+        #endregion
+        #region---------------------------------ВНУТРЕННИЕ ФУНКЦИИ-------------------------------------
         //КОНСТРУКТОР
         public XMEGA32A4U()
         {
@@ -1820,24 +1854,8 @@ namespace Xmega32A4U_testBoard
             //ФУНКЦИЯ: Програмная перезагрузка микроконтроллера
             return (transmit(Command.Chip.reset)[1] == Command.Chip.reset);
         }
+        #endregion
         //--------------------------------------ЗАМЕТКИ-------------------------------------------
-        //public void AsyncEndable(bool enable)
-        //{
-        //    if (enable)
-        //    {
-        //        USART.DataReceived += new SerialDataReceivedEventHandler(AsyncHandler);
-        //    }
-        //    else
-        //    {
-        //        USART.DataReceived -= new SerialDataReceivedEventHandler(AsyncHandler);
-        //    }
-        //}
-        //public void AsyncHandler(object sender,SerialDataReceivedEventArgs e)
-        //{
-        //    SerialPort usart = (SerialPort)sender;
-        //    string data = usart.ReadExisting();
-        //    recived_error = (byte)data.Length;
-        //}
     }
     //---------------------------------------THE END------------------------------------------
 }
