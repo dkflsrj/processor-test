@@ -23,8 +23,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										122
-#define birthday									20131203
+#define version										123
+#define birthday									20131209
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -534,12 +534,22 @@ void COUNTERS_stop(void)
 void TIC_transmit(void)
 {
 	//ФУНКЦИЯ: ретранслировать команду TIC насосу
-	//delay_us(usartTIC_delay);
-	//for (uint8_t i = 2; i < USART_MEM[1]; i++)
-	//{
-	//	usart_putchar(USART_TIC,USART_MEM[i]);				//USART_TIC
-	//	delay_us(usartTIC_delay);
-	//}
+	//COMP_MEM[0] - команда от ПК, остальное в COMP_MEM[0] то, что необходимо послать TIC'у
+	//Копируем всё что должны переслать
+	cli();
+	for (uint8_t i = 1; i < COMP_MEM_length; i++)
+	{
+		TIC_MEM[i-1] = COMP_MEM[i];
+	}
+	TIC_MEM_Length = COMP_MEM_length - 1;
+	sei();
+	//Осматриваемся на счёт прерываний
+	cli();
+	for (uint8_t i = 0; i < TIC_MEM_Length; i++)
+	{
+		usart_putchar(USART_TIC,TIC_MEM[i]);
+	}
+	sei();
 	//ждём ответа от TIC
 	//Пересылаем ответ на ПК
 }

@@ -36,7 +36,7 @@
 #define COMMAND_Condensator_set_Voltage				43	//Команда: Задать напряжение конденсатора
 #define COMMAND_PSInl_set_Voltage					44	//Команда: Задать напряжение натекателя
 
-#define COMMAND_retransmitToTIC						50	//Команда: Ретранслировать данные насосу
+#define COMMAND_retransmitToTIC						50	//Команда: Ретранслировать данные TIC'у
 
 #define COMMAND_KEY									58	//Команда: Любая команда начинается с этой (ключ)
 
