@@ -15,16 +15,14 @@ namespace Xmega32A4U_testBoard
     public partial class Form1 : Form
     {
         SerialPort COM_Port;
-        XMEGA32A4U MC;
         decimal UI_PGB_COA_step = 0;
         decimal UI_PGB_COA_count = 0;
         const int CLK_COA_intreval = 10;
         public Form1()
         {
             InitializeComponent();
-            MC = new XMEGA32A4U();
-            MC.Tester.setTracer(Log);
-            MC.Tester.traceIt("Программа инициирована!");
+            MC.Service.setTracer(Log);
+            MC.Service.traceIt("Программа инициирована!");
             CMB_COM_BaudRate.Enabled = false;
             CMB_COM_DataBits.Enabled = false;
             CMB_COM_Handshake.Enabled = false;
@@ -32,18 +30,15 @@ namespace Xmega32A4U_testBoard
             CMB_COM_StopBits.Enabled = false;
             BTN_COM_setParams.Enabled = false;
 
-            
-            
-
             if (findCOM())
             {
                 setCOMparams();
-            
+
                 TABpanel.SelectedIndex = 1;
 
-                MC.Chip.setUSART(COM_Port);
+                MC.setUSART(COM_Port);
             }
-            
+
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
         }
@@ -131,19 +126,19 @@ namespace Xmega32A4U_testBoard
             //COM_Port.Handshake = l_handshake;
             COM_Port.ReadTimeout = 2000;
             COM_Port.WriteTimeout = 2000;
-            trace( "Установка параметров COM порта: " + COM_Port.PortName);
-            trace( "   Бит в секунду: " + COM_Port.BaudRate.ToString());
-            trace( "   Чётность: " + COM_Port.Parity.ToString());
-            trace( "   Биты данных: " + COM_Port.DataBits.ToString());
-            trace( "   Стоповые биты: " + COM_Port.StopBits.ToString());
+            trace("Установка параметров COM порта: " + COM_Port.PortName);
+            trace("   Бит в секунду: " + COM_Port.BaudRate.ToString());
+            trace("   Чётность: " + COM_Port.Parity.ToString());
+            trace("   Биты данных: " + COM_Port.DataBits.ToString());
+            trace("   Стоповые биты: " + COM_Port.StopBits.ToString());
         }
         bool findCOM()
         {
-            trace( "Поиск COM портов...");
+            trace("Поиск COM портов...");
             string[] Ports = SerialPort.GetPortNames();
             if (Ports.Length > 0)
             {
-                trace( "   Список обнаруженных COM портов:");
+                trace("   Список обнаруженных COM портов:");
                 for (int i = 0; i < Ports.Length; i++)
                 {
                     cBox_COM.Items.Add(Ports[i]);
@@ -161,7 +156,7 @@ namespace Xmega32A4U_testBoard
             }
             else
             {
-                trace( "ОШИБКА: Ни один COM порт не найден!");
+                trace("ОШИБКА: Ни один COM порт не найден!");
                 return false;
             }
 
@@ -191,7 +186,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_LEDbyte_Click(object sender, EventArgs e)
         {
-            //MC.Tester.showMeByte(TXB_LEDbyte.Text);
+            //MC.Service.showMeByte(TXB_LEDbyte.Text);
         }
         private void BTN_SPI_DAC_send_Click(object sender, EventArgs e)
         {
@@ -203,13 +198,13 @@ namespace Xmega32A4U_testBoard
             //{
             //    //trace(true, "ОШИБКА ОТКЛИКА! DAC возможно не выставил напряжение!");
             //}
-           // MC.PSIS.F8.setVoltage(TXB_DAC_voltage.Text);
+            // MC.PSIS.F8.setVoltage(TXB_DAC_voltage.Text);
         }
         private void BTN_SPI_ADC_request_Click(object sender, EventArgs e)
         {
-           //MC.ADC.DoubleRange = CHB_ADC_DoubleRange.Checked;
-           ////trace(true, "Напряжение на канале " + TXB_ADC_channel.Text + " : " + 
-           //MC.ADC.getVoltage(TXB_ADC_channel.Text);
+            //MC.ADC.DoubleRange = CHB_ADC_DoubleRange.Checked;
+            ////trace(true, "Напряжение на канале " + TXB_ADC_channel.Text + " : " + 
+            //MC.ADC.getVoltage(TXB_ADC_channel.Text);
 
         }
         private void BTN_DAC_reset_Click(object sender, EventArgs e)
@@ -236,16 +231,16 @@ namespace Xmega32A4U_testBoard
                 return;
             }
             //if (
-                //MC.Counters.startMeasure();
-                //)
-           //{
-           //    //trace(true, "COA начал счёт...");
-           //    PGB_COA_progress.Value = 0;
-           //    UI_PGB_COA_count = 0;
-           //    UI_PGB_COA_step = (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_COA_measureTime.Text);
-           //    CLK_COA.Enabled = true;
-           //    return;
-           //}
+            //MC.Counters.startMeasure();
+            //)
+            //{
+            //    //trace(true, "COA начал счёт...");
+            //    PGB_COA_progress.Value = 0;
+            //    UI_PGB_COA_count = 0;
+            //    UI_PGB_COA_step = (3000 * (decimal)CLK_COA_intreval) / Convert.ToInt32(TXB_COA_measureTime.Text);
+            //    CLK_COA.Enabled = true;
+            //    return;
+            //}
             //trace(true, "Ошибка! Возможно COA не начал счёт!");
 
         }
@@ -398,11 +393,11 @@ namespace Xmega32A4U_testBoard
         {
             if (CHB_enableSuperTracer.Checked)
             {
-                MC.Tester.enableTracerInTransmit(true);
+                MC.Service.enableTracerInTransmit(true);
             }
             else
             {
-                MC.Tester.enableTracerInTransmit(false);
+                MC.Service.enableTracerInTransmit(false);
             }
         }
         private void CLK_COA_Tick(object sender, EventArgs e)
@@ -437,11 +432,11 @@ namespace Xmega32A4U_testBoard
         {
             if (CHB_traceLog.Checked)
             {
-                MC.Tester.enableLog(true);
+                MC.Service.enableLog(true);
             }
             else
             {
-                MC.Tester.enableLog(false);
+                MC.Service.enableLog(false);
             }
         }
         private void WATCHER_Counters_Tick(object sender, EventArgs e)
@@ -465,17 +460,17 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_sendSomething_Click(object sender, EventArgs e)
         {
-            MC.Tester.sendSomething();
+            MC.Service.sendSomething();
         }
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
-            //MC.TIC.send();
+            TIC.Display_contrast = "1";
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
             foreach (string error in MC.getErrorList().ToArray())
             {
-                trace( error);
+                trace(error);
             }
         }
         //==================================REAL=================================
@@ -618,14 +613,14 @@ namespace Xmega32A4U_testBoard
         {
             //ФУНКЦИЯ: Задаёт временной интервал счёта в миллисекундах 
             //if (
-                //MC.Counters.setMeasureTime(TXB_realCOX_MeasureTime.Text);
+            //MC.Counters.setMeasureTime(TXB_realCOX_MeasureTime.Text);
             //   )
             //{
-                //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.calcRTCticks(TXB_COA_measureTime.Text, MC.Counters.calcRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
+            //trace(true, "Задан временной интервал счёта: " + TXB_COA_measureTime.Text + "мс (" + MC.Counters.calcRTCticks(TXB_COA_measureTime.Text, MC.Counters.calcRTCprescaler(TXB_COA_measureTime.Text)) + " тиков)");
             //}
             //else
             //{
-                //trace(true, "Счётчик ещё считает!");
+            //trace(true, "Счётчик ещё считает!");
             //}
         }
         uint Cycles;
@@ -737,7 +732,7 @@ namespace Xmega32A4U_testBoard
         private void BTN_checkFlags_Click(object sender, EventArgs e)
         {
             byte flags = MC.setFlags(false, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
-            if ((flags & 1) == 1){CHB_SPUMP.Checked = true;}else{CHB_SPUMP.Checked = false;}
+            if ((flags & 1) == 1) { CHB_SPUMP.Checked = true; } else { CHB_SPUMP.Checked = false; }
             if ((flags & 2) == 2) { CHB_SEMV3.Checked = true; } else { CHB_SEMV3.Checked = false; }
             if ((flags & 4) == 4) { CHB_SEMV2.Checked = true; } else { CHB_SEMV2.Checked = false; }
             if ((flags & 8) == 8) { CHB_SEMV1.Checked = true; } else { CHB_SEMV1.Checked = false; }
@@ -753,16 +748,9 @@ namespace Xmega32A4U_testBoard
         private void timer1_Tick(object sender, EventArgs e)
         {
             //LBL_realCOX_RTCstate.Text = MC.Counters.пуеStatus;
-            
+
         }
 
-        private void ApplicationIsAboutToClose(object sender, FormClosingEventArgs e)
-        {
-            //Соблюдаем приличия, закроем порт перед уходом.
-            if (COM_Port.IsOpen)
-            {
-                COM_Port.Close();
-            }
-        }
+
     }
 }

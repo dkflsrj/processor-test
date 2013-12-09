@@ -2134,8 +2134,7 @@
             this.MaximumSize = new System.Drawing.Size(700, 600);
             this.MinimumSize = new System.Drawing.Size(700, 600);
             this.Name = "Form1";
-            this.Text = "XMega32A4U_testBoard v0.54";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ApplicationIsAboutToClose);
+            this.Text = "XMega32A4U_testBoard v0.112";
             this.TABpanel.ResumeLayout(false);
             this.TABpanel_1.ResumeLayout(false);
             this.TABpanel_1.PerformLayout();
