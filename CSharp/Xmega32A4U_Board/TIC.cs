@@ -108,6 +108,23 @@ namespace Xmega32A4U_testBoard
                 "Addresses",
                 new string[] 
                 { 
+                    "850",
+                    "851",
+                    "852",
+                    "853",
+                    "854",
+                    "855",
+                    "856",
+                    "857",
+                    "859",
+                    "860",
+                    "867",
+                    "868",
+                    "869",
+                    "870",
+                    "871",
+                    "872",
+                    "875",
                     "901",
                     "902",
                     "904",
@@ -149,6 +166,23 @@ namespace Xmega32A4U_testBoard
                 },
                 new string[] 
                 { 
+                     "EXT75DX.Node",
+                     "EXT75DX.Pump_type",
+                     "EXT75DX.Pump_control",
+                     "EXT75DX.Vent_options",
+                     "EXT75DX.Timer_setting",
+                     "EXT75DX.Power_limit_setting",
+                     "EXT75DX.Normal_speed_setting",
+                     "EXT75DX.Standby_speed_setting",
+                     "EXT75DX.Temperature_readings",
+                     "EXT75DX.Link_parameter_readings",
+                     "EXT75DX.Factory_settings",
+                     "EXT75DX.PIC_software_version",
+                     "EXT75DX.Speed_control",
+                     "EXT75DX.Timer_options",
+                     "EXT75DX.Analogue_signal_options",
+                     "EXT75DX.Electronic_braking_option",
+                     "EXT75DX.Close_vent_valve",
                      "Node",
                      "TIC_Status",
                      "Turbo_Pump",
@@ -498,6 +532,23 @@ namespace Xmega32A4U_testBoard
                 new string[] { "On", "Off" }
             );
             #endregion
+            //EXT75DX
+            #region EXT75DX
+            public static DataBase EXT75DX_Error_Codes = new DataBase
+            (
+                "EXT75DX_Error_Codes",
+                new string[] { "0", "1", "2", "3", "4", "5" },
+                new string[] 
+                    { 
+                        "No error", 
+                        "Invalid command for object ID",
+                        "Invalid Query/Command",
+                        "Missing parameter",
+                        "Parameter out of range",
+                        "Invalid command in current state - e.g. serial command to start/stop when in parallel control mode"
+                    }
+            );
+            #endregion
         }
         /// <summary>
         /// Списки возможных вариантов
@@ -512,6 +563,26 @@ namespace Xmega32A4U_testBoard
             public struct Address
             {
                 //СТРУКТУРА: Хранилище кодов адресов объектов, к которым можно обратиться
+                public struct EXT75DX
+                {
+                    public const ushort Node = 850;
+                    public const ushort Pump_type = 851;
+                    public const ushort Pump_control = 852;
+                    public const ushort Vent_options = 853;
+                    public const ushort Timer_setting = 854;
+                    public const ushort Power_limit_setting = 855;
+                    public const ushort Normal_speed_setting = 856;
+                    public const ushort Standby_speed_setting = 857;
+                    public const ushort Temperature_readings = 859;
+                    public const ushort Link_parameter_readings = 860;
+                    public const ushort Factory_settings = 867;
+                    public const ushort PIC_software_version = 868;
+                    public const ushort Speed_control = 869;
+                    public const ushort Timer_options = 870;
+                    public const ushort Analogue_signal_options = 871;
+                    public const ushort Electronic_braking_option = 872;
+                    public const ushort Close_vent_valve = 875;
+                }
                 public const ushort Node = 901;
                 public const ushort TIC_Status = 902;
                 public const ushort Turbo_Pump = 904;
@@ -698,6 +769,18 @@ namespace Xmega32A4U_testBoard
                 public const string Service_due = "47";
             }
             #endregion
+            //EXT75DX
+            #region EXT75DX
+            public struct EXT75DX_Error_Codes
+            {
+                public const string No_error = "0";
+                public const string Invalid_command_for_object_ID = "1";
+                public const string Invalid_Query_or_Command = "2";
+                public const string Missing_parameter = "3";
+                public const string Parameter_out_of_range = "4";
+                public const string Invalid_command_in_current_state = "5";
+            }
+            #endregion
         }
         #endregion
         //Модули
@@ -791,7 +874,7 @@ namespace Xmega32A4U_testBoard
                 /// Включает или выключает насос
                 /// </summary>
                 /// <param name="OnOrOff">"On" или "Off" (CodeList.Turn)</param>
-                public static void turn(string OnOrOff) { toTIC_С(CodeLists.Address.Turbo_Pump, CodeBase.Turn.find(OnOrOff)); }
+                public static void turn(string OnOrOff) { toTIC_C(CodeLists.Address.Turbo_Pump, CodeBase.Turn.find(OnOrOff)); }
                 /// <summary>
                 /// Возвращает состояние Turbo Pump
                 /// </summary>
@@ -1037,7 +1120,7 @@ namespace Xmega32A4U_testBoard
                     catch { MC.Service.trace("TIC.Turbo_standby.get(): Ошибка данных!"); }
                     return "?";
                 }
-                set { toTIC_С(CodeLists.Address.Turbo_standby, value); }
+                set { toTIC_C(CodeLists.Address.Turbo_standby, value); }
             }
             #endregion
             #region cycle_time
@@ -1089,7 +1172,7 @@ namespace Xmega32A4U_testBoard
                 /// Включает или выключает насос
                 /// </summary>
                 /// <param name="OnOrOff">"On" или "Off" (CodeList.Turn)</param>
-                public static void turn(string OnOrOff) { toTIC_С(CodeLists.Address.Backing_Pump, CodeBase.Turn.find(OnOrOff)); }
+                public static void turn(string OnOrOff) { toTIC_C(CodeLists.Address.Backing_Pump, CodeBase.Turn.find(OnOrOff)); }
                 /// <summary>
                 /// Возвращает статус Backing Pump
                 /// </summary>
@@ -1387,7 +1470,7 @@ namespace Xmega32A4U_testBoard
             /// Команда датчику
             /// </summary>
             /// <param name="Command">Команда выбирается из списка CodeList.CommandList_Gauge</param>
-            public void command(string Command) { toTIC_С(SelfAddress, Command); }
+            public void command(string Command) { toTIC_C(SelfAddress, Command); }
             #region Gauge_Values
             /// <summary>
             /// Возвращает позиции и значения датчиков
@@ -1490,7 +1573,7 @@ namespace Xmega32A4U_testBoard
             /// Включает или выключает реле
             /// </summary>
             /// <param name="OnOrOff">"On" или "Off" (CodeList.Turn)</param>
-            public void turn(string OnOrOff) { toTIC_С(SelfAddress, CodeBase.Turn.find(OnOrOff)); }
+            public void turn(string OnOrOff) { toTIC_C(SelfAddress, CodeBase.Turn.find(OnOrOff)); }
         }
         public static Relay Relay_1 = new Relay(CodeLists.Address.Relay_1);
         public static Relay Relay_2 = new Relay(CodeLists.Address.Relay_2);
@@ -1671,7 +1754,7 @@ namespace Xmega32A4U_testBoard
             /// <param name="OnOrOff">"On" или "Off" (CodeList.Turn)</param>
             public static void turn(string OnOrOff)
             {
-                toTIC_С(CodeLists.Address.Heater_band, CodeBase.Turn.find(OnOrOff));
+                toTIC_C(CodeLists.Address.Heater_band, CodeBase.Turn.find(OnOrOff));
             }
         }
         #endregion
@@ -1755,7 +1838,7 @@ namespace Xmega32A4U_testBoard
         /// </summary>
         /// <param name="command">смотри CodeList.CommandList</param>
         /// <returns></returns>
-        public static void Configuration_Operations(string command) { toTIC_С(CodeLists.Address.Configuration_Operations, command); }
+        public static void Configuration_Operations(string command) { toTIC_C(CodeLists.Address.Configuration_Operations, command); }
         #endregion
         #region Pressure_Units
         /// <summary>
@@ -1942,7 +2025,7 @@ namespace Xmega32A4U_testBoard
             /// Включает или выключает все помеченные объекты
             /// </summary>
             /// <param name="OnOrOff">"On" или "Off" (CodeList.Turn)</param>
-            public static void turn(string OnOrOff) { toTIC_С(CodeLists.Address.System, CodeBase.Turn.find(OnOrOff)); }
+            public static void turn(string OnOrOff) { toTIC_C(CodeLists.Address.System, CodeBase.Turn.find(OnOrOff)); }
             /// <summary>
             /// Возвращает состояние
             /// </summary>
@@ -1963,10 +2046,417 @@ namespace Xmega32A4U_testBoard
             }
         }
         #endregion
+        //--EXT75DX
+        #region EXT75DX
+        public static class EXT75DX
+        {
+            #region Node
+            /// <summary>
+            /// Node. Get/set multi-drop 0...98
+            /// </summary>
+            public static string Node
+            {
+                get
+                {
+                    response = toTIC_QS(CodeLists.Address.EXT75DX.Node, dummy);
+                    try { return response[0]; }
+                    catch { MC.Service.trace("TIC.EXT75DX.Node.get(): Ошибка данных!"); }
+                    return "?";
+                }
+                set { toTIC_SS(CodeLists.Address.EXT75DX.Node, new string[] { value }); }
+            }
+            #endregion
+            #region Pump
+            public static class Pump
+            {
+                static string[] decryptSystemStatusWord(string SystemStatusWord)
+                {
+                    string[] answer = new string[16];
+                    string binaryWord = "";
+                    foreach (char ch in SystemStatusWord)
+                    {
+                        binaryWord += Pifagor.Hex.toBin.String(ch);
+                    }
+                    // Bit [0] - Fail (<0> - The pump has not failed, <1> - Fail status condition active)
+                    if (binaryWord[31] == '1') { answer[0] = "The pump has failed!"; }
+                    else { answer[0] = "The pump has not failed."; }
+                    // Bit [1] - Stopped speed (<0> - Above stopped speed, <1> - Below stopped speed)
+                    if (binaryWord[30] == '1') { answer[1] = "Speed is below stopped speed."; }
+                    else { answer[1] = "Speed is above stopped speed."; }
+                    // Bit [2] - Normal speed (<0> - Below normal speed, <1> - Above normal speed)
+                    if (binaryWord[29] == '1') { answer[2] = "Speed is above normal speed."; }
+                    else { answer[2] = "Speed is below normal speed."; }
+                    // Bit [3] - Vent valve closed (<0> - Vent valve is open, <1> - Vent valve is close)
+                    if (binaryWord[28] == '1') { answer[3] = "Vent valve is close."; }
+                    else { answer[3] = "Vent valve is open."; }
+                    // Bit [4] - Start (<0> - There is no active Start command, <1> - Start command is active)
+                    if (binaryWord[27] == '1') { answer[4] = "Start command is active."; }
+                    else { answer[4] = "There is no active Start command."; }
+                    // Bit [5] - Serial enable (<0> - Serial enable is not active, <1> - Serial enable is active)
+                    if (binaryWord[26] == '1') { answer[5] = "Serial enable is active."; }
+                    else { answer[5] = "Serial enable is not active."; }
+                    // Bit [6] - Standby (<0> - Standby is not active, <1> - Standby is active)
+                    if (binaryWord[25] == '1') { answer[6] = "Standby is active."; }
+                    else { answer[6] = "Standby is not active."; }
+                    // Bit [7] - Half full speed (<0> - Speed is below 50% of full rotation speed, <1> - Speed is above 50% of full rotation speed)
+                    if (binaryWord[24] == '1') { answer[7] = "Speed is above 50% of full rotation speed."; }
+                    else { answer[7] = "Speed is below 50% of full rotation speed."; }
+                    // Bit [8] - Parallel control mode (<0> - The pump is not in parallel control mode, <1> -  The pump is in parallel control mode)
+                    if (binaryWord[23] == '1') { answer[8] = "The pump is in parallel control mode."; }
+                    else { answer[8] = "The pump is not in parallel control mode."; }
+                    // Bit [9] - Serial control mode (<0> - The pump is not in serial control mode, <1> - The pump is in serial control mode)
+                    if (binaryWord[22] == '1') { answer[9] = "The pump is in serial control mode."; }
+                    else { answer[9] = "The pump is not in serial control mode."; }
+                    // Bit [10] - Invalid Podule software (<0> - There is no Podule internal software mismatch, <1> -  Podule internal software mismatch)
+                    if (binaryWord[21] == '1') { answer[10] = "Podule internal software mismatch."; }
+                    else { answer[10] = "There is no Podule internal software mismatch."; }
+                    // Bit [11] - Podule upload incomplete (<0> - Podule passed internal configuration and calibration operation, <1> -  Podule failed internal configuration and calibration operation)
+                    if (binaryWord[20] == '1') { answer[11] = "Podule failed internal configuration and calibration operation."; }
+                    else { answer[11] = "Podule passed internal configuration and calibration operation."; }
+                    // Bit [12] - Timer expired (<0> -  The timer has not timed out, <1> - The timer has timed out)
+                    if (binaryWord[19] == '1') { answer[12] = "The timer has timed out."; }
+                    else { answer[12] = "The timer has not timed out."; }
+                    // Bit [13] - Hardware trip (<0> - Overspeed and Overcurrent trip not activated, <1> - Overspeed or Overcurrent trip activated)
+                    if (binaryWord[18] == '1') { answer[13] = "Overspeed or Overcurrent trip activated."; }
+                    else { answer[13] = "Overspeed and Overcurrent trip not activated."; }
+                    // Bit [14] - Thermistor error (<0> - Pump internal temperature measurement system is fine, <1> -  Pump internal temperature measurement system disconnected or damaged)
+                    if (binaryWord[17] == '1') { answer[14] = "Pump internal temperature measurement system disconnected or damaged."; }
+                    else { answer[14] = "Pump internal temperature measurement system is fine."; }
+                    // Bit [15] - Serial control mode interlock (<0> - Serial enable has not become inactive during serial control, <1> -  Serial enable has become inactive following a serial Start command.)
+                    if (binaryWord[16] == '1') { answer[15] = "Serial enable has become inactive following a serial Start command."; }
+                    else { answer[15] = "Serial enable has not become inactive during serial control."; }
+                    return answer;
+                }
+                //----
+                /// <summary>
+                /// Возвращает тип, версию и полную скорость
+                /// </summary>
+                /// <param name="DSP_sw_ver">DSP software version number (D39647631x for EXT75DX)</param>
+                /// <param name="Full_speed_RPS">1500 for EXT75DX</param>
+                /// <returns></returns>
+                public static string type(ref string DSP_sw_ver, ref string Full_speed_RPS)
+                {
+                    response = toTIC_QS(CodeLists.Address.EXT75DX.Pump_type, dummy);
+                    try
+                    {
+                        DSP_sw_ver = response[1];
+                        Full_speed_RPS = response[2];
+                        return response[0];
+                    }
+                    catch { MC.Service.trace("TIC.EXT75DX.Pump.type.get(): Ошибка данных!"); }
+                    return "?";
+                }
+                /// <summary>
+                /// Включает или выключает насос.
+                /// <para>"On": The pump will then accelerate to full operating speed. </para>
+                /// <para>The green indicator LED will illuminate when the pump reaches Normal speed.</para> 
+                /// <para>(This is 80% of full rotational speed by default but you may have selected</para> 
+                /// <para>a different value to suit your application).</para>
+                /// </summary>
+                /// <param name="OnOrOff">"On" или "Off" (CodeList.Turn)</param>
+                public static void turn(string OnOrOff) { toTIC_C(CodeLists.Address.EXT75DX.Pump_control, CodeBase.Turn.find(OnOrOff)); }
+                /// <summary>
+                /// Returns system status word and (ref) measured motor speed.
+                /// The System Status Word is a 32-bit Word (set of 8 hexadecimal characters) which is useful
+                /// for fault-finding. Refer to Section 4.5.2 for advice on decoding the System Status Word.
+                /// </summary>
+                /// <param name="Measured_motor_speed">RPS</param>
+                /// <returns>System status word</returns>
+                public static string[] control(ref string Measured_motor_speed)
+                {
+                    response = toTIC_QV(CodeLists.Address.EXT75DX.Pump_type);
+                    try
+                    {
+                        Measured_motor_speed = response[0];
+
+                        return decryptSystemStatusWord(response[1]);
+                    }
+                    catch { MC.Service.trace("TIC.EXT75DX.Pump.control.get(): Ошибка данных!"); }
+                    return dummy;
+                }
+            }
+            #endregion
+            #region Vent_options
+            static DataBase CodeBase_Local_Vent_options = new DataBase
+            (
+                "Vent_options.CodeBase_Local",
+                new string[] { "0", "1", "2", "3", "4", "5", "6", "7", "8" },
+                new string[]
+                        {
+                            "Hard vent only when <50% speed",
+                            "Controlled vent if >50% speed or hard vent if <50% speed",
+                            "Hard vent if stop or hard vent if fail and <50% speed",
+                            "Hard vent if stop or controlled vent if fail and >50% speed or hard vent if fail and <50% speed",
+                            "Hard vent if fail or hard vent if stop and <50% speed",
+                            "Hard vent if fail or controlled vent if stop and >50% speed or hard vent if stop and <50% speed",
+                            "Hard vent if stop or fail",
+                            "Same as option 6",
+                            "Vent = Permanently Enabled (Fan)"
+                        }
+            );
+            /// <summary>
+            /// Возвращает описание настройки вентилятора.
+            /// <para>При установке использовать значение value из таблицы ниже</para>
+            /// <para>value | Available vent options</para>
+            /// <para>------|-------------------------------------------------</para>
+            /// <para>&#160;&#160;"0"&#160;&#160;| Hard vent only when &lt;50% speed (default),</para>
+            /// <para>&#160;&#160;"1"&#160;&#160;| Controlled vent if &gt;50% speed or hard vent if &lt;50% speed,</para>
+            /// <para>&#160;&#160;"2"&#160;&#160;| Hard vent if stop or hard vent if fail and &lt;50% speed,</para>
+            /// <para>&#160;&#160;"3"&#160;&#160;| Hard vent if stop or controlled vent if fail and &gt;50% speed or hard vent if fail and &lt;50% speed,</para>
+            /// <para>&#160;&#160;"4"&#160;&#160;| Hard vent if fail or hard vent if stop and &lt;50% speed,</para>
+            /// <para>&#160;&#160;"5"&#160;&#160;| Hard vent if fail or controlled vent if stop and &gt;50% speed or hard vent if stop and &lt;50% speed,</para>
+            /// <para>&#160;&#160;"6"&#160;&#160;| Hard vent if stop or fail,</para>
+            /// <para>&#160;&#160;"7"&#160;&#160;| Same as option 6,</para>
+            /// <para>&#160;&#160;"8"&#160;&#160;| Vent = Permanently Enabled (Fan)</para>
+            /// </summary>
+            public static string Vent_options
+            {
+                get
+                {
+                    response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.Vent_options, dummy);
+                    try { return CodeBase_Local_Vent_options.findMeaning(response[0]); }
+                    catch { MC.Service.trace("TIC.EXT75DX.Vent_options: Ошибка данных!"); }
+                    return "?";
+                }
+                set { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Vent_options, new string[] { value }); }
+            }
+            #endregion
+            #region Timer
+            public static class Timer
+            {
+                /// <summary>
+                /// Timeout period (minutes) for both initial ramp up and if speed drops below 50% 
+                /// <para> value = 1...30</para>
+                /// </summary>
+                public static string setting
+                {
+                    get
+                    {
+                        response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.Timer_setting, dummy);
+                        try { return response[0]; }
+                        catch { MC.Service.trace("TIC.EXT75DX.Timer.setting: Ошибка данных!"); }
+                        return "?";
+                    }
+                    set { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Timer_setting, new string[] { value }); }
+                }
+                /// <summary>
+                /// Возвращает состояние таймера (вкл\выкл) (по умолчанию включен)
+                /// <para>При установке "1" - включает таймер, "0" - выключает</para>
+                /// <para>Note that the timer is permanently enabled on ramp-up.</para>
+                /// </summary>
+                public static string options
+                {
+                    get
+                    {
+                        response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.Timer_options, dummy);
+                        try
+                        {
+                            if (response[0] == "1")
+                            {
+                                return "Timer enabled";
+                            }
+                            else
+                            {
+                                return "Timer disabled";
+                            }
+                        }
+                        catch { MC.Service.trace("TIC.EXT75DX.Timer.options: Ошибка данных!"); }
+                        return "?";
+                    }
+                    set { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Timer_options, new string[] { value }); }
+                }
+            }
+            #endregion
+            #region Power_limit_setting
+            /// <summary>
+            /// Link power maximum EXT75DX
+            /// <para>Возвращает значение максимальной мощности в Ваттах (по умолчанию 80)</para>
+            /// <para>При установке value = 50...120</para>
+            /// </summary>
+            public static string Power_limit_setting
+            {
+                get
+                {
+                    response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.Power_limit_setting, dummy);
+                    try { return response[0]; }
+                    catch { MC.Service.trace("TIC.EXT75DX.Power_limit_setting: Ошибка данных!"); }
+                    return "?";
+                }
+                set { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Power_limit_setting, new string[] { value }); }
+            }
+            #endregion
+            #region Normal_speed_setting
+            /// <summary>
+            /// Normal speed as a percentage of full speed
+            /// <para>Возвращает значение нормальной скорости в процентах от максимальной (по умолчанию 80%)</para>
+            /// <para>При установке value = 50...100</para>
+            /// </summary>
+            public static string Normal_speed_setting
+            {
+                get
+                {
+                    response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.Normal_speed_setting, dummy);
+                    try { return response[0]; }
+                    catch { MC.Service.trace("TIC.EXT75DX.Normal_speed_setting: Ошибка данных!"); }
+                    return "?";
+                }
+                set { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Normal_speed_setting, new string[] { value }); }
+            }
+            #endregion
+            #region Standby_speed_setting
+            /// <summary>
+            /// Standby speed as a percentage of full speed
+            /// <para>Возвращает значение нормальной скорости в процентах от максимальной (по умолчанию 70%)</para>
+            /// <para>При установке value = 55...100</para>
+            /// </summary>
+            public static string Standby_speed_setting
+            {
+                get
+                {
+                    response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.Standby_speed_setting, dummy);
+                    try { return response[0]; }
+                    catch { MC.Service.trace("TIC.EXT75DX.Standby_speed_setting: Ошибка данных!"); }
+                    return "?";
+                }
+                set { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Standby_speed_setting, new string[] { value }); }
+            }
+            #endregion
+            #region Temperature_readings
+            /// <summary>
+            /// Возвращает температуры от 0&#x2070;С до 100&#x2070;С 
+            /// </summary>
+            /// <param name="motor_t">Measured motor temperature</param>
+            /// <param name="controller_t">Measured controller temperature</param>
+            public static void Temperature_readings(ref string motor_t, ref string controller_t)
+            {
+                response = toTIC_QV(TIC.CodeLists.Address.EXT75DX.Temperature_readings);
+                try
+                {
+                    motor_t = response[0];
+                    controller_t = response[1];
+                }
+                catch { MC.Service.trace("TIC.EXT75DX.Temperature_readings: Ошибка данных!"); }
+
+            }
+            #endregion
+            #region Link_parameter_readings
+            /// <summary>
+            /// Возвращает параметры.
+            /// </summary>
+            /// <param name="voltage">Measured link voltage от 0 до 500 в единицах: 0.1В</param>
+            /// <param name="current">Measured link current от 0 до 300 в единицах: 0.1А</param>
+            /// <param name="power">Measured link power от 0 до 15000 в единицах: 0.1Вт</param>
+            public static void Link_parameter_readings(ref string voltage, ref string current, ref string power)
+            {
+                response = toTIC_QV(TIC.CodeLists.Address.EXT75DX.Link_parameter_readings);
+                try
+                {
+                    voltage = response[0];
+                    current = response[1];
+                    power = response[2];
+                }
+                catch { MC.Service.trace("TIC.EXT75DX.Link_parameter_readings: Ошибка данных!"); }
+
+            }
+            #endregion
+            #region Factory_settings
+            /// <summary>
+            /// Reset all configuration options and parameters to the factory settings
+            /// </summary>
+            public static void Factory_settings() { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Factory_settings, new string[] { "1" }); }
+            #endregion
+            #region PIC_software_version
+            /// <summary>
+            /// PIC software version number (D39647620x) - 10 chars
+            /// </summary>
+            public static string PIC_software_version
+            {
+                get
+                {
+                    response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.PIC_software_version, dummy);
+                    try { return response[0]; }
+                    catch { MC.Service.trace("TIC.EXT75DX.Standby_speed_setting: Ошибка данных!"); }
+                    return "?";
+                }
+            }
+            #endregion
+            #region Speed_control
+            /// <summary>
+            /// Устанавливает целевую скорость
+            /// <para>value | target speed:</para>
+            /// <para>------|-------------------------------------------------</para>
+            /// <para>&#160;&#160;"0"&#160;&#160;| Set target speed to full speed,</para>
+            /// <para>&#160;&#160;"1"&#160;&#160;| Set target speed to standby speed</para>
+            /// </summary>
+            public static string Speed_control
+            {
+                set { toTIC_C(TIC.CodeLists.Address.EXT75DX.Speed_control, value); }
+            }
+            #endregion
+            #region Analogue_signal_options
+            /// <summary>
+            /// Возвращает analogue output.
+            /// <para>При установке использовать значение value из таблицы ниже</para>
+            /// <para>value | analogue output</para>
+            /// <para>------|-------------------------------------------------</para>
+            /// <para>&#160;&#160;"0"&#160;&#160;| Measured speed (default),</para>
+            /// <para>&#160;&#160;"1"&#160;&#160;| Measured power,</para>
+            /// <para>&#160;&#160;"2"&#160;&#160;| Measured motor temperature,</para>
+            /// <para>&#160;&#160;"3"&#160;&#160;| measured control temperature</para>
+            /// </summary>
+            public static string Analogue_signal_options
+            {
+                get
+                {
+                    response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.Analogue_signal_options, dummy);
+                    try { return response[0]; }
+                    catch { MC.Service.trace("TIC.EXT75DX.Analogue_signal_options: Ошибка данных!"); }
+                    return "?";
+                }
+                set { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Analogue_signal_options, new string[] { value }); }
+            }
+            #endregion
+            #region Electronic_braking_option
+            /// <summary>
+            /// Возвращает Electronic_braking_option
+            /// <para>При установке "1" - включает, "0" - выключает</para>
+            /// </summary>
+            public static string Electronic_braking_option
+            {
+                get
+                {
+                    response = toTIC_QS(TIC.CodeLists.Address.EXT75DX.Electronic_braking_option, dummy);
+                    try
+                    {
+                        if (response[0] == "1")
+                        {
+                            return "Electronic braking enabled";
+                        }
+                        else
+                        {
+                            return "Electronic braking disabled (default)";
+                        }
+                    }
+                    catch { MC.Service.trace("TIC.EXT75DX.Electronic_braking_option: Ошибка данных!"); }
+                    return "?";
+                }
+                set { toTIC_SS(TIC.CodeLists.Address.EXT75DX.Electronic_braking_option, new string[] { value }); }
+            }
+            #endregion
+            #region Close_vent_valve
+            /// <summary>
+            /// Closes the vent valve for delayed start and overrides the current vent option.
+            /// <para>There is no open vent valve command,</para>
+            /// <para>but the stop command (EXT75DX.Pump.turn("Off");) will clear the override.</para>
+            /// </summary>
+            public static void Close_vent_valve() { toTIC_C(TIC.CodeLists.Address.EXT75DX.Close_vent_valve, "1"); }
+            #endregion
+        }
+        #endregion
         //--
         #region Приём-передача
         //команда
-        static void toTIC_С(ushort address, string m)
+        static void toTIC_C(ushort address, string m)
         {
             transmit_toTIC("!C", address.ToString(), new string[] { m });
         }

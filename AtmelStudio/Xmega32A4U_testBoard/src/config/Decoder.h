@@ -65,12 +65,12 @@
 //Метка
 #define TOCKEN_INTERNAL_ERROR			253	//Метка внутренней ошибки
 //Номера внутренних ошибок
-#define INTERNAL_ERROR_USART_COMP		1	//Внутренняя ошибка приёма данных от ПК
+#define INTERNAL_ERROR_USART_PC			1	//Внутренняя ошибка приёма данных от ПК
 #define INTERNAL_ERROR_SPI				2	//SPI-устройства с таким номером нет!
 //---------------------------------------------ДЕШИФРАТОР--------------------------------------------
 
 //----------------------------------------ПРОСТЫЕ КОМАНДЫ-----------------------------------------
-#define MC_transmit_Status			transmit_3bytes(COMMAND_MC_get_Status, MC_Status, *pointer_Errors_USART_COMP)
+#define MC_transmit_Status			transmit_3bytes(COMMAND_MC_get_Status, MC_Status, *pointer_Errors_USART_PC)
 #define MC_transmit_Version			transmit_2bytes(COMMAND_MC_get_Version, MC_version)
 
 

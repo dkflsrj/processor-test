@@ -171,14 +171,8 @@
             this.BTN_INLET_getVoltage = new System.Windows.Forms.Button();
             this.TABpanel_5 = new System.Windows.Forms.TabPage();
             this.GPB_realCOX = new System.Windows.Forms.GroupBox();
-            this.LBL_realCOX_COC_Ovf = new System.Windows.Forms.Label();
-            this.LBL_realCOX_COB_Ovf = new System.Windows.Forms.Label();
-            this.label20 = new System.Windows.Forms.Label();
-            this.label19 = new System.Windows.Forms.Label();
             this.LBL_realCOX_COC_Result = new System.Windows.Forms.Label();
-            this.LBL_realCOX_COA_Ovf = new System.Windows.Forms.Label();
             this.LBL_realCOX_COB_Result = new System.Windows.Forms.Label();
-            this.label17 = new System.Windows.Forms.Label();
             this.LBL_realCOX_RTCstate = new System.Windows.Forms.Label();
             this.LBL_realCOX_COA_Result = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
@@ -1759,14 +1753,8 @@
             // 
             // GPB_realCOX
             // 
-            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COC_Ovf);
-            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COB_Ovf);
-            this.GPB_realCOX.Controls.Add(this.label20);
-            this.GPB_realCOX.Controls.Add(this.label19);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COC_Result);
-            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COA_Ovf);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COB_Result);
-            this.GPB_realCOX.Controls.Add(this.label17);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_RTCstate);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COA_Result);
             this.GPB_realCOX.Controls.Add(this.label21);
@@ -1796,42 +1784,6 @@
             this.GPB_realCOX.TabStop = false;
             this.GPB_realCOX.Text = "Счётчики";
             // 
-            // LBL_realCOX_COC_Ovf
-            // 
-            this.LBL_realCOX_COC_Ovf.AutoSize = true;
-            this.LBL_realCOX_COC_Ovf.Location = new System.Drawing.Point(289, 214);
-            this.LBL_realCOX_COC_Ovf.Name = "LBL_realCOX_COC_Ovf";
-            this.LBL_realCOX_COC_Ovf.Size = new System.Drawing.Size(13, 13);
-            this.LBL_realCOX_COC_Ovf.TabIndex = 16;
-            this.LBL_realCOX_COC_Ovf.Text = "0";
-            // 
-            // LBL_realCOX_COB_Ovf
-            // 
-            this.LBL_realCOX_COB_Ovf.AutoSize = true;
-            this.LBL_realCOX_COB_Ovf.Location = new System.Drawing.Point(289, 194);
-            this.LBL_realCOX_COB_Ovf.Name = "LBL_realCOX_COB_Ovf";
-            this.LBL_realCOX_COB_Ovf.Size = new System.Drawing.Size(13, 13);
-            this.LBL_realCOX_COB_Ovf.TabIndex = 17;
-            this.LBL_realCOX_COB_Ovf.Text = "0";
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(260, 214);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(25, 13);
-            this.label20.TabIndex = 16;
-            this.label20.Text = "ovf:";
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(260, 194);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(25, 13);
-            this.label19.TabIndex = 17;
-            this.label19.Text = "ovf:";
-            // 
             // LBL_realCOX_COC_Result
             // 
             this.LBL_realCOX_COC_Result.AutoSize = true;
@@ -1841,15 +1793,6 @@
             this.LBL_realCOX_COC_Result.TabIndex = 16;
             this.LBL_realCOX_COC_Result.Text = "0";
             // 
-            // LBL_realCOX_COA_Ovf
-            // 
-            this.LBL_realCOX_COA_Ovf.AutoSize = true;
-            this.LBL_realCOX_COA_Ovf.Location = new System.Drawing.Point(289, 174);
-            this.LBL_realCOX_COA_Ovf.Name = "LBL_realCOX_COA_Ovf";
-            this.LBL_realCOX_COA_Ovf.Size = new System.Drawing.Size(13, 13);
-            this.LBL_realCOX_COA_Ovf.TabIndex = 18;
-            this.LBL_realCOX_COA_Ovf.Text = "0";
-            // 
             // LBL_realCOX_COB_Result
             // 
             this.LBL_realCOX_COB_Result.AutoSize = true;
@@ -1858,15 +1801,6 @@
             this.LBL_realCOX_COB_Result.Size = new System.Drawing.Size(13, 13);
             this.LBL_realCOX_COB_Result.TabIndex = 17;
             this.LBL_realCOX_COB_Result.Text = "0";
-            // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(260, 174);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(25, 13);
-            this.label17.TabIndex = 18;
-            this.label17.Text = "ovf:";
             // 
             // LBL_realCOX_RTCstate
             // 
@@ -2331,12 +2265,6 @@
         private System.Windows.Forms.Button BTN_realCOX_stop;
         private System.Windows.Forms.Label LBL_realCOX_RTCstate;
         private System.Windows.Forms.Label labelN;
-        private System.Windows.Forms.Label LBL_realCOX_COC_Ovf;
-        private System.Windows.Forms.Label LBL_realCOX_COB_Ovf;
-        private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.Label label19;
-        private System.Windows.Forms.Label LBL_realCOX_COA_Ovf;
-        private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button BTN_checkFlags;
         private System.Windows.Forms.CheckBox CHB_iEDCD;
