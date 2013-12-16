@@ -23,9 +23,9 @@
 #define pin_DAC0	IOPORT_CREATE_PIN(PORTB, 2)		//Первый ЦАП МК (НЕ ИСПОЛЬЗУЕТСЯ)
 #define pin_DAC1	IOPORT_CREATE_PIN(PORTB, 3)		//Второй ЦАП МК (НЕ ИСПОЛЬЗУЕТСЯ)
 //PORT C
-#define pin_COA		IOPORT_CREATE_PIN(PORTC, 0)		//Счётчик А [Двойной?]
-#define pin_COB		IOPORT_CREATE_PIN(PORTC, 1)		//Счётчик B [Двойной?]
-#define pin_COC		IOPORT_CREATE_PIN(PORTC, 2)		//Счётчик C [Двойной?]
+#define pin_COA		IOPORT_CREATE_PIN(PORTC, 0)		//Счётчик А
+#define pin_COB		IOPORT_CREATE_PIN(PORTC, 1)		//Счётчик B
+#define pin_COC		IOPORT_CREATE_PIN(PORTC, 2)		//Счётчик C
 #define pin_iHVE	IOPORT_CREATE_PIN(PORTC, 3)		//Ключ, вкл\выкл высокое напряжение (Решает МК по насосу)
 #define pin_iRDUN	IOPORT_CREATE_PIN(PORTC, 4)		//SPI, разрешение на чтение вообще
 #define pin_SDIN	IOPORT_CREATE_PIN(PORTC, 5)		//SPI, передача данных
@@ -34,8 +34,8 @@
 //PORT D
 #define pin_SPUMP	IOPORT_CREATE_PIN(PORTD, 0)		//ON\OFF Включение насоса
 #define pin_SEMV1	IOPORT_CREATE_PIN(PORTD, 1)			//ON\OFF Открытие клапана
-#define pin_RXD0	IOPORT_CREATE_PIN(PORTD, 2)		//USART COMP, приём
-#define pin_TXD0	IOPORT_CREATE_PIN(PORTD, 3)		//USART COMP, передача
+#define pin_RXD0	IOPORT_CREATE_PIN(PORTD, 2)		//USART PC, приём
+#define pin_TXD0	IOPORT_CREATE_PIN(PORTD, 3)		//USART PC, передача
 #define pin_SEMV2	IOPORT_CREATE_PIN(PORTD, 4)			//ON\OFF Открытие клапана
 #define pin_SEMV3	IOPORT_CREATE_PIN(PORTD, 5)			//ON\OFF Открытие клапана
 #define pin_DDminus	IOPORT_CREATE_PIN(PORTD, 6)		//USB DD- (НЕ ИСПОЛЬЗУЕТСЯ)

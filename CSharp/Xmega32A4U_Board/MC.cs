@@ -65,9 +65,11 @@ namespace Xmega32A4U_testBoard
         struct Incident
         {
             //СТРУКТУРА: Хранилище констант - кодов происшествий, которые передаются при опросе статуса МК
-            public const byte LOCKisLost = 2;  //МК принимал пакет, но в последний байт пакета не затвор
-            public const byte TooShortPacket = 4;  //байт длинны пакета меньше минимального (5)
-            public const byte TooFast = 8;  //МК ещё не выполнил предыдущую команду, а уже приходит другая.
+            public const byte LOCKisLost = 1;       //МК принимал пакет, но в последний байт пакета не затвор
+            public const byte TooShortPacket = 2;   //байт длинны пакета меньше минимального (5)
+            public const byte TooFast = 4;          //МК ещё не выполнил предыдущую команду, а уже приходит другая.
+            public const byte Silence = 8;          //МК больше 60 секунд не связывался с ПК
+            public const byte Noise = 16;           //На линии МК-ПК был замечен шум
         }
         #endregion
         #endregion
@@ -116,50 +118,23 @@ namespace Xmega32A4U_testBoard
             public static EventCallBack MeasureEnd;
             #region Счётчики
             /// <summary>
-            /// Счётчик А (32-разрядный)
+            /// Результат счётчика А (32-разрядный) 
+            /// <para>Если значение счётчика равно максимальному для uint,</para>
+            /// <para>то это означает, что счётчик переполнен.</para>
             /// </summary>
-            public static class COA
-            {
-                //КЛАСС: Счётчик. Только хранит значения.
-                /// <summary>
-                /// Количество переполнений счётчика
-                /// </summary>
-                public static byte Overflows = 0;  //Количество переполений счётчика
-                /// <summary>
-                /// Сосчитанный результат
-                /// </summary>
-                public static uint Count = 0;   //Сосчитанный результат
-            }
+            public static uint COA = 0;
             /// <summary>
-            /// Счётчик В (32-разрядный)
+            /// Результат счётчика B (32-разрядный) 
+            /// <para>Если значение счётчика равно максимальному для uint,</para>
+            /// <para>то это означает, что счётчик переполнен.</para>
             /// </summary>
-            public static class COB
-            {
-                //КЛАСС: Счётчик. Только хранит значения.
-                /// <summary>
-                /// Количество переполнений счётчика
-                /// </summary>
-                public static byte Overflows = 0;  //Количество переполений счётчика
-                /// <summary>
-                /// Сосчитанный результат
-                /// </summary>
-                public static uint Count = 0;   //Сосчитанный результат
-            }
+            public static uint COB = 0;
             /// <summary>
-            /// Счётчик С (16-разрядный)
+            /// Результат счётчика C (32-разрядный) 
+            /// <para>Если значение счётчика равно максимальному для uint,</para>
+            /// <para>то это означает, что счётчик переполнен.</para>
             /// </summary>
-            public static class COC
-            {
-                //КЛАСС: Счётчик. Только хранит значения.
-                /// <summary>
-                /// Количество переполнений счётчика
-                /// </summary>
-                public static byte Overflows = 0;  //Количество переполений счётчика
-                /// <summary>
-                /// Сосчитанный результат
-                /// </summary>
-                public static uint Count = 0;   //Сосчитанный результат
-            }
+            public static uint COC = 0;
             #endregion
             public static string Status = "notSet";
             static string convertStatus(byte Status_byte)
@@ -359,12 +334,9 @@ namespace Xmega32A4U_testBoard
                     return false;
                 }
                 //Очистка
-                COA.Count = 0;
-                COA.Overflows = 0;
-                COB.Count = 0;
-                COB.Overflows = 0;
-                COC.Count = 0;
-                COC.Overflows = 0;
+                COA = 0;
+                COB = 0;
+                COC = 0;
                 List<byte> wDATA = new List<byte>();    //Данные на передачу
                 List<byte> rDATA;
                 //Вычисление байт для периода RTC
@@ -452,7 +424,7 @@ namespace Xmega32A4U_testBoard
             public static bool receiveResults()
             {
                 //ФУНКЦИЯ: Запрашиваем результаты измерения. Если измерение завершилось успешно нам пришлют результаты и мы выйдем с true, в противном случае пришлют статус (не ready) и мы вылетим с false'м
-                //ДАННЫЕ: <Command><RTC_Status><COA_OVF><COA_M[3]><COA_M[2]><COA_M[1]><COA_M[0]><COВ_OVF><COВ_M[3]><COВ_M[2]><COВ_M[1]><COВ_M[0]><COС_OVF><COС_M[1]><COС_M[0]>
+                //ДАННЫЕ: <Command><RTC_Status><COA_OVF[1]><COA_OVF[0]><COA_M[1]><COA_M[0]><COB_OVF[1]><COB_OVF[0]><COВ_M[1]><COВ_M[0]><COC_OVF[1]><COC_OVF[0]><COС_M[1]><COС_M[0]>
                 MC.Service.trace_attached(Environment.NewLine);
                 string command = "Counters.receiveResults()";
                 MC.Service.trace(command);
@@ -468,12 +440,9 @@ namespace Xmega32A4U_testBoard
                     Status = convertStatus(rDATA[1]);
                     if (Status == Constants.Status.string_ready)
                     {
-                        COA.Overflows = rDATA[2];
-                        COA.Count = (uint)(rDATA[3] * 16777216 + rDATA[4] * 65536 + rDATA[5] * 256 + rDATA[6]);
-                        COB.Overflows = rDATA[7];
-                        COB.Count = (uint)(rDATA[8] * 16777216 + rDATA[9] * 65536 + rDATA[10] * 256 + rDATA[11]);
-                        COC.Overflows = rDATA[12];
-                        COC.Count = (uint)(rDATA[13] * 256 + rDATA[14]);
+                        COA = (uint)(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
+                        COB = (uint)(rDATA[6] * 16777216 + rDATA[7] * 65536 + rDATA[8] * 256 + rDATA[9]);
+                        COC = (uint)(rDATA[10] * 16777216 + rDATA[11] * 65536 + rDATA[12] * 256 + rDATA[13]);
                         MC.Service.trace(command + ":Результаты успешно получены!");
                         return true;
                     }
@@ -557,6 +526,14 @@ namespace Xmega32A4U_testBoard
                 if ((incedent & Incident.TooFast) == Incident.TooFast)
                 {
                     MC.Service.trace("         TooFast");
+                }
+                if ((incedent & Incident.Silence) == Incident.Silence)
+                {
+                    MC.Service.trace("         Silence");
+                }
+                if ((incedent & Incident.Noise) == Incident.Noise)
+                {
+                    MC.Service.trace("         Noise");
                 }
                 return rDATA[0];
             }
@@ -860,13 +837,21 @@ namespace Xmega32A4U_testBoard
             }
             public static List<byte> decode(List<byte> DATA)
             {
+                List<byte> rDATA = DATA;
+                if (tracer_enabled)
+                {
+                    trace("         Принятый пакет: ");
+                    foreach (byte b in rDATA)
+                    {
+                        trace("             " + b);
+                    }
+                }
                 trace("         Анализ полученной команды...");
                 if (DATA.Count < 3)
                 {
                     trace("Полученная команда слишком коротка!");
                     return new List<byte>();
                 }
-                List<byte> rDATA = DATA;
                 if (rDATA.First<byte>() == Command.KEY)
                 {
                     rDATA.RemoveAt(0);                              //Удаляем ключ
@@ -879,14 +864,14 @@ namespace Xmega32A4U_testBoard
                         if (CheckSum == calcedCheckSum)
                         {
                             //Пакет верный, возвращаем его
-                            if (tracer_enabled)
-                            {
-                                trace("         Пакет принятых данных: ");
-                                foreach (byte b in rDATA)
-                                {
-                                    trace("             " + b);
-                                }
-                            }
+                            //if (tracer_enabled)
+                            //{
+                            //    trace("         Пакет принятых данных: ");
+                            //    foreach (byte b in rDATA)
+                            //    {
+                            //        trace("             " + b);
+                            //    }
+                            //}
                             return rDATA;
                         }
                         else

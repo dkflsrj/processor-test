@@ -464,7 +464,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
-            TIC.Display_contrast = "1";
+            TIC.Display_contrast = "15";
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
@@ -637,21 +637,12 @@ namespace Xmega32A4U_testBoard
         uint COA_min = uint.MaxValue;
         uint COA_mid = 0;
         uint COA_max = uint.MinValue;
-        uint COA_OVF_min = uint.MaxValue;
-        uint COA_OVF_mid = 0;
-        uint COA_OVF_max = uint.MinValue;
         uint COB_min = uint.MaxValue;
         uint COB_mid = 0;
         uint COB_max = uint.MinValue;
-        uint COB_OVF_min = uint.MaxValue;
-        uint COB_OVF_mid = 0;
-        uint COB_OVF_max = uint.MinValue;
         uint COC_min = uint.MaxValue;
         uint COC_mid = 0;
         uint COC_max = uint.MinValue;
-        uint COC_OVF_min = uint.MaxValue;
-        uint COC_OVF_mid = 0;
-        uint COC_OVF_max = uint.MinValue;
 
         uint COX_buf;
 
@@ -673,35 +664,20 @@ namespace Xmega32A4U_testBoard
                 Cycles_performed++;
                 TXB_realCOX_NumberOfMeasurments.Text = (Cycles - Cycles_performed).ToString();
 
-                COX_buf = MC.Counters.COA.Count;
+                COX_buf = MC.Counters.COA;
                 if (COA_min > COX_buf) { COA_min = COX_buf; }
                 COA_mid = (COA_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
                 if (COA_max < COX_buf) { COA_max = COX_buf; }
 
-                COX_buf = MC.Counters.COA.Overflows;
-                if (COA_OVF_min > COX_buf) { COA_OVF_min = COX_buf; }
-                COA_OVF_mid = (COA_OVF_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
-                if (COA_OVF_max < COX_buf) { COA_OVF_max = COX_buf; }
-
-                COX_buf = MC.Counters.COB.Count;
+                COX_buf = MC.Counters.COB;
                 if (COB_min > COX_buf) { COB_min = COX_buf; }
                 COB_mid = (COB_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
                 if (COB_max < COX_buf) { COB_max = COX_buf; }
 
-                COX_buf = MC.Counters.COB.Overflows;
-                if (COB_OVF_min > COX_buf) { COB_OVF_min = COX_buf; }
-                COB_OVF_mid = (COB_OVF_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
-                if (COB_OVF_max < COX_buf) { COB_OVF_max = COX_buf; }
-
-                COX_buf = MC.Counters.COC.Count;
+                COX_buf = MC.Counters.COC;
                 if (COC_min > COX_buf) { COC_min = COX_buf; }
                 COC_mid = (COC_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
                 if (COC_max < COX_buf) { COC_max = COX_buf; }
-
-                COX_buf = MC.Counters.COC.Overflows;
-                if (COC_OVF_min > COX_buf) { COC_OVF_min = COX_buf; }
-                COC_OVF_mid = (COC_OVF_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
-                if (COC_OVF_max < COX_buf) { COC_OVF_max = COX_buf; }
 
                 if (Cycles_performed < Cycles)
                 {
@@ -715,9 +691,6 @@ namespace Xmega32A4U_testBoard
                     LBL_realCOX_COA_Result.Text = COA_min + "..." + COA_mid + "..." + COA_max;
                     LBL_realCOX_COB_Result.Text = COB_min + "..." + COB_mid + "..." + COB_max;
                     LBL_realCOX_COC_Result.Text = COC_min + "..." + COC_mid + "..." + COC_max;
-                    LBL_realCOX_COA_Ovf.Text = COA_OVF_min + "..." + COA_OVF_mid + "..." + COA_OVF_max;
-                    LBL_realCOX_COB_Ovf.Text = COB_OVF_min + "..." + COB_OVF_mid + "..." + COB_OVF_max;
-                    LBL_realCOX_COC_Ovf.Text = COC_OVF_min + "..." + COC_OVF_mid + "..." + COC_OVF_max;
                 }
             }
         }

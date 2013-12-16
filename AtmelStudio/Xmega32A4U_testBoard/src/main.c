@@ -23,8 +23,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										123
-#define birthday									20131209
+#define version										124
+#define birthday									20131216
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -32,6 +32,12 @@
 #define RTC_setStatus_ready			RTC_Status =	RTC_Status_ready
 #define RTC_setStatus_stopped		RTC_Status =	RTC_Status_stopped
 #define RTC_setStatus_busy			RTC_Status =	RTC_Status_busy
+//Состояния USART
+#define	USART_State_ready							0		//USART ничего не принимает
+#define USART_State_receiving						1		//USART принимает байты
+#define USART_State_ending							2		//USART получил байт затвора, ожидается завершение передачи
+#define USART_State_decoding						3		//USART декодирует команду
+#define USART_State_HVEwaiting						4		//USART (TIC) ждёт ответа от TIC'a на мониторинговый запрос
 //Стартовые конфигурации для DAC AD5643R -> двойной референс
 #define AD5643R_confHbyte							56
 #define AD5643R_confMbyte							0
@@ -52,41 +58,49 @@
 
 //----------------------------------------ПЕРЕМЕННЫЕ----------------------------------------------
 //	МИКРОКОНТРОЛЛЕР
-uint8_t MC_version = version;
+uint8_t  MC_version = version;
 uint32_t MC_birthday = birthday;
-uint8_t MC_CommandStack = 0;
+uint8_t  MC_CommandStack = 0;
 
-uint8_t MC_Status = 0;
-//		USART COMP
-uint8_t  COMP_MEM[100];									//100 байт памяти для приёма данных USART
-uint8_t  COMP_MEM_length = 0;							//Длина записанного в USART_MEM пакета байтов.
-uint16_t COMP_receiving_limit = 800;					//~1,2мс ожидания следующего байта. Если не придёт, то анулируем.
-uint16_t COMP_receiving_time = 0;						//Счётчик времени приёма и знак того что находимся в режиме приёма
-uint8_t  COMP_LOCK_received = 0;						//Булка - принят байт похожий на затвор!
-uint8_t  COMP_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже шум)
-uint8_t  COMP_MEM[100];									//10 байт памяти для приёма данных USART
-uint8_t  COMP_MEM_CheckSum = 0;							//Принятая контрольная сумма (из пакета)
+uint8_t  MC_Status = 0;
+//		USART PC
+uint8_t PC_timer_TimeOut = 30;							//60 секунд
+uint8_t PC_timer_time = 0;								//Таймер времени приёма и тишины
+uint8_t PC_MEM[100];									//100 байт памяти для приёма данных USART
+uint8_t PC_MEM_length = 0;								//Длина записанного в PC_MEM пакета байтов.
+uint8_t PC_State = 0;									//Состояние модуля USART_PC
+uint8_t PC_buf = 0;										//Буфер приёма. Содержит любой принятый байт (даже шум)
+uint8_t PC_MEM_CheckSum = 0;							//Принятая контрольная сумма (из пакета)
 //		USART TIC
+uint8_t TIC_timer_TimeOut = 5;							//10 секунд
+uint8_t TIC_timer_time = 0;								//Таймер времени приёма и тишины
 uint8_t TIC_MEM[100];									//100 байт памяти для приёма данных от TIC
-uint8_t TIC_MEM_Length = 0;								//Длина записанного в TIC_MEM пакета байтов.
+uint8_t TIC_MEM_length = 0;								//Длина записанного в TIC_MEM пакета байтов.
 uint8_t TIC_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже шум)
+uint8_t TIC_State = 0;									//Состояние модуля USART_TIC
+uint8_t TIC_waitForAnswer = 0;							//bool'ка 0 - не ждём ответа от TIC'а, 1 - ждём на HVE
+uint8_t TIC_HVE_Message[6] = {63,86,57,49,0,13};		//char'ы сообщения на запрос давления {?V91<NUL><\r>}
+uint8_t TIC_HVE_onGauge = 0;							//последний char адреса датчика (турбика)
+uint8_t TIC_HVE_onLevel[4] = {0,0,0,0};					//char'ы порога напряжения (турбика)
+uint8_t TIC_HVE_offGauge = 0;							//последний char адреса датчика (форнасоса)
+uint8_t TIC_HVE_offLevel[4] = {0,0,0,0};				//char'ы порога напряжения (форнасоса)
 //		Измерения
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
-uint8_t  RTC_MeasurePrescaler = RTC_PRESCALER_OFF_gc;	//Предделитель RTC во время измерения
-uint16_t RTC_MeasurePeriod = 0;							//Период RTC во время следующего измерения
-uint32_t COA_Measurment = 0;							//Последнее измерение счётчика COA
-uint8_t	 COA_OVF = 0;									//Количество переполнений счётчика СОА в текущем измерении
-uint32_t COB_Measurment = 0;							//Последнее измерение счётчика COB
-uint8_t	 COB_OVF = 0;									//Количество переполнений счётчика СОВ в текущем измерении
-uint32_t COC_Measurment = 0;							//Последнее измерение счётчика COC
-uint8_t	 COC_OVF = 0;									//Количество переполнений счётчика СОС в текущем измерении
+uint8_t  RTC_MeasurePrescaler = RTC_PRESCALER_OFF_gc;	//Предделитель RTC
+uint16_t RTC_MeasurePeriod = 0;							//Период RTC
+uint16_t COA_Measurment = 0;							//Последнее измерение счётчика COA
+uint16_t COA_OVF = 0;									//Количество переполнений счётчика СОА
+uint16_t COB_Measurment = 0;							//Последнее измерение счётчика COB
+uint16_t COB_OVF = 0;									//Количество переполнений счётчика СОВ
+uint16_t COC_Measurment = 0;							//Последнее измерение счётчика COC
+uint16_t COC_OVF = 0;									//Количество переполнений счётчика СОС
 //-----------------------------------------СТРУКТУРЫ----------------------------------------------
 //Битовые поля
 struct struct_MC_Tasks
 {
 	uint8_t setDACs			:1;
-	uint8_t Decrypt			:1;
-	uint8_t noTasks2		:1;
+	uint8_t noTasks1		:1;
+	uint8_t checkHVE		:1;
 	uint8_t noTasks3		:1;
 	uint8_t noTasks4		:1;
 	uint8_t noTasks5		:1;
@@ -94,18 +108,18 @@ struct struct_MC_Tasks
 	uint8_t noTasks7		:1;
 };
 struct struct_MC_Tasks MC_Tasks = {0,0,0,0,0,0,0,0};
-struct struct_Errors_USART_COMP
+struct struct_Errors_USART_PC
 {
-	uint8_t noError1				:1;
 	uint8_t LOCKisLost				:1;
 	uint8_t TooShortPacket			:1;
 	uint8_t TooFast					:1;
-	uint8_t noError4				:1;
+	uint8_t Silence					:1;
+	uint8_t Noise					:1;
 	uint8_t noError5				:1;
 	uint8_t noError6				:1;
 	uint8_t noError7				:1;
 };
-struct struct_Errors_USART_COMP Errors_USART_COMP = {0,0,0,0,0,0,0,0};
+struct struct_Errors_USART_PC Errors_USART_PC = {0,0,0,0,0,0,0,0};
 struct struct_Flags
 {
 	uint8_t SPUMP		:1;
@@ -118,11 +132,11 @@ struct struct_Flags
 	uint8_t checkOrSet	:1;	
 }Flags;
 //USART
-static usart_rs232_options_t USART_COMP_OPTIONS = {
-	.baudrate = USART_COMP_BAUDRATE,
-	.charlength = USART_COMP_CHAR_LENGTH,
-	.paritytype = USART_COMP_PARITY,
-	.stopbits = USART_COMP_STOP_BIT
+static usart_rs232_options_t USART_PC_OPTIONS = {
+	.baudrate = USART_PC_BAUDRATE,
+	.charlength = USART_PC_CHAR_LENGTH,
+	.paritytype = USART_PC_PARITY,
+	.stopbits = USART_PC_STOP_BIT
 };
 static usart_rs232_options_t USART_TIC_OPTIONS = {
 	.baudrate = USART_TIC_BAUDRATE,
@@ -161,7 +175,7 @@ struct spi_device ADC_MSV = {
 //ADC у конденсатора тот же что и у сканера
 //-----------------------------------------УКАЗАТЕЛИ----------------------------------------------
 uint8_t *pointer_MC_Tasks;
-uint8_t *pointer_Errors_USART_COMP;
+uint8_t *pointer_Errors_USART_PC;
 uint8_t *pointer_Flags;
 //------------------------------------ОБЪЯВЛЕНИЯ ФУНКЦИЙ------------------------------------------
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length);
@@ -178,7 +192,9 @@ void COUNTERS_stop(void);
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel,EVSYS_DIGFILT_t filterCoefficient);
 void decode(void);
+void TIC_retransmit(void);
 void TIC_transmit(void);
+void TIC_monitor(void);
 void SPI_send(uint8_t DEVICE_Number);
 void checkFlags(void);
 void updateFlags(void);
@@ -186,47 +202,34 @@ void updateFlags(void);
 ISR(USARTD0_RXC_vect)
 {
 	//ПРЕРЫВАНИЕ:
-	//ПОСЫЛКА: <KEY><PACKET_LENGTH><DATA[...]<CS><LOCK>
-	//			PACKET_LENGTH = полная длина посылки
-	cli();
-	//25(0,78мкс) - неверный ключ (не реагируем)
-	//42(1,31мкс) - верный ключ (первый байт принят)
-	//38(1,19мкс) - ОШИБКА! МК не выполнил предыдущую команду
-	//43(1,34мкс) - ОШИБКА ПРИЁМА! Длинна пакета меньше минимальной
-	//35(1,09мкс) - верная длинна пакета (второй байт принят)
-	//59(1,84мкс) - приём байта данных
-	//68(2,13мкс) - приём байта контрольной суммы
-	//74(2,31мкс) - ОШИБКА ПРИЁМА! Запрещённое состояние! USART_MEM_LENGTH > USART_MAIL_Length!
-	//94(2,94мкс) - принят затвор (последний байт) Приём успешно завершён!
-	//86(2,69мкс) - ОШИБКА! Не был получен затвор!
-
+	//ПОСЫЛКА: <KEY><DATA[...]<CS><LOCK>
+	//~1..3мкс
 	//Принимаем байт, что бы там нибыло
-	COMP_buf = *USART_COMP.DATA;//->3(95нс)
+	PC_buf = *USART_PC.DATA;//->3(95нс)
+	cli_PC;
 	//Если в режиме приёма
-	if(COMP_receiving_time > 0)
+	if((PC_State == USART_State_receiving)||(PC_State == USART_State_ending))
 	{
-		COMP_receiving_time = 1;				//Готовимся принять следующий байт
-		COMP_MEM[COMP_MEM_length] = COMP_buf;	//Сохраняем байт
-		COMP_MEM_length++;						//Увеличиваем счётчик принятых байтов
-		COMP_LOCK_received = 0;					//Предполагаем, что этот байт не затвор
-		if (COMP_buf == COMMAND_LOCK){COMP_LOCK_received = 1;}
+		PC_timer.CNT = 0;						//Обнуляем счёт счётчика
+		PC_MEM[PC_MEM_length] = PC_buf;			//Сохраняем байт
+		PC_MEM_length++;						//Увеличиваем счётчик принятых байтов
+		PC_State = USART_State_receiving;		//Предполагаем, что этот байт не затвор
+		if (PC_buf == COMMAND_LOCK){PC_State = USART_State_ending;}	//Если получили затвор, готовимся завершить приём
 	}
-	else if(COMP_buf == COMMAND_KEY)
+	else if(PC_State == USART_State_ready)
 	{
-		//Пришёл ключ!
-		if(MC_Tasks.Decrypt == 0)
+		if(PC_buf == COMMAND_KEY)
 		{
-			COMP_receiving_time = 1;	//Переходим в режим приёма
-			COMP_MEM_length = 0;		//Обнуляем счётчик принятых байтов
-			COMP_LOCK_received = 0;		//Ожидаем затвор
+			//Пришёл ключ!
+			PC_State = USART_State_receiving;	//Переходим в режим приёма
+			PC_timer.CNT = 0;					//Обнуляем таймер
+			PC_timer.CTRLA = TC_32MHz;			//Запускаем таймер на 4мс.
+			PC_MEM_length = 0;					//Обнуляем счётчик принятых байтов
 		}
-		else
-		{
-			//ОШИБКА! МК не выполнил предыдущую команду
-			Errors_USART_COMP.TooFast = 1;
-		}
+		else { Errors_USART_PC.Noise = 1; }		//Что-то твориться на линии
 	}
-	sei();
+	else if(PC_State == USART_State_decoding) { Errors_USART_PC.TooFast = 1; } //МК не выполнил предыдущую команду
+	sei_PC;
 }
 ISR(USARTE0_RXC_vect)
 {
@@ -234,7 +237,20 @@ ISR(USARTE0_RXC_vect)
 	//ФУНКЦИЯ: Дешифрирование байта как команду или данные, выполнение предписанных действий
 	//Принимаем байт
 	TIC_buf = *USART_TIC.DATA;//->3(95нс)
-	
+	cli_TIC;
+	switch(TIC_State)
+	{
+		case USART_State_receiving:		//Если в режиме приёма
+			TIC_timer.CNT = 0;						//Обнуляем счёт счётчика
+			TIC_MEM[TIC_MEM_length] = TIC_buf;		//Сохраняем байт
+			TIC_MEM_length++;						//Увеличиваем счётчик принятых байтов
+			break;
+		case USART_State_HVEwaiting:	//Если в режиме ожидания ответа от TIC'a на HVE
+			break;
+		default:
+			break;
+	}
+	sei_TIC;
 }
 ISR(RTC_OVF_vect)
 {
@@ -243,42 +259,136 @@ ISR(RTC_OVF_vect)
     cli();
     asm(
         "LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
-        "STS 0x0800, R16		\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Ноль
-        "STS 0x0900, R16		\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Ноль
-        "STS 0x0A00, R16		\n\t"//Адрес TCE0.CTRLA = 0x0A00 <-	Ноль
-        "STS 0x0840, R16		\n\t"//Адрес TCC1.CTRLA = 0x0840 <-	Ноль
-        "STS 0x0940, R16		\n\t"//Адрес TCD1.CTRLA = 0x0940 <-	Ноль
+        "STS 0x0800, R16		\n\t"//COA: Адрес TCC0.CTRLA = 0x0800 <- Ноль
+        "STS 0x0900, R16		\n\t"//COB: Адрес TCD0.CTRLA = 0x0900 <- Ноль
+        "STS 0x0A00, R16		\n\t"//COC: Адрес TCE0.CTRLA = 0x0A00 <- Ноль
     );
     while (RTC.STATUS != 0)
     {
         //Ждём пока можно будет обратиться к регистрам RTC
     }
     RTC.CTRL = RTC_PRESCALER_OFF_gc;
+	sei();
     //сохраняем результаты
-    COA_Measurment = (((uint32_t)TCC1.CNT) << 16) + TCC0.CNT;
-    COB_Measurment = (((uint32_t)TCD1.CNT) << 16) + TCD0.CNT;
-    COC_Measurment = TCE0.CNT;
+    COA_Measurment = COA.CNT;
+    COB_Measurment = COB.CNT;
+    COC_Measurment = COC.CNT;
 	RTC_setStatus_ready;
 	//Отправляем асинхронное сообщение
 	transmit_3bytes(TOCKEN_LookAtMe, LAM_RTC_end, RTC_Status);
 }
-static void ISR_TCC1(void)
+static void ISR_COA(void)
  {
-	 COA_OVF++;
+	 if (COA_OVF != 65535)
+	 {
+		 //Если COX_OVF не достиг предела, то +1
+		 COA_OVF++;
+	 }
+	 else
+	 {
+		 //Если COX_OVF достиг предела, то выключаем счётчик и устанавливаем у него всё на максимум
+		 COA.CTRLA = 0;
+		 COA.CNT = 65535;
+	 }
  }
-static void ISR_TCD1(void)
+static void ISR_COB(void)
  {
-	 COB_OVF++;
+	 if (COB_OVF != 65535)
+	 {
+		 //Если COX_OVF не достиг предела, то +1
+		 COB_OVF++;
+	 }
+	 else
+	 {
+		 //Если COX_OVF достиг предела, то выключаем счётчик и устанавливаем у него всё на максимум
+		 COB.CTRLA = 0;
+		 COB.CNT = 65535;
+	 }
  }
-static void ISR_TCE0(void)
+static void ISR_COC(void)
  {
-	 COC_OVF++;
+	 if (COC_OVF != 65535)
+	 {
+		 //Если COX_OVF не достиг предела, то +1
+		 COC_OVF++;
+	 }
+	 else
+	 {
+		 //Если COX_OVF достиг предела, то выключаем счётчик и устанавливаем у него всё на максимум
+		 COC.CTRLA = 0;
+		 COC.CNT = 65535;
+	 }
+ }
+ static void ISR_TIC_timer(void)
+ {
+	 //ПРЕРЫВАНИЕ: Таймаут приёма байтов от TIC и тишины на линии (МК ведущий)
+	 switch(TIC_State)
+	 {
+		case USART_State_receiving:
+			break;
+		case USART_State_ready:
+			break;
+		case USART_State_HVEwaiting:
+			break;
+		default:
+			break; 
+	 }
+ }
+ static void ISR_PC_timer(void)
+ {
+	 //ПРЕРЫВАНИЕ: Так как предделителя не хватает (32МГц на 1024), то прерывание срабатывает каждые 2 секунды.
+	 //Поэтому будем отсчитывать процессором пары секунд. Когда количество пар превысит заданное, можно выставлять
+	 //флаг о потере связи с компьютером и выключать высокое напряжение.
+	 //Во время приёма байтов таймер служит таймаутом приёма.
+	 cli_PC;
+	 switch(PC_State)
+	 {
+		case USART_State_receiving: //Мы не ожидали завершения передачи! Передача прервана! Время вышло!
+			PC_timer.CTRLA = TC_31kHz;		//Переходим в режим тишины
+			PC_timer.CNT = 0;
+			PC_timer_time = 0;
+			PC_State = USART_State_ready;	//Ждём начала передачи
+			break;
+		case USART_State_ending: //Приём успешно завершён! Можно декодировать. Проверяем длинну команды
+			if(PC_MEM_length > 2)
+			{
+				PC_MEM_length--;				//Отсекаем последний байт (то байт затвора)
+				uint8_t CheckSum = 0;			//Подсчёт контрольной суммы...
+				for (uint8_t i = 0; i < PC_MEM_length; i++) { CheckSum -= PC_MEM[i]; }
+				PC_MEM_length--;				//Отсекаем контрольную сумму
+				if (CheckSum == PC_MEM_CheckSum) { decode();  }
+				else { transmit_3bytes(TOCKEN_ERROR, ERROR_CheckSum, CheckSum); }	//Неверная контрольная сумма!
+			}
+			else { Errors_USART_PC.TooShortPacket = 1; }
+			PC_State = USART_State_ready;		//Приём и декодирование завершено
+			PC_timer.CTRLA = TC_31kHz;			//Переходим в режим тишины
+			PC_timer.CNT = 0;
+			PC_timer_time = 0;
+			break;
+		case USART_State_ready:					//Мы в режиме тишины.
+			if (PC_timer_time >= PC_timer_TimeOut)
+			{
+				//Время тишины вышло, PC не выходит на связь, выключаем PRGE (и iHVE)
+				cli();
+				gpio_set_pin_high(pin_iHVE);	//Выключаем DC-DC 24-12
+				Flags.PRGE = 0;					//Выключаем PRGE от лица оператора
+				Errors_USART_PC.Silence = 1;	//Отмечаем тишину в эфире
+				PC_timer.CTRLA = TC_Off;		//Выключаем таймер тишины, до следующего сеанса связи
+				PC_timer.CNT = 0;
+				sei();
+			}
+			else { PC_timer_time++; }
+			break;
+		 default: //В любом другом случае ничего не делаем (декодирование в самом разгаре например)
+			break;
+	 }
+	 sei_PC;
  }
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
 void decode(void)
 {
 	//ФУНКЦИЯ: Расшифровываем команду
-	switch(COMP_MEM[0])																					
+	switch(PC_MEM[0])																					
 	{																										
 		case COMMAND_MC_get_Status:					MC_transmit_Status;										
 		break;																								
@@ -320,10 +430,10 @@ void decode(void)
 		break;																								
 		case COMMAND_Flags_set: 					checkFlags();									
 		break;																								
-		default: transmit_3bytes(TOCKEN_ERROR, ERROR_Decoder, COMP_MEM[0]);
+		default: transmit_3bytes(TOCKEN_ERROR, ERROR_Decoder, PC_MEM[0]);
 	}
 }
-//USART COMP
+//USART PC
 void transmit(uint8_t DATA[],uint8_t DATA_length)
 {
 	//ФУНКЦИЯ: Посылаем заданное количество данных, оформив их по протоколу и с контрольной суммой
@@ -334,57 +444,43 @@ void transmit(uint8_t DATA[],uint8_t DATA_length)
 	//							<attached_data> - сами данные. Их может не быть (Приказ)
 	//					   '<CS>' - контрольная сумма
 	//					   '\r' - конец передачи
-	cli();
-	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	for (uint8_t i = 0; i < DATA_length; i++)
-	{
-		usart_putchar(USART_COMP,DATA[i]);							//<data>
-	}
-	usart_putchar(USART_COMP,calcCheckSum(DATA,DATA_length + 1));	//<CS>
-	usart_putchar(USART_COMP,COMMAND_LOCK);							//'\r'
-	sei();
+	usart_putchar(USART_PC,COMMAND_KEY);											//':'
+	for (uint8_t i = 0; i < DATA_length; i++) { usart_putchar(USART_PC,DATA[i]); }	//<data>
+	usart_putchar(USART_PC,calcCheckSum(DATA,DATA_length + 1));						//<CS>
+	usart_putchar(USART_PC,COMMAND_LOCK);											//'\r'
 }
 void transmit_byte(uint8_t DATA)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	cli();
-	usart_putchar(USART_COMP,COMMAND_KEY);							//':'
-	usart_putchar(USART_COMP,DATA);									//<data>
-	usart_putchar(USART_COMP, (uint8_t)(256 - DATA));				//<CS>
-	usart_putchar(USART_COMP,COMMAND_LOCK);							//'\r'
-	sei();
+	usart_putchar(USART_PC,COMMAND_KEY);											//':'
+	usart_putchar(USART_PC,DATA);													//<data>
+	usart_putchar(USART_PC, (uint8_t)(256 - DATA));									//<CS>
+	usart_putchar(USART_PC,COMMAND_LOCK);											//'\r'
 }
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	cli();
-	usart_putchar(USART_COMP,COMMAND_KEY);								//':'
-	usart_putchar(USART_COMP,DATA_1);
-	usart_putchar(USART_COMP,DATA_2);									//<data>
-	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2));		//<CS>
-	usart_putchar(USART_COMP,COMMAND_LOCK);								//'\r'
-	sei();
+	usart_putchar(USART_PC,COMMAND_KEY);											//':'
+	usart_putchar(USART_PC,DATA_1);
+	usart_putchar(USART_PC,DATA_2);													//<data>
+	usart_putchar(USART_PC, (uint8_t)(256 - DATA_1 - DATA_2));						//<CS>
+	usart_putchar(USART_PC,COMMAND_LOCK);											//'\r'
 }
 void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
-	cli();
-	usart_putchar(USART_COMP,COMMAND_KEY);									//':'
-	usart_putchar(USART_COMP,DATA_1);
-	usart_putchar(USART_COMP,DATA_2);										//<data>
-	usart_putchar(USART_COMP,DATA_3);
-	usart_putchar(USART_COMP, (uint8_t)(256 - DATA_1 - DATA_2 - DATA_3));	//<CS>
-	usart_putchar(USART_COMP,COMMAND_LOCK);									//'\r'
-	sei();
+	usart_putchar(USART_PC,COMMAND_KEY);											//':'
+	usart_putchar(USART_PC,DATA_1);
+	usart_putchar(USART_PC,DATA_2);													//<data>
+	usart_putchar(USART_PC,DATA_3);
+	usart_putchar(USART_PC, (uint8_t)(256 - DATA_1 - DATA_2 - DATA_3));				//<CS>
+	usart_putchar(USART_PC,COMMAND_LOCK);											//'\r'
 }
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 {
 	//ФУНКЦИЯ: Вычисляет контрольную сумму принятых данных
 	uint8_t CheckSum = 0;
-	for (uint8_t i = 0; i < data_length - 1; i++)
-	{
-		CheckSum -= data[i];
-	}
+	for (uint8_t i = 0; i < data_length - 1; i++) { CheckSum -= data[i]; }
 	return CheckSum;
 }
 //MC
@@ -406,7 +502,6 @@ void MC_reset(void)
 	cpu_irq_disable();
 	uint8_t data[] = {COMMAND_MC_reset};
 	transmit(data,1);
-	
 	RST.CTRL = 1;
 }
 //COUNTERS
@@ -422,7 +517,7 @@ void COUNTERS_start(void)
 		{
 			//Ждём пока можно будет обратиться к регистрам RTC
 		}
-		RTC.PER = (COMP_MEM[2] << 8) + COMP_MEM[3];
+		RTC.PER = (PC_MEM[2] << 8) + PC_MEM[3];
 		COA_Measurment = 0;
 		COB_Measurment = 0;
 		COC_Measurment = 0;
@@ -434,11 +529,9 @@ void COUNTERS_start(void)
 			//Ждём пока можно будет обратиться к регистрам RTC
 		}
 		RTC.CNT = 0;
-		TCC0.CNT = 0;
-		TCC1.CNT = 0;
-		TCD0.CNT = 0;
-		TCD1.CNT = 0;
-		TCE0.CNT = 0;
+		COA.CNT = 0;
+		COB.CNT = 0;
+		COC.CNT = 0;
 		//начали
 		while(RTC.STATUS != 0)
 		{
@@ -449,16 +542,12 @@ void COUNTERS_start(void)
 		"LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
 		"LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
 		//"LDS R19, 0x205F	\n\t"//RTC: Адрес RTC_Prescaler  = 0x205F
-		"LDI R20, 0x09		\n\t"//TCC1:Код канала событий 1 = 0x09
-		"LDI R21, 0x0B		\n\t"//TCD1:Код канала событий 3 = 0x0B
 		"STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
 		"STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
 		"STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
 		//"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_Prescaler(@0x205F)
-		"STS 0x0840, R20	\n\t"//Адрес TCC1.CTRLA = 0x0840 <- Канал событий 1
-		"STS 0x0940, R21	\n\t"//Адрес TCD1.CTRLA = 0x0940 <- Канал событий 3
 		);
-		RTC.CTRL =  COMP_MEM[1];
+		RTC.CTRL =  PC_MEM[1];
 		//отчёт
 		transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
 		RTC_setStatus_busy;
@@ -473,27 +562,26 @@ void COUNTERS_start(void)
 void COUNTERS_sendResults(void)
 {
 	//ФУНКЦИЯ: Послать результаты счёта на ПК, если можно
-	//ДАННЫЕ: <Command><RTC_Status><COA_OVF><COA_M[3]><COA_M[2]><COA_M[1]><COA_M[0]><COВ_OVF><COВ_M[3]><COВ_M[2]><COВ_M[1]><COВ_M[0]><COС_OVF><COС_M[1]><COС_M[0]>
+	//ДАННЫЕ: <Command><RTC_Status><COA_OVF[1]><COA_OVF[0]><COA_M[1]><COA_M[0]><COB_OVF[1]><COB_OVF[0]><COВ_M[1]><COВ_M[0]><COC_OVF[1]><COC_OVF[0]><COС_M[1]><COС_M[0]>
 	uint8_t wDATA[15];
 	wDATA[0] = COMMAND_COUNTERS_sendResults;
 	wDATA[1] = RTC_Status;
 	if(RTC_Status == RTC_Status_ready)
 	{
-		wDATA[2] = COA_OVF;
-		wDATA[3] = (COA_Measurment >> 24);
-		wDATA[4] = (COA_Measurment >> 16);
-		wDATA[5] = (COA_Measurment >> 8);
-		wDATA[6] = COA_Measurment;
-		wDATA[7] = COB_OVF;
-		wDATA[8] = (COB_Measurment >> 24);
-		wDATA[9] = (COB_Measurment >> 16);
-		wDATA[10] = (COB_Measurment >> 8);
-		wDATA[11] = COB_Measurment;
-		wDATA[12] = COC_OVF;
-		wDATA[13] = (COC_Measurment >> 8);
-		wDATA[14] = COC_Measurment;
+		wDATA[2] = (COA_OVF >> 8);
+		wDATA[3] =	COA_OVF;
+		wDATA[4] = (COA_Measurment >> 8);
+		wDATA[5] =	COA_Measurment;
+		wDATA[6] = (COB_OVF >> 8);
+		wDATA[7] =	COB_OVF;
+		wDATA[8] = (COB_Measurment >> 8);
+		wDATA[9] =	COB_Measurment;
+		wDATA[10] = (COC_OVF >> 8);
+		wDATA[11] =	 COC_OVF;
+		wDATA[12] = (COC_Measurment >> 8);
+		wDATA[13] =  COC_Measurment;
 	}
-	transmit(wDATA,15);
+	transmit(wDATA,14);
 }
 
 void COUNTERS_stop(void)
@@ -506,17 +594,13 @@ void COUNTERS_stop(void)
 			//Ждём пока можно будет обратиться к регистрам RTC
 		}
 		RTC.CTRL = RTC_PRESCALER_OFF_gc;
-		tc_write_clock_source(&TCC0, TC_CLKSEL_OFF_gc);
-		tc_write_clock_source(&TCD0, TC_CLKSEL_OFF_gc);
-		tc_write_clock_source(&TCE0, TC_CLKSEL_OFF_gc);
-		tc_write_clock_source(&TCC1, TC_CLKSEL_OFF_gc);
-		tc_write_clock_source(&TCD1, TC_CLKSEL_OFF_gc);
+		tc_write_clock_source(&COA, TC_CLKSEL_OFF_gc);
+		tc_write_clock_source(&COB, TC_CLKSEL_OFF_gc);
+		tc_write_clock_source(&COC, TC_CLKSEL_OFF_gc);
 		//Могут быть траблы, внимательней
-		TCC0.CNT = 0;
-		TCC1.CNT = 0;
-		TCD0.CNT = 0;
-		TCD1.CNT = 0;
-		TCE0.CNT = 0;
+		COA.CNT = 0;
+		COB.CNT = 0;
+		COC.CNT = 0;
 		while(RTC.STATUS != 0)
 		{
 			//Ждём пока можно будет обратиться к регистрам RTC
@@ -531,27 +615,63 @@ void COUNTERS_stop(void)
 	}
 }
 //TIC
+void TIC_retransmit(void)
+{
+	//ФУНКЦИЯ: Ретрансмитит команду на TIC, если нет опроса HVE, если опрос HVE есть - ждёт ответа от TIC'а на опрос, а потом только ретрансимитит.
+	cli_PC;
+	for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i-1] = PC_MEM[i]; }	//Копируем всё что должны переслать
+	for (uint8_t i = 0; i < TIC_MEM_length; i++) { usart_putchar(USART_TIC,TIC_MEM[i]); }	//Отправляем
+	sei_PC;
+}
 void TIC_transmit(void)
 {
 	//ФУНКЦИЯ: ретранслировать команду TIC насосу
-	//COMP_MEM[0] - команда от ПК, остальное в COMP_MEM[0] то, что необходимо послать TIC'у
+	//PC_MEM[0] - команда от ПК, остальное в PC_MEM[0] то, что необходимо послать TIC'у
 	//Копируем всё что должны переслать
-	cli();
-	for (uint8_t i = 1; i < COMP_MEM_length; i++)
-	{
-		TIC_MEM[i-1] = COMP_MEM[i];
-	}
-	TIC_MEM_Length = COMP_MEM_length - 1;
-	sei();
+	//MC_transmit_Version;
+	//cli();
+	//for (uint8_t i = 1; i < PC_MEM_length; i++)
+	//{
+	//	TIC_MEM[i-1] = PC_MEM[i];
+	//}
+	//TIC_MEM_Length = PC_MEM_length - 1;
+	//sei();
 	//Осматриваемся на счёт прерываний
-	cli();
-	for (uint8_t i = 0; i < TIC_MEM_Length; i++)
-	{
-		usart_putchar(USART_TIC,TIC_MEM[i]);
-	}
-	sei();
+	//for (uint8_t i = 0; i < TIC_MEM_Length; i++)
+	//{
+	//	usart_putchar(USART_TIC,TIC_MEM[i]);
+	//}
+	cli_TIC;
+	usart_putchar(USART_TIC,33);
+	usart_putchar(USART_TIC,83);
+	usart_putchar(USART_TIC,57);
+	usart_putchar(USART_TIC,50);
+	usart_putchar(USART_TIC,53);
+	usart_putchar(USART_TIC,32);
+	usart_putchar(USART_TIC,49);
+	usart_putchar(USART_TIC,53);
+	usart_putchar(USART_TIC,13);
+	sei_TIC;
 	//ждём ответа от TIC
 	//Пересылаем ответ на ПК
+}
+void TIC_monitor(void)
+{
+	//ФУНКЦИЯ: Мониторим TIC на предмет рабочего вакуума
+	//Если HVE выключено, то обращаемся к высоковакуумному датчику
+	if(Flags.iHVE = 1)
+	{
+		//Если HVE запрещено
+		TIC_HVE_Message[4] = TIC_HVE_onGauge;
+		TIC_transmit();//TIC_HVE_Message, 6);
+		//включаем таймер
+	}
+	else
+	{
+		TIC_HVE_Message[4] = TIC_HVE_offGauge;
+		TIC_transmit();//TIC_HVE_Message, 6);
+		//включаем таймер
+	}
 }
 //Прочие
 bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource )
@@ -642,28 +762,28 @@ void SPI_send(uint8_t DEVICE_Number)
 	if(DAC_is_AD5643R)
 	{
 		//Сконфигурированы ли ЦАПы?
-		uint8_t sdata[] = {COMP_MEM[1], COMP_MEM[2], COMP_MEM[3]};
+		uint8_t sdata[] = {PC_MEM[1], PC_MEM[2], PC_MEM[3]};
 		spi_select_device(&SPIC, &SPI_DEVICE);
 		spi_write_packet(&SPIC, sdata, 3);
 		spi_deselect_device(&SPIC, &SPI_DEVICE);
 		//откликаемся
-		uint8_t aswDATA[] = {COMP_MEM[0]};
+		uint8_t aswDATA[] = {PC_MEM[0]};
 		transmit(aswDATA, 1);
 		return;
 	}
 	//Если SPI-устройство - ЦАП, то посылаем, откликаемся и выходим. 
 	if(DEVICE_is_DAC)
 	{	
-		uint8_t sdata[] = {COMP_MEM[1], COMP_MEM[2]};
+		uint8_t sdata[] = {PC_MEM[1], PC_MEM[2]};
 		spi_select_device(&SPIC, &SPI_DEVICE);
 		spi_write_packet(&SPIC, sdata, 2);
 		spi_deselect_device(&SPIC, &SPI_DEVICE);
-		uint8_t aswDATA[] = {COMP_MEM[0]};
+		uint8_t aswDATA[] = {PC_MEM[0]};
 		transmit(aswDATA, 1);
 		return;
 	}
 	//Если SPI-устройство - АЦП, то посылаем, получаем ответ, отсылаем ответ.
-	uint8_t sdata[] = {COMP_MEM[1], COMP_MEM[2]};
+	uint8_t sdata[] = {PC_MEM[1], PC_MEM[2]};
 	gpio_set_pin_low(pin_iRDUN);
 	spi_write_packet(&SPIC, sdata, 2);
 	gpio_set_pin_high(pin_iRDUN);
@@ -674,7 +794,7 @@ void SPI_send(uint8_t DEVICE_Number)
 	gpio_set_pin_high(pin_iRDUN);
 	spi_select_device(&SPIC, &SPI_DEVICE);
 	//Передём ответ на ПК по USART
-	uint8_t aswDATA[] = {COMP_MEM[0],SPI_rDATA[0],SPI_rDATA[1]};
+	uint8_t aswDATA[] = {PC_MEM[0],SPI_rDATA[0],SPI_rDATA[1]};
 	transmit(aswDATA, 3);
 }
 //Флаги
@@ -688,14 +808,14 @@ void checkFlags(void)
 	//				Ответ МК битом [Проверить\Установить] -> 1 - параметры были изменены, 0 - нечего менять
     updateFlags();
 	Flags.checkOrSet = 0; //Ни один параметр не был изменён
-    if ((COMP_MEM[1] >> 7) == 0)
+    if ((PC_MEM[1] >> 7) == 0)
     {
         //Проверить. Выслать на ПК свеженькие данные о флагах
         transmit_2bytes(COMMAND_Flags_set, *pointer_Flags);
         return;
     }
     //Установить!
-    uint8_t receivedFlag = ((COMP_MEM[1] & 32) >> 5);	//Выделяем бит PRGE
+    uint8_t receivedFlag = ((PC_MEM[1] & 32) >> 5);	//Выделяем бит PRGE
 	//Если присланный PRGE(receivedFlag) не равен уже имеющемуся...
     if (Flags.PRGE  != receivedFlag) 
 	{
@@ -718,15 +838,15 @@ void checkFlags(void)
 			Flags.checkOrSet = 1;	//был изменён параметр
 		}
 	}
-    receivedFlag = ((COMP_MEM[1] & 16) >> 4);
+    receivedFlag = ((PC_MEM[1] & 16) >> 4);
     if (Flags.iEDCD != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_iEDCD);Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_iEDCD);Flags.checkOrSet = 1;}}
-    receivedFlag = ((COMP_MEM[1] & 8) >> 3);
+    receivedFlag = ((PC_MEM[1] & 8) >> 3);
     if (Flags.SEMV1 != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SEMV1);Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SEMV1);Flags.checkOrSet = 1;}}
-    receivedFlag = ((COMP_MEM[1] & 4) >> 2);
+    receivedFlag = ((PC_MEM[1] & 4) >> 2);
     if (Flags.SEMV2 != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SEMV2);Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SEMV2);Flags.checkOrSet = 1;}}
-    receivedFlag = ((COMP_MEM[1] & 2) >> 1);
+    receivedFlag = ((PC_MEM[1] & 2) >> 1);
     if (Flags.SEMV3 != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SEMV3);Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SEMV3);Flags.checkOrSet = 1;}}
-    receivedFlag = COMP_MEM[1] & 1;
+    receivedFlag = PC_MEM[1] & 1;
     if (Flags.SPUMP != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SPUMP);Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SPUMP);Flags.checkOrSet = 1;}}
     updateFlags();
 	transmit_2bytes(COMMAND_Flags_set, *pointer_Flags);
@@ -814,87 +934,26 @@ int main(void)
 	SPIC.CTRL = 87;						//Инициируем систему SPI
 	RTC_init;							//Инициируем счётчик реального времени
 	Counters_init;						//Инициируем счётчики импульсов
-	USART_COMP_init;					//Инициируем USART с компутером
+	USART_PC_init;						//Инициируем USART с компутером
 	USART_TIC_init;						//Инициируем USART с насосемъ
-	//Инициировать счётчики
-	PORTC.PIN0CTRL = PORT_ISC_RISING_gc;
-	PORTC.PIN1CTRL = PORT_ISC_RISING_gc;
-	PORTC.PIN2CTRL = PORT_ISC_RISING_gc;
-	EVSYS_SetEventSource( 0, EVSYS_CHMUX_PORTC_PIN0_gc );
-	EVSYS_SetEventChannelFilter( 0, EVSYS_DIGFILT_3SAMPLES_gc );
-	EVSYS_SetEventSource( 1, EVSYS_CHMUX_TCC0_OVF_gc );
-	EVSYS_SetEventChannelFilter( 1, EVSYS_DIGFILT_1SAMPLE_gc );
-	EVSYS_SetEventSource( 2, EVSYS_CHMUX_PORTC_PIN1_gc );
-	EVSYS_SetEventChannelFilter( 2, EVSYS_DIGFILT_3SAMPLES_gc );
-	EVSYS_SetEventSource( 3, EVSYS_CHMUX_TCD0_OVF_gc );
-	EVSYS_SetEventChannelFilter( 3, EVSYS_DIGFILT_1SAMPLE_gc );
-	EVSYS_SetEventSource( 4, EVSYS_CHMUX_PORTC_PIN2_gc );
-	EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc );
 	//Конечная инициализация
 	pointer_Flags = &Flags;
-	pointer_Errors_USART_COMP = &Errors_USART_COMP;
+	pointer_Errors_USART_PC = &Errors_USART_PC;
     updateFlags();
 	RTC_setStatus_ready;
 	Flags.iHVE = 1; //Запрещаем высокое напряжение, до тех пор пока от TIC на придёт разрешение
 	Flags.PRGE = 0;	//Изночально ператор запрещает высокое напряжение (При запрещении от TIC операторская тоже должна запрещаться!)
+	//Таймера				
+	PC_timer.PER = 65535;
+	PC_timer.CNT = 0;
+	PC_timer.CTRLA = TC_31kHz;			//Включаем ПК таймер на режим тишины
+	PC_State = USART_State_ready;		//Переводим USART_PC в режим тишины
 	cpu_irq_enable();					//Разрешаем прерывания	
-
+	
 	//Инициализация завершена
 	while (1) 
 	{
-		//21 (0,66мкс) - холостой ход
-		cli();
-		if (MC_Tasks.Decrypt == 1)
-		{
-			//Проверяем длинну команды
-			if(COMP_MEM_length > 2)
-			{
-				COMP_MEM_length--;	//Отсекаем последний байт (то байт затвора)
-				//Надо декодировать команду..
-				uint8_t CheckSum = 0;
-				//Подсчёт контрольной суммы...
-				for (uint8_t i = 0; i < COMP_MEM_length; i++)
-				{
-					CheckSum -= COMP_MEM[i];
-				}
-				if (CheckSum == COMP_MEM_CheckSum)
-				{
-					//Контрольная сумма верная можно исполнять команду
-					sei();
-					decode();
-					MC_Tasks.Decrypt = 0;
-				}
-				else
-				{
-					//ОШИБКА ПРИЁМА! Неверная контрольная сумма!
-					transmit_3bytes(TOCKEN_ERROR, ERROR_CheckSum, CheckSum);
-					COMP_receiving_time = 0;
-					MC_Tasks.Decrypt = 0;
-				}
-			}
-			else
-			{
-				Errors_USART_COMP.TooShortPacket = 1;
-				MC_Tasks.Decrypt = 0;
-			}
-		}
-		else
-		{
-			//Полное время исполнения ~50(1,6мкс)
-			if (COMP_receiving_time > 0)
-			{
-				//Отсчитываем время до следующего байта
-				COMP_receiving_time++;
-				//48 (1,5 мкс) - ход ожидания байта
-				if (COMP_receiving_time > COMP_receiving_limit)
-				{
-					COMP_receiving_time = 0;	//Завершаем приём
-					//Если последний полученый байт был затвор, то дешифруем, иначе происшествие
-					if(COMP_LOCK_received == 1){MC_Tasks.Decrypt = 1;}else{Errors_USART_COMP.LOCKisLost = 1;}
-				}
-			}
-		}
-		sei();
+		
 	}
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
