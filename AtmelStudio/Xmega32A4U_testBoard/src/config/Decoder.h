@@ -70,7 +70,7 @@
 //---------------------------------------------ÄÅØÈÔĞÀÒÎĞ--------------------------------------------
 
 //----------------------------------------ÏĞÎÑÒÛÅ ÊÎÌÀÍÄÛ-----------------------------------------
-#define MC_transmit_Status			transmit_3bytes(COMMAND_MC_get_Status, MC_Status, *pointer_Errors_USART_PC)
+#define MC_transmit_Status			transmit_3bytes(COMMAND_MC_get_Status, 0, *pointer_Errors_USART_PC)
 #define MC_transmit_Version			transmit_2bytes(COMMAND_MC_get_Version, MC_version)
 
 
