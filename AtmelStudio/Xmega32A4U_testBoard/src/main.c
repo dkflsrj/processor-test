@@ -23,7 +23,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										124
+#define version										125
 #define birthday									20131216
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -444,37 +444,45 @@ void transmit(uint8_t DATA[],uint8_t DATA_length)
 	//							<attached_data> - сами данные. Их может не быть (Приказ)
 	//					   '<CS>' - контрольная сумма
 	//					   '\r' - конец передачи
+	cli();
 	usart_putchar(USART_PC,COMMAND_KEY);											//':'
 	for (uint8_t i = 0; i < DATA_length; i++) { usart_putchar(USART_PC,DATA[i]); }	//<data>
 	usart_putchar(USART_PC,calcCheckSum(DATA,DATA_length + 1));						//<CS>
 	usart_putchar(USART_PC,COMMAND_LOCK);											//'\r'
+	sei();
 }
 void transmit_byte(uint8_t DATA)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
+	cli();
 	usart_putchar(USART_PC,COMMAND_KEY);											//':'
 	usart_putchar(USART_PC,DATA);													//<data>
 	usart_putchar(USART_PC, (uint8_t)(256 - DATA));									//<CS>
 	usart_putchar(USART_PC,COMMAND_LOCK);											//'\r'
+	sei();
 }
 void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
+	cli();
 	usart_putchar(USART_PC,COMMAND_KEY);											//':'
 	usart_putchar(USART_PC,DATA_1);
 	usart_putchar(USART_PC,DATA_2);													//<data>
 	usart_putchar(USART_PC, (uint8_t)(256 - DATA_1 - DATA_2));						//<CS>
 	usart_putchar(USART_PC,COMMAND_LOCK);											//'\r'
+	sei();
 }
 void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2,uint8_t DATA_3)
 {
 	//ПЕРЕЗАГРУЗКА: Передача одного байта (отклик)
+	cli();
 	usart_putchar(USART_PC,COMMAND_KEY);											//':'
-	usart_putchar(USART_PC,DATA_1);
+	usart_putchar(USART_PC,DATA_1);											
 	usart_putchar(USART_PC,DATA_2);													//<data>
-	usart_putchar(USART_PC,DATA_3);
+	usart_putchar(USART_PC,DATA_3);											
 	usart_putchar(USART_PC, (uint8_t)(256 - DATA_1 - DATA_2 - DATA_3));				//<CS>
 	usart_putchar(USART_PC,COMMAND_LOCK);											//'\r'
+	sei();
 }
 uint8_t calcCheckSum(uint8_t data[], uint8_t data_length)
 {
@@ -563,7 +571,7 @@ void COUNTERS_sendResults(void)
 {
 	//ФУНКЦИЯ: Послать результаты счёта на ПК, если можно
 	//ДАННЫЕ: <Command><RTC_Status><COA_OVF[1]><COA_OVF[0]><COA_M[1]><COA_M[0]><COB_OVF[1]><COB_OVF[0]><COВ_M[1]><COВ_M[0]><COC_OVF[1]><COC_OVF[0]><COС_M[1]><COС_M[0]>
-	uint8_t wDATA[15];
+	uint8_t wDATA[14];
 	wDATA[0] = COMMAND_COUNTERS_sendResults;
 	wDATA[1] = RTC_Status;
 	if(RTC_Status == RTC_Status_ready)
@@ -929,13 +937,19 @@ void updateFlags(void)
 int main(void)
 {
 	confPORTs;							//Конфигурируем порты (HVE пин в первую очередь)
+	cli();
 	SYSCLK_init;						//Инициируем кристалл (32МГц)
 	pmic_init();						//Инициируем систему прерываний
 	SPIC.CTRL = 87;						//Инициируем систему SPI
 	RTC_init;							//Инициируем счётчик реального времени
 	Counters_init;						//Инициируем счётчики импульсов
-	USART_PC_init;						//Инициируем USART с компутером
+	//USART_PC_init;						//Инициируем USART с компутером
 	USART_TIC_init;						//Инициируем USART с насосемъ
+	USARTD0.CTRLA = 32;
+	USARTD0.CTRLB = 24;
+	USARTD0.CTRLC = 3;
+	USARTD0.BAUDCTRLA = 234;
+	USARTD0.BAUDCTRLB = 192;
 	//Конечная инициализация
 	pointer_Flags = &Flags;
 	pointer_Errors_USART_PC = &Errors_USART_PC;

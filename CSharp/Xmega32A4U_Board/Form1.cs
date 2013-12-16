@@ -126,6 +126,7 @@ namespace Xmega32A4U_testBoard
             //COM_Port.Handshake = l_handshake;
             COM_Port.ReadTimeout = 2000;
             COM_Port.WriteTimeout = 2000;
+            MC.setUSART(COM_Port);
             trace("Установка параметров COM порта: " + COM_Port.PortName);
             trace("   Бит в секунду: " + COM_Port.BaudRate.ToString());
             trace("   Чётность: " + COM_Port.Parity.ToString());
