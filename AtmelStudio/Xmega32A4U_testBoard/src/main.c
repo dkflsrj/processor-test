@@ -23,8 +23,8 @@
 
 //---------------------------------------ќѕ–≈ƒ≈Ћ≈Ќ»я----------------------------------------------
 //ћ 
-#define version										125
-#define birthday									20131216
+#define version										126
+#define birthday									20131218
 //—чЄтчики
 #define RTC_Status_ready							0		//—чЄтчики готов к работе
 #define RTC_Status_stopped							1		//—чЄтчики был принудительно остановлен
