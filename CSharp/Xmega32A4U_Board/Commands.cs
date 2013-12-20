@@ -25,7 +25,15 @@
             public const byte receiveResults = 32;
         }
         #endregion
-        public const byte transmitToTIC = 50;
+        #region TIC
+        public struct TIC
+        {
+            public const byte retransmit = 50;
+            public const byte set_Gauges = 51;
+            public const byte restartMonitoring = 52;
+            public const byte get_TIC_MEM = 53;
+        }
+        #endregion
         #region SPI
         public struct SPI
         {

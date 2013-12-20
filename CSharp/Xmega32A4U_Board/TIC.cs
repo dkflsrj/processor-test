@@ -945,7 +945,7 @@ namespace Xmega32A4U_testBoard
                 /// <summary>
                 /// Настраивает установки Turbo_Pump:
                 /// </summary>
-                /// <param name="Master">object ID ("Gauge_1", "Gauge_2" или "Gauge_3" (CodeList.Address))</param>
+                /// <param name="Master">object ID ("Gauge_1", "Gauge_2" или "Gauge_3")</param>
                 /// <param name="units_type">"VOLTAGE" или "PRESSURE" (CodeList.SNVTvalues)</param>
                 /// <param name="on_setpoint">on setpoint
                 /// <para>Напряжение - 0.000 - 9.999</para>
@@ -1332,7 +1332,7 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Настраивает установки датчика
             /// </summary>
-            /// <param name="Master">object ID ("Gauge_1", "Gauge_2", "Gauge_3" или "Turbo_speed" (CodeList.Address))</param>
+            /// <param name="Master">object ID ("Gauge_1", "Gauge_2", "Gauge_3" или "Turbo_speed")</param>
             /// <param name="units_type">"VOLTAGE" или "PRESSURE" (CodeList.SNTvalues)</param>
             /// <param name="on_setpoint">on setpoint
             /// <para>Напряжение - 0.000 - 9.999</para>
@@ -1550,7 +1550,7 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Настраивает установки
             /// </summary>
-            /// <param name="Master">object ID ("Gauge_1", "Gauge_2", "Gauge_3" (CodeList.Address))</param>
+            /// <param name="Master">object ID ("Gauge_1", "Gauge_2", "Gauge_3")</param>
             /// <param name="units_type">"VOLTAGE", "PRESSURE" или "PERCENT"(CodeList.SNTvalues)</param>
             /// <param name="on_setpoint">on setpoint
             /// <para>Напряжение - 0.000 - 9.999</para>
@@ -1641,7 +1641,7 @@ namespace Xmega32A4U_testBoard
                 }
             }
             /// <summary>
-            /// Возвращает и устанавливает analogue out source ("Gauge_1","Gauge_2","Gauge_3" или "Turbo_speed" (CodeList.Address))
+            /// Возвращает и устанавливает analogue out source ("Gauge_1","Gauge_2","Gauge_3" или "Turbo_speed")
             /// </summary>
             public static string setup
             {
@@ -2492,7 +2492,7 @@ namespace Xmega32A4U_testBoard
                 Packet = Packet.Substring(0, Packet.Length - 1);
             }
             Packet += '\r';                         //Завершаем пакет
-            return Decode(Encoding.ASCII.GetString(MC.Service.transmit(Command.transmitToTIC, Encoding.ASCII.GetBytes(Packet)).ToArray()), address, Packet);
+            return Decode(Encoding.ASCII.GetString(MC.Service.transmit(Command.TIC.retransmit, Encoding.ASCII.GetBytes(Packet)).ToArray()), address, Packet);
         }
         static string[] Decode(string response, string address, string command)
         {
@@ -2631,5 +2631,61 @@ namespace Xmega32A4U_testBoard
             return new string[] { };
         }
         #endregion
+        //Видимые функции
+        /// <summary>
+        /// Настраивает МК на опрос датчиков и порогов.
+        /// <para>По умолчанию: Включение выского напряжения по датчику "Gauge_1" c нижним порогом 2.000V,</para>
+        /// <para>Выключение выского напряжения по датчику "Gauge_2" c верхним порогом 6.700V</para>
+        /// </summary>
+        /// <param name="onGauge">Датчик включения высокого напряжения.
+        /// <para>Варианты: "Gauge_1" (по умолчанию),"Gauge_2","Gauge_3".</para></param>
+        /// <param name="onThreshold">Порог (меньше или равно) включения высокого напряжения.</para>
+        /// <para>Пример: "2.000" = 2.000V (по умолчанию).</para></param>
+        /// <param name="offGauge">Датчик выключения высокого напряжения.
+        /// <para>Варианты: "Gauge_1","Gauge_2" (по умолчанию),"Gauge_3".</para></param>
+        /// <param name="offThreshold">Порог (больше или равно) выключения высокого напряжения.</para>
+        /// <para>Пример: "6.700" = 6.700V (по умолчанию).</para></param>
+        public static void set_HVE_conditions(string onGauge, string onThreshold, string offGauge, string offThreshold)
+        {
+            string command = "TIC.set_HVE_conditions(" + onGauge + "," + onThreshold + "," + offGauge + "," + offThreshold + ")";
+            MC.Service.trace_attached(Environment.NewLine);
+            MC.Service.trace(command);
+            byte onLevel_1 = (byte)((Pifagor.Hex.toBin.Byte(onThreshold[0]) << 4) + Pifagor.Hex.toBin.Byte(onThreshold[2]));
+            byte onLevel_0 = (byte)((Pifagor.Hex.toBin.Byte(onThreshold[3]) << 4) + Pifagor.Hex.toBin.Byte(onThreshold[4]));
+            byte offLevel_1 = (byte)((Pifagor.Hex.toBin.Byte(offThreshold[0]) << 4) + Pifagor.Hex.toBin.Byte(offThreshold[2]));
+            byte offLevel_0 = (byte)((Pifagor.Hex.toBin.Byte(offThreshold[3]) << 4) + Pifagor.Hex.toBin.Byte(offThreshold[4]));
+            byte[] DATA =  
+            {
+                Encoding.ASCII.GetBytes(CodeBase.Addresses.findValue(onGauge))[2], onLevel_1, onLevel_0,
+                Encoding.ASCII.GetBytes(CodeBase.Addresses.findValue(offGauge))[2], offLevel_1, offLevel_0
+            };
+            MC.Service.transmit(Command.TIC.set_Gauges,DATA);
+        }
+        /// <summary>
+        /// Перезапускает постоянный мониторинг датчиков тика.
+        /// <para>Если в ходе мониторинга возникает ошибка, МК выключает и запрещает высокое напряжение.</para>
+        /// <para>При этом мониторинг прекращается, а на ПК отправляется сообщение о критической ошибке.</para>
+        /// <para>В таком случае можно перезапустить мониторинг данной командой.</para>
+        /// </summary>
+        public static void restartMonitoring()
+        {
+            string command = "TIC.restartMonitoring()";
+            MC.Service.trace_attached(Environment.NewLine);
+            MC.Service.trace(command);
+            MC.Service.transmit(Command.TIC.restartMonitoring);
+        }
+        /// <summary>
+        /// Возвращает последнее сообщение, которое прислал TIC на МК (либо опрос HVE, либо ответ на ретрансмит)
+        /// </summary>
+        /// <returns></returns>
+        public static string getTIC_MEM()
+        {
+            string command = "TIC.getTIC_MEM()";
+            MC.Service.trace_attached(Environment.NewLine);
+            MC.Service.trace(command);
+            List<byte> rDATA = MC.Service.transmit(Command.TIC.get_TIC_MEM);
+            char[] answer = Encoding.ASCII.GetChars(rDATA.ToArray<byte>());
+            return new string(answer);
+        }
     }
 }

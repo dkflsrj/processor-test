@@ -465,7 +465,9 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
-            TIC.Display_contrast = "15";
+            //TIC.Display_contrast = "15";
+            //TIC.set_HVE_conditions("Gauge_1", "2.431", "Gauge_2", "6.894");
+            MC.Service.trace(TIC.getTIC_MEM());
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
