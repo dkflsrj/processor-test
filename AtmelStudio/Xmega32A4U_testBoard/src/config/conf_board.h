@@ -45,9 +45,9 @@
 #define pin_iWINL	IOPORT_CREATE_PIN(PORTE, 1)		//SPI SS, запись, НАТЕКАТЕЛЬ
 #define pin_RXE0	IOPORT_CREATE_PIN(PORTE, 2)		//USART TIC, приём
 #define pin_TXE0	IOPORT_CREATE_PIN(PORTE, 3)		//USART TIC, передача
-
-
-
+//----------------------------------------------------------------------------------------
+#define pin_iHVE_high		PORTC.OUTSET = 8
+#define pin_iHVE_low		PORTC.OUTCLR = 8
 
 #endif
 
