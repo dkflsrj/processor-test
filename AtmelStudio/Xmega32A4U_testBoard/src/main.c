@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										129
+#define version										130
 #define birthday									20131223
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -120,7 +120,7 @@ struct struct_Errors_USART_TIC
 {
     uint8_t LOCKisLost				: 1;
     uint8_t TooShortPacket			: 1;
-    uint8_t TooFast					: 1;
+    uint8_t noError2				: 1;
     uint8_t Silence					: 1;
     uint8_t Noise					: 1;
     uint8_t HVE_error			    : 1;

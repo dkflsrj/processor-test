@@ -166,7 +166,7 @@ namespace Xmega32A4U_testBoard
         private void BTN_MCstatus_Click(object sender, EventArgs e)
         {
             //trace(true, "Статус: " + 
-            MC.Chip.getStatus().ToString();
+            MC.Chip.getStatus();
         }
         private void BTN_COM_getMCversion_Click(object sender, EventArgs e)
         {
@@ -315,41 +315,7 @@ namespace Xmega32A4U_testBoard
         }
         private void CLK_timer_Tick(object sender, EventArgs e)
         {
-            if (CHB_TotalControl.Checked)
-            {
-                switch (MC.Chip.getStatus())
-                {
-                    case 0: LBL_TotalC_Status.Text = "Неинициализирован!";
-                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
-                        break;
-                    case 1: LBL_TotalC_Status.Text = "Ожидание";
-                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Green;
-                        break;
-                    case 2: LBL_TotalC_Status.Text = "Состояние 2";
-                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Yellow;
-                        break;
-                    case 3: LBL_TotalC_Status.Text = "Состояние 3";
-                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Yellow;
-                        break;
-                    case 4: LBL_TotalC_Status.Text = "Отображение байтов";
-                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Green;
-                        break;
-                    default: LBL_TotalC_Status.Text = "Неизвестно!";
-                        LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
-                        break;
-                }
-                //if (MC.checkErrors())
-                //{
-                //    LBL_error.Text = "Есть ошибки!";
-                //    LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
-                //}
-                //else
-                //{
-
-                //    LBL_error.Text = "Ошибок нет";
-                //    LBL_error.ForeColor = System.Drawing.Color.Green;
-                //}
-            }
+           
         }
         private void CHB_TotalControl_CheckedChanged(object sender, EventArgs e)
         {
@@ -631,7 +597,10 @@ namespace Xmega32A4U_testBoard
         {
             if (Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text) > 0)
             {
-                MC.Counters.MeasureEnd += new EventCallBack(EventHandler);
+                if (MC.Counters.MeasureEnd == null)
+                {
+                    MC.Counters.MeasureEnd += new EventCallBack(EventHandler);
+                }
                 Cycles = Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text);
                 Cycles_performed = 0;
                 MC.Counters.startMeasure(TXB_realCOX_MeasureTime.Text);
