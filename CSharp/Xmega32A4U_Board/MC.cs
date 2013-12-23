@@ -49,6 +49,7 @@ namespace Xmega32A4U_testBoard
             public const byte Tocken = 254;      //Метка LAM сообщения
             //Номера асинхронных сообщений (обрати внимание)
             public const byte RTC_end = 1;      //RTC закончил измерение
+            public const byte SPI_conf_done = 2;//После включения HVE все SPI устройства были настроены!
         }
         #endregion
         #region Коды внутренних ошибок
@@ -800,6 +801,11 @@ namespace Xmega32A4U_testBoard
                                 trace_attached(Environment.NewLine);
                                 trace("LAM:Счётчики закончили счёт!");
                                 Counters.MeasureEnd.Invoke();
+                                break;
+                            case LAM.SPI_conf_done:
+                                trace_attached(Environment.NewLine);
+                                trace("LAM:Высокое напряжение разрешено, SPI устройства настроены!");
+                                //Counters.MeasureEnd.Invoke(); //Здесь нужен делегат для этого события
                                 break;
                             default:
                                 trace("МК хочет чтобы на него обратили внимание, но не понятно почему! " + DATA[1]);
