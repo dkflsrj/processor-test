@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										128
+#define version										129
 #define birthday									20131223
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -1486,6 +1486,7 @@ int main(void)
             spi_deselect_device(&SPIC,&DAC_IonSource);*/
 			
             MC_Tasks.turnOnHVE = 0;
+			transmit_2bytes(TOCKEN_LookAtMe,LAM_SPI_conf_done);
         }
     }
 }
