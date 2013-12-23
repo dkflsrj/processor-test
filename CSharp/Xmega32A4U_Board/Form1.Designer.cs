@@ -202,6 +202,8 @@
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.label17 = new System.Windows.Forms.Label();
+            this.LBL_realCOX_RTC_ElapsedTime = new System.Windows.Forms.Label();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -1753,11 +1755,13 @@
             // 
             // GPB_realCOX
             // 
+            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_RTC_ElapsedTime);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COC_Result);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COB_Result);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_RTCstate);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COA_Result);
             this.GPB_realCOX.Controls.Add(this.label21);
+            this.GPB_realCOX.Controls.Add(this.label17);
             this.GPB_realCOX.Controls.Add(this.label22);
             this.GPB_realCOX.Controls.Add(this.labelN);
             this.GPB_realCOX.Controls.Add(this.label30);
@@ -2055,6 +2059,24 @@
             this.timer1.Interval = 5;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(6, 234);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(70, 13);
+            this.label17.TabIndex = 13;
+            this.label17.Text = "Elapsed time:";
+            // 
+            // LBL_realCOX_RTC_ElapsedTime
+            // 
+            this.LBL_realCOX_RTC_ElapsedTime.AutoSize = true;
+            this.LBL_realCOX_RTC_ElapsedTime.Location = new System.Drawing.Point(79, 234);
+            this.LBL_realCOX_RTC_ElapsedTime.Name = "LBL_realCOX_RTC_ElapsedTime";
+            this.LBL_realCOX_RTC_ElapsedTime.Size = new System.Drawing.Size(13, 13);
+            this.LBL_realCOX_RTC_ElapsedTime.TabIndex = 16;
+            this.LBL_realCOX_RTC_ElapsedTime.Text = "0";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2278,6 +2300,8 @@
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.TextBox TXB_realCOX_NumberOfMeasurments;
         private System.Windows.Forms.CheckBox CHB_iHVE;
+        private System.Windows.Forms.Label LBL_realCOX_RTC_ElapsedTime;
+        private System.Windows.Forms.Label label17;
     }
 }
 

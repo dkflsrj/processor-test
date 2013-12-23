@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										130
+#define version										131
 #define birthday									20131223
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -82,6 +82,7 @@ uint8_t TIC_HVE_offGauge = 52;							//последний char адреса датчика (форнасоса)
 uint16_t TIC_HVE_offLevel = 26368;						//четыре тетрады порога напряжения (форнасоса). По умолчанию: 6.700V
 //		Измерения
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
+uint16_t RTC_ElapsedTime = 0;
 uint8_t  RTC_MeasurePrescaler = RTC_PRESCALER_OFF_gc;	//Предделитель RTC
 uint16_t RTC_MeasurePeriod = 0;							//Период RTC
 uint16_t COA_Measurment = 0;							//Последнее измерение счётчика COA
@@ -333,6 +334,11 @@ ISR(RTC_OVF_vect)
         //Ждём пока можно будет обратиться к регистрам RTC
     }
     RTC.CTRL = RTC_PRESCALER_OFF_gc;
+	while (RTC.STATUS != 0)
+	{
+		//Ждём пока можно будет обратиться к регистрам RTC
+	}
+	RTC_ElapsedTime = RTC.CNT;
     sei();
     //сохраняем результаты
     COA_Measurment = COA.CNT;
@@ -681,7 +687,7 @@ void COUNTERS_start(void)
 void COUNTERS_sendResults(void)
 {
     //ФУНКЦИЯ: Послать результаты счёта на ПК, если можно
-    //ДАННЫЕ: <Command><RTC_Status><COA_OVF[1]><COA_OVF[0]><COA_M[1]><COA_M[0]><COB_OVF[1]><COB_OVF[0]><COВ_M[1]><COВ_M[0]><COC_OVF[1]><COC_OVF[0]><COС_M[1]><COС_M[0]>
+    //ДАННЫЕ: <Command><RTC_Status><COA_OVF[1]><COA_OVF[0]><COA_M[1]><COA_M[0]><COB_OVF[1]><COB_OVF[0]><COВ_M[1]><COВ_M[0]><COC_OVF[1]><COC_OVF[0]><COС_M[1]><COС_M[0]><RTC_ElapsedTime[1]><RTC_ElapsedTime[0]><RTC_MeasurePrescaler>
     uint8_t wDATA[14];
     wDATA[0] = COMMAND_COUNTERS_sendResults;
     wDATA[1] = RTC_Status;
@@ -699,8 +705,11 @@ void COUNTERS_sendResults(void)
         wDATA[11] =	 COC_OVF;
         wDATA[12] = (COC_Measurment >> 8);
         wDATA[13] =  COC_Measurment;
+		wDATA[14] = (RTC_ElapsedTime >> 8);
+		wDATA[15] = RTC_ElapsedTime;
+		wDATA[16] = RTC_MeasurePrescaler;
     }
-    transmit(wDATA, 14);
+    transmit(wDATA, 17);
 }
 void COUNTERS_stop(void)
 {
