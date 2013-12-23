@@ -124,15 +124,6 @@ namespace Xmega32A4U_testBoard
                 public const int min_ms_div256 = 127996;
                 public const int min_ms_div1024 = 511981;
                 public const int max_ms_div1024 = 2047925;
-                //Проча
-                public const byte LengthOfstartMeasurePacket = 6;
-                public struct NextMeasure
-                {
-                    //Коды команд счётчиков
-                    public const byte NotDo = 0;
-                    public const byte Do = 1;
-                }
-
             }
             #endregion
             /// <summary>
@@ -158,6 +149,10 @@ namespace Xmega32A4U_testBoard
             /// <para>то это означает, что счётчик переполнен.</para>
             /// </summary>
             public static uint COC = 0;
+            /// <summary>
+            /// Прошедшее время с начала измерения в миллисекундах
+            /// </summary>
+            public static double ElapsedTime = 0;
             #endregion
             public static string Status = "notSet";
             static string convertStatus(byte Status_byte)
@@ -447,7 +442,7 @@ namespace Xmega32A4U_testBoard
             public static bool receiveResults()
             {
                 //ФУНКЦИЯ: Запрашиваем результаты измерения. Если измерение завершилось успешно нам пришлют результаты и мы выйдем с true, в противном случае пришлют статус (не ready) и мы вылетим с false'м
-                //ДАННЫЕ: <Command><RTC_Status><COA_OVF[1]><COA_OVF[0]><COA_M[1]><COA_M[0]><COB_OVF[1]><COB_OVF[0]><COВ_M[1]><COВ_M[0]><COC_OVF[1]><COC_OVF[0]><COС_M[1]><COС_M[0]>
+                //ДАННЫЕ: <Command><RTC_Status><COA_OVF[1]><COA_OVF[0]><COA_M[1]><COA_M[0]><COB_OVF[1]><COB_OVF[0]><COВ_M[1]><COВ_M[0]><COC_OVF[1]><COC_OVF[0]><COС_M[1]><COС_M[0]><RTC_ElapsedTime[1]><RTC_ElapsedTime[0]><RTC_MeasurePrescaler>
                 MC.Service.trace_attached(Environment.NewLine);
                 string command = "Counters.receiveResults()";
                 MC.Service.trace(command);
@@ -466,6 +461,20 @@ namespace Xmega32A4U_testBoard
                         COA = (uint)(rDATA[2] * 16777216 + rDATA[3] * 65536 + rDATA[4] * 256 + rDATA[5]);
                         COB = (uint)(rDATA[6] * 16777216 + rDATA[7] * 65536 + rDATA[8] * 256 + rDATA[9]);
                         COC = (uint)(rDATA[10] * 16777216 + rDATA[11] * 65536 + rDATA[12] * 256 + rDATA[13]);
+                        double prescaler_long;
+                        switch (rDATA[16])
+                        {
+                            case 1: prescaler_long = Constants.sourceFrequency; break;
+                            case 2: prescaler_long = Constants.sourceFrequency / 2; break;
+                            case 3: prescaler_long = Constants.sourceFrequency / 8; break;
+                            case 4: prescaler_long = Constants.sourceFrequency / 16; break;
+                            case 5: prescaler_long = Constants.sourceFrequency / 64; break;
+                            case 6: prescaler_long = Constants.sourceFrequency / 256; break;
+                            case 7: prescaler_long = Constants.sourceFrequency / 1024; break;
+                            default: prescaler_long = 0; break;
+                        }
+                        ElapsedTime = ((ushort.MaxValue / prescaler_long) + (((rDATA[14] << 8) + rDATA[15]) / prescaler_long)) * 1000;
+
                         MC.Service.trace(command + ":Результаты успешно получены!");
                         return true;
                     }

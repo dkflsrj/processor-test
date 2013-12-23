@@ -615,6 +615,9 @@ namespace Xmega32A4U_testBoard
         uint COC_min = uint.MaxValue;
         uint COC_mid = 0;
         uint COC_max = uint.MinValue;
+        double RTC_min = double.MaxValue;
+        double RTC_mid = 0;
+        double RTC_max = double.MinValue;
 
         uint COX_buf;
 
@@ -651,6 +654,11 @@ namespace Xmega32A4U_testBoard
                 COC_mid = (COC_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
                 if (COC_max < COX_buf) { COC_max = COX_buf; }
 
+                double RTC_buf = MC.Counters.ElapsedTime;
+                if (RTC_min > RTC_buf) { RTC_min = RTC_buf; }
+                RTC_mid = (RTC_mid * (Cycles_performed - 1) + RTC_buf) / Cycles_performed;
+                if (RTC_max < RTC_buf) { RTC_max = RTC_buf; }
+
                 if (Cycles_performed < Cycles)
                 {
                     //Тут настройки SPI
@@ -663,6 +671,7 @@ namespace Xmega32A4U_testBoard
                     LBL_realCOX_COA_Result.Text = COA_min + "..." + COA_mid + "..." + COA_max;
                     LBL_realCOX_COB_Result.Text = COB_min + "..." + COB_mid + "..." + COB_max;
                     LBL_realCOX_COC_Result.Text = COC_min + "..." + COC_mid + "..." + COC_max;
+                    LBL_realCOX_RTC_ElapsedTime.Text = RTC_min + "..." + RTC_mid + "..." + RTC_max;
                 }
             }
         }
