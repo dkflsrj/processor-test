@@ -473,7 +473,7 @@ namespace Xmega32A4U_testBoard
                             case 7: prescaler_long = Constants.sourceFrequency / 1024; break;
                             default: prescaler_long = 0; break;
                         }
-                        ElapsedTime = ((ushort.MaxValue / prescaler_long) + (((rDATA[14] << 8) + rDATA[15]) / prescaler_long)) * 1000;
+                        ElapsedTime = ((ushort.MaxValue / prescaler_long) + (((rDATA[14] << 8) + rDATA[15]) / prescaler_long)) * 1000000;
 
                         MC.Service.trace(command + ":Результаты успешно получены!");
                         return true;
