@@ -1,7 +1,6 @@
 //================================================================================================
 //========================ТРЕНИРОВКА В ПРОГРАММИРОВАНИИ МИКРОКОНТРОЛЛЕРА==========================
 //================================================================================================
-//Режимы выбираеются в conf_board.h
 //---------------------------------------ПОЯСНЕНИЯ------------------------------------------------
 //Микроконтроллер должен выполнять следующие функции:
 //	-
@@ -23,8 +22,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										127
-#define birthday									20131220
+#define version										128
+#define birthday									20131223
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -95,14 +94,14 @@ uint16_t COC_OVF = 0;									//Количество переполнений счётчика СОС
 //Битовые поля
 struct struct_MC_Tasks
 {
-    uint8_t setDACs			: 1;
-    uint8_t noTasks1		: 1;
-    uint8_t checkHVE		: 1;
-    uint8_t noTasks3		: 1;
-    uint8_t noTasks4		: 1;
-    uint8_t noTasks5		: 1;
-    uint8_t noTasks6		: 1;
-    uint8_t noTasks7		: 1;
+    uint8_t turnOnHVE					: 1;
+    uint8_t noTasks1				: 1;
+    uint8_t checkHVE				: 1;
+    uint8_t noTasks3				: 1;
+    uint8_t noTasks4				: 1;
+    uint8_t noTasks5				: 1;
+    uint8_t noTasks6				: 1;
+    uint8_t noTasks7				: 1;
 };
 struct struct_MC_Tasks MC_Tasks = {0, 0, 0, 0, 0, 0, 0, 0};
 struct struct_Errors_USART_PC
@@ -131,14 +130,14 @@ struct struct_Errors_USART_TIC
 struct struct_Errors_USART_TIC Errors_USART_TIC = {0, 0, 0, 0, 0, 0, 0, 0};
 struct struct_Flags
 {
-    uint8_t SPUMP		: 1;
-    uint8_t SEMV3		: 1;
-    uint8_t SEMV2		: 1;
-    uint8_t SEMV1		: 1;
-    uint8_t iEDCD		: 1;
-    uint8_t PRGE		: 1;
-    uint8_t iHVE		: 1;
-    uint8_t checkOrSet	: 1;
+    uint8_t SPUMP					: 1;
+    uint8_t SEMV3					: 1;
+    uint8_t SEMV2					: 1;
+    uint8_t SEMV1					: 1;
+    uint8_t iEDCD					: 1;
+    uint8_t PRGE					: 1;
+    uint8_t iHVE					: 1;
+    uint8_t checkOrSet				: 1;
 } Flags;
 //USART
 static usart_rs232_options_t USART_PC_OPTIONS =
@@ -224,6 +223,14 @@ void TIC_send_TIC_MEM(void);
 void SPI_send(uint8_t DEVICE_Number);
 void checkFlags(void);
 void updateFlags(void);
+void checkFlag_HVE(void);
+void checkFlag_PRGE(void);
+void checkFlag_EDCD(void);
+void checkFlag_SEMV1(void);
+void checkFlag_SEMV2(void);
+void checkFlag_SEMV3(void);
+void checkFlag_SPUMP(void);
+
 //------------------------------------ФУНКЦИИ ПРЕРЫВАНИЯ------------------------------------------
 ISR(USARTD0_RXC_vect)
 {
@@ -268,47 +275,47 @@ ISR(USARTE0_RXC_vect)
     switch (TIC_State)
     {
         case USART_State_receiving:	//Мы ожидали байты с TIC на ПК
-			TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
-			TIC_timer.CNT = 0;							//Обнуляем таймер
+            TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
+            TIC_timer.CNT = 0;							//Обнуляем таймер
             //Если принятый байт равен
             //			   <*>				<=>				 <#>  , то обнуляем принятые данные
             if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
             TIC_MEM[TIC_MEM_length] = TIC_buf;			//Сохраняем байт
             TIC_MEM_length++;
             //			   <\r>
-            if (TIC_buf == 13) 
-			{ 
-				//Если этот байт был <\r>
-				TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
-				TIC_timer.CNT = 0;
-				TIC_State = USART_State_ready;
-				transmit(TIC_MEM, TIC_MEM_length);		//Посылаем всё что накопилось на ПК
-			}
-			else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
+            if (TIC_buf == 13)
+            {
+                //Если этот байт был <\r>
+                TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
+                TIC_timer.CNT = 0;
+                TIC_State = USART_State_ready;
+                transmit(TIC_MEM, TIC_MEM_length);		//Посылаем всё что накопилось на ПК
+            }
+            else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
             break;
         case USART_State_HVEreceiving:	//Мы ожидаем данные от TIC'a
-			TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
-			TIC_timer.CNT = 0;							//Обнуляем таймер
-			//Если принятый байт равен
-			//			    <*>				   <=>				  <#>  , то обнуляем принятые данные
-			if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
+            TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
+            TIC_timer.CNT = 0;							//Обнуляем таймер
+            //Если принятый байт равен
+            //			    <*>				   <=>				  <#>  , то обнуляем принятые данные
+            if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
             TIC_MEM[TIC_MEM_length] = TIC_buf;			//Сохраняем байт
             TIC_MEM_length++;
             //			   <\r>
-            if (TIC_buf == 13) 
-			{ 
-				//Если декодировка прошла удачно, запускаем таймер снова
-				if(TIC_decode_HVE()) { TIC_timer.CTRLA = TC_125kHz; }
-				//При неудачной декодировке HVE уже выключено в декодере
-				TIC_State = USART_State_ready;
-			}
-			else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
-			break;
-		default: //Мы не ждали байтов от TIC'a! Игнорируем их, но в книжечку запишем...
-			Errors_USART_TIC.Noise = 1;
-			break;
+            if (TIC_buf == 13)
+            {
+                //Если декодировка прошла удачно, запускаем таймер снова
+                if (TIC_decode_HVE()) { TIC_timer.CTRLA = TC_125kHz; }
+                //При неудачной декодировке HVE уже выключено в декодере
+                TIC_State = USART_State_ready;
+            }
+            else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
+            break;
+        default: //Мы не ждали байтов от TIC'a! Игнорируем их, но в книжечку запишем...
+            Errors_USART_TIC.Noise = 1;
+            break;
     }
-   sei_TIC;
+    sei_TIC;
 }
 ISR(RTC_OVF_vect)
 {
@@ -387,33 +394,33 @@ static void ISR_TIC_timer(void)
     switch (TIC_State)
     {
         case USART_State_receiving: //Мы не ожидали завершения передачи! Передача прервана! Время вышло!
-			TIC_State = USART_State_ready;		//Ждём начала передачи
+            TIC_State = USART_State_ready;		//Ждём начала передачи
             TIC_timer.CTRLA = TC_125kHz;		//Переходим в режим тишины
             break;
-		case USART_State_ready:	//Сработало событие! Пора связаться с TIC'ом!
-			TIC_State = USART_State_HVEreceiving;	//Ждём начала передачи
-			TIC_request_HVE();
-			TIC_timer.CTRLA = TC_4MHz;			//Переходим в режим тишины
-			break;
-		case USART_State_HVEreceiving:	//TIC не завершил передачу! Или вообще не вышел на связь!
-			cli();
-			pin_iHVE_high;						//блокируем HVE
-			Flags.iHVE = 1;
-			Flags.PRGE = 0;
-			Errors_USART_TIC.HVE_error = 1;		//Отмечаем в журнале
-			TIC_State = USART_State_ready;		//Уходим в ожидание, но таймер не включаем.
-			sei();
-			transmit_3bytes(TOCKEN_CRITICAL_ERROR,CRITICAL_ERROR_TIC_HVE_error_noResponse,TIC_MEM_length);
-			break;
+        case USART_State_ready:	//Сработало событие! Пора связаться с TIC'ом!
+            TIC_State = USART_State_HVEreceiving;	//Ждём начала передачи
+            TIC_request_HVE();
+            TIC_timer.CTRLA = TC_4MHz;			//Переходим в режим тишины
+            break;
+        case USART_State_HVEreceiving:	//TIC не завершил передачу! Или вообще не вышел на связь!
+            cli();
+            pin_iHVE_high;						//блокируем HVE
+            Flags.iHVE = 1;
+            Flags.PRGE = 0;
+            Errors_USART_TIC.HVE_error = 1;		//Отмечаем в журнале
+            TIC_State = USART_State_ready;		//Уходим в ожидание, но таймер не включаем.
+            sei();
+            transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_noResponse, TIC_MEM_length);
+            break;
         default: //Внутренняя ошибка! Неверное состояние!
-			cli();
-			pin_iHVE_high;						//блокируем HVE
-			Flags.iHVE = 1;
-			Flags.PRGE = 0;
-			Errors_USART_TIC.HVE_error = 1;		//Отмечаем в журнале
-			sei();
-			Errors_USART_TIC.wrongTimerState = 1;
-			transmit_3bytes(TOCKEN_INTERNAL_ERROR,INTERNAL_ERROR_TIC_State,TIC_State);
+            cli();
+            pin_iHVE_high;						//блокируем HVE
+            Flags.iHVE = 1;
+            Flags.PRGE = 0;
+            Errors_USART_TIC.HVE_error = 1;		//Отмечаем в журнале
+            sei();
+            Errors_USART_TIC.wrongTimerState = 1;
+            transmit_3bytes(TOCKEN_INTERNAL_ERROR, INTERNAL_ERROR_TIC_State, TIC_State);
             break;
     }
     sei_TIC;
@@ -514,12 +521,26 @@ void decode(void)
             break;
         case COMMAND_Flags_set: 					checkFlags();
             break;
-		case COMMAND_TIC_set_Gauges: 				TIC_set_Gauges();
-			break;
-		case COMMAND_TIC_restartMonitoring: 			TIC_restartMonitoring();
-			break;
-		case COMMAND_TIC_send_TIC_MEM: 				TIC_send_TIC_MEM();
-			break;
+        case COMMAND_TIC_set_Gauges: 				TIC_set_Gauges();
+            break;
+        case COMMAND_TIC_restartMonitoring: 		TIC_restartMonitoring();
+            break;
+        case COMMAND_TIC_send_TIC_MEM: 				TIC_send_TIC_MEM();
+            break;
+        case COMMAND_Flags_HVE:						checkFlag_HVE();
+            break;
+        case COMMAND_Flags_PRGE:					checkFlag_PRGE();
+            break;
+        case COMMAND_Flags_EDCD:					checkFlag_EDCD();
+            break;
+        case COMMAND_Flags_SEMV1:					checkFlag_SEMV1();
+            break;
+        case COMMAND_Flags_SEMV2:					checkFlag_SEMV2();
+            break;
+        case COMMAND_Flags_SEMV3:					checkFlag_SEMV3();
+            break;
+        case COMMAND_Flags_SPUMP:					checkFlag_SPUMP();
+            break;
         default: transmit_3bytes(TOCKEN_ERROR, ERROR_Decoder, PC_MEM[0]);
     }
 }
@@ -736,32 +757,32 @@ uint8_t TIC_decode_HVE(void)
                     //На пине iHVE высокий потенциал - он блокирует работу DC-DC 24-12. Высокого напряжения нет.
                     //Контролируем onLevel (турбик), чтобы включить. Присланное значение должно быть равно или ниже порогового
                     if (Voltage <= TIC_HVE_onLevel) { Flags.iHVE = 0; } //Включаем высокое!
-					return 1;
+                    return 1;
                 }
                 else if ((Flags.iHVE == 0) && (TIC_MEM[4] == TIC_HVE_offGauge))
                 {
                     //На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть!
                     //Контролируем offLevel (форик), чтобы выключить. Присланное значение должно быть равно или выше порогового
-					if (Voltage >= TIC_HVE_offLevel) 
-					{ 
-						//Выключаем высокое!
-						pin_iHVE_high;
-						Flags.iHVE = 1; 
-						Flags.PRGE = 0;
-					} 
-					return 1;
-				}
+                    if (Voltage >= TIC_HVE_offLevel)
+                    {
+                        //Выключаем высокое!
+                        pin_iHVE_high;
+                        Flags.iHVE = 1;
+                        Flags.PRGE = 0;
+                    }
+                    return 1;
+                }
             }
         }
     }
-	//Если в декодироваке пошло что-то не так то спускаемся сюда.
-	//Вопервых вырубаем HVE. TIC что-то темнит
-	pin_iHVE_high;
-	Flags.iHVE = 1;
-	Flags.PRGE = 0;
-	Errors_USART_TIC.HVE_error = 1;
-	transmit_3bytes(TOCKEN_CRITICAL_ERROR,CRITICAL_ERROR_TIC_HVE_error_decode,TIC_MEM_length);
-	return 0;
+    //Если в декодироваке пошло что-то не так то спускаемся сюда.
+    //Вопервых вырубаем HVE. TIC что-то темнит
+    pin_iHVE_high;
+    Flags.iHVE = 1;
+    Flags.PRGE = 0;
+    Errors_USART_TIC.HVE_error = 1;
+    transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_decode, TIC_MEM_length);
+    return 0;
 }
 uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
 {
@@ -783,18 +804,18 @@ uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
 void TIC_retransmit(void)
 {
     //ФУНКЦИЯ: Ретрансмитит команду на TIC, если нет опроса HVE, если опрос HVE есть - ждёт ответа от TIC'а на опрос, а потом только ретрансимитит.
-	transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
-	while(TIC_State != USART_State_ready) { }	//Ждём 
-	TIC_timer.CTRLA = TC_Off;
-	TIC_timer.CNT = 0;
-	TIC_State = USART_State_receiving;	//Переходим в режим приёма на ретрансмит
+    transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
+    while (TIC_State != USART_State_ready) { }	//Ждём
+    TIC_timer.CTRLA = TC_Off;
+    TIC_timer.CNT = 0;
+    TIC_State = USART_State_receiving;	//Переходим в режим приёма на ретрансмит
     for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	//Копируем всё что должны переслать
     for (uint8_t i = 0; i < TIC_MEM_length; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
-	TIC_timer.CTRLA = TC_4MHz;			//Запускаем таймер на 6мс
+    TIC_timer.CTRLA = TC_4MHz;			//Запускаем таймер на 6мс
 }
 void TIC_transmit(void)
 {
-    //ФУНКЦИЯ: 
+    //ФУНКЦИЯ:
     cli_TIC;
     usart_putchar(USART_TIC, 33);
     usart_putchar(USART_TIC, 83);
@@ -814,44 +835,44 @@ void TIC_request_HVE(void)
     //ФУНКЦИЯ: Запрашиваем у TIC'а давление
     if (Flags.iHVE == 1) { TIC_HVE_Message[4] = TIC_HVE_onGauge; }	//Если HVE запрещено смотрим на onLevel(турбик)
     else { TIC_HVE_Message[4] = TIC_HVE_offGauge; }					//Если HVE разрешено смотрим на offLevel(форик)
-	for (uint8_t i = 0; i < 6; i++) { usart_putchar(USART_TIC, TIC_HVE_Message[i]); }	//Отправляем
+    for (uint8_t i = 0; i < 6; i++) { usart_putchar(USART_TIC, TIC_HVE_Message[i]); }	//Отправляем
 }
 void TIC_set_Gauges(void)
 {
-	//ФУНКЦИЯ: Задаёт датчики для мониторинга HVE и пороги
-	//ПОЯСНЕНИЯ: <Command><onGauge><onLevel_1><onLevel_0><offGauge><offLevel_1><offLevel_0>
-	//Состояние на момент выполнения операции должно быть ready, иначе операция отменяется
-	//Возвращает состояние TIC
-	transmit_2bytes(COMMAND_TIC_set_Gauges, TIC_State);
-	while(TIC_State != USART_State_ready) { }	//Ждём 
-	TIC_HVE_onGauge = PC_MEM[1];
-	TIC_HVE_onLevel = (PC_MEM[2] << 8) + PC_MEM[3];
-	TIC_HVE_offGauge = PC_MEM[4];
-	TIC_HVE_offLevel = (PC_MEM[5] << 8) + PC_MEM[6];
+    //ФУНКЦИЯ: Задаёт датчики для мониторинга HVE и пороги
+    //ПОЯСНЕНИЯ: <Command><onGauge><onLevel_1><onLevel_0><offGauge><offLevel_1><offLevel_0>
+    //Состояние на момент выполнения операции должно быть ready, иначе операция отменяется
+    //Возвращает состояние TIC
+    transmit_2bytes(COMMAND_TIC_set_Gauges, TIC_State);
+    while (TIC_State != USART_State_ready) { }	//Ждём
+    TIC_HVE_onGauge = PC_MEM[1];
+    TIC_HVE_onLevel = (PC_MEM[2] << 8) + PC_MEM[3];
+    TIC_HVE_offGauge = PC_MEM[4];
+    TIC_HVE_offLevel = (PC_MEM[5] << 8) + PC_MEM[6];
 }
 void TIC_restartMonitoring(void)
 {
-	//ФУНКЦИЯ: Включает мониторинг TIC'a
-	//ПОСЯНЕНИЯ: Мониторинг TIC'a выключается, если происходит какой-то сбой в мониторинге,
-	//при этом на ПК приходит асинхронное сообщение о критической ошибке.
-	//Состояние на момент выполнения операции должно быть ready, иначе операция отменяется
-	//Возвращает состояние TIC.
-	transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
-	while(TIC_State != USART_State_ready) { }	//Ждём 
-	TIC_timer.CTRLA = TC_125kHz;
-	TIC_timer.CNT = 0;
+    //ФУНКЦИЯ: Включает мониторинг TIC'a
+    //ПОСЯНЕНИЯ: Мониторинг TIC'a выключается, если происходит какой-то сбой в мониторинге,
+    //при этом на ПК приходит асинхронное сообщение о критической ошибке.
+    //Состояние на момент выполнения операции должно быть ready, иначе операция отменяется
+    //Возвращает состояние TIC.
+    transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
+    while (TIC_State != USART_State_ready) { }	//Ждём
+    TIC_timer.CTRLA = TC_125kHz;
+    TIC_timer.CNT = 0;
 }
 void TIC_send_TIC_MEM(void)
 {
-	//ФУНКЦИЯ: Возвращает память TIC_MEM и TIC_Length
-	uint8_t data[TIC_MEM_length + 10];
-	data[0] = COMMAND_TIC_send_TIC_MEM;
-	data[1] = TIC_MEM_length;
-	for (uint8_t i = 0; i < TIC_MEM_length + 8; i++)
-	{
-		data[i+2] = TIC_MEM[i];
-	}
-	transmit(data,TIC_MEM_length + 10);
+    //ФУНКЦИЯ: Возвращает память TIC_MEM и TIC_Length
+    uint8_t data[TIC_MEM_length + 10];
+    data[0] = COMMAND_TIC_send_TIC_MEM;
+    data[1] = TIC_MEM_length;
+    for (uint8_t i = 0; i < TIC_MEM_length + 8; i++)
+    {
+        data[i + 2] = TIC_MEM[i];
+    }
+    transmit(data, TIC_MEM_length + 10);
 }
 //Прочие
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource)
@@ -1010,7 +1031,7 @@ void checkFlags(void)
             {
                 //То выдаль логический ноль на iHVE (низкий потенциал разрешает работу DC-DC 24-12)
                 Flags.PRGE = 1;	//Оператор даёт добро
-                MC_Tasks.setDACs = 1;//начать всяческие настроки DAC'ов после разбора флагов
+                MC_Tasks.turnOnHVE = 1;//начать всяческие настроки DAC'ов после разбора флагов
                 Flags.checkOrSet = 1; //был изменён параметр
             }
         }
@@ -1033,7 +1054,7 @@ void checkFlags(void)
     if (Flags.SPUMP != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SPUMP); Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SPUMP); Flags.checkOrSet = 1;}}
     updateFlags();
     transmit_2bytes(COMMAND_Flags_set, *pointer_Flags);
-    if (MC_Tasks.setDACs)
+    if (MC_Tasks.turnOnHVE)
     {
         pin_iHVE_low; //Включаем DC-DC 24-12
         cpu_delay_ms(2000, 32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
@@ -1093,7 +1114,7 @@ void checkFlags(void)
         spi_select_device(&SPIC,&DAC_IonSource);
         spi_write_packet(&SPIC, sdata, 2);
         spi_deselect_device(&SPIC,&DAC_IonSource);*/
-        MC_Tasks.setDACs = 0;
+        MC_Tasks.turnOnHVE = 0;
     }
     return;
 }
@@ -1106,6 +1127,119 @@ void updateFlags(void)
     Flags.SEMV2 = (PORTD.OUT & 16) >> 4;
     Flags.SEMV3 = (PORTD.OUT & 32) >> 5;
     Flags.SPUMP = PORTD.OUT & 1;
+}
+void checkFlag_HVE(void)
+{
+    //ФУНКЦИЯ: Возвращает всё о HVE
+    //ПАКЕТ: <Command><pin_iHVE><Flags.HVE><onGauge><onLevel[1]><onLevel[0]><offGauge><offLevel[1]><offLevel[1]><monitoringEnabled>
+    uint8_t DATA[] = {COMMAND_Flags_HVE, ((PORTC.OUT & 8) >> 3), Flags.iHVE, TIC_HVE_onGauge, (TIC_HVE_onLevel >> 8), TIC_HVE_onLevel, TIC_HVE_offGauge, (TIC_HVE_offLevel >> 8), TIC_HVE_offLevel, TIC_timer.CTRLA };
+    transmit(DATA, 10);
+}
+void checkFlag_PRGE(void)
+{
+    //ФУНКЦИЯ: Возвращает или устанавливает PRGE
+    //ПАКЕТ: <Command><getOrSet>
+    //					<0>\<1> - устанавливают
+    //					<any_else> - запрашивает
+    switch (PC_MEM[1])
+    {
+        case 0: //Установка в ноль
+            pin_iHVE_high;			//Выключаем DC-DC 24-12
+            Flags.PRGE = 0;			//Оператор запрещает
+            break;
+        case 1://и если iHVE ноль - TIC даёт добро, на высокое напряжение - установка в единицу
+            if (Flags.iHVE == 0)
+            {
+                //То выдаль логический ноль на iHVE (низкий потенциал разрешает работу DC-DC 24-12)
+                Flags.PRGE = 1;	//Оператор даёт добро
+                MC_Tasks.turnOnHVE = 1;//начать всяческие настроки DAC'ов после разбора флагов
+                break;
+            }
+            else
+            {
+                transmit_2bytes(COMMAND_Flags_PRGE, 254);	//TIC запрещает.
+                return;
+            }
+            return;
+        default: //запрос
+            break;
+    }
+    transmit_2bytes(COMMAND_Flags_PRGE, Flags.PRGE);
+}
+void checkFlag_EDCD(void)
+{
+    //ФУНКЦИЯ: Включает или выключает дистанционное управление напряжением на детекторах, вроде.
+    //ПАКЕТ: <Command><OnOrOff>
+    switch (PC_MEM[1])
+    {
+        case 0: pin_iEDCD_low;
+            break;
+        case 1: pin_iEDCD_high;
+            break;
+        default:
+            return;
+    }
+    transmit_2bytes(COMMAND_Flags_EDCD, ((PORTA.OUT & 128) >> 7));
+}
+void checkFlag_SEMV1(void)
+{
+    //ФУНКЦИЯ: Включает или выключает вентиль
+    //ПАКЕТ: <Command><OnOrOff>
+    switch (PC_MEM[1])
+    {
+        case 0: pin_SEMV1_low;
+            break;
+        case 1: pin_SEMV1_high;
+            break;
+        default:
+            return;
+    }
+    transmit_2bytes(COMMAND_Flags_SEMV1, ((PORTD.OUT & 2) >> 1));
+}
+void checkFlag_SEMV2(void)
+{
+    //ФУНКЦИЯ: Включает или выключает вентиль
+    //ПАКЕТ: <Command><OnOrOff>
+    switch (PC_MEM[1])
+    {
+        case 0: pin_SEMV2_low;
+            break;
+        case 1: pin_SEMV2_high;
+            break;
+        default:
+            return;
+    }
+    transmit_2bytes(COMMAND_Flags_SEMV2, ((PORTD.OUT & 16) >> 1));
+}
+void checkFlag_SEMV3(void)
+{
+    //ФУНКЦИЯ: Включает или выключает вентиль
+    //ПАКЕТ: <Command><OnOrOff>
+    switch (PC_MEM[1])
+    {
+        case 0: pin_SEMV3_low;
+            break;
+        case 1: pin_SEMV3_high;
+            break;
+        default:
+            return;
+    }
+    transmit_2bytes(COMMAND_Flags_SEMV3, ((PORTD.OUT & 32) >> 1));
+}
+void checkFlag_SPUMP(void)
+{
+    //ФУНКЦИЯ: Включает или выключает вентиль
+    //ПАКЕТ: <Command><OnOrOff>
+    switch (PC_MEM[1])
+    {
+        case 0: pin_SPUMP_low;
+            break;
+        case 1: pin_SPUMP_high;
+            break;
+        default:
+            return;
+    }
+    transmit_2bytes(COMMAND_Flags_SPUMP, (PORTD.OUT & 1));
 }
 /*
 void fun(void)
@@ -1230,79 +1364,129 @@ int main(void)
     TIC_State = USART_State_ready;		//Переводим USART_PC в режим готов.
     sei();								//Разрешаем прерывания
     //Инициализация завершена
-	
-	    //Байт:   61 86 57 49  ?    32   ?   46 ?    ?    ?   59 54 54 59 49 59 | 48 59 48 13
-	    //Символ: =  V  9  1 <NUL> <sp> <D1> . <D2> <D3> <D4> ;  6  6  ;  1  ;  | 0  ;  0 <\r>
-	    //Номер:  0  1  2  3   4    5    6   7  8    9    10  11 12 13 14 15 16 | 17 18 19 20
+    //Байт:   61 86 57 49  ?    32   ?   46 ?    ?    ?   59 54 54 59 49 59 | 48 59 48 13
+    //Символ: =  V  9  1 <NUL> <sp> <D1> . <D2> <D3> <D4> ;  6  6  ;  1  ;  | 0  ;  0 <\r>
+    //Номер:  0  1  2  3   4    5    6   7  8    9    10  11 12 13 14 15 16 | 17 18 19 20
+    //Допустим сработал таймер TIC, надо запросить давление
+    /*
+    ISR_TIC_timer();
+    //TIC отвечает правильно
+    TIC_buf = 61;//=
+    fun();
+    TIC_buf = 86;//V
+    fun();
+    TIC_buf = 57;//9
+    fun();
+    TIC_buf = 49;//1
+    fun();
+    TIC_buf = 51;//         3
+    fun();
+    TIC_buf = 32;//< >
+    fun();
+    TIC_buf = 50;//         2
+    fun();
+    TIC_buf = 46;// .
+    fun();
+    TIC_buf = 48;//         0
+    fun();
+    TIC_buf = 48;//         0
+    fun();
+    TIC_buf = 48;//         0
+    fun();
+    TIC_buf = 59;//;
+    fun();
+    TIC_buf = 54;//6
+    fun();
+    TIC_buf = 54;//6
+    fun();
+    TIC_buf = 59;//;
+    fun();
+    TIC_buf = 49;//1
+    fun();
+    TIC_buf = 59;//;
+    fun();
+    TIC_buf = 48;//0
+    fun();
+    TIC_buf = 59;//;
+    fun();
+    TIC_buf = 48;//0
+    fun();
+    TIC_buf = 13;//<\r>
 
-	//Допустим сработал таймер TIC, надо запросить давление
-	/*
-	ISR_TIC_timer();
-	//TIC отвечает правильно
-	TIC_buf = 61;//=
-	fun();
-	TIC_buf = 86;//V
-	fun();
-	TIC_buf = 57;//9
-	fun();
-	TIC_buf = 49;//1
-	fun();
-	TIC_buf = 51;//         3
-	fun();
-	TIC_buf = 32;//< >
-	fun();
-	TIC_buf = 50;//         2
-	fun();
-	TIC_buf = 46;// .
-	fun();
-	TIC_buf = 48;//         0
-	fun();
-	TIC_buf = 48;//         0
-	fun();
-	TIC_buf = 48;//         0
-	fun();
-	TIC_buf = 59;//;
-	fun();
-	TIC_buf = 54;//6
-	fun();
-	TIC_buf = 54;//6
-	fun();
-	TIC_buf = 59;//;
-	fun();
-	TIC_buf = 49;//1
-	fun();
-	TIC_buf = 59;//;
-	fun();
-	TIC_buf = 48;//0
-	fun();
-	TIC_buf = 59;//;
-	fun();
-	TIC_buf = 48;//0
-	fun();
-	TIC_buf = 13;//<\r>
-	
-	PC_buf = 58; PC_fun();
-	PC_buf = 52; PC_fun();
-	PC_buf = 204; PC_fun();
-	PC_buf = 13; PC_fun();
-	ISR_PC_timer();
-	
-	fun();
-	
-	//*/
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	while (1)
+    PC_buf = 58; PC_fun();
+    PC_buf = 52; PC_fun();
+    PC_buf = 204; PC_fun();
+    PC_buf = 13; PC_fun();
+    ISR_PC_timer();
+
+    fun();
+
+    //*/
+    while (1)
     {
-		
+        if (MC_Tasks.turnOnHVE)
+        {
+            pin_iHVE_low; //Включаем DC-DC 24-12
+            cpu_delay_ms(2000, 32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
+            //Высокое напряжение включено - конфигурируем DACи
+            //MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
+            uint8_t SPI_DATA[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};
+            spi_select_device(&SPIC, &DAC_Condensator);
+            spi_select_device(&SPIC, &DAC_Scaner);
+            spi_write_packet(&SPIC, SPI_DATA, 3);
+            spi_deselect_device(&SPIC, &DAC_Condensator);
+            spi_deselect_device(&SPIC, &DAC_Scaner);
+            //MSV DAC'и AD5643R (Конденсатор и сканер) - стартовое напряжение на первых каналах
+            SPI_DATA[0] = AD5643R_startVoltage_Hbyte;
+            SPI_DATA[1] = AD5643R_startVoltage_Mbyte;
+            SPI_DATA[2] = AD5643R_startVoltage_Lbyte;
+            spi_select_device(&SPIC, &DAC_Scaner);
+            spi_select_device(&SPIC, &DAC_Condensator);
+            spi_write_packet(&SPIC, SPI_DATA, 3);
+            spi_deselect_device(&SPIC, &DAC_Scaner);
+            spi_deselect_device(&SPIC, &DAC_Condensator);
+            //MSV DAC AD5643R (Сканер) - стартовое напряжение на первом канале
+            SPI_DATA[0] = AD5643R_startVoltage_Hbyte + 1;
+            spi_select_device(&SPIC, &DAC_Scaner);
+            spi_write_packet(&SPIC, SPI_DATA, 3);
+            spi_deselect_device(&SPIC, &DAC_Scaner);
+            //DPS + PSIS DAC'и AD5328R (Детектор и Ионный Источник) - двойной референс
+            SPI_DATA[0] = AD5328R_confHbyte;
+            SPI_DATA[1] = AD5328R_confLbyte;
+            spi_select_device(&SPIC, &DAC_Detector);
+            spi_select_device(&SPIC, &DAC_IonSource);
+            spi_write_packet(&SPIC, SPI_DATA, 2);
+            spi_deselect_device(&SPIC, &DAC_Detector);
+            spi_deselect_device(&SPIC, &DAC_IonSource);
+            //ОТКЛЮЧЕНО по электротехническим причинам!
+            /*delay_s(2);
+            //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на втором канале (Ионизации)
+            sdata[0] = AD5328R_startVoltage_Hbyte_PSIS_IV;
+            sdata[1] = AD5328R_startVoltage_Lbyte_PSIS_IV;
+            spi_select_device(&SPIC,&DAC_IonSource);
+            spi_write_packet(&SPIC, sdata, 2);
+            spi_deselect_device(&SPIC,&DAC_IonSource);
+            //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на первом канале (Ток Эмиссии)
+            sdata[0] = AD5328R_startVoltage_Hbyte_PSIS_EC;
+            sdata[1] = AD5328R_startVoltage_Lbyte_PSIS_EC;
+            spi_select_device(&SPIC,&DAC_IonSource);
+            spi_write_packet(&SPIC, sdata, 2);
+            spi_deselect_device(&SPIC,&DAC_IonSource);
+            //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на третьем канале (Фокусное 1)
+            sdata[0] += 16;//переход на следующий адрес
+            //sdata[1] = ;
+            spi_select_device(&SPIC,&DAC_IonSource);
+            spi_write_packet(&SPIC, sdata, 2);
+            spi_deselect_device(&SPIC,&DAC_IonSource);
+            //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на четвёртом канале (Фокусное 2)
+            sdata[0] += 16;//переход на следующий адрес
+            //sdata[1] = ;
+            spi_select_device(&SPIC,&DAC_IonSource);
+            spi_write_packet(&SPIC, sdata, 2);
+            spi_deselect_device(&SPIC,&DAC_IonSource);*/
+			
+            MC_Tasks.turnOnHVE = 0;
+        }
     }
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------

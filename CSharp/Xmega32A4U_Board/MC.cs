@@ -628,6 +628,7 @@ namespace Xmega32A4U_testBoard
         public static class Service
         {
             //КЛАСС: Класс для сервисных функций, отладки и проча
+            static List<byte> dummy = new List<byte>();
             /// <summary>
             /// Задаёт трейсер для вывода сообщений (отладочное)
             /// </summary>
@@ -947,7 +948,8 @@ namespace Xmega32A4U_testBoard
                 //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
                 bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
                 tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
-                USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived);
+                try { USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived); }
+                catch { MC.Service.trace("MC.Service.transmit(...): Ошибка USART! COM-port не определён"); return dummy; }
                 send(wDATA);
                 List<byte> rDATA = decode(receive());
                 USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
@@ -1010,6 +1012,277 @@ namespace Xmega32A4U_testBoard
                 string error = " -" + (ErrorList.Count + 1).ToString() + "- [" + DateTime.Now.ToString("HH:mm:ss") + "] " + TEXT;
                 MC.Service.trace(TEXT);
                 ErrorList.Add(error);
+            }
+        }
+        #endregion
+        #region Flags
+        public static class Flags
+        {
+            /// <summary>
+            /// Разрешение высокого напряжения от TIC'а. Возвращает "Enabled" или "Blocked"
+            /// </summary>
+            public static string HVE
+            {
+                get
+                {
+                    string command = "MC.HVE.get()";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    List<byte> rDATA = MC.Service.transmit(Command.Flags.HVE);
+                    try
+                    {
+                        if (rDATA[1] == rDATA[2]) { if (rDATA[1] == 0) { return "Enabled"; } else { return "Blocked"; } }
+                        else { MC.Service.trace(command + ": Внутренняя ошибка! Не совпадение pin_iHVE и Flags.iHVE!"); }
+                    }
+                    catch { MC.Service.trace(command + ": Ошибка данных!"); }
+                    return "?";
+                }
+            }
+            /// <summary>
+            /// Разрешение оператора на включение высокого напряжения.
+            /// <para>Возвращает: "On" - включено\включить, </para>
+            /// <para>"Off" - выключено\выключить,  </para>
+            /// <para>"Blocked" - высокое напряжение запрещено TIC'ом</para>
+            /// </summary>
+            public static string PRGE
+            {
+                //ПАКЕТ: <Command><getOrSet>
+                //					<0>\<1> - устанавливают
+                //					<any_else> - запрашивает
+                get
+                {
+                    string command = "MC.PRGE.get()";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    List<byte> rDATA = MC.Service.transmit(Command.Flags.PRGE, 255);
+                    try
+                    {
+                        switch (rDATA[1])
+                        {
+                            case 0: return "On";
+                            case 1: return "Off";
+                            case 254: return "Blocked";
+                            default: return "?";
+                        }
+                    }
+                    catch { MC.Service.trace(command + ": Ошибка данных!"); }
+                    return "?";
+                }
+                set
+                {
+                    string command = "MC.PRGE.set(" + value + ")";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    byte setupByte = 0;
+                    if (value == "On")
+                    {
+                        setupByte = 1;
+                    }
+                    MC.Service.transmit(Command.Flags.PRGE, setupByte);
+                }
+            }
+            /// <summary>
+            /// Включает\выключает дистанционное управление
+            /// <para>Возвращает: "On" - включено\включить, </para>
+            /// <para>"Off" - выключено\выключить,  </para>
+            /// </summary>
+            public static string EDCD
+            {
+                get
+                {
+                    string command = "MC.EDCD.get()";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    List<byte> rDATA = MC.Service.transmit(Command.Flags.EDCD, 255);
+                    try
+                    {
+                        switch (rDATA[1])
+                        {
+                            case 0: return "Off";
+                            case 1: return "On";
+                            default: MC.Service.trace(command + ": Неверное состояние!");
+                                break;
+                        }
+                    }
+                    catch { MC.Service.trace(command + ": Ошибка данных!"); }
+                    return "?";
+                }
+                set
+                {
+                    string command = "MC.EDCD.set(" + value + ")";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    byte setupByte = 0;
+                    if (value == "On")
+                    {
+                        setupByte = 1;
+                    }
+                    MC.Service.transmit(Command.Flags.EDCD, setupByte);
+                }
+            }
+            /// <summary>
+            /// Включает\выключает вентиль
+            /// <para>Возвращает: "On" - включено\включить, </para>
+            /// <para>"Off" - выключено\выключить,  </para>
+            /// </summary>
+            /// <param name="enable"></param>
+            /// <returns></returns>
+            public static string SEMV1
+            {
+                get
+                {
+                    string command = "MC.SEMV1.get()";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    List<byte> rDATA = MC.Service.transmit(Command.Flags.SEMV1, 255);
+                    try
+                    {
+                        switch (rDATA[1])
+                        {
+                            case 0: return "Off";
+                            case 1: return "On";
+                            default: MC.Service.trace(command + ": Неверное состояние!");
+                                break;
+                        }
+                    }
+                    catch { MC.Service.trace(command + ": Ошибка данных!"); }
+                    return "?";
+                }
+                set
+                {
+                    string command = "MC.SEMV1.set(" + value + ")";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    byte setupByte = 0;
+                    if (value == "On")
+                    {
+                        setupByte = 1;
+                    }
+                    MC.Service.transmit(Command.Flags.SEMV1, setupByte);
+                }
+            }
+            /// <summary>
+            /// Включает\выключает вентиль
+            /// <para>Возвращает: "On" - включено\включить, </para>
+            /// <para>"Off" - выключено\выключить,  </para>
+            /// </summary>
+            /// <param name="enable"></param>
+            /// <returns></returns>
+            public static string SEMV2
+            {
+                get
+                {
+                    string command = "MC.SEMV2.get()";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    List<byte> rDATA = MC.Service.transmit(Command.Flags.SEMV2, 255);
+                    try
+                    {
+                        switch (rDATA[1])
+                        {
+                            case 0: return "Off";
+                            case 1: return "On";
+                            default: MC.Service.trace(command + ": Неверное состояние!");
+                                break;
+                        }
+                    }
+                    catch { MC.Service.trace(command + ": Ошибка данных!"); }
+                    return "?";
+                }
+                set
+                {
+                    string command = "MC.SEMV2.set(" + value + ")";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    byte setupByte = 0;
+                    if (value == "On")
+                    {
+                        setupByte = 1;
+                    }
+                    MC.Service.transmit(Command.Flags.SEMV2, setupByte);
+                }
+            }
+            /// <summary>
+            /// Включает\выключает вентиль
+            /// <para>Возвращает: "On" - включено\включить, </para>
+            /// <para>"Off" - выключено\выключить,  </para>
+            /// </summary>
+            /// <param name="enable"></param>
+            /// <returns></returns>
+            public static string SEMV3
+            {
+                get
+                {
+                    string command = "MC.SEMV3.get()";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    List<byte> rDATA = MC.Service.transmit(Command.Flags.SEMV3, 255);
+                    try
+                    {
+                        switch (rDATA[1])
+                        {
+                            case 0: return "Off";
+                            case 1: return "On";
+                            default: MC.Service.trace(command + ": Неверное состояние!");
+                                break;
+                        }
+                    }
+                    catch { MC.Service.trace(command + ": Ошибка данных!"); }
+                    return "?";
+                }
+                set
+                {
+                    string command = "MC.SEMV3.set(" + value + ")";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    byte setupByte = 0;
+                    if (value == "On")
+                    {
+                        setupByte = 1;
+                    }
+                    MC.Service.transmit(Command.Flags.SEMV3, setupByte);
+                }
+            }
+            /// <summary>
+            /// Включает\выключает насос
+            /// <para>Возвращает: "On" - включено\включить, </para>
+            /// <para>"Off" - выключено\выключить,  </para>
+            /// </summary>
+            /// <param name="enable"></param>
+            /// <returns></returns>
+            public static string SPUMP
+            {
+                get
+                {
+                    string command = "MC.SPUMP.get()";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    List<byte> rDATA = MC.Service.transmit(Command.Flags.SPUMP, 255);
+                    try
+                    {
+                        switch (rDATA[1])
+                        {
+                            case 0: return "Off";
+                            case 1: return "On";
+                            default: MC.Service.trace(command + ": Неверное состояние!");
+                                break;
+                        }
+                    }
+                    catch { MC.Service.trace(command + ": Ошибка данных!"); }
+                    return "?";
+                }
+                set
+                {
+                    string command = "MC.SPUMP.set(" + value + ")";
+                    MC.Service.trace_attached(Environment.NewLine);
+                    MC.Service.trace(command);
+                    byte setupByte = 0;
+                    if (value == "On")
+                    {
+                        setupByte = 1;
+                    }
+                    MC.Service.transmit(Command.Flags.SPUMP, setupByte);
+                }
             }
         }
         #endregion
@@ -1096,7 +1369,7 @@ namespace Xmega32A4U_testBoard
             MC.Service.trace(command);
             byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(PRGE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
             List<byte> rDATA;
-            rDATA = MC.Service.transmit(Command.setFlags, flags);
+            rDATA = MC.Service.transmit(Command.Flags.setFlags, flags);
             try
             {
                 if ((rDATA[1] & 128) == 0) { MC.Service.trace(command + ": Операция отменена! Нечего менять!"); }

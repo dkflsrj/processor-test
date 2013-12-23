@@ -466,7 +466,7 @@ namespace Xmega32A4U_testBoard
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
             //TIC.Display_contrast = "15";
-            //TIC.set_HVE_conditions("Gauge_1", "2.431", "Gauge_2", "6.894");
+            //TIC.setup_HVE_conditions("Gauge_1", "2.431", "Gauge_2", "6.894");
             MC.Service.trace(TIC.getTIC_MEM());
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
@@ -707,18 +707,89 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_checkFlags_Click(object sender, EventArgs e)
         {
-            byte flags = MC.setFlags(false, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
-            if ((flags & 1) == 1) { CHB_SPUMP.Checked = true; } else { CHB_SPUMP.Checked = false; }
-            if ((flags & 2) == 2) { CHB_SEMV3.Checked = true; } else { CHB_SEMV3.Checked = false; }
-            if ((flags & 4) == 4) { CHB_SEMV2.Checked = true; } else { CHB_SEMV2.Checked = false; }
-            if ((flags & 8) == 8) { CHB_SEMV1.Checked = true; } else { CHB_SEMV1.Checked = false; }
-            if ((flags & 16) == 16) { CHB_iEDCD.Checked = true; } else { CHB_iEDCD.Checked = false; }
-            if ((flags & 32) == 32) { CHB_PRGE.Checked = true; } else { CHB_PRGE.Checked = false; }
-            if ((flags & 64) == 64) { CHB_iHVE.CheckState = CheckState.Checked; } else { CHB_iHVE.CheckState = CheckState.Unchecked; }
+            //byte flags = MC.setFlags(false, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
+            //if ((flags & 1) == 1) { CHB_SPUMP.Checked = true; } else { CHB_SPUMP.Checked = false; }
+            //if ((flags & 2) == 2) { CHB_SEMV3.Checked = true; } else { CHB_SEMV3.Checked = false; }
+            //if ((flags & 4) == 4) { CHB_SEMV2.Checked = true; } else { CHB_SEMV2.Checked = false; }
+            //if ((flags & 8) == 8) { CHB_SEMV1.Checked = true; } else { CHB_SEMV1.Checked = false; }
+            //if ((flags & 16) == 16) { CHB_iEDCD.Checked = true; } else { CHB_iEDCD.Checked = false; }
+            //if ((flags & 32) == 32) { CHB_PRGE.Checked = true; } else { CHB_PRGE.Checked = false; }
+            //if ((flags & 64) == 64) { CHB_iHVE.CheckState = CheckState.Checked; } else { CHB_iHVE.CheckState = CheckState.Unchecked; }
+            switch (MC.Flags.HVE)
+            {
+                case "Enabled": CHB_iHVE.CheckState = CheckState.Checked;
+                    break;
+                case "Blocked": CHB_iHVE.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_iHVE.CheckState = CheckState.Indeterminate;
+                    break;
+            }
+            switch (MC.Flags.PRGE)
+            {
+                case "On": CHB_PRGE.CheckState = CheckState.Checked;
+                    break;
+                case "Off": CHB_PRGE.CheckState = CheckState.Unchecked;
+                    break;
+                case "Blocked": CHB_PRGE.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_PRGE.CheckState = CheckState.Indeterminate;
+                    break;
+            }
+            switch (MC.Flags.EDCD)
+            {
+                case "On": CHB_iEDCD.CheckState = CheckState.Checked;
+                    break;
+                case "Off": CHB_iEDCD.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_iEDCD.CheckState = CheckState.Indeterminate;
+                    break;
+            }
+            switch (MC.Flags.SEMV1)
+            {
+                case "On": CHB_SEMV1.CheckState = CheckState.Checked;
+                    break;
+                case "Off": CHB_SEMV1.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_SEMV1.CheckState = CheckState.Indeterminate;
+                    break;
+            }
+            switch (MC.Flags.SEMV2)
+            {
+                case "On": CHB_SEMV2.CheckState = CheckState.Checked;
+                    break;
+                case "Off": CHB_SEMV2.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_SEMV2.CheckState = CheckState.Indeterminate;
+                    break;
+            }
+            switch (MC.Flags.SEMV3)
+            {
+                case "On": CHB_SEMV3.CheckState = CheckState.Checked;
+                    break;
+                case "Off": CHB_SEMV3.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_SEMV3.CheckState = CheckState.Indeterminate;
+                    break;
+            }
+            switch (MC.Flags.SPUMP)
+            {
+                case "On": CHB_SPUMP.CheckState = CheckState.Checked;
+                    break;
+                case "Off": CHB_SPUMP.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_SPUMP.CheckState = CheckState.Indeterminate;
+                    break;
+            }
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            MC.setFlags(true, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
+            //MC.setFlags(true, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
+            if (CHB_PRGE.Checked) { MC.Flags.PRGE = "On"; } else { MC.Flags.PRGE = "Off"; }
+            if (CHB_iEDCD.Checked) { MC.Flags.EDCD = "On"; } else { MC.Flags.EDCD = "Off"; }
+            if (CHB_SEMV1.Checked) { MC.Flags.SEMV1 = "On"; } else { MC.Flags.SEMV1 = "Off"; }
+            if (CHB_SEMV2.Checked) { MC.Flags.SEMV2 = "On"; } else { MC.Flags.SEMV2 = "Off"; }
+            if (CHB_SEMV3.Checked) { MC.Flags.SEMV3 = "On"; } else { MC.Flags.SEMV3 = "Off"; }
+            if (CHB_SPUMP.Checked) { MC.Flags.SPUMP = "On"; } else { MC.Flags.SPUMP = "Off"; }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
