@@ -29,6 +29,7 @@ namespace Xmega32A4U_testBoard
         static byte CommandStack;                   //Счётчик выполненных команд (см. .Chip.checkCommandStack())
         const uint TimeOut = 1625;                  //260000 вроде 1 сек для данной машины
         const uint TIC_TimeOut = 7000;              //тайм аут для передачи и приёма для TIC'a
+        static List<byte> dummy = new List<byte>();
         #endregion
         #region-------------------------------------СТРУКТУРЫ------------------------------------------
         #region Коды ошибок
@@ -52,6 +53,16 @@ namespace Xmega32A4U_testBoard
             public const byte SPI_conf_done = 2;//После включения HVE все SPI устройства были настроены!
         }
         #endregion
+        #region Коды критических ошибок
+        struct Critical_Error
+        {
+            //СТРУКТУРА: Хранилище констант - кодов внутренних ошибок МК. Нежелательные и запрещённые состояния.
+            public const byte Token = 252;      //Метка внутренней ошибки
+            //Номера внутренних ошибок     
+            public const byte HVE_error_decode = 1; //Ошибка декодирования сообщения от TIC'a!
+            public const byte HVE_error_noResponse = 2;//TIC не ответил!
+        }
+        #endregion
         #region Коды внутренних ошибок
         struct Internal_Error
         {
@@ -59,18 +70,29 @@ namespace Xmega32A4U_testBoard
             public const byte Token = 253;      //Метка внутренней ошибки
             //Номера внутренних ошибок     
             public const byte USART_COMP = 1;       //Внутренняя ошибка приёма данных от ПК
-            public const byte SPI = 2;       //SPI-устройства с таким номером нет  
+            public const byte SPI = 2;              //SPI-устройства с таким номером нет  
+            public const byte TIC_state = 3;        //Неверное состояние TIC таймера!
         }
         #endregion
-        #region Коды событий
-        struct Incident
+        #region Коды происшествий
+        struct Incident_PC
         {
             //СТРУКТУРА: Хранилище констант - кодов происшествий, которые передаются при опросе статуса МК
             public const byte LOCKisLost = 1;       //МК принимал пакет, но в последний байт пакета не затвор
-            public const byte TooShortPacket = 2;   //байт длинны пакета меньше минимального (5)
+            public const byte TooShortPacket = 2;   //Длина пакета меньше минимального
             public const byte TooFast = 4;          //МК ещё не выполнил предыдущую команду, а уже приходит другая.
             public const byte Silence = 8;          //МК больше 60 секунд не связывался с ПК
             public const byte Noise = 16;           //На линии МК-ПК был замечен шум
+        }
+        struct Incident_TIC
+        {
+            //СТРУКТУРА: Хранилище констант - кодов происшествий, которые передаются при опросе статуса МК
+            public const byte LOCKisLost = 1;       //МК принимал пакет, но в последний байт пакета не затвор
+            public const byte TooShortPacket = 2;   //Длина пакета меньше минимального
+            public const byte Silence = 8;          //TIC не отвечает
+            public const byte Noise = 16;           //На линии МК-TIC был замечен шум
+            public const byte HVE_error = 64;       //Ошибка системы мониторинга высокого напряжения
+            public const byte wrongTimerState = 64; //Таймер TIC'a находился в неверном состоянии!
         }
         #endregion
         #endregion
@@ -489,9 +511,9 @@ namespace Xmega32A4U_testBoard
                 return false;
             }
             /// <summary>
-            /// Возвращает код статуса МК (отладочное)
+            /// Возвращает происшествия МК (отладочное)
             /// </summary>
-            public static byte getStatus()
+            public static void getStatus()
             {
                 //ФУНКЦИЯ: Возвращает статус самого микроконтроллера и список проишествий
                 string command = "Chip.getStatus()";
@@ -504,39 +526,66 @@ namespace Xmega32A4U_testBoard
                     if (rDATA[0] != Command.Chip.getStatus)
                     {
                         MC.Service.addError(command + ": Ошибка отклика!", rDATA);
-                        return byte.MaxValue;
+                        return;
                     }
-                    MC.Service.trace(command + ": Статус МК: " + rDATA[1]);
                     incedent = rDATA[2];
+                    if (incedent == 0) { MC.Service.trace(command + ": За время работы проишествий c PC не было. "); }
+                    else
+                    {
+                        MC.Service.trace(command + ": Проишествия PC: ");
+                        if ((incedent & Incident_PC.LOCKisLost) == Incident_PC.LOCKisLost)
+                        {
+                            MC.Service.trace("         LOCKisLost");
+                        }
+                        if ((incedent & Incident_PC.TooShortPacket) == Incident_PC.TooShortPacket)
+                        {
+                            MC.Service.trace("         TooShortPacket");
+                        }
+                        if ((incedent & Incident_PC.TooFast) == Incident_PC.TooFast)
+                        {
+                            MC.Service.trace("         TooFast");
+                        }
+                        if ((incedent & Incident_PC.Silence) == Incident_PC.Silence)
+                        {
+                            MC.Service.trace("         Silence");
+                        }
+                        if ((incedent & Incident_PC.Noise) == Incident_PC.Noise)
+                        {
+                            MC.Service.trace("         Noise");
+                        }
+                    }
+                    incedent = rDATA[1];
+                    if (incedent == 0) { MC.Service.trace(command + ": За время работы проишествий c TIC'ом не было. "); }
+                    else
+                    {
+                        MC.Service.trace(command + ": Проишествия TIC: ");
+                        if ((incedent & Incident_TIC.LOCKisLost) == Incident_TIC.LOCKisLost)
+                        {
+                            MC.Service.trace("         LOCKisLost");
+                        }
+                        if ((incedent & Incident_TIC.TooShortPacket) == Incident_TIC.TooShortPacket)
+                        {
+                            MC.Service.trace("         TooShortPacket");
+                        }
+                        if ((incedent & Incident_TIC.Silence) == Incident_TIC.Silence)
+                        {
+                            MC.Service.trace("         Silence");
+                        }
+                        if ((incedent & Incident_TIC.Noise) == Incident_TIC.Noise)
+                        {
+                            MC.Service.trace("         Noise");
+                        }
+                        if ((incedent & Incident_TIC.HVE_error) == Incident_TIC.HVE_error)
+                        {
+                            MC.Service.trace("         HVE_error");
+                        }
+                        if ((incedent & Incident_TIC.wrongTimerState) == Incident_TIC.wrongTimerState)
+                        {
+                            MC.Service.trace("         wrongTimerState");
+                        }
+                    }
                 }
-                catch { MC.Service.addError(command + ": Ошибка данных!", rDATA); return byte.MaxValue; }
-                if (incedent == 0)
-                {
-                    MC.Service.trace(command + ": За время работы проишествий не было. ");
-                    return rDATA[0];
-                }
-                MC.Service.trace(command + ": Проишествия: ");
-                if ((incedent & Incident.LOCKisLost) == Incident.LOCKisLost)
-                {
-                    MC.Service.trace("         LOCKisLost");
-                }
-                if ((incedent & Incident.TooShortPacket) == Incident.TooShortPacket)
-                {
-                    MC.Service.trace("         TooShortPacket");
-                }
-                if ((incedent & Incident.TooFast) == Incident.TooFast)
-                {
-                    MC.Service.trace("         TooFast");
-                }
-                if ((incedent & Incident.Silence) == Incident.Silence)
-                {
-                    MC.Service.trace("         Silence");
-                }
-                if ((incedent & Incident.Noise) == Incident.Noise)
-                {
-                    MC.Service.trace("         Noise");
-                }
-                return rDATA[0];
+                catch { MC.Service.addError(command + ": Ошибка данных!", rDATA); return; }
             }
             /// <summary>
             /// Возвращает версию прошивки МК
@@ -629,7 +678,9 @@ namespace Xmega32A4U_testBoard
         public static class Service
         {
             //КЛАСС: Класс для сервисных функций, отладки и проча
-            static List<byte> dummy = new List<byte>();
+            public static EventCallBack SPI_devices_ready;
+            public static EventCallBack CriticalError_HVE_decoder;
+            public static EventCallBack CriticalError_HVE_TIC_noResponse;
             /// <summary>
             /// Задаёт трейсер для вывода сообщений (отладочное)
             /// </summary>
@@ -805,10 +856,25 @@ namespace Xmega32A4U_testBoard
                             case LAM.SPI_conf_done:
                                 trace_attached(Environment.NewLine);
                                 trace("LAM:Высокое напряжение разрешено, SPI устройства настроены!");
-                                //Counters.MeasureEnd.Invoke(); //Здесь нужен делегат для этого события
+                                SPI_devices_ready.Invoke();
                                 break;
                             default:
                                 trace("МК хочет чтобы на него обратили внимание, но не понятно почему! " + DATA[1]);
+                                break;
+                        }
+                        break;
+                    case Critical_Error.Token:
+                        switch (DATA[1])
+                        {
+                            case Critical_Error.HVE_error_decode:
+                                trace_attached(Environment.NewLine);
+                                trace("CRITICAL ERROR! Ошибка декодирования сообщения от TIC'a!");
+                                CriticalError_HVE_decoder.Invoke();
+                                break;
+                            case Critical_Error.HVE_error_noResponse:
+                                trace_attached(Environment.NewLine);
+                                trace("CRITICAL ERROR! TIC не выходит на связь!");
+                                CriticalError_HVE_TIC_noResponse.Invoke();
                                 break;
                         }
                         break;
