@@ -82,6 +82,18 @@
             public const byte checkCommandStack = 8;
         }
         #endregion
-        public const byte setFlags = 70;
+        #region Flags
+        public struct Flags
+        {
+            public const byte setFlags = 70;
+            public const byte HVE = 71;
+            public const byte PRGE = 72;
+            public const byte EDCD = 73;
+            public const byte SEMV1 = 74;
+            public const byte SEMV2 = 75;
+            public const byte SEMV3 = 76;
+            public const byte SPUMP = 77;
+        }
+        #endregion
     }
 }

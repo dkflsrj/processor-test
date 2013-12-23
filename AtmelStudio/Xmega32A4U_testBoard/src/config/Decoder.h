@@ -50,6 +50,13 @@
 #define COMMAND_PSInl_get_Voltage					63	//Команда: Запросить напряжение натекателя
 
 #define COMMAND_Flags_set							70	//Команда: Установить флаги (SEMV1,SEMV2,SEMV3,SPUMP,iEDCD,iHVE)
+#define COMMAND_Flags_HVE							71
+#define COMMAND_Flags_PRGE							72
+#define COMMAND_Flags_EDCD							73
+#define COMMAND_Flags_SEMV1							74
+#define COMMAND_Flags_SEMV2							75
+#define COMMAND_Flags_SEMV3							76
+#define COMMAND_Flags_SPUMP							77
 //-----------------------------------------------LAM'ы-----------------------------------------------
 //ПОЯСНЕНИЯ: Асинхронные сообщения информирующие ПК о чём либо.
 //Метка
@@ -81,7 +88,7 @@
 //---------------------------------------------ДЕШИФРАТОР--------------------------------------------
 
 //----------------------------------------ПРОСТЫЕ КОМАНДЫ-----------------------------------------
-#define MC_transmit_Status			transmit_3bytes(COMMAND_MC_get_Status, 0, *pointer_Errors_USART_PC)
+#define MC_transmit_Status			transmit_3bytes(COMMAND_MC_get_Status, *pointer_Errors_USART_TIC, *pointer_Errors_USART_PC)
 #define MC_transmit_Version			transmit_2bytes(COMMAND_MC_get_Version, MC_version)
 
 

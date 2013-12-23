@@ -48,6 +48,16 @@
 //----------------------------------------------------------------------------------------
 #define pin_iHVE_high		PORTC.OUTSET = 8
 #define pin_iHVE_low		PORTC.OUTCLR = 8
+#define pin_iEDCD_high		PORTA.OUTSET = 128
+#define pin_iEDCD_low		PORTA.OUTCLR = 128
+#define pin_SEMV1_high		PORTD.OUTSET = 2
+#define pin_SEMV1_low		PORTD.OUTCLR = 2
+#define pin_SEMV2_high		PORTD.OUTSET = 16
+#define pin_SEMV2_low		PORTD.OUTCLR = 16
+#define pin_SEMV3_high		PORTD.OUTSET = 32
+#define pin_SEMV3_low		PORTD.OUTCLR = 32
+#define pin_SPUMP_high		PORTD.OUTSET = 1
+#define pin_SPUMP_low		PORTD.OUTCLR = 1
 
 #endif
 

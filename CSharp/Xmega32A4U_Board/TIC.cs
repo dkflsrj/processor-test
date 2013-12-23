@@ -2645,9 +2645,9 @@ namespace Xmega32A4U_testBoard
         /// <para>Варианты: "Gauge_1","Gauge_2" (по умолчанию),"Gauge_3".</para></param>
         /// <param name="offThreshold">Порог (больше или равно) выключения высокого напряжения.</para>
         /// <para>Пример: "6.700" = 6.700V (по умолчанию).</para></param>
-        public static void set_HVE_conditions(string onGauge, string onThreshold, string offGauge, string offThreshold)
+        public static void setup_HVE_conditions(string onGauge, string onThreshold, string offGauge, string offThreshold)
         {
-            string command = "TIC.set_HVE_conditions(" + onGauge + "," + onThreshold + "," + offGauge + "," + offThreshold + ")";
+            string command = "TIC.setup_HVE_conditions.set(" + onGauge + "," + onThreshold + "," + offGauge + "," + offThreshold + ")";
             MC.Service.trace_attached(Environment.NewLine);
             MC.Service.trace(command);
             byte onLevel_1 = (byte)((Pifagor.Hex.toBin.Byte(onThreshold[0]) << 4) + Pifagor.Hex.toBin.Byte(onThreshold[2]));
@@ -2660,6 +2660,33 @@ namespace Xmega32A4U_testBoard
                 Encoding.ASCII.GetBytes(CodeBase.Addresses.findValue(offGauge))[2], offLevel_1, offLevel_0
             };
             MC.Service.transmit(Command.TIC.set_Gauges,DATA);
+        }
+        /// <summary>
+        /// Запрашивает у МК данные по опросу датчиков.
+        /// </summary>
+        /// <param name="onGauge">Датчик включения высокого напряжения.
+        /// <para>Варианты: "Gauge_1" (по умолчанию),"Gauge_2","Gauge_3".</para></param>
+        /// <param name="onThreshold">Порог (меньше или равно) включения высокого напряжения.</para>
+        /// <para>Пример: "2.000" = 2.000V (по умолчанию).</para></param>
+        /// <param name="offGauge">Датчик выключения высокого напряжения.
+        /// <para>Варианты: "Gauge_1","Gauge_2" (по умолчанию),"Gauge_3".</para></param>
+        /// <param name="offThreshold">Порог (больше или равно) выключения высокого напряжения.</para>
+        /// <para>Пример: "6.700" = 6.700V (по умолчанию).</para></param>
+        public static void setup_HVE_conditions(ref string onGauge, ref string onThreshold, ref string offGauge, ref string offThreshold)
+        {
+            //ПАКЕТ: <Command><pin_iHVE><Flags.HVE><onGauge><onLevel[1]><onLevel[0]><offGauge><offLevel[1]><offLevel[1]><monitoringEnabled>
+            string command = "TIC.setup_HVE_conditions.get()";
+            MC.Service.trace_attached(Environment.NewLine);
+            MC.Service.trace(command);
+            List<byte> rDATA = MC.Service.transmit(Command.Flags.HVE);
+            try
+            {
+                onGauge = CodeBase.Addresses.findMeaning("91" + Encoding.ASCII.GetString(new byte[] { rDATA[3] }));
+                onThreshold = ((byte)(rDATA[4] >> 4) + "." + (byte)(rDATA[4] & 0x0F) + (byte)(rDATA[5] >> 4) + (byte)(rDATA[5] & 0x0F)).ToString();
+                offGauge = CodeBase.Addresses.findMeaning("91" + Encoding.ASCII.GetString(new byte[] { rDATA[6] }));
+                offThreshold = ((byte)(rDATA[7] >> 4) + "." + (byte)(rDATA[7] & 0x0F) + (byte)(rDATA[8] >> 4) + (byte)(rDATA[8] & 0x0F)).ToString();
+            }
+            catch { MC.Service.trace("TIC.setup_HVE_conditions.get(): Ошибка данных!"); }
         }
         /// <summary>
         /// Перезапускает постоянный мониторинг датчиков тика.
