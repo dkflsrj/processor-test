@@ -1,8 +1,6 @@
 #summary One-sentence summary of this page.
 
-= Introduction =
-
-Запуск МК                                        ~300мкс \r
+Запуск МК                                        ~300мкс 
 Время съём байта TIC	                         4мкс
 Общее время съёма пакет HVE 			 ~72мкс 
 Время декодирования HVE пакета			 ~13мкс
@@ -10,9 +8,3 @@
 Время на отправку CRITICAL_ERROR		 ~250мкс
 Переключение pin_iHVE через gpio		 ~5мкс
 Переключения iHVE (PORTC.3): [OUT,CLR,SET,TGL]	 ~350нс
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
