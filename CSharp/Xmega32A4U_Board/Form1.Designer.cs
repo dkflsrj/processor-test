@@ -171,11 +171,13 @@
             this.BTN_INLET_getVoltage = new System.Windows.Forms.Button();
             this.TABpanel_5 = new System.Windows.Forms.TabPage();
             this.GPB_realCOX = new System.Windows.Forms.GroupBox();
+            this.LBL_realCOX_RTC_ElapsedTime = new System.Windows.Forms.Label();
             this.LBL_realCOX_COC_Result = new System.Windows.Forms.Label();
             this.LBL_realCOX_COB_Result = new System.Windows.Forms.Label();
             this.LBL_realCOX_RTCstate = new System.Windows.Forms.Label();
             this.LBL_realCOX_COA_Result = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
             this.label22 = new System.Windows.Forms.Label();
             this.labelN = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
@@ -202,8 +204,6 @@
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.label17 = new System.Windows.Forms.Label();
-            this.LBL_realCOX_RTC_ElapsedTime = new System.Windows.Forms.Label();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -480,7 +480,6 @@
             this.GRB_TotalControl.Controls.Add(this.label2);
             this.GRB_TotalControl.Controls.Add(this.label1);
             this.GRB_TotalControl.Controls.Add(this.CHB_TotalControl);
-            this.GRB_TotalControl.Enabled = false;
             this.GRB_TotalControl.Location = new System.Drawing.Point(235, 10);
             this.GRB_TotalControl.Name = "GRB_TotalControl";
             this.GRB_TotalControl.Size = new System.Drawing.Size(411, 108);
@@ -491,6 +490,7 @@
             // LBL_TotalC_Status
             // 
             this.LBL_TotalC_Status.AutoSize = true;
+            this.LBL_TotalC_Status.Enabled = false;
             this.LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
             this.LBL_TotalC_Status.Location = new System.Drawing.Point(62, 39);
             this.LBL_TotalC_Status.Name = "LBL_TotalC_Status";
@@ -501,6 +501,7 @@
             // LBL_error
             // 
             this.LBL_error.AutoSize = true;
+            this.LBL_error.Enabled = false;
             this.LBL_error.ForeColor = System.Drawing.Color.Red;
             this.LBL_error.Location = new System.Drawing.Point(62, 53);
             this.LBL_error.Name = "LBL_error";
@@ -511,6 +512,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
+            this.label2.Enabled = false;
             this.label2.Location = new System.Drawing.Point(6, 53);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(50, 13);
@@ -520,6 +522,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
+            this.label1.Enabled = false;
             this.label1.Location = new System.Drawing.Point(6, 39);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(47, 13);
@@ -937,7 +940,6 @@
             // 
             // BTN_LEDbyte
             // 
-            this.BTN_LEDbyte.Enabled = false;
             this.BTN_LEDbyte.Location = new System.Drawing.Point(6, 77);
             this.BTN_LEDbyte.Name = "BTN_LEDbyte";
             this.BTN_LEDbyte.Size = new System.Drawing.Size(103, 23);
@@ -948,7 +950,6 @@
             // 
             // TXB_LEDbyte
             // 
-            this.TXB_LEDbyte.Enabled = false;
             this.TXB_LEDbyte.Location = new System.Drawing.Point(115, 79);
             this.TXB_LEDbyte.Name = "TXB_LEDbyte";
             this.TXB_LEDbyte.Size = new System.Drawing.Size(100, 20);
@@ -1788,6 +1789,15 @@
             this.GPB_realCOX.TabStop = false;
             this.GPB_realCOX.Text = "Счётчики";
             // 
+            // LBL_realCOX_RTC_ElapsedTime
+            // 
+            this.LBL_realCOX_RTC_ElapsedTime.AutoSize = true;
+            this.LBL_realCOX_RTC_ElapsedTime.Location = new System.Drawing.Point(79, 234);
+            this.LBL_realCOX_RTC_ElapsedTime.Name = "LBL_realCOX_RTC_ElapsedTime";
+            this.LBL_realCOX_RTC_ElapsedTime.Size = new System.Drawing.Size(13, 13);
+            this.LBL_realCOX_RTC_ElapsedTime.TabIndex = 16;
+            this.LBL_realCOX_RTC_ElapsedTime.Text = "0";
+            // 
             // LBL_realCOX_COC_Result
             // 
             this.LBL_realCOX_COC_Result.AutoSize = true;
@@ -1832,6 +1842,15 @@
             this.label21.Size = new System.Drawing.Size(32, 13);
             this.label21.TabIndex = 14;
             this.label21.Text = "СОВ:";
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(6, 234);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(70, 13);
+            this.label17.TabIndex = 13;
+            this.label17.Text = "Elapsed time:";
             // 
             // label22
             // 
@@ -2056,26 +2075,8 @@
             // 
             // timer1
             // 
-            this.timer1.Interval = 5;
+            this.timer1.Interval = 50;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(6, 234);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(70, 13);
-            this.label17.TabIndex = 13;
-            this.label17.Text = "Elapsed time:";
-            // 
-            // LBL_realCOX_RTC_ElapsedTime
-            // 
-            this.LBL_realCOX_RTC_ElapsedTime.AutoSize = true;
-            this.LBL_realCOX_RTC_ElapsedTime.Location = new System.Drawing.Point(79, 234);
-            this.LBL_realCOX_RTC_ElapsedTime.Name = "LBL_realCOX_RTC_ElapsedTime";
-            this.LBL_realCOX_RTC_ElapsedTime.Size = new System.Drawing.Size(13, 13);
-            this.LBL_realCOX_RTC_ElapsedTime.TabIndex = 16;
-            this.LBL_realCOX_RTC_ElapsedTime.Text = "0";
             // 
             // Form1
             // 

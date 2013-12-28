@@ -79,6 +79,7 @@
         public struct Service
         {
             //Коды команд отладки
+            public const byte showMeByte = 21;
             public const byte checkCommandStack = 8;
         }
         #endregion

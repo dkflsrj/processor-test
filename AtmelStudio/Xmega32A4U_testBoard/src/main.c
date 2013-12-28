@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										132
+#define version										133
 #define birthday									20131223
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -270,53 +270,87 @@ ISR(USARTE0_RXC_vect)
     //ПРЕРЫВАНИЕ: Пришёл байт данных по порту USART от TIC контроллера
     //Принимаем символы. Поэтому всё сводится к байтам (есть запрещённые байты).
     //Принимаем байт, что бы там нибыло
-    TIC_buf = *USART_TIC.DATA;//->3(95нс)
-    cli_TIC;
+    TIC_buf = *USART_TIC.DATA;
+    //switch(TIC_MEM_length)
+    //{
+    //	case 0: if (TIC_buf == 63) { TIC_MEM_length = 1; } else { TIC_MEM_length = 0; } 
+    //		break;
+    //	case 1: if (TIC_buf == 83) { TIC_MEM_length = 2; } else { TIC_MEM_length = 0; } 
+    //		break;
+    //	case 2: if (TIC_buf == 57) { TIC_MEM_length = 3; } else { TIC_MEM_length = 0; } 
+    //		break;
+    //	case 3: if (TIC_buf == 50) { TIC_MEM_length = 4; } else { TIC_MEM_length = 0; } 
+    //		break;
+    //	case 4: if (TIC_buf == 53) { TIC_MEM_length = 5; } else { TIC_MEM_length = 0; } 
+    //		break;
+    //	case 5: if (TIC_buf == 13) { 
+	//		TIC_MEM_length = 0;
+    //		usart_putchar(USART_TIC, 61);//33 ! - 63 ? - 61 =
+    //		usart_putchar(USART_TIC, 83);//S
+    //		usart_putchar(USART_TIC, 57);//9
+    //		usart_putchar(USART_TIC, 50);//2
+    //		usart_putchar(USART_TIC, 53);//5
+    //		usart_putchar(USART_TIC, 32);//
+    //		usart_putchar(USART_TIC, 49);//1
+    //		usart_putchar(USART_TIC, 53);//5
+    //		usart_putchar(USART_TIC, 13);//\r
+	//		 } else { TIC_MEM_length = 0; } 
+    //		break;
+    //	default:
+    //		TIC_MEM_length = 0;
+    //		break;
+    //}
+	
+	
+	
+	
+	//TIC_buf = *USART_TIC.DATA;//->3(95нс)
+    //cli_TIC;
     //Если МК ожидает байты на ретрансмит
-    switch (TIC_State)
-    {
-        case USART_State_receiving:	//Мы ожидали байты с TIC на ПК
-            TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
-            TIC_timer.CNT = 0;							//Обнуляем таймер
-            //Если принятый байт равен
-            //			   <*>				<=>				 <#>  , то обнуляем принятые данные
-            if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
-            TIC_MEM[TIC_MEM_length] = TIC_buf;			//Сохраняем байт
-            TIC_MEM_length++;
-            //			   <\r>
-            if (TIC_buf == 13)
-            {
-                //Если этот байт был <\r>
-                TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
-                TIC_timer.CNT = 0;
-                TIC_State = USART_State_ready;
-                transmit(TIC_MEM, TIC_MEM_length);		//Посылаем всё что накопилось на ПК
-            }
-            else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
-            break;
-        case USART_State_HVEreceiving:	//Мы ожидаем данные от TIC'a
-            TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
-            TIC_timer.CNT = 0;							//Обнуляем таймер
-            //Если принятый байт равен
-            //			    <*>				   <=>				  <#>  , то обнуляем принятые данные
-            if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
-            TIC_MEM[TIC_MEM_length] = TIC_buf;			//Сохраняем байт
-            TIC_MEM_length++;
-            //			   <\r>
-            if (TIC_buf == 13)
-            {
-                //Если декодировка прошла удачно, запускаем таймер снова
-                if (TIC_decode_HVE()) { TIC_timer.CTRLA = TC_125kHz; }
-                //При неудачной декодировке HVE уже выключено в декодере
-                TIC_State = USART_State_ready;
-            }
-            else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
-            break;
-        default: //Мы не ждали байтов от TIC'a! Игнорируем их, но в книжечку запишем...
-            Errors_USART_TIC.Noise = 1;
-            break;
-    }
-    sei_TIC;
+    //switch (TIC_State)
+    //{
+    //    case USART_State_receiving:	//Мы ожидали байты с TIC на ПК
+    //        TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
+    //        TIC_timer.CNT = 0;							//Обнуляем таймер
+    //        //Если принятый байт равен
+    //        //			   <*>				<=>				 <#>  , то обнуляем принятые данные
+    //        if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
+    //        TIC_MEM[TIC_MEM_length] = TIC_buf;			//Сохраняем байт
+    //        TIC_MEM_length++;
+    //        //			   <\r>
+    //        if (TIC_buf == 13)
+    //        {
+    //            //Если этот байт был <\r>
+    //            TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
+    //            TIC_timer.CNT = 0;
+    //            TIC_State = USART_State_ready;
+    //            transmit(TIC_MEM, TIC_MEM_length);		//Посылаем всё что накопилось на ПК
+    //        }
+    //        else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
+    //        break;
+    //    case USART_State_HVEreceiving:	//Мы ожидаем данные от TIC'a
+    //        TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
+    //        TIC_timer.CNT = 0;							//Обнуляем таймер
+    //        //Если принятый байт равен
+    //        //			    <*>				   <=>				  <#>  , то обнуляем принятые данные
+    //        if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
+    //        TIC_MEM[TIC_MEM_length] = TIC_buf;			//Сохраняем байт
+    //        TIC_MEM_length++;
+    //        //			   <\r>
+    //        if (TIC_buf == 13)
+    //        {
+    //            //Если декодировка прошла удачно, запускаем таймер снова
+    //            if (TIC_decode_HVE()) { TIC_timer.CTRLA = TC_125kHz; }
+    //            //При неудачной декодировке HVE уже выключено в декодере
+    //            TIC_State = USART_State_ready;
+    //        }
+    //        else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
+    //        break;
+    //    default: //Мы не ждали байтов от TIC'a! Игнорируем их, но в книжечку запишем...
+    //        Errors_USART_TIC.Noise = 1;
+    //        break;
+    //}
+    //sei_TIC;
 }
 ISR(RTC_OVF_vect)
 {
@@ -813,14 +847,25 @@ uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
 void TIC_retransmit(void)
 {
     //ФУНКЦИЯ: Ретрансмитит команду на TIC, если нет опроса HVE, если опрос HVE есть - ждёт ответа от TIC'а на опрос, а потом только ретрансимитит.
-    transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
-    while (TIC_State != USART_State_ready) { }	//Ждём
-    TIC_timer.CTRLA = TC_Off;
-    TIC_timer.CNT = 0;
-    TIC_State = USART_State_receiving;	//Переходим в режим приёма на ретрансмит
-    for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	//Копируем всё что должны переслать
-    for (uint8_t i = 0; i < TIC_MEM_length; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
-    TIC_timer.CTRLA = TC_4MHz;			//Запускаем таймер на 6мс
+    cli_TIC;
+    usart_putchar(USART_TIC, 33);
+    usart_putchar(USART_TIC, 83);
+    usart_putchar(USART_TIC, 57);
+    usart_putchar(USART_TIC, 50);
+    usart_putchar(USART_TIC, 53);
+    usart_putchar(USART_TIC, 32);
+    usart_putchar(USART_TIC, 49);
+    usart_putchar(USART_TIC, 53);
+    usart_putchar(USART_TIC, 13);
+    sei_TIC;
+	//transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
+    //while (TIC_State != USART_State_ready) { }	//Ждём
+    //TIC_timer.CTRLA = TC_Off;
+    //TIC_timer.CNT = 0;
+    //TIC_State = USART_State_receiving;	//Переходим в режим приёма на ретрансмит
+    //for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	//Копируем всё что должны переслать
+    //for (uint8_t i = 0; i < TIC_MEM_length; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
+    //TIC_timer.CTRLA = TC_4MHz;			//Запускаем таймер на 6мс
 }
 void TIC_transmit(void)
 {
@@ -1347,13 +1392,13 @@ int main(void)
     SPIC.CTRL = 87;						//Инициируем систему SPI
     RTC_init;							//Инициируем счётчик реального времени
     Counters_init;						//Инициируем счётчики импульсов
-    //USART_PC_init;					//Инициируем USART с компутером
+    USART_PC_init;					//Инициируем USART с компутером
     USART_TIC_init;						//Инициируем USART с насосемъ
-    USARTD0.CTRLA = 32;
-    USARTD0.CTRLB = 24;
-    USARTD0.CTRLC = 3;
-    USARTD0.BAUDCTRLA = 234;
-    USARTD0.BAUDCTRLB = 192;
+    //USARTD0.CTRLA = 32;
+    //USARTD0.CTRLB = 24;
+    //USARTD0.CTRLC = 3;
+    //USARTD0.BAUDCTRLA = 234;
+    //USARTD0.BAUDCTRLB = 192;
     //Конечная инициализация
     pointer_Flags = &Flags;
     pointer_Errors_USART_PC = &Errors_USART_PC;
@@ -1433,6 +1478,19 @@ int main(void)
     //*/
     while (1)
     {
+		cpu_delay_ms(5000,32000000);
+		////cli_TIC;
+		usart_putchar(USART_TIC, 33);//33 ! - 63 ? - 61 =
+		usart_putchar(USART_TIC, 83);//S
+		usart_putchar(USART_TIC, 57);//9
+		usart_putchar(USART_TIC, 50);//2
+		usart_putchar(USART_TIC, 53);//5
+		usart_putchar(USART_TIC, 32);//
+		usart_putchar(USART_TIC, 49);//1
+		usart_putchar(USART_TIC, 53);//5
+		usart_putchar(USART_TIC, 13);//\r
+		//usart_putchar(USART_TIC, 170);
+		//sei_TIC;
         if (MC_Tasks.turnOnHVE)
         {
             pin_iHVE_low; //Включаем DC-DC 24-12

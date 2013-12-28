@@ -759,11 +759,25 @@ namespace Xmega32A4U_testBoard
             public static void sendSomething()
             {
                 //ФУНКЦИЯ: Просто посылает число микроконтроллеру.
-                trace_attached(Environment.NewLine);
-                trace("Service.sendSomething(?)");
-                //transmit(243);
-                byte[] b = { 58 };
+                trace_attached("!");//Environment.NewLine);
+                //trace("Service.sendSomething(11)");
+                byte[] b = { 64 };
                 USART.Write(b, 0, b.Length);
+            }
+            /// <summary>
+            /// МК тображает байт на светодиодах (отладочное, без отклика)
+            /// </summary>
+            /// <param name="BYTE">Данный байт будет отображён на 8-ми светодиодах</param>
+            public static void showMeByte(byte BYTE)
+            {
+                //ФУНКЦИЯ: Возвращает частоту процессора микроконтроллера (не вычисляется)
+                string command = "Service.showMeByte()";
+                MC.Service.trace_attached(Environment.NewLine);
+                MC.Service.trace(command);
+                List<byte> wDATA = new List<byte>();
+                wDATA.Add(Command.Service.showMeByte);
+                wDATA.Add(BYTE);
+                MC.Service.send(wDATA);
             }
             /// <summary>
             /// Выводит сообщение в указанный Tracer
@@ -829,6 +843,7 @@ namespace Xmega32A4U_testBoard
             {
                 //СОБЫТИЕ: Пришло асинхронное сообщение. Все асинхронные сообщения одной длины (7 байт)
                 //ДАННЫЕ: <Tocken><DATA_1><DATA_2>
+                trace("!USART_DataReceived!");
                 bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
                 tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
                 List<byte> rDATA = decode(receive());
@@ -883,7 +898,7 @@ namespace Xmega32A4U_testBoard
                             case Critical_Error.HVE_error_noResponse:
                                 trace_attached(Environment.NewLine);
                                 trace("CRITICAL ERROR! TIC не выходит на связь!");
-                                CriticalError_HVE_TIC_noResponse.Invoke();
+                                //CriticalError_HVE_TIC_noResponse.Invoke();
                                 break;
                         }
                         break;
@@ -911,7 +926,7 @@ namespace Xmega32A4U_testBoard
                     {
                         time = 0;
                         rDATA.Add((byte)USART.ReadByte());
-                        //trace("                     " + rDATA.Last<byte>());
+                        trace("                     " + rDATA.Last<byte>());
                     }
                 }
                 trace("         Приём завершён!");
@@ -1419,7 +1434,7 @@ namespace Xmega32A4U_testBoard
             {
                 USART.Open();
             }
-
+            USART.DataReceived += new SerialDataReceivedEventHandler(Service.USART_DataReceived);
         }
         //Флаги
         /// <summary>

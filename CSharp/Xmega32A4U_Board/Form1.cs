@@ -38,7 +38,6 @@ namespace Xmega32A4U_testBoard
 
                 MC.setUSART(COM_Port);
             }
-
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
         }
@@ -187,7 +186,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_LEDbyte_Click(object sender, EventArgs e)
         {
-            //MC.Service.showMeByte(TXB_LEDbyte.Text);
+            MC.Service.showMeByte(Convert.ToByte(TXB_LEDbyte.Text));
         }
         private void BTN_SPI_DAC_send_Click(object sender, EventArgs e)
         {
@@ -321,19 +320,21 @@ namespace Xmega32A4U_testBoard
         {
             if (CHB_TotalControl.Checked)
             {
+                timer1.Enabled = true;
                 CHB_TotalControl.ForeColor = System.Drawing.Color.Green;
                 CHB_TotalControl.Text = "Включен";
-                CLK_timer.Enabled = true;
+                //CLK_timer.Enabled = true;
             }
             else
             {
-                CLK_timer.Enabled = false;
+                timer1.Enabled = false;
+                //CLK_timer.Enabled = false;
                 CHB_TotalControl.ForeColor = System.Drawing.Color.Red;
                 CHB_TotalControl.Text = "Выключен";
-                LBL_TotalC_Status.Text = "Неизвестно!";
-                LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
-                LBL_error.Text = "Неизвестно!";
-                LBL_error.ForeColor = System.Drawing.Color.Red;
+                //LBL_TotalC_Status.Text = "Неизвестно!";
+                //LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
+                //LBL_error.Text = "Неизвестно!";
+                //LBL_error.ForeColor = System.Drawing.Color.Red;
             }
         }
         private void TXB_interval_TextChanged(object sender, EventArgs e)
@@ -431,9 +432,9 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
-            //TIC.Display_contrast = "15";
-            //TIC.setup_HVE_conditions("Gauge_1", "2.431", "Gauge_2", "6.894");
-            MC.Service.trace(TIC.getTIC_MEM());
+            TIC.Display_contrast = "15";
+            ////TIC.setup_HVE_conditions("Gauge_1", "2.431", "Gauge_2", "6.894");
+            //MC.Service.trace(TIC.getTIC_MEM());
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
@@ -773,7 +774,7 @@ namespace Xmega32A4U_testBoard
         private void timer1_Tick(object sender, EventArgs e)
         {
             //LBL_realCOX_RTCstate.Text = MC.Counters.пуеStatus;
-
+            MC.Service.sendSomething();
         }
 
 
