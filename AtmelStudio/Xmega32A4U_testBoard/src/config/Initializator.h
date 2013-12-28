@@ -21,12 +21,12 @@
 										usart_set_rx_interrupt_level(USART_PC,USART_INT_LVL_MED)
 //USART	TIC (USARTE0)
 #define USART_TIC						&USARTE0
-#define USART_TIC_BAUDRATE				9600
+#define USART_TIC_BAUDRATE				9024
 #define USART_TIC_CHAR_LENGTH			USART_CHSIZE_8BIT_gc
 #define USART_TIC_PARITY				USART_PMODE_DISABLED_gc
 #define USART_TIC_STOP_BIT				true
 #define USART_TIC_init					usart_init_rs232(USART_TIC, &USART_TIC_OPTIONS);				\
-										usart_set_rx_interrupt_level(USART_TIC,USART_INT_LVL_LO)
+										usart_set_rx_interrupt_level(USART_TIC,USART_INT_LVL_MED)
 //RTC
 #define RTC_init						rtc_init();														\
 										CLK.RTCCTRL = 13 // RTC 1.024êÃö
