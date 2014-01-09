@@ -918,7 +918,7 @@ namespace Xmega32A4U_testBoard
                     trace("ОШИБКА ПРИЁМА! Порт закрыт!");
                     return rDATA;
                 }
-                trace("                 Принято:");
+                //trace("                 Принято:");
                 //Входим в цикл приёма ждём байт до timeout
                 for (uint time = 0; time < timeout; time++)
                 {
@@ -926,7 +926,7 @@ namespace Xmega32A4U_testBoard
                     {
                         time = 0;
                         rDATA.Add((byte)USART.ReadByte());
-                        trace("                     " + rDATA.Last<byte>());
+                        //trace("                     " + rDATA.Last<byte>());
                     }
                 }
                 trace("         Приём завершён!");
