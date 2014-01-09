@@ -430,45 +430,13 @@ namespace Xmega32A4U_testBoard
         {
             MC.Service.sendSomething();
         }
-        private void BTN_TIC_Click(object sender, EventArgs e)
+        private void BTN_TIC_DisplayContrast_set_Click(object sender, EventArgs e)
         {
-            TIC.Display_contrast = "15";
-            //List<byte> wDATA = new List<byte>();
-            //wDATA.Add(58);
-            //wDATA.Add(50);
-            //wDATA.Add(33);
-            //wDATA.Add(83);
-            //wDATA.Add(57);
-            //wDATA.Add(50);
-            //wDATA.Add(53);
-            //wDATA.Add(32);
-            //wDATA.Add(49);
-            //wDATA.Add(53);
-            //wDATA.Add(13);
-            //wDATA.Add(39);
-            //wDATA.Add(13);
-            //COM_Port.Write(wDATA.ToArray(), 0, wDATA.Count);
-            ////TIC.setup_HVE_conditions("Gauge_1", "2.431", "Gauge_2", "6.894");
-            //MC.Service.trace(TIC.getTIC_MEM());
+            TIC.Display_contrast = TXB_TIC_DisplayContrast.Text;
         }
-        private void BTN_TIC_2_Click(object sender, EventArgs e)
+        private void BTN_TIC_DisplayContrast_get_Click(object sender, EventArgs e)
         {
-
-            List<byte> wDATA = new List<byte>();
-            wDATA.Add(58);
-            wDATA.Add(50);
-            wDATA.Add(33);
-            wDATA.Add(83);
-            wDATA.Add(57);
-            wDATA.Add(50);
-            wDATA.Add(53);
-            wDATA.Add(32);
-            //wDATA.Add(49);
-            wDATA.Add(53);
-            wDATA.Add(13);
-            wDATA.Add(88);//39
-            wDATA.Add(13);
-            COM_Port.Write(wDATA.ToArray(), 0, wDATA.Count);
+            TXB_TIC_DisplayContrast.Text = TIC.Display_contrast;
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
@@ -810,6 +778,9 @@ namespace Xmega32A4U_testBoard
             //LBL_realCOX_RTCstate.Text = MC.Counters.пуеStatus;
             MC.Service.sendSomething();
         }
+
+       
+
 
 
 

@@ -96,7 +96,11 @@
             this.TXB_LEDbyte = new System.Windows.Forms.TextBox();
             this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
             this.TABpanel_3 = new System.Windows.Forms.TabPage();
-            this.BTN_TIC = new System.Windows.Forms.Button();
+            this.GRB_TIC_DisplayContrast = new System.Windows.Forms.GroupBox();
+            this.label19 = new System.Windows.Forms.Label();
+            this.TXB_TIC_DisplayContrast = new System.Windows.Forms.TextBox();
+            this.BTN_TIC_DisplayContrast_get = new System.Windows.Forms.Button();
+            this.BTN_TIC_DisplayContrast_set = new System.Windows.Forms.Button();
             this.TABpanel_4 = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.BTN_DETECTOR_getDV3voltage = new System.Windows.Forms.Button();
@@ -204,7 +208,6 @@
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.BTN_TIC_2 = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -213,6 +216,7 @@
             this.GRB_SPI.SuspendLayout();
             this.GRB_MC.SuspendLayout();
             this.TABpanel_3.SuspendLayout();
+            this.GRB_TIC_DisplayContrast.SuspendLayout();
             this.TABpanel_4.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.GPB_Flags.SuspendLayout();
@@ -226,6 +230,9 @@
             // 
             // Log
             // 
+            this.Log.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.Log.Location = new System.Drawing.Point(12, 385);
             this.Log.Name = "Log";
             this.Log.Size = new System.Drawing.Size(656, 165);
@@ -971,23 +978,63 @@
             // TABpanel_3
             // 
             this.TABpanel_3.BackColor = System.Drawing.SystemColors.Control;
-            this.TABpanel_3.Controls.Add(this.BTN_TIC_2);
-            this.TABpanel_3.Controls.Add(this.BTN_TIC);
+            this.TABpanel_3.Controls.Add(this.GRB_TIC_DisplayContrast);
             this.TABpanel_3.Location = new System.Drawing.Point(4, 22);
             this.TABpanel_3.Name = "TABpanel_3";
             this.TABpanel_3.Size = new System.Drawing.Size(652, 320);
             this.TABpanel_3.TabIndex = 2;
             this.TABpanel_3.Text = "TIC";
             // 
-            // BTN_TIC
+            // GRB_TIC_DisplayContrast
             // 
-            this.BTN_TIC.Location = new System.Drawing.Point(101, 115);
-            this.BTN_TIC.Name = "BTN_TIC";
-            this.BTN_TIC.Size = new System.Drawing.Size(62, 40);
-            this.BTN_TIC.TabIndex = 0;
-            this.BTN_TIC.Text = "TIC +15";
-            this.BTN_TIC.UseVisualStyleBackColor = true;
-            this.BTN_TIC.Click += new System.EventHandler(this.BTN_TIC_Click);
+            this.GRB_TIC_DisplayContrast.Controls.Add(this.label19);
+            this.GRB_TIC_DisplayContrast.Controls.Add(this.TXB_TIC_DisplayContrast);
+            this.GRB_TIC_DisplayContrast.Controls.Add(this.BTN_TIC_DisplayContrast_get);
+            this.GRB_TIC_DisplayContrast.Controls.Add(this.BTN_TIC_DisplayContrast_set);
+            this.GRB_TIC_DisplayContrast.Location = new System.Drawing.Point(3, 255);
+            this.GRB_TIC_DisplayContrast.Name = "GRB_TIC_DisplayContrast";
+            this.GRB_TIC_DisplayContrast.Size = new System.Drawing.Size(160, 62);
+            this.GRB_TIC_DisplayContrast.TabIndex = 1;
+            this.GRB_TIC_DisplayContrast.TabStop = false;
+            this.GRB_TIC_DisplayContrast.Text = "Контрастность дисплея";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(6, 46);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(134, 13);
+            this.label19.TabIndex = 2;
+            this.label19.Text = "Значения: от \"-5\" до \"15\"";
+            // 
+            // TXB_TIC_DisplayContrast
+            // 
+            this.TXB_TIC_DisplayContrast.Location = new System.Drawing.Point(110, 18);
+            this.TXB_TIC_DisplayContrast.Name = "TXB_TIC_DisplayContrast";
+            this.TXB_TIC_DisplayContrast.Size = new System.Drawing.Size(44, 20);
+            this.TXB_TIC_DisplayContrast.TabIndex = 1;
+            this.TXB_TIC_DisplayContrast.Text = "5";
+            this.TXB_TIC_DisplayContrast.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // BTN_TIC_DisplayContrast_get
+            // 
+            this.BTN_TIC_DisplayContrast_get.Location = new System.Drawing.Point(58, 18);
+            this.BTN_TIC_DisplayContrast_get.Name = "BTN_TIC_DisplayContrast_get";
+            this.BTN_TIC_DisplayContrast_get.Size = new System.Drawing.Size(46, 22);
+            this.BTN_TIC_DisplayContrast_get.TabIndex = 0;
+            this.BTN_TIC_DisplayContrast_get.Text = "get";
+            this.BTN_TIC_DisplayContrast_get.UseVisualStyleBackColor = true;
+            this.BTN_TIC_DisplayContrast_get.Click += new System.EventHandler(this.BTN_TIC_DisplayContrast_get_Click);
+            // 
+            // BTN_TIC_DisplayContrast_set
+            // 
+            this.BTN_TIC_DisplayContrast_set.Location = new System.Drawing.Point(6, 18);
+            this.BTN_TIC_DisplayContrast_set.Name = "BTN_TIC_DisplayContrast_set";
+            this.BTN_TIC_DisplayContrast_set.Size = new System.Drawing.Size(46, 22);
+            this.BTN_TIC_DisplayContrast_set.TabIndex = 0;
+            this.BTN_TIC_DisplayContrast_set.Text = "set";
+            this.BTN_TIC_DisplayContrast_set.UseVisualStyleBackColor = true;
+            this.BTN_TIC_DisplayContrast_set.Click += new System.EventHandler(this.BTN_TIC_DisplayContrast_set_Click);
             // 
             // TABpanel_4
             // 
@@ -2080,16 +2127,6 @@
             this.timer1.Interval = 50;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // BTN_TIC_2
-            // 
-            this.BTN_TIC_2.Location = new System.Drawing.Point(230, 115);
-            this.BTN_TIC_2.Name = "BTN_TIC_2";
-            this.BTN_TIC_2.Size = new System.Drawing.Size(62, 40);
-            this.BTN_TIC_2.TabIndex = 0;
-            this.BTN_TIC_2.Text = "TIC +5";
-            this.BTN_TIC_2.UseVisualStyleBackColor = true;
-            this.BTN_TIC_2.Click += new System.EventHandler(this.BTN_TIC_2_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2100,7 +2137,7 @@
             this.Controls.Add(this.CHB_enableSuperTracer);
             this.Controls.Add(this.TABpanel);
             this.Controls.Add(this.Log);
-            this.MaximumSize = new System.Drawing.Size(700, 600);
+            this.MaximumSize = new System.Drawing.Size(700, 900);
             this.MinimumSize = new System.Drawing.Size(700, 600);
             this.Name = "Form1";
             this.Text = "XMega32A4U_testBoard v0.112";
@@ -2117,6 +2154,8 @@
             this.GRB_MC.ResumeLayout(false);
             this.GRB_MC.PerformLayout();
             this.TABpanel_3.ResumeLayout(false);
+            this.GRB_TIC_DisplayContrast.ResumeLayout(false);
+            this.GRB_TIC_DisplayContrast.PerformLayout();
             this.TABpanel_4.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -2210,7 +2249,7 @@
         private System.Windows.Forms.Timer CLK_COA;
         private System.Windows.Forms.Button BTN_sendSomething;
         private System.Windows.Forms.TabPage TABpanel_3;
-        private System.Windows.Forms.Button BTN_TIC;
+        private System.Windows.Forms.Button BTN_TIC_DisplayContrast_set;
         private System.Windows.Forms.Button BTN_traceErrorList;
         private System.Windows.Forms.TabPage TABpanel_4;
         private System.Windows.Forms.Button BTN_INLET_setVoltage;
@@ -2315,7 +2354,10 @@
         private System.Windows.Forms.CheckBox CHB_iHVE;
         private System.Windows.Forms.Label LBL_realCOX_RTC_ElapsedTime;
         private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.Button BTN_TIC_2;
+        private System.Windows.Forms.GroupBox GRB_TIC_DisplayContrast;
+        private System.Windows.Forms.Button BTN_TIC_DisplayContrast_get;
+        private System.Windows.Forms.TextBox TXB_TIC_DisplayContrast;
+        private System.Windows.Forms.Label label19;
     }
 }
 
