@@ -204,6 +204,7 @@
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.BTN_TIC_2 = new System.Windows.Forms.Button();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -970,6 +971,7 @@
             // TABpanel_3
             // 
             this.TABpanel_3.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel_3.Controls.Add(this.BTN_TIC_2);
             this.TABpanel_3.Controls.Add(this.BTN_TIC);
             this.TABpanel_3.Location = new System.Drawing.Point(4, 22);
             this.TABpanel_3.Name = "TABpanel_3";
@@ -983,7 +985,7 @@
             this.BTN_TIC.Name = "BTN_TIC";
             this.BTN_TIC.Size = new System.Drawing.Size(62, 40);
             this.BTN_TIC.TabIndex = 0;
-            this.BTN_TIC.Text = "TIC";
+            this.BTN_TIC.Text = "TIC +15";
             this.BTN_TIC.UseVisualStyleBackColor = true;
             this.BTN_TIC.Click += new System.EventHandler(this.BTN_TIC_Click);
             // 
@@ -2078,6 +2080,16 @@
             this.timer1.Interval = 50;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // BTN_TIC_2
+            // 
+            this.BTN_TIC_2.Location = new System.Drawing.Point(230, 115);
+            this.BTN_TIC_2.Name = "BTN_TIC_2";
+            this.BTN_TIC_2.Size = new System.Drawing.Size(62, 40);
+            this.BTN_TIC_2.TabIndex = 0;
+            this.BTN_TIC_2.Text = "TIC +5";
+            this.BTN_TIC_2.UseVisualStyleBackColor = true;
+            this.BTN_TIC_2.Click += new System.EventHandler(this.BTN_TIC_2_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2303,6 +2315,7 @@
         private System.Windows.Forms.CheckBox CHB_iHVE;
         private System.Windows.Forms.Label LBL_realCOX_RTC_ElapsedTime;
         private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Button BTN_TIC_2;
     }
 }
 

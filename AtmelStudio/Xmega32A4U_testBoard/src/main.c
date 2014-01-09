@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										139
+#define version										140
 #define birthday									20140109
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -270,41 +270,18 @@ ISR(USARTE0_RXC_vect)
     //ПРЕРЫВАНИЕ: Пришёл байт данных по порту USART от TIC контроллера
     //Принимаем символы. Поэтому всё сводится к байтам (есть запрещённые байты).
     //Принимаем байт, что бы там нибыло
-    TIC_buf = *USART_TIC.DATA;
-    //switch(TIC_MEM_length)
-    //{
-    //	case 0: if (TIC_buf == 63) { TIC_MEM_length = 1; } else { TIC_MEM_length = 0; } 
-    //		break;
-    //	case 1: if (TIC_buf == 83) { TIC_MEM_length = 2; } else { TIC_MEM_length = 0; } 
-    //		break;
-    //	case 2: if (TIC_buf == 57) { TIC_MEM_length = 3; } else { TIC_MEM_length = 0; } 
-    //		break;
-    //	case 3: if (TIC_buf == 50) { TIC_MEM_length = 4; } else { TIC_MEM_length = 0; } 
-    //		break;
-    //	case 4: if (TIC_buf == 53) { TIC_MEM_length = 5; } else { TIC_MEM_length = 0; } 
-    //		break;
-    //	case 5: if (TIC_buf == 13) { 
-	//		TIC_MEM_length = 0;
-    //		usart_putchar(USART_TIC, 61);//33 ! - 63 ? - 61 =
-    //		usart_putchar(USART_TIC, 83);//S
-    //		usart_putchar(USART_TIC, 57);//9
-    //		usart_putchar(USART_TIC, 50);//2
-    //		usart_putchar(USART_TIC, 53);//5
-    //		usart_putchar(USART_TIC, 32);//
-    //		usart_putchar(USART_TIC, 49);//1
-    //		usart_putchar(USART_TIC, 53);//5
-    //		usart_putchar(USART_TIC, 13);//\r
-	//		 } else { TIC_MEM_length = 0; } 
-    //		break;
-    //	default:
-    //		TIC_MEM_length = 0;
-    //		break;
-    //}
-	
-	
-	
-	
-	//TIC_buf = *USART_TIC.DATA;//->3(95нс)
+	TIC_buf = *USART_TIC.DATA;//->3(95нс)
+	//Если принятый байт равен
+	//			   <*>				<=>				 <#>  , то обнуляем принятые данные
+	if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
+	TIC_MEM[TIC_MEM_length] = TIC_buf;
+	TIC_MEM_length++;
+	if (TIC_buf == 13)
+	{
+		//Послать всё на компьютер и сбросить всё
+		transmit(TIC_MEM,TIC_MEM_length);
+		TIC_MEM_length = 0;
+	}
     //cli_TIC;
     //Если МК ожидает байты на ретрансмит
     //switch (TIC_State)
@@ -321,10 +298,9 @@ ISR(USARTE0_RXC_vect)
     //        if (TIC_buf == 13)
     //        {
     //            //Если этот байт был <\r>
-    //            TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
-    //            TIC_timer.CNT = 0;
-    //            TIC_State = USART_State_ready;
     //            transmit(TIC_MEM, TIC_MEM_length);		//Посылаем всё что накопилось на ПК
+    //            TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
+    //            TIC_State = USART_State_ready;
     //        }
     //        else { TIC_timer.CTRLA = TC_4MHz; }//Инче ждём следующий байт
     //        break;
@@ -434,6 +410,7 @@ static void ISR_TIC_timer(void)
     switch (TIC_State)
     {
         case USART_State_receiving: //Мы не ожидали завершения передачи! Передача прервана! Время вышло!
+			Errors_USART_TIC.Silence = 1;
             TIC_State = USART_State_ready;		//Ждём начала передачи
             TIC_timer.CTRLA = TC_125kHz;		//Переходим в режим тишины
             break;
@@ -847,12 +824,17 @@ uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
 void TIC_retransmit(void)
 {
     //ФУНКЦИЯ: Ретрансмитит команду на TIC, если нет опроса HVE, если опрос HVE есть - ждёт ответа от TIC'а на опрос, а потом только ретрансимитит.
-    cli_TIC;
+    //cli_TIC;
+	//TIC_timer.CTRLA = TC_Off;
+	//TIC_timer.CNT = 0;
+	//TIC_State = USART_State_receiving;	//Переходим в режим приёма на ретрансмит
     for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	//Копируем всё что должны переслать
-	TIC_MEM_length = PC_MEM_length - 1;
-    for (uint8_t i = 0; i < TIC_MEM_length; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
-	
-    sei_TIC;
+	//TIC_MEM_length = PC_MEM_length - 1;
+    for (uint8_t i = 0; i < PC_MEM_length - 1; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
+	//TIC_MEM_length = 0;
+	//usart_putchar(USART_PC,TIC_MEM_length);
+	//TIC_timer.CTRLA = TC_4MHz;			//Запускаем таймер на 6мс
+    //sei_TIC;
 	//transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
     //while (TIC_State != USART_State_ready) { }	//Ждём
     //TIC_timer.CTRLA = TC_Off;

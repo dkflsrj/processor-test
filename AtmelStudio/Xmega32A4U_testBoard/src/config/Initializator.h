@@ -26,7 +26,7 @@
 #define USART_TIC_PARITY				USART_PMODE_DISABLED_gc
 #define USART_TIC_STOP_BIT				true
 #define USART_TIC_init					usart_init_rs232(USART_TIC, &USART_TIC_OPTIONS);				\
-										usart_set_rx_interrupt_level(USART_TIC,USART_INT_LVL_MED)
+										usart_set_rx_interrupt_level(USART_TIC,USART_INT_LVL_LO)
 //RTC
 #define RTC_init						rtc_init();														\
 										CLK.RTCCTRL = 13 // RTC 1.024êÃö
