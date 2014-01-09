@@ -433,6 +433,7 @@ namespace Xmega32A4U_testBoard
         private void BTN_TIC_Click(object sender, EventArgs e)
         {
             TIC.Display_contrast = "15";
+            //MC.Service.send(new List<byte> { Command.TIC.retransmit});
             ////TIC.setup_HVE_conditions("Gauge_1", "2.431", "Gauge_2", "6.894");
             //MC.Service.trace(TIC.getTIC_MEM());
         }
