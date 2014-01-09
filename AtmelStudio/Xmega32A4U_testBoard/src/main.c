@@ -22,8 +22,8 @@
 
 //---------------------------------------ќѕ–≈ƒ≈Ћ≈Ќ»я----------------------------------------------
 //ћ 
-#define version										133
-#define birthday									20131223
+#define version										139
+#define birthday									20140109
 //—чЄтчики
 #define RTC_Status_ready							0		//—чЄтчики готов к работе
 #define RTC_Status_stopped							1		//—чЄтчики был принудительно остановлен
@@ -848,15 +848,10 @@ void TIC_retransmit(void)
 {
     //‘”Ќ ÷»я: –етрансмитит команду на TIC, если нет опроса HVE, если опрос HVE есть - ждЄт ответа от TIC'а на опрос, а потом только ретрансимитит.
     cli_TIC;
-    usart_putchar(USART_TIC, 33);
-    usart_putchar(USART_TIC, 83);
-    usart_putchar(USART_TIC, 57);
-    usart_putchar(USART_TIC, 50);
-    usart_putchar(USART_TIC, 53);
-    usart_putchar(USART_TIC, 32);
-    usart_putchar(USART_TIC, 49);
-    usart_putchar(USART_TIC, 53);
-    usart_putchar(USART_TIC, 13);
+    for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	// опируем всЄ что должны переслать
+	TIC_MEM_length = PC_MEM_length - 1;
+    for (uint8_t i = 0; i < TIC_MEM_length; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//ќтправл€ем
+	
     sei_TIC;
 	//transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
     //while (TIC_State != USART_State_ready) { }	//∆дЄм
@@ -1478,19 +1473,6 @@ int main(void)
     //*/
     while (1)
     {
-		cpu_delay_ms(5000,32000000);
-		////cli_TIC;
-		usart_putchar(USART_TIC, 33);//33 ! - 63 ? - 61 =
-		usart_putchar(USART_TIC, 83);//S
-		usart_putchar(USART_TIC, 57);//9
-		usart_putchar(USART_TIC, 50);//2
-		usart_putchar(USART_TIC, 53);//5
-		usart_putchar(USART_TIC, 32);//
-		usart_putchar(USART_TIC, 49);//1
-		usart_putchar(USART_TIC, 53);//5
-		usart_putchar(USART_TIC, 13);//\r
-		//usart_putchar(USART_TIC, 170);
-		//sei_TIC;
         if (MC_Tasks.turnOnHVE)
         {
             pin_iHVE_low; //¬ключаем DC-DC 24-12
