@@ -2492,7 +2492,7 @@ namespace Xmega32A4U_testBoard
                 Packet = Packet.Substring(0, Packet.Length - 1);
             }
             Packet += '\r';                         //Завершаем пакет
-            return Decode(Encoding.ASCII.GetString(MC.Service.transmit(Command.TIC.retransmit, Encoding.ASCII.GetBytes(Packet)).ToArray()), address, Packet);
+            return Decode(Encoding.ASCII.GetString(MC.Service.retransmit_toTIC(Command.TIC.retransmit, Encoding.ASCII.GetBytes(Packet)).ToArray()), address, Packet);
         }
         static string[] Decode(string response, string address, string command)
         {

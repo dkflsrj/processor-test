@@ -27,8 +27,6 @@ namespace Xmega32A4U_testBoard
         static bool tracer_log_enabled = false;     //Ведение лога в Log.txt отключено. .Service.enableLog(bool) - для вкл\выкл
         static List<string> ErrorList = new List<string>();     //Лист всех ошибок. Получает при помощи .getErrorList()
         static byte CommandStack;                   //Счётчик выполненных команд (см. .Chip.checkCommandStack())
-        const uint TimeOut = 1625;                  //260000 вроде 1 сек для данной машины
-        const uint TIC_TimeOut = 7000;              //тайм аут для передачи и приёма для TIC'a
         static List<byte> dummy = new List<byte>();
         #endregion
         #region-------------------------------------СТРУКТУРЫ------------------------------------------
@@ -686,6 +684,8 @@ namespace Xmega32A4U_testBoard
         /// </summary>
         public static class Service
         {
+            public const uint PC_TimeOut = 1625;               //260000 вроде 1 сек для данной машины
+            public const uint TIC_TimeOut = 7000;              //тайм аут для передачи и приёма для TIC'a
             //КЛАСС: Класс для сервисных функций, отладки и проча
             public static EventCallBack SPI_devices_ready;
             public static EventCallBack CriticalError_HVE_decoder;
@@ -846,7 +846,7 @@ namespace Xmega32A4U_testBoard
                 trace("!USART_DataReceived!");
                 bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
                 tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
-                List<byte> rDATA = decode(receive());
+                List<byte> rDATA = decode(receive(PC_TimeOut));
                 tracer_enabled = tracer_enabled_before;
                 Asynchr_decode(rDATA);
             }
@@ -908,7 +908,7 @@ namespace Xmega32A4U_testBoard
                 }
 
             }
-            public static List<byte> receive()
+            public static List<byte> receive(uint timeout)
             {
                 //ФУНКЦИЯ: Принимаем данные по СОМ-порту
                 trace("         Приём...");                     //Приём-приём
@@ -919,8 +919,8 @@ namespace Xmega32A4U_testBoard
                     return rDATA;
                 }
                 trace("                 Принято:");
-                //Входим в цикл приёма ждём байт до TimeOut
-                for (uint time = 0; time < TimeOut; time++)
+                //Входим в цикл приёма ждём байт до timeout
+                for (uint time = 0; time < timeout; time++)
                 {
                     if (USART.BytesToRead > 0)
                     {
@@ -1047,7 +1047,23 @@ namespace Xmega32A4U_testBoard
                 try { USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived); }
                 catch { MC.Service.trace("MC.Service.transmit(...): Ошибка USART! COM-port не определён"); return dummy; }
                 send(wDATA);
-                List<byte> rDATA = decode(receive());
+                List<byte> rDATA = decode(receive(PC_TimeOut));
+                USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
+                tracer_enabled = tracer_enabled_before;
+                return rDATA;
+            }
+            public static List<byte> retransmit_toTIC(byte COMMAND, byte[] DATA)
+            {
+                //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
+                List<byte> data = new List<byte>();
+                data.Add(COMMAND);
+                data.AddRange(DATA);
+                bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
+                tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
+                try { USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived); }
+                catch { MC.Service.trace("MC.Service.retransmit_toTIC(...): Ошибка USART! COM-port не определён"); return dummy; }
+                send(data);
+                List<byte> rDATA = decode(receive(TIC_TimeOut));
                 USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
                 tracer_enabled = tracer_enabled_before;
                 return rDATA;
