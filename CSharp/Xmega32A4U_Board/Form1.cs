@@ -123,8 +123,8 @@ namespace Xmega32A4U_testBoard
             }*/
             COM_Port = new SerialPort(cBox_COM.Text, Convert.ToInt32(CMB_COM_BaudRate.Text), l_parity, Convert.ToInt32(CMB_COM_DataBits.Text), l_stopBits);
             //COM_Port.Handshake = l_handshake;
-            COM_Port.ReadTimeout = 2000;
-            COM_Port.WriteTimeout = 2000;
+            COM_Port.ReadTimeout = 100;
+            COM_Port.WriteTimeout = 100;
             MC.setUSART(COM_Port);
             trace("Установка параметров COM порта: " + COM_Port.PortName);
             trace("   Бит в секунду: " + COM_Port.BaudRate.ToString());
