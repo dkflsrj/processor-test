@@ -2492,7 +2492,7 @@ namespace Xmega32A4U_testBoard
                 Packet = Packet.Substring(0, Packet.Length - 1);
             }
             Packet += '\r';                         //Завершаем пакет
-            return Decode(Encoding.ASCII.GetString(MC.Service.retransmit_toTIC(Command.TIC.retransmit, Encoding.ASCII.GetBytes(Packet)).ToArray()), address, Packet);
+            return Decode(Encoding.ASCII.GetString(MC.Service.retransmit_toTIC(Encoding.ASCII.GetBytes(Packet)).ToArray()), address, Packet);
         }
         static string[] Decode(string response, string address, string command)
         {
@@ -2687,19 +2687,6 @@ namespace Xmega32A4U_testBoard
                 offThreshold = ((byte)(rDATA[7] >> 4) + "." + (byte)(rDATA[7] & 0x0F) + (byte)(rDATA[8] >> 4) + (byte)(rDATA[8] & 0x0F)).ToString();
             }
             catch { MC.Service.trace("TIC.setup_HVE_conditions.get(): Ошибка данных!"); }
-        }
-        /// <summary>
-        /// Перезапускает постоянный мониторинг датчиков тика.
-        /// <para>Если в ходе мониторинга возникает ошибка, МК выключает и запрещает высокое напряжение.</para>
-        /// <para>При этом мониторинг прекращается, а на ПК отправляется сообщение о критической ошибке.</para>
-        /// <para>В таком случае можно перезапустить мониторинг данной командой.</para>
-        /// </summary>
-        public static void restartMonitoring()
-        {
-            string command = "TIC.restartMonitoring()";
-            MC.Service.trace_attached(Environment.NewLine);
-            MC.Service.trace(command);
-            MC.Service.transmit(Command.TIC.restartMonitoring);
         }
         /// <summary>
         /// Возвращает последнее сообщение, которое прислал TIC на МК (либо опрос HVE, либо ответ на ретрансмит)

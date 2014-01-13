@@ -96,6 +96,19 @@
             this.TXB_LEDbyte = new System.Windows.Forms.TextBox();
             this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
             this.TABpanel_3 = new System.Windows.Forms.TabPage();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.comboBox2 = new System.Windows.Forms.ComboBox();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.BTN_TIC_HVEconf_check = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.LBL_TIC_HVE_ElapsedTime = new System.Windows.Forms.Label();
+            this.LBL_TIC_HVE_Errors = new System.Windows.Forms.Label();
+            this.label25 = new System.Windows.Forms.Label();
+            this.label20 = new System.Windows.Forms.Label();
+            this.TXB_TIC_HVE_Period = new System.Windows.Forms.TextBox();
+            this.CHB_TIC_HVE = new System.Windows.Forms.CheckBox();
             this.GRB_TIC_DisplayContrast = new System.Windows.Forms.GroupBox();
             this.label19 = new System.Windows.Forms.Label();
             this.TXB_TIC_DisplayContrast = new System.Windows.Forms.TextBox();
@@ -207,7 +220,7 @@
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.TIM_TIC_HVE = new System.Windows.Forms.Timer(this.components);
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -216,6 +229,8 @@
             this.GRB_SPI.SuspendLayout();
             this.GRB_MC.SuspendLayout();
             this.TABpanel_3.SuspendLayout();
+            this.groupBox5.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.GRB_TIC_DisplayContrast.SuspendLayout();
             this.TABpanel_4.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -235,7 +250,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.Log.Location = new System.Drawing.Point(12, 385);
             this.Log.Name = "Log";
-            this.Log.Size = new System.Drawing.Size(656, 165);
+            this.Log.Size = new System.Drawing.Size(656, 257);
             this.Log.TabIndex = 0;
             this.Log.Text = "";
             // 
@@ -978,12 +993,148 @@
             // TABpanel_3
             // 
             this.TABpanel_3.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel_3.Controls.Add(this.groupBox5);
+            this.TABpanel_3.Controls.Add(this.groupBox4);
             this.TABpanel_3.Controls.Add(this.GRB_TIC_DisplayContrast);
             this.TABpanel_3.Location = new System.Drawing.Point(4, 22);
             this.TABpanel_3.Name = "TABpanel_3";
             this.TABpanel_3.Size = new System.Drawing.Size(652, 320);
             this.TABpanel_3.TabIndex = 2;
             this.TABpanel_3.Text = "TIC";
+            // 
+            // groupBox5
+            // 
+            this.groupBox5.Controls.Add(this.comboBox2);
+            this.groupBox5.Controls.Add(this.comboBox1);
+            this.groupBox5.Controls.Add(this.BTN_TIC_HVEconf_check);
+            this.groupBox5.Controls.Add(this.button3);
+            this.groupBox5.Controls.Add(this.button2);
+            this.groupBox5.Location = new System.Drawing.Point(3, 3);
+            this.groupBox5.Name = "groupBox5";
+            this.groupBox5.Size = new System.Drawing.Size(288, 108);
+            this.groupBox5.TabIndex = 3;
+            this.groupBox5.TabStop = false;
+            this.groupBox5.Text = "Настройки HVE";
+            // 
+            // comboBox2
+            // 
+            this.comboBox2.Enabled = false;
+            this.comboBox2.FormattingEnabled = true;
+            this.comboBox2.Location = new System.Drawing.Point(87, 49);
+            this.comboBox2.Name = "comboBox2";
+            this.comboBox2.Size = new System.Drawing.Size(73, 21);
+            this.comboBox2.TabIndex = 1;
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.Enabled = false;
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(87, 19);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(73, 21);
+            this.comboBox1.TabIndex = 1;
+            // 
+            // BTN_TIC_HVEconf_check
+            // 
+            this.BTN_TIC_HVEconf_check.Location = new System.Drawing.Point(6, 77);
+            this.BTN_TIC_HVEconf_check.Name = "BTN_TIC_HVEconf_check";
+            this.BTN_TIC_HVEconf_check.Size = new System.Drawing.Size(75, 23);
+            this.BTN_TIC_HVEconf_check.TabIndex = 0;
+            this.BTN_TIC_HVEconf_check.Text = "check";
+            this.BTN_TIC_HVEconf_check.UseVisualStyleBackColor = true;
+            this.BTN_TIC_HVEconf_check.Click += new System.EventHandler(this.BTN_TIC_HVEconf_check_Click);
+            // 
+            // button3
+            // 
+            this.button3.Enabled = false;
+            this.button3.Location = new System.Drawing.Point(6, 48);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 0;
+            this.button3.Text = "set";
+            this.button3.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.Enabled = false;
+            this.button2.Location = new System.Drawing.Point(6, 19);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 0;
+            this.button2.Text = "get";
+            this.button2.UseVisualStyleBackColor = true;
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.LBL_TIC_HVE_ElapsedTime);
+            this.groupBox4.Controls.Add(this.LBL_TIC_HVE_Errors);
+            this.groupBox4.Controls.Add(this.label25);
+            this.groupBox4.Controls.Add(this.label20);
+            this.groupBox4.Controls.Add(this.TXB_TIC_HVE_Period);
+            this.groupBox4.Controls.Add(this.CHB_TIC_HVE);
+            this.groupBox4.Location = new System.Drawing.Point(351, 226);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(298, 88);
+            this.groupBox4.TabIndex = 2;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Тест HVE мониторинга";
+            // 
+            // LBL_TIC_HVE_ElapsedTime
+            // 
+            this.LBL_TIC_HVE_ElapsedTime.AutoSize = true;
+            this.LBL_TIC_HVE_ElapsedTime.Location = new System.Drawing.Point(6, 42);
+            this.LBL_TIC_HVE_ElapsedTime.Name = "LBL_TIC_HVE_ElapsedTime";
+            this.LBL_TIC_HVE_ElapsedTime.Size = new System.Drawing.Size(123, 13);
+            this.LBL_TIC_HVE_ElapsedTime.TabIndex = 3;
+            this.LBL_TIC_HVE_ElapsedTime.Text = "Прошедшее время: 0 c";
+            // 
+            // LBL_TIC_HVE_Errors
+            // 
+            this.LBL_TIC_HVE_Errors.AutoSize = true;
+            this.LBL_TIC_HVE_Errors.Location = new System.Drawing.Point(7, 63);
+            this.LBL_TIC_HVE_Errors.Name = "LBL_TIC_HVE_Errors";
+            this.LBL_TIC_HVE_Errors.Size = new System.Drawing.Size(119, 13);
+            this.LBL_TIC_HVE_Errors.TabIndex = 3;
+            this.LBL_TIC_HVE_Errors.Text = "Количество ошибок: 0";
+            // 
+            // label25
+            // 
+            this.label25.AutoSize = true;
+            this.label25.Location = new System.Drawing.Point(262, 20);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(21, 13);
+            this.label25.TabIndex = 2;
+            this.label25.Text = "мс";
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(97, 20);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(87, 13);
+            this.label20.TabIndex = 2;
+            this.label20.Text = "Период опроса:";
+            // 
+            // TXB_TIC_HVE_Period
+            // 
+            this.TXB_TIC_HVE_Period.Location = new System.Drawing.Point(190, 17);
+            this.TXB_TIC_HVE_Period.Name = "TXB_TIC_HVE_Period";
+            this.TXB_TIC_HVE_Period.Size = new System.Drawing.Size(66, 20);
+            this.TXB_TIC_HVE_Period.TabIndex = 1;
+            this.TXB_TIC_HVE_Period.Text = "200";
+            this.TXB_TIC_HVE_Period.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // CHB_TIC_HVE
+            // 
+            this.CHB_TIC_HVE.AutoSize = true;
+            this.CHB_TIC_HVE.ForeColor = System.Drawing.Color.Red;
+            this.CHB_TIC_HVE.Location = new System.Drawing.Point(7, 20);
+            this.CHB_TIC_HVE.Name = "CHB_TIC_HVE";
+            this.CHB_TIC_HVE.Size = new System.Drawing.Size(84, 17);
+            this.CHB_TIC_HVE.TabIndex = 0;
+            this.CHB_TIC_HVE.Text = "Выключено";
+            this.CHB_TIC_HVE.UseVisualStyleBackColor = true;
+            this.CHB_TIC_HVE.CheckedChanged += new System.EventHandler(this.CHB_TIC_HVE_CheckedChanged);
             // 
             // GRB_TIC_DisplayContrast
             // 
@@ -1272,9 +1423,9 @@
             this.CHB_iHVE.Enabled = false;
             this.CHB_iHVE.Location = new System.Drawing.Point(74, 65);
             this.CHB_iHVE.Name = "CHB_iHVE";
-            this.CHB_iHVE.Size = new System.Drawing.Size(50, 17);
+            this.CHB_iHVE.Size = new System.Drawing.Size(48, 17);
             this.CHB_iHVE.TabIndex = 1;
-            this.CHB_iHVE.Text = "iHVE";
+            this.CHB_iHVE.Text = "HVE";
             this.CHB_iHVE.UseVisualStyleBackColor = true;
             // 
             // CHB_PRGE
@@ -2122,16 +2273,16 @@
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
-            // timer1
+            // TIM_TIC_HVE
             // 
-            this.timer1.Interval = 50;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.TIM_TIC_HVE.Interval = 200;
+            this.TIM_TIC_HVE.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(684, 562);
+            this.ClientSize = new System.Drawing.Size(684, 654);
             this.Controls.Add(this.BTN_openLog);
             this.Controls.Add(this.CHB_traceLog);
             this.Controls.Add(this.CHB_enableSuperTracer);
@@ -2154,6 +2305,9 @@
             this.GRB_MC.ResumeLayout(false);
             this.GRB_MC.PerformLayout();
             this.TABpanel_3.ResumeLayout(false);
+            this.groupBox5.ResumeLayout(false);
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.GRB_TIC_DisplayContrast.ResumeLayout(false);
             this.GRB_TIC_DisplayContrast.PerformLayout();
             this.TABpanel_4.ResumeLayout(false);
@@ -2348,7 +2502,7 @@
         private System.Windows.Forms.CheckBox CHB_SPUMP;
         private System.Windows.Forms.CheckBox CHB_SEMV1;
         private System.Windows.Forms.Button BTN_DAC_reset;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer TIM_TIC_HVE;
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.TextBox TXB_realCOX_NumberOfMeasurments;
         private System.Windows.Forms.CheckBox CHB_iHVE;
@@ -2358,6 +2512,19 @@
         private System.Windows.Forms.Button BTN_TIC_DisplayContrast_get;
         private System.Windows.Forms.TextBox TXB_TIC_DisplayContrast;
         private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.CheckBox CHB_TIC_HVE;
+        private System.Windows.Forms.Label label25;
+        private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.TextBox TXB_TIC_HVE_Period;
+        private System.Windows.Forms.Label LBL_TIC_HVE_ElapsedTime;
+        private System.Windows.Forms.Label LBL_TIC_HVE_Errors;
+        private System.Windows.Forms.GroupBox groupBox5;
+        private System.Windows.Forms.ComboBox comboBox2;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.Button BTN_TIC_HVEconf_check;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button2;
     }
 }
 

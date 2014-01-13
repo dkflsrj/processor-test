@@ -87,9 +87,10 @@ namespace Xmega32A4U_testBoard
             //СТРУКТУРА: Хранилище констант - кодов происшествий, которые передаются при опросе статуса МК
             public const byte LOCKisLost = 1;       //МК принимал пакет, но в последний байт пакета не затвор
             public const byte TooShortPacket = 2;   //Длина пакета меньше минимального
+            public const byte HVE_TimeOut = 4;       //Ошибка системы мониторинга высокого напряжения (таймаут)
             public const byte Silence = 8;          //TIC не отвечает
             public const byte Noise = 16;           //На линии МК-TIC был замечен шум
-            public const byte HVE_error = 64;       //Ошибка системы мониторинга высокого напряжения
+            public const byte HVE_error = 32;       //Ошибка системы мониторинга высокого напряжения (неверные данные)
             public const byte wrongTimerState = 64; //Таймер TIC'a находился в неверном состоянии!
         }
         #endregion
@@ -582,6 +583,10 @@ namespace Xmega32A4U_testBoard
                         {
                             MC.Service.trace("         Noise");
                         }
+                        if ((incedent & Incident_TIC.HVE_TimeOut) == Incident_TIC.HVE_TimeOut)
+                        {
+                            MC.Service.trace("         HVE_TimeOut");
+                        }
                         if ((incedent & Incident_TIC.HVE_error) == Incident_TIC.HVE_error)
                         {
                             MC.Service.trace("         HVE_error");
@@ -692,7 +697,7 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Время ожидания байта от МК, который в свою очередь ждёт байты от TIC'а (рекомендуется не ниже 10000)
             /// </summary>
-            public static uint TIC_TimeOut = 10000;              //тайм аут для передачи и приёма для TIC'a
+            public static uint TIC_TimeOut = 20000;              //тайм аут для передачи и приёма для TIC'a
             //КЛАСС: Класс для сервисных функций, отладки и проча
             public static EventCallBack SPI_devices_ready;
             public static EventCallBack CriticalError_HVE_decoder;
@@ -884,12 +889,12 @@ namespace Xmega32A4U_testBoard
                         switch (DATA[1])
                         {
                             case LAM.RTC_end:
-                                trace_attached(Environment.NewLine);
+                                //trace_attached(Environment.NewLine);
                                 message += "\r LAM:Счётчики закончили счёт!";
                                 Counters.MeasureEnd.Invoke();
                                 break;
                             case LAM.SPI_conf_done:
-                                trace_attached(Environment.NewLine);
+                                //trace_attached(Environment.NewLine);
                                 message += "\r LAM:Высокое напряжение разрешено, SPI устройства настроены!";
                                 SPI_devices_ready.Invoke();
                                 break;
@@ -902,12 +907,12 @@ namespace Xmega32A4U_testBoard
                         switch (DATA[1])
                         {
                             case Critical_Error.HVE_error_decode:
-                                trace_attached(Environment.NewLine);
+                                //trace_attached(Environment.NewLine);
                                 message += "\r CRITICAL ERROR! Ошибка декодирования сообщения от TIC'a!";
-                                CriticalError_HVE_decoder.Invoke();
+                                //CriticalError_HVE_decoder.Invoke();
                                 break;
                             case Critical_Error.HVE_error_noResponse:
-                                trace_attached(Environment.NewLine);
+                                //trace_attached(Environment.NewLine);
                                 message += "\r CRITICAL ERROR! TIC не выходит на связь!";
                                 //CriticalError_HVE_TIC_noResponse.Invoke();
                                 break;
@@ -970,7 +975,7 @@ namespace Xmega32A4U_testBoard
                 }
                 if (rDATA.Count == 0)
                 {
-                    message += "\r                                   ПАКЕТ ПУСТ!";
+                    addError("                                   ПАКЕТ ПУСТ!");
                 }
                 //trace("         Анализ полученной команды...");
                 if (DATA.Count < 3)
@@ -1086,13 +1091,13 @@ namespace Xmega32A4U_testBoard
                 return rDATA;
                 //return new List<byte>();
             }
-            public static List<byte> retransmit_toTIC(byte COMMAND, byte[] DATA)
+            public static List<byte> retransmit_toTIC(byte[] DATA)
             {
                 //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
                 Synchro = true;
                 message = "MC.Service.retransmit_toTIC(...)";
                 List<byte> data = new List<byte>();
-                data.Add(COMMAND);
+                data.Add(Command.TIC.retransmit);
                 data.AddRange(DATA);
                 //bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
                 //tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
@@ -1102,7 +1107,7 @@ namespace Xmega32A4U_testBoard
                 List<byte> rDATA = decode(receive(TIC_TimeOut));
                 //USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
                 //tracer_enabled = tracer_enabled_before;
-                trace(message);
+                //trace(message);
                 Synchro = false;
                 return rDATA;
             }
@@ -1168,6 +1173,7 @@ namespace Xmega32A4U_testBoard
         #region Flags
         public static class Flags
         {
+            public static EventCallBack PRGE_blocked;
             /// <summary>
             /// Разрешение высокого напряжения от TIC'а. Возвращает "Enabled" или "Blocked"
             /// </summary>
@@ -1209,9 +1215,8 @@ namespace Xmega32A4U_testBoard
                     {
                         switch (rDATA[1])
                         {
-                            case 0: return "On";
-                            case 1: return "Off";
-                            case 254: return "Blocked";
+                            case 0: return "Off";
+                            case 1: return "On";
                             default: return "?";
                         }
                     }
@@ -1228,7 +1233,10 @@ namespace Xmega32A4U_testBoard
                     {
                         setupByte = 1;
                     }
-                    MC.Service.transmit(Command.Flags.PRGE, setupByte);
+                    if (MC.Service.transmit(Command.Flags.PRGE, setupByte)[1] == 254)
+                    {
+                        PRGE_blocked.Invoke();
+                    }
                 }
             }
             /// <summary>
@@ -1250,7 +1258,7 @@ namespace Xmega32A4U_testBoard
                         {
                             case 0: return "Off";
                             case 1: return "On";
-                            default: MC.Service.trace(command + ": Неверное состояние!");
+                            default: //MC.Service.trace(command + ": Неверное состояние!");
                                 break;
                         }
                     }
@@ -1470,8 +1478,8 @@ namespace Xmega32A4U_testBoard
         public static List<string> getErrorList()
         {
             //ФУНКЦИЯ: Возвращает лист ошибок, которые произошли во время сеанса.
-            MC.Service.trace_attached(Environment.NewLine);
-            MC.Service.trace(".getErrorList()");
+            //MC.Service.trace_attached(Environment.NewLine);
+            //MC.Service.trace(".getErrorList()");
             return ErrorList;
         }
         /// <summary>
