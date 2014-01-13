@@ -697,7 +697,7 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Время ожидания байта от МК, который в свою очередь ждёт байты от TIC'а (рекомендуется не ниже 10000)
             /// </summary>
-            public static uint TIC_TimeOut = 20000;              //тайм аут для передачи и приёма для TIC'a
+            public static uint TIC_TimeOut = 25000;              //тайм аут для передачи и приёма для TIC'a
             //КЛАСС: Класс для сервисных функций, отладки и проча
             public static EventCallBack SPI_devices_ready;
             public static EventCallBack CriticalError_HVE_decoder;
