@@ -40,6 +40,8 @@ namespace Xmega32A4U_testBoard
             }
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
+
+            MC.Flags.PRGE_blocked += new EventCallBack(PRGE_blocked);
         }
         //Функции интерфейса
         delegate void delegate_trace(string text);
@@ -320,14 +322,14 @@ namespace Xmega32A4U_testBoard
         {
             if (CHB_TotalControl.Checked)
             {
-                timer1.Enabled = true;
+                TIM_TIC_HVE.Enabled = true;
                 CHB_TotalControl.ForeColor = System.Drawing.Color.Green;
                 CHB_TotalControl.Text = "Включен";
                 //CLK_timer.Enabled = true;
             }
             else
             {
-                timer1.Enabled = false;
+                TIM_TIC_HVE.Enabled = false;
                 //CLK_timer.Enabled = false;
                 CHB_TotalControl.ForeColor = System.Drawing.Color.Red;
                 CHB_TotalControl.Text = "Выключен";
@@ -762,6 +764,10 @@ namespace Xmega32A4U_testBoard
                     break;
             }
         }
+        void PRGE_blocked()
+        {
+            CHB_PRGE.CheckState = CheckState.Indeterminate;
+        }
         private void button1_Click(object sender, EventArgs e)
         {
             //MC.setFlags(true, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
@@ -773,16 +779,46 @@ namespace Xmega32A4U_testBoard
             if (CHB_SPUMP.Checked) { MC.Flags.SPUMP = "On"; } else { MC.Flags.SPUMP = "Off"; }
         }
 
+        double timer1_time = 0;
+        int timer1_interval = 0;
         private void timer1_Tick(object sender, EventArgs e)
         {
             //LBL_realCOX_RTCstate.Text = MC.Counters.пуеStatus;
-            MC.Service.sendSomething();
+            //MC.Service.sendSomething();
+            timer1_time += (double)(timer1_interval) / 1000;
+            LBL_TIC_HVE_ElapsedTime.Text = "Прошедшее время: " + timer1_time + " c";
+            LBL_TIC_HVE_Errors.Text = "Количество ошибок: " + MC.getErrorList().Count;
+            TXB_TIC_DisplayContrast.Text = TIC.Display_contrast;
         }
 
-       
+        private void CHB_TIC_HVE_CheckedChanged(object sender, EventArgs e)
+        {
+            if (CHB_TIC_HVE.Checked)
+            {
+                CHB_TIC_HVE.Text = "Включено";
+                CHB_TIC_HVE.ForeColor = Color.Green;
+                TXB_TIC_HVE_Period.Enabled = false;
+                TIM_TIC_HVE.Enabled = true;
+                timer1_interval = Convert.ToInt16(TXB_TIC_HVE_Period.Text);
+                TIM_TIC_HVE.Interval = timer1_interval;
+            }
+            else
+            {
+                TIM_TIC_HVE.Enabled = false;
+                CHB_TIC_HVE.Text = "Выключено";
+                CHB_TIC_HVE.ForeColor = Color.Red;
+                TXB_TIC_HVE_Period.Enabled = true;
+            }
+        }
 
-
-
-
+        private void BTN_TIC_HVEconf_check_Click(object sender, EventArgs e)
+        {
+            string Packet = "?V913\r";
+            List<byte> answer = MC.Service.retransmit_toTIC(Encoding.ASCII.GetBytes(Packet));
+            MC.Service.trace("Ответ: " + Encoding.ASCII.GetString(answer.ToArray()));
+            //63,86,57,49,51,13
+            //?V91<NUL><\r>
+            //Ответ: =V913 9.9000e+09;59;0;0;0
+        }
     }
 }

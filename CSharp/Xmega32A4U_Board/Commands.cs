@@ -30,7 +30,6 @@
         {
             public const byte retransmit = 50;
             public const byte set_Gauges = 51;
-            public const byte restartMonitoring = 52;
             public const byte get_TIC_MEM = 53;
         }
         #endregion
