@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										143
+#define version										144
 #define birthday									20140113
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -97,7 +97,7 @@ uint16_t COC_OVF = 0;									//Количество переполнений счётчика СОС
 struct struct_MC_Tasks
 {
     uint8_t turnOnHVE				: 1;
-    uint8_t noTasks1				: 1;
+    uint8_t retransmit				: 1;
     uint8_t checkHVE				: 1;
     uint8_t noTasks3				: 1;
     uint8_t noTasks4				: 1;
@@ -867,17 +867,8 @@ uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
 void TIC_retransmit(void)
 {
     //ФУНКЦИЯ: Ретрансмитит команду на TIC, если нет опроса HVE, если опрос HVE есть - ждёт ответа от TIC'а на опрос, а потом только ретрансимитит.
-    cli_TIC;
-	TIC_timer.CTRLA = TC_Off;
-	TIC_timer.CNT = 0;
-	TIC_State = USART_State_receiving;	//Переходим в режим приёма на ретрансмит
-    for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	//Копируем всё что должны переслать
-	//TIC_MEM_length = PC_MEM_length - 1;
-    for (uint8_t i = 0; i < PC_MEM_length - 1; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
-	//TIC_MEM_length = 0;
-	//usart_putchar(USART_PC,TIC_MEM_length);
-	TIC_timer.CTRLA = TC_500kHz;			//Запускаем таймер на 6мс
-    sei_TIC;
+	MC_Tasks.retransmit = 1;
+	PC_State = USART_State_decoding;
 	//transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
     //while (TIC_State != USART_State_ready) { }	//Ждём
     //TIC_timer.CTRLA = TC_Off;
@@ -1492,6 +1483,25 @@ int main(void)
             MC_Tasks.turnOnHVE = 0;
 			transmit_2bytes(TOCKEN_LookAtMe,LAM_SPI_conf_done);
         }
+		if((MC_Tasks.retransmit)&&(TIC_State != USART_State_HVEreceiving))
+		{
+			cli_TIC;
+			TIC_timer.CTRLA = TC_Off;
+			TIC_timer.CNT = 0;
+			TIC_State = USART_State_receiving;	//Переходим в режим приёма на ретрансмит
+			for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	//Копируем всё что должны переслать
+			//TIC_MEM_length = PC_MEM_length - 1;
+			for (uint8_t i = 0; i < PC_MEM_length - 1; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
+			//TIC_MEM_length = 0;
+			//usart_putchar(USART_PC,TIC_MEM_length);
+			TIC_timer.CTRLA = TC_500kHz;			//Запускаем таймер на 6мс
+			sei_TIC;
+			MC_Tasks.retransmit = 0;
+			PC_timer.CTRLA = TC_31kHz;		//Переходим в режим тишины
+			PC_timer.CNT = 0;
+			PC_timer_time = 0;
+			PC_State = USART_State_ready;	//Ждём начала передачи
+		}
     }
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
