@@ -42,6 +42,7 @@ namespace Xmega32A4U_testBoard
             CLK_timer.Enabled = false;
 
             MC.Flags.PRGE_blocked += new EventCallBack(PRGE_blocked);
+            MC.Counters.MeasureEnd += new EventCallBack(EventHandler);
         }
         //Функции интерфейса
         delegate void delegate_trace(string text);
@@ -600,16 +601,12 @@ namespace Xmega32A4U_testBoard
         uint Cycles;
         private void BTN_realCOX_start_Click(object sender, EventArgs e)
         {
-            if (Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text) > 0)
-            {
-                if (MC.Counters.MeasureEnd == null)
-                {
-                    MC.Counters.MeasureEnd += new EventCallBack(EventHandler);
-                }
-                Cycles = Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text);
-                Cycles_performed = 0;
+            //if (Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text) > 0)
+            //{
+                //Cycles = Convert.ToUInt16(TXB_realCOX_NumberOfMeasurments.Text);
+                //Cycles_performed = 0;
                 MC.Counters.startMeasure(TXB_realCOX_MeasureTime.Text);
-            }
+            //}
         }
         uint COA_min = uint.MaxValue;
         uint COA_mid = 0;
@@ -631,7 +628,8 @@ namespace Xmega32A4U_testBoard
 
         public void EventHandler()
         {
-
+            
+            //*
             if (GPB_realCOX.InvokeRequired)
             {
                 delegate_void a_delegate_2 = new delegate_void(EventHandler);
@@ -641,44 +639,49 @@ namespace Xmega32A4U_testBoard
             {
                 MC.Counters.receiveResults();
                 LBL_realCOX_RTCstate.Text = MC.Counters.Status;
-                Cycles_performed++;
-                TXB_realCOX_NumberOfMeasurments.Text = (Cycles - Cycles_performed).ToString();
-
-                COX_buf = MC.Counters.COA;
-                if (COA_min > COX_buf) { COA_min = COX_buf; }
-                COA_mid = (COA_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
-                if (COA_max < COX_buf) { COA_max = COX_buf; }
-
-                COX_buf = MC.Counters.COB;
-                if (COB_min > COX_buf) { COB_min = COX_buf; }
-                COB_mid = (COB_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
-                if (COB_max < COX_buf) { COB_max = COX_buf; }
-
-                COX_buf = MC.Counters.COC;
-                if (COC_min > COX_buf) { COC_min = COX_buf; }
-                COC_mid = (COC_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
-                if (COC_max < COX_buf) { COC_max = COX_buf; }
-
-                double RTC_buf = MC.Counters.ElapsedTime;
-                if (RTC_min > RTC_buf) { RTC_min = RTC_buf; }
-                RTC_mid = (RTC_mid * (Cycles_performed - 1) + RTC_buf) / Cycles_performed;
-                if (RTC_max < RTC_buf) { RTC_max = RTC_buf; }
-
-                if (Cycles_performed < Cycles)
-                {
-                    //Тут настройки SPI
-                    Thread.Sleep(10);
-                    MC.Counters.startMeasure(TXB_realCOX_MeasureTime.Text);
-                    LBL_realCOX_RTCstate.Text = MC.Counters.Status;
-                }
-                else
-                {
-                    LBL_realCOX_COA_Result.Text = COA_min + "..." + COA_mid + "..." + COA_max;
-                    LBL_realCOX_COB_Result.Text = COB_min + "..." + COB_mid + "..." + COB_max;
-                    LBL_realCOX_COC_Result.Text = COC_min + "..." + COC_mid + "..." + COC_max;
-                    LBL_realCOX_RTC_ElapsedTime.Text = RTC_min + "..." + RTC_mid + "..." + RTC_max;
-                }
+                LBL_realCOX_COA_Result.Text = MC.Counters.COA.ToString();
+                LBL_realCOX_COB_Result.Text = MC.Counters.COB.ToString();
+                LBL_realCOX_COC_Result.Text = MC.Counters.COC.ToString();
+                LBL_realCOX_RTC_OverTime.Text = MC.Counters.OverTime.ToString();
+                //Cycles_performed++;
+                ////TXB_realCOX_NumberOfMeasurments.Text = (Cycles - Cycles_performed).ToString();
+                //
+                //COX_buf = MC.Counters.COA;
+                //if (COA_min > COX_buf) { COA_min = COX_buf; }
+                //COA_mid = (COA_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
+                //if (COA_max < COX_buf) { COA_max = COX_buf; }
+                //
+                //COX_buf = MC.Counters.COB;
+                //if (COB_min > COX_buf) { COB_min = COX_buf; }
+                //COB_mid = (COB_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
+                //if (COB_max < COX_buf) { COB_max = COX_buf; }
+                //
+                //COX_buf = MC.Counters.COC;
+                //if (COC_min > COX_buf) { COC_min = COX_buf; }
+                //COC_mid = (COC_mid * (Cycles_performed - 1) + COX_buf) / Cycles_performed;
+                //if (COC_max < COX_buf) { COC_max = COX_buf; }
+                //
+                //double RTC_buf = MC.Counters.OverTime;
+                //if (RTC_min > RTC_buf) { RTC_min = RTC_buf; }
+                //RTC_mid = (RTC_mid * (Cycles_performed - 1) + RTC_buf) / Cycles_performed;
+                //if (RTC_max < RTC_buf) { RTC_max = RTC_buf; }
+                //
+                //if (Cycles_performed < Cycles)
+                //{
+                //    //Тут настройки SPI
+                //    Thread.Sleep(20);
+                //    MC.Counters.startMeasure(TXB_realCOX_MeasureTime.Text);
+                //    LBL_realCOX_RTCstate.Text = MC.Counters.Status;
+                //}
+                //else
+                //{
+                //    LBL_realCOX_COA_Result.Text = COA_min + "..." + COA_mid + "..." + COA_max;
+                //    LBL_realCOX_COB_Result.Text = COB_min + "..." + COB_mid + "..." + COB_max;
+                //    LBL_realCOX_COC_Result.Text = COC_min + "..." + COC_mid + "..." + COC_max;
+                //    LBL_realCOX_RTC_OverTime.Text = RTC_min + "..." + RTC_mid + "..." + RTC_max;
+                //}
             }
+            //*/
         }
         private void BTN_realCOX_stop_Click(object sender, EventArgs e)
         {
@@ -686,7 +689,8 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_realCOX_check_Click(object sender, EventArgs e)
         {
-            EventHandler();
+            //EventHandler();
+            MC.Counters.receiveResults();
         }
         private void BTN_checkFlags_Click(object sender, EventArgs e)
         {

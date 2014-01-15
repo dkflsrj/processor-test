@@ -149,9 +149,10 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             public static uint COC = 0;
             /// <summary>
-            /// Прошедшее время с начала измерения в миллисекундах
+            /// Время пересчёта в миллисекундах. (стандартное время: ~92мкс)
+            /// <para>Лишнее время, которое МК не мог завершить счёт в силу внутренних причин</para>
             /// </summary>
-            public static double ElapsedTime = 0;
+            public static double OverTime = 0;
             #endregion
             public static string Status = "notSet";
             static string convertStatus(byte Status_byte)
@@ -472,8 +473,7 @@ namespace Xmega32A4U_testBoard
                             case 7: prescaler_long = Constants.sourceFrequency / 1024; break;
                             default: prescaler_long = 0; break;
                         }
-                        ElapsedTime = ((ushort.MaxValue / prescaler_long) + (((rDATA[14] << 8) + rDATA[15]) / prescaler_long)) * 1000000;
-
+                        OverTime = Math.Round((((rDATA[14] << 8) + rDATA[15]) / prescaler_long ) * 1000 ) / 1000;
                         MC.Service.trace(command + ":Результаты успешно получены!");
                         return true;
                     }
@@ -857,14 +857,9 @@ namespace Xmega32A4U_testBoard
                 //СОБЫТИЕ: Пришло асинхронное сообщение. Все асинхронные сообщения одной длины (7 байт)
                 //ДАННЫЕ: <Tocken><DATA_1><DATA_2>
                 if (Synchro) { return; }
-                //trace("!USART_DataReceived!");
-                message = "!USART_DataReceived!";
-                //bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
-                //tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
+                message = "Асинхронное сообщение:";
                 List<byte> rDATA = decode(receive(PC_TimeOut));
                 Asynchr_decode(rDATA);
-                //tracer_enabled = tracer_enabled_before;
-                trace(message);
             }
             public static void Asynchr_decode(List<byte> DATA)
             {
@@ -881,6 +876,7 @@ namespace Xmega32A4U_testBoard
                     {
                         message += "\r             " + b;
                     }
+                    trace(message);
                     return;
                 }
                 switch (DATA[0])
@@ -890,14 +886,17 @@ namespace Xmega32A4U_testBoard
                         {
                             case LAM.RTC_end:
                                 message += "\r LAM:Счётчики закончили счёт!";
+                                trace(message);
                                 Counters.MeasureEnd.Invoke();
                                 break;
                             case LAM.SPI_conf_done:
                                 message += "\r LAM:Высокое напряжение разрешено, SPI устройства настроены!";
+                                trace(message);
                                 SPI_devices_ready.Invoke();
                                 break;
                             default:
                                 message += "\r МК хочет чтобы на него обратили внимание, но не понятно почему! " + DATA[1];
+                                trace(message);
                                 break;
                         }
                         break;
@@ -906,19 +905,21 @@ namespace Xmega32A4U_testBoard
                         {
                             case Critical_Error.HVE_error_decode:
                                 message += "\r CRITICAL ERROR! Ошибка декодирования сообщения от TIC'a!";
-                                CriticalError_HVE_decoder.Invoke();
+                                trace(message);
+                                //CriticalError_HVE_decoder.Invoke();
                                 break;
                             case Critical_Error.HVE_error_noResponse:
                                 message += "\r CRITICAL ERROR! TIC не выходит на связь!";
-                                CriticalError_HVE_TIC_noResponse.Invoke();
+                                trace(message);
+                                //CriticalError_HVE_TIC_noResponse.Invoke();
                                 break;
                         }
                         break;
                     default:
                         message += "\rНеизвестная метка асинхронного сообщения: " + DATA[0];
+                        trace(message);
                         break;
                 }
-
             }
             public static List<byte> receive(uint timeout)
             {
@@ -961,11 +962,7 @@ namespace Xmega32A4U_testBoard
             public static List<byte> decode(List<byte> DATA)
             {
                 List<byte> rDATA = DATA;
-                if (rDATA.Count == 0)
-                {
-                    addError("                                   ПАКЕТ ПУСТ!");
-                }
-                else
+                if (rDATA.Count != 0)
                 {
                     message += "\r                          Принятый пакет:\r                                   [ ";
                     foreach (byte b in rDATA)
@@ -973,8 +970,8 @@ namespace Xmega32A4U_testBoard
                         message += b + " | ";
                     }
                     message = message.Substring(0, message.Length - 3);
-                    message += " ]\r                                   [ ";
-                    //message += Encoding.ASCII.GetString(rDATA.ToArray());
+                    message += " ]";
+                    //message += "\r                                   [ " + Encoding.ASCII.GetString(rDATA.ToArray());
                 }
                 //trace("         Анализ полученной команды...");
                 if (DATA.Count < 3)
@@ -1473,43 +1470,6 @@ namespace Xmega32A4U_testBoard
                 USART.Open();
             }
             USART.DataReceived += new SerialDataReceivedEventHandler(Service.USART_DataReceived);
-        }
-        //Флаги
-        /// <summary>
-        /// МК устанавливает и возвращает флаги в порядке:
-        /// <para>&lt;[Проверить\Установить][iHVE][PRGE][iEDCD][SEMV1][SEMV2][SEMV3][SPUMP]&gt;</para> 
-        /// <para>,где [SPUM] - первый(нулевой) бит</para>
-        /// <para>     [iHVE] - Разрешение высокого напряжения от TIC (readOnly)</para>
-        /// <para>     [Проверить\Установить] - МК возвращает 1, если хотябы один из параметров был изменён, иначе 0</para>
-        /// </summary>
-        /// <param name="set_flags">true - установить следующие флаги, <para>false - не устанавливать, только проверить (последующие флаги не имеют значения)</para></param>
-        /// <param name="PRGE">Разрешение высокого напряжения от оператора</param>
-        /// <param name="EDCD">Разрешение дистанционного управления</param>
-        /// <param name="SEMV1">Электромагнитный вентиль 1</param>
-        /// <param name="SEMV2">Электромагнитный вентиль 2</param>
-        /// <param name="SEMV3">Электромагнитный вентиль 3</param>
-        /// <param name="SPUMP">Включение насоса?</param>
-        /// <returns>Байт флагов в порядке &lt;[Изменено][iHVE][PRGE][iEDCD][SEMV1][SEMV2][SEMV3][SPUMP]&gt;</returns>
-        public static byte setFlags(bool set_flags, bool PRGE, bool EDCD, bool SEMV1, bool SEMV2, bool SEMV3, bool SPUMP)
-        {
-            //ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
-            //ДАННЫЕ: <Command><[Проверить\Установить][iHVE][PRGE][iEDCD][SEMV1][SEMV2][SEMV3][SPUMP]>
-            //				Если первый бит <Проверить\Установить> = 0, то МК тут же возвращает текущее состояние флагов
-            //				Если первый бит <Проверить\Установить> = 1, то МК устанавливает флаги (кроме iHVE) и возвращает их.
-            //				iHVE - только чтение
-            //				Ответ МК битом [Проверить\Установить] -> 1 - параметры были изменены, 0 - нечего менять
-            string command = "setFlags( set = " + Convert.ToInt16(set_flags) + " | iHVE(readOnly) | PRGE = " + Convert.ToInt16(PRGE) + " | EDCD = " + Convert.ToInt16(EDCD) + " | SEMV1 = " + Convert.ToInt16(SEMV1) + " | SEMV2 = " + Convert.ToInt16(SEMV2) + " | SEMV3 = " + Convert.ToInt16(SEMV3) + " | SPUMP = " + Convert.ToInt16(SPUMP) + ")";
-            MC.Service.trace_attached(Environment.NewLine);
-            MC.Service.trace(command);
-            byte flags = Convert.ToByte(Convert.ToInt16(set_flags) * 128 + Convert.ToInt16(PRGE) * 32 + Convert.ToInt16(EDCD) * 16 + Convert.ToInt16(SEMV1) * 8 + Convert.ToInt16(SEMV2) * 4 + Convert.ToInt16(SEMV3) * 2 + Convert.ToInt16(SPUMP));
-            List<byte> rDATA;
-            rDATA = MC.Service.transmit(Command.Flags.setFlags, flags);
-            try
-            {
-                if ((rDATA[1] & 128) == 0) { MC.Service.trace(command + ": Операция отменена! Нечего менять!"); }
-                return rDATA[1];
-            }
-            catch { MC.Service.addError(command + ": Ошибка данных!", rDATA); return byte.MaxValue; }
         }
         #endregion
         #region---------------------------------ВНУТРЕННИЕ ФУНКЦИИ-------------------------------------

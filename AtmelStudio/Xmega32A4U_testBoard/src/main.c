@@ -22,8 +22,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										146
-#define birthday									20140114
+#define version										147
+#define birthday									20140115
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -222,7 +222,6 @@ uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol);
 void TIC_set_Gauges(void);
 void TIC_send_TIC_MEM(void);
 void SPI_send(uint8_t DEVICE_Number);
-void checkFlags(void);
 void updateFlags(void);
 void checkFlag_HVE(void);
 void checkFlag_PRGE(void);
@@ -341,6 +340,11 @@ ISR(RTC_OVF_vect)
 		//Ждём пока можно будет обратиться к регистрам RTC
 	}
 	RTC_ElapsedTime = RTC.CNT;
+	while (RTC.STATUS != 0)
+	{
+		//Ждём пока можно будет обратиться к регистрам RTC
+	}
+	RTC.CNT = 0;
     sei();
     //сохраняем результаты
     COA_Measurment = COA.CNT;
@@ -419,7 +423,7 @@ static void ISR_TIC_timer(void)
 				//TIC не вышел на связь и в третий раз! Что-то нетак! Принимаем меры!
 				pin_iHVE_high;						//блокируем HVE
 				Flags.iHVE = 1;
-				Flags.PRGE = 0;
+				//Flags.PRGE = 0;
 				sei();
 				transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_noResponse, TIC_MEM_length);
 			}
@@ -432,7 +436,7 @@ static void ISR_TIC_timer(void)
             cli();
             pin_iHVE_high;						//блокируем HVE
             Flags.iHVE = 1;
-            Flags.PRGE = 0;
+            //Flags.PRGE = 0;
 			sei();
             Errors_USART_TIC.HVE_error = 1;		//Отмечаем в журнале
             Errors_USART_TIC.wrongTimerState = 1;
@@ -535,8 +539,6 @@ void decode(void)
             break;
         case COMMAND_MSV_get_Voltage: 				SPI_send(SPI_DEVICE_Number_ADC_MSV);
             break;
-        case COMMAND_Flags_set: 					checkFlags();
-            break;
         case COMMAND_TIC_set_Gauges: 				TIC_set_Gauges();
             break;
         case COMMAND_TIC_send_TIC_MEM: 				TIC_send_TIC_MEM();
@@ -572,7 +574,7 @@ void transmit(uint8_t DATA[], uint8_t DATA_length)
     cli();
     usart_putchar(USART_PC, COMMAND_KEY);											//':'
     for (uint8_t i = 0; i < DATA_length; i++) { usart_putchar(USART_PC, DATA[i]); }	//<data>
-    usart_putchar(USART_PC, calcCheckSum(DATA, DATA_length + 1));						//<CS>
+    usart_putchar(USART_PC, calcCheckSum(DATA, DATA_length + 1));					//<CS>
     usart_putchar(USART_PC, COMMAND_LOCK);											//'\r'
     sei();
 }
@@ -665,6 +667,7 @@ void COUNTERS_start(void)
         COA.CNT = 0;
         COB.CNT = 0;
         COC.CNT = 0;
+		RTC_MeasurePrescaler = PC_MEM[1];
         //начали
         while (RTC.STATUS != 0)
         {
@@ -696,7 +699,7 @@ void COUNTERS_sendResults(void)
 {
     //ФУНКЦИЯ: Послать результаты счёта на ПК, если можно
     //ДАННЫЕ: <Command><RTC_Status><COA_OVF[1]><COA_OVF[0]><COA_M[1]><COA_M[0]><COB_OVF[1]><COB_OVF[0]><COВ_M[1]><COВ_M[0]><COC_OVF[1]><COC_OVF[0]><COС_M[1]><COС_M[0]><RTC_ElapsedTime[1]><RTC_ElapsedTime[0]><RTC_MeasurePrescaler>
-    uint8_t wDATA[14];
+    uint8_t wDATA[17];
     wDATA[0] = COMMAND_COUNTERS_sendResults;
     wDATA[1] = RTC_Status;
     if (RTC_Status == RTC_Status_ready)
@@ -713,9 +716,9 @@ void COUNTERS_sendResults(void)
         wDATA[11] =	 COC_OVF;
         wDATA[12] = (COC_Measurment >> 8);
         wDATA[13] =  COC_Measurment;
-		wDATA[14] = (RTC_ElapsedTime >> 8);
-		wDATA[15] = RTC_ElapsedTime;
-		wDATA[16] = RTC_MeasurePrescaler;
+    	wDATA[14] = (RTC_ElapsedTime >> 8);
+    	wDATA[15] = RTC_ElapsedTime;
+    	wDATA[16] = RTC_MeasurePrescaler;
     }
     transmit(wDATA, 17);
 }
@@ -754,7 +757,7 @@ uint8_t TIC_decode_HVE(void)
 {
     //ФУНКЦИЯ: Декодируем ответ тика на запрос HVE {?V91<NUL><\r>}
     //ПОЯСНЕНИЯ: Ответ TIC'а должен быть таким: ? - байт от 48 до 57
-	//*
+	/*
     //Байт:   61 86 57 49  ?    32   ?   46 ?    ?    ?   59 54 54 59 49 59 | 48 59 48 13
     //Символ: =  V  9  1 <NUL> <sp> <D1> . <D2> <D3> <D4> ;  6  6  ;  1  ;  | 0  ;  0 <\r>
     //Номер:  0  1  2  3   4    5    6   7  8    9    10  11 12 13 14 15 16 | 17 18 19 20
@@ -785,7 +788,7 @@ uint8_t TIC_decode_HVE(void)
                         //Выключаем высокое!
                         pin_iHVE_high;
                         Flags.iHVE = 1;
-                        Flags.PRGE = 0;
+                        //Flags.PRGE = 0;
                     }
                     return 1;
                 }
@@ -794,48 +797,41 @@ uint8_t TIC_decode_HVE(void)
     }
 	//*/
 	//В данный момент TIC не присылает показания в вольтах, поэтому тестово проверим совпадение сообщения давлением
-	/*
+	//*
 	//Байт:   61 86 57 49  ?    32   ?   46 ?    ?    ?   ?  101 43  ?   ?  59 53 57 59 48 59 48 59 48 13
 	//Символ: =  V  9  1  <G>  <sp> [D]  . [D]  [D]  [D] [D] e   +  [D] [D] ;  5  9  ;  0  ;  0  ;  0 <\r>
 	//Номер:  0  1  2  3   4    5    6   7  8    9   10  11  12  13 14  15  16 17 18 19 20 21 22 23 24 25
-	//if (TIC_MEM_length == 26)
-	//{
-	//	if ((TIC_MEM[0] == 61) && (TIC_MEM[1] == 86) && (TIC_MEM[2] == 57) && (TIC_MEM[3] == 49) && 
-	//		(TIC_MEM[5] == 32) && (TIC_MEM[7] == 46) && (TIC_MEM[12] == 101) && (TIC_MEM[13] == 43) && 
-	//		(TIC_MEM[16] == 59) && (TIC_MEM[17] == 53)  && (TIC_MEM[18] == 57) && (TIC_MEM[19] == 59) &&
-	//		(TIC_MEM[20] == 48) && (TIC_MEM[21] == 59) && (TIC_MEM[22] == 48) && (TIC_MEM[23] == 59) && 
-	//		(TIC_MEM[24] == 48) && (TIC_MEM[25] == 13))
-	//	{
+	if (TIC_MEM_length == 26)
+	{
+		if ((TIC_MEM[0] == 61) && (TIC_MEM[1] == 86) && (TIC_MEM[2] == 57) && (TIC_MEM[3] == 49) && 
+			(TIC_MEM[5] == 32) && (TIC_MEM[7] == 46) && (TIC_MEM[12] == 101) && (TIC_MEM[13] == 43) && 
+			(TIC_MEM[16] == 59) && (TIC_MEM[17] == 53)  && (TIC_MEM[18] == 57) && (TIC_MEM[19] == 59) &&
+			(TIC_MEM[20] == 48) && (TIC_MEM[21] == 59) && (TIC_MEM[22] == 48) && (TIC_MEM[23] == 59) && 
+			(TIC_MEM[24] == 48) && (TIC_MEM[25] == 13))
+		{
 			//Декодируем число, которое пришло вместе с сообщением
 			uint8_t Value[8];
-			Value[0] = 9;//TIC_decode_ASCII(TIC_MEM[6]);	//Единицы
-			Value[1] = 1;//TIC_decode_ASCII(TIC_MEM[8]);	//Десятые
-			Value[2] = 2;//TIC_decode_ASCII(TIC_MEM[9]);	//Сотые
-			Value[3] = 3;//TIC_decode_ASCII(TIC_MEM[10]);	//Тысячные
-			Value[4] = 4;//TIC_decode_ASCII(TIC_MEM[11]);	//Десятитысячные
-			Value[5] = 5;//TIC_decode_ASCII(TIC_MEM[14]);	//Десятки степени
-			Value[6] = 6;//TIC_decode_ASCII(TIC_MEM[15]);	//Единицы степени
-			//switch(TIC_MEM[13])							//Знак степени
-			//{
-			//	case 43: Value[7] = 1;					//+
-			//		break;
-			//	case 45: Value[7] = 0;					//-
-			//		break;
-			//	default: Value[7] = 255;				//Ошибка
-			//		break;
-			//}
+			Value[0] = TIC_decode_ASCII(TIC_MEM[6]);	//Единицы
+			Value[1] = TIC_decode_ASCII(TIC_MEM[8]);	//Десятые
+			Value[2] = TIC_decode_ASCII(TIC_MEM[9]);	//Сотые
+			Value[3] = TIC_decode_ASCII(TIC_MEM[10]);	//Тысячные
+			Value[4] = TIC_decode_ASCII(TIC_MEM[11]);	//Десятитысячные
+			Value[5] = TIC_decode_ASCII(TIC_MEM[14]);	//Десятки степени
+			Value[6] = TIC_decode_ASCII(TIC_MEM[15]);	//Единицы степени
+			switch(TIC_MEM[13])							//Знак степени
+			{
+				case 43: Value[7] = 1;					//+
+					break;
+				case 45: Value[7] = 0;					//-
+					break;
+				default: Value[7] = 255;				//Ошибка
+					break;
+			}
 			if ((Value[0] != 255) && (Value[1] != 255) && (Value[2] != 255) && (Value[3] != 255) && 
 			    (Value[4] != 255) && (Value[5] != 255) && (Value[6] != 255) && (Value[7] != 255))
 			{ 
 				//значение корректно! формируем суперзначение четырьмя тетрадами
 				int32_t Pressure = 0;
-				//Pressure =  Value[4];
-				//Pressure += (Value[3] << 4);
-				//Pressure += (Value[2] << 8);
-				//Pressure += (Value[1] << 12);
-				//Pressure += (Value[0] << 16);
-				//Pressure += (Value[6] << 20);
-				//Pressure += (Value[5] << 24);
 				Pressure = Value[5];
 				Pressure = (Pressure << 4) + Value[6];
 				Pressure = (Pressure << 4) + Value[0];
@@ -845,43 +841,44 @@ uint8_t TIC_decode_HVE(void)
 				Pressure = (Pressure << 4) + Value[4];
 				//Смотрим от какого датчика
 				if (Value[7] == 0) { Pressure = -Pressure; }
-				if ((Flags.iHVE == 1) && (TIC_MEM[4] == TIC_HVE_onGauge))
-				{
-					//На пине iHVE высокий потенциал - он блокирует работу DC-DC 24-12. Высокого напряжения нет.
-					//Контролируем onLevel (турбик), чтобы включить. Присланное значение должно быть равно или ниже порогового
-					int32_t valve = 16777216;
-					if (Pressure <= valve) 
-					{ 
-						Flags.iHVE = 0; 
-					} //Разрешаем высокое!
-					//if (Pressure <= TIC_HVE_onLevel) { Flags.iHVE = 0; } //Разрешаем высокое!
-					return 1;
-				}
-				else if ((Flags.iHVE == 0) && (TIC_MEM[4] == TIC_HVE_offGauge))
-				{
-					//На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть!
-					//Контролируем offLevel (форик), чтобы выключить. Присланное значение должно быть равно или выше порогового
-					int32_t valve = -10048576;
-					if (Pressure >= valve)
-					//if (Pressure >= TIC_HVE_offLevel)
-					{
-						//Выключаем высокое!
-						pin_iHVE_high;
-						Flags.iHVE = 1;
-						Flags.PRGE = 0;
-					}
-					return 1;
-				}
+				//if ((Flags.iHVE == 1) && (TIC_MEM[4] == TIC_HVE_onGauge))
+				//{
+				//	//На пине iHVE высокий потенциал - он блокирует работу DC-DC 24-12. Высокого напряжения нет.
+				//	//Контролируем onLevel (турбик), чтобы включить. Присланное значение должно быть равно или ниже порогового
+				//	int32_t valve = 16777216;
+				//	if (Pressure <= valve) 
+				//	{ 
+				//		Flags.iHVE = 0; 
+				//	} //Разрешаем высокое!
+				//	//if (Pressure <= TIC_HVE_onLevel) { Flags.iHVE = 0; } //Разрешаем высокое!
+				//	return 1;
+				//}
+				//else if ((Flags.iHVE == 0) && (TIC_MEM[4] == TIC_HVE_offGauge))
+				//{
+				//	//На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть!
+				//	//Контролируем offLevel (форик), чтобы выключить. Присланное значение должно быть равно или выше порогового
+				//	int32_t valve = -10048576;
+				//	if (Pressure >= valve)
+				//	//if (Pressure >= TIC_HVE_offLevel)
+				//	{
+				//		//Выключаем высокое!
+				//		pin_iHVE_high;
+				//		Flags.iHVE = 1;
+				//		Flags.PRGE = 0;
+				//	}
+				//	return 1;
+				//}
+				return 1;
 			}
-			//return 1;
-	//	}
-	//}
+			
+		}
+	}
 	//*/
     //Если в декодироваке пошло что-то не так то спускаемся сюда.
     //Вопервых вырубаем HVE. TIC что-то темнит
     pin_iHVE_high;
     Flags.iHVE = 1;
-    Flags.PRGE = 0;
+    //Flags.PRGE = 0;
     Errors_USART_TIC.HVE_error = 1;
     transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_decode, TIC_MEM_length);
     return 0;
@@ -1094,122 +1091,6 @@ void SPI_send(uint8_t DEVICE_Number)
     transmit(aswDATA, 3);
 }
 //Флаги
-void checkFlags(void)
-{
-    //ФУНКЦИЯ: Выставляет флаги в соответствии с принятым байтом, если первый байт 1, и возвращает результат. Иначе просто возвращает флаги
-    //ДАННЫЕ: <Command><[Проверить\Установить][iHVE][PRGE][iEDCD][SEMV1][SEMV2][SEMV3][SPUMP]>
-    //				Если первый бит <Проверить\Установить> = 0, то МК тут же возвращает текущее состояние флагов
-    //				Если первый бит <Проверить\Установить> = 1, то МК устанавливает флаги (кроме iHVE) и возвращает их.
-    //				iHVE - только чтение
-    //				Ответ МК битом [Проверить\Установить] -> 1 - параметры были изменены, 0 - нечего менять
-    updateFlags();
-    Flags.checkOrSet = 0; //Ни один параметр не был изменён
-    if ((PC_MEM[1] >> 7) == 0)
-    {
-        //Проверить. Выслать на ПК свеженькие данные о флагах
-        transmit_2bytes(COMMAND_Flags_set, *pointer_Flags);
-        return;
-    }
-    //Установить!
-    uint8_t receivedFlag = ((PC_MEM[1] & 32) >> 5);	//Выделяем бит PRGE
-    //Если присланный PRGE(receivedFlag) не равен уже имеющемуся...
-    if (Flags.PRGE  != receivedFlag)
-    {
-        //то, если прислана единица...
-        if (receivedFlag == 1)
-        {
-            //и если iHVE ноль - TIC даёт добро, на высокое напряжение
-            if (Flags.iHVE == 0)
-            {
-                //То выдаль логический ноль на iHVE (низкий потенциал разрешает работу DC-DC 24-12)
-                Flags.PRGE = 1;	//Оператор даёт добро
-                MC_Tasks.turnOnHVE = 1;//начать всяческие настроки DAC'ов после разбора флагов
-                Flags.checkOrSet = 1; //был изменён параметр
-            }
-        }
-        else
-        {
-            pin_iHVE_high;			//Выключаем DC-DC 24-12
-            Flags.PRGE = 0;			//Оператор запрещает
-            Flags.checkOrSet = 1;	//был изменён параметр
-        }
-    }
-    receivedFlag = ((PC_MEM[1] & 16) >> 4);
-    if (Flags.iEDCD != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_iEDCD); Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_iEDCD); Flags.checkOrSet = 1;}}
-    receivedFlag = ((PC_MEM[1] & 8) >> 3);
-    if (Flags.SEMV1 != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SEMV1); Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SEMV1); Flags.checkOrSet = 1;}}
-    receivedFlag = ((PC_MEM[1] & 4) >> 2);
-    if (Flags.SEMV2 != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SEMV2); Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SEMV2); Flags.checkOrSet = 1;}}
-    receivedFlag = ((PC_MEM[1] & 2) >> 1);
-    if (Flags.SEMV3 != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SEMV3); Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SEMV3); Flags.checkOrSet = 1;}}
-    receivedFlag = PC_MEM[1] & 1;
-    if (Flags.SPUMP != receivedFlag) {if (receivedFlag == 1) {gpio_set_pin_high(pin_SPUMP); Flags.checkOrSet = 1;} else {gpio_set_pin_low(pin_SPUMP); Flags.checkOrSet = 1;}}
-    updateFlags();
-    transmit_2bytes(COMMAND_Flags_set, *pointer_Flags);
-    if (MC_Tasks.turnOnHVE)
-    {
-        pin_iHVE_low; //Включаем DC-DC 24-12
-        cpu_delay_ms(2000, 32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
-        //Высокое напряжение включено - конфигурируем DACи
-        //MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
-        uint8_t SPI_DATA[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};
-        spi_select_device(&SPIC, &DAC_Condensator);
-        spi_select_device(&SPIC, &DAC_Scaner);
-        spi_write_packet(&SPIC, SPI_DATA, 3);
-        spi_deselect_device(&SPIC, &DAC_Condensator);
-        spi_deselect_device(&SPIC, &DAC_Scaner);
-        //MSV DAC'и AD5643R (Конденсатор и сканер) - стартовое напряжение на первых каналах
-        SPI_DATA[0] = AD5643R_startVoltage_Hbyte;
-        SPI_DATA[1] = AD5643R_startVoltage_Mbyte;
-        SPI_DATA[2] = AD5643R_startVoltage_Lbyte;
-        spi_select_device(&SPIC, &DAC_Scaner);
-        spi_select_device(&SPIC, &DAC_Condensator);
-        spi_write_packet(&SPIC, SPI_DATA, 3);
-        spi_deselect_device(&SPIC, &DAC_Scaner);
-        spi_deselect_device(&SPIC, &DAC_Condensator);
-        //MSV DAC AD5643R (Сканер) - стартовое напряжение на первом канале
-        SPI_DATA[0] = AD5643R_startVoltage_Hbyte + 1;
-        spi_select_device(&SPIC, &DAC_Scaner);
-        spi_write_packet(&SPIC, SPI_DATA, 3);
-        spi_deselect_device(&SPIC, &DAC_Scaner);
-        //DPS + PSIS DAC'и AD5328R (Детектор и Ионный Источник) - двойной референс
-        SPI_DATA[0] = AD5328R_confHbyte;
-        SPI_DATA[1] = AD5328R_confLbyte;
-        spi_select_device(&SPIC, &DAC_Detector);
-        spi_select_device(&SPIC, &DAC_IonSource);
-        spi_write_packet(&SPIC, SPI_DATA, 2);
-        spi_deselect_device(&SPIC, &DAC_Detector);
-        spi_deselect_device(&SPIC, &DAC_IonSource);
-        //ОТКЛЮЧЕНО по электротехническим причинам!
-        /*delay_s(2);
-        //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на втором канале (Ионизации)
-        sdata[0] = AD5328R_startVoltage_Hbyte_PSIS_IV;
-        sdata[1] = AD5328R_startVoltage_Lbyte_PSIS_IV;
-        spi_select_device(&SPIC,&DAC_IonSource);
-        spi_write_packet(&SPIC, sdata, 2);
-        spi_deselect_device(&SPIC,&DAC_IonSource);
-        //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на первом канале (Ток Эмиссии)
-        sdata[0] = AD5328R_startVoltage_Hbyte_PSIS_EC;
-        sdata[1] = AD5328R_startVoltage_Lbyte_PSIS_EC;
-        spi_select_device(&SPIC,&DAC_IonSource);
-        spi_write_packet(&SPIC, sdata, 2);
-        spi_deselect_device(&SPIC,&DAC_IonSource);
-        //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на третьем канале (Фокусное 1)
-        sdata[0] += 16;//переход на следующий адрес
-        //sdata[1] = ;
-        spi_select_device(&SPIC,&DAC_IonSource);
-        spi_write_packet(&SPIC, sdata, 2);
-        spi_deselect_device(&SPIC,&DAC_IonSource);
-        //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на четвёртом канале (Фокусное 2)
-        sdata[0] += 16;//переход на следующий адрес
-        //sdata[1] = ;
-        spi_select_device(&SPIC,&DAC_IonSource);
-        spi_write_packet(&SPIC, sdata, 2);
-        spi_deselect_device(&SPIC,&DAC_IonSource);*/
-        MC_Tasks.turnOnHVE = 0;
-    }
-    return;
-}
 void updateFlags(void)
 {
     //ФУНКЦИЯ: МК осматривает флаговые пины портов и собирает их в байт Flags
@@ -1233,6 +1114,7 @@ void checkFlag_PRGE(void)
     //ПАКЕТ: <Command><getOrSet>
     //					<0>\<1> - устанавливают
     //					<any_else> - запрашивает
+	/*
     switch (PC_MEM[1])
     {
         case 0: //Установка в ноль
@@ -1257,6 +1139,25 @@ void checkFlag_PRGE(void)
             break;
     }
     transmit_2bytes(COMMAND_Flags_PRGE, Flags.PRGE);
+	//*/
+	//Взлом системы безопасности
+	//*
+		switch (PC_MEM[1])
+		{
+			case 0: //Установка в ноль
+				Flags.PRGE = 0;			//Выключаем безусловно
+				PORTC.OUTSET = 8;
+				break;
+			case 1: //Включаем безусловно
+				Flags.PRGE = 1;
+				MC_Tasks.turnOnHVE = 1;//начать всяческие настроки DAC'ов после разбора флагов
+				break;
+			return;
+			default: //запрос
+			break;
+		}
+		transmit_2bytes(COMMAND_Flags_PRGE, Flags.PRGE);
+	//*/
 }
 void checkFlag_EDCD(void)
 {
@@ -1457,15 +1358,12 @@ int main(void)
     TIC_State = USART_State_ready;		//Переводим USART_PC в режим готов.
     sei();								//Разрешаем прерывания
     //Инициализация завершена
-	TIC_decode_HVE();
-	TIC_decode_HVE();
-	TIC_decode_HVE();
-	TIC_decode_HVE();
     while (1)
     {
         if (MC_Tasks.turnOnHVE)
         {
-            pin_iHVE_low; //Включаем DC-DC 24-12
+            //pin_iHVE_low; //Включаем DC-DC 24-12
+			PORTC.OUTCLR = 8;
             cpu_delay_ms(2000, 32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
             //Высокое напряжение включено - конфигурируем DACи
             //MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс

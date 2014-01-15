@@ -49,7 +49,6 @@
 #define COMMAND_MSV_get_Voltage						62	//Команда: Запросить напряжение конденсатора ("+" или "-") или сканера (родительское или сканирующее)
 #define COMMAND_PSInl_get_Voltage					63	//Команда: Запросить напряжение натекателя
 
-#define COMMAND_Flags_set							70	//Команда: Установить флаги (SEMV1,SEMV2,SEMV3,SPUMP,iEDCD,iHVE)
 #define COMMAND_Flags_HVE							71
 #define COMMAND_Flags_PRGE							72
 #define COMMAND_Flags_EDCD							73

@@ -46,8 +46,8 @@
 #define pin_RXE0	IOPORT_CREATE_PIN(PORTE, 2)		//USART TIC, приём
 #define pin_TXE0	IOPORT_CREATE_PIN(PORTE, 3)		//USART TIC, передача
 //----------------------------------------------------------------------------------------
-#define pin_iHVE_high		PORTC.OUTSET = 8
-#define pin_iHVE_low		PORTC.OUTCLR = 8
+#define pin_iHVE_high		//PORTC.OUTSET = 8
+#define pin_iHVE_low		//PORTC.OUTCLR = 8
 #define pin_iEDCD_high		PORTA.OUTSET = 128
 #define pin_iEDCD_low		PORTA.OUTCLR = 128
 #define pin_SEMV1_high		PORTD.OUTSET = 2
