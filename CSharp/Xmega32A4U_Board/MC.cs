@@ -859,11 +859,11 @@ namespace Xmega32A4U_testBoard
                 if (Synchro) { return; }
                 //trace("!USART_DataReceived!");
                 message = "!USART_DataReceived!";
-                bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
-                tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
+                //bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
+                //tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
                 List<byte> rDATA = decode(receive(PC_TimeOut));
                 Asynchr_decode(rDATA);
-                tracer_enabled = tracer_enabled_before;
+                //tracer_enabled = tracer_enabled_before;
                 trace(message);
             }
             public static void Asynchr_decode(List<byte> DATA)
@@ -889,12 +889,10 @@ namespace Xmega32A4U_testBoard
                         switch (DATA[1])
                         {
                             case LAM.RTC_end:
-                                //trace_attached(Environment.NewLine);
                                 message += "\r LAM:Счётчики закончили счёт!";
                                 Counters.MeasureEnd.Invoke();
                                 break;
                             case LAM.SPI_conf_done:
-                                //trace_attached(Environment.NewLine);
                                 message += "\r LAM:Высокое напряжение разрешено, SPI устройства настроены!";
                                 SPI_devices_ready.Invoke();
                                 break;
@@ -907,14 +905,12 @@ namespace Xmega32A4U_testBoard
                         switch (DATA[1])
                         {
                             case Critical_Error.HVE_error_decode:
-                                //trace_attached(Environment.NewLine);
                                 message += "\r CRITICAL ERROR! Ошибка декодирования сообщения от TIC'a!";
-                                //CriticalError_HVE_decoder.Invoke();
+                                CriticalError_HVE_decoder.Invoke();
                                 break;
                             case Critical_Error.HVE_error_noResponse:
-                                //trace_attached(Environment.NewLine);
                                 message += "\r CRITICAL ERROR! TIC не выходит на связь!";
-                                //CriticalError_HVE_TIC_noResponse.Invoke();
+                                CriticalError_HVE_TIC_noResponse.Invoke();
                                 break;
                         }
                         break;
@@ -965,22 +961,25 @@ namespace Xmega32A4U_testBoard
             public static List<byte> decode(List<byte> DATA)
             {
                 List<byte> rDATA = DATA;
-                if (tracer_enabled)
-                {
-                    message += "\r                          Принятый пакет: ";
-                    foreach (byte b in rDATA)
-                    {
-                        message += "\r                                  " + b;
-                    }
-                }
                 if (rDATA.Count == 0)
                 {
                     addError("                                   ПАКЕТ ПУСТ!");
                 }
+                else
+                {
+                    message += "\r                          Принятый пакет:\r                                   [ ";
+                    foreach (byte b in rDATA)
+                    {
+                        message += b + " | ";
+                    }
+                    message = message.Substring(0, message.Length - 3);
+                    message += " ]\r                                   [ ";
+                    //message += Encoding.ASCII.GetString(rDATA.ToArray());
+                }
                 //trace("         Анализ полученной команды...");
                 if (DATA.Count < 3)
                 {
-                    //trace("Полученная команда слишком коротка!");
+                    message += "\r                          Полученная команда слишком коротка!";
                     return new List<byte>();
                 }
                 if (rDATA.First<byte>() == Command.KEY)
@@ -1031,31 +1030,24 @@ namespace Xmega32A4U_testBoard
                 {
                     CheckSum -= data[i];
                 }
-                //trace("             Контрольная сумма: " + CheckSum);
                 return CheckSum;
             }
             public static void send(List<byte> DATA)
             {
                 //ФУНКЦИЯ: Формируем пакет, передаём его МК.
                 byte command = DATA[0];                         //Запоминаем передаваемую команду
-                //message = "     Начало исполнения команды:";
-                //message += "\r                          Команда и байты данных:";
-                //foreach (byte b in DATA)
-                //{
-                //    message += "\r                                   " + b;
-                //}
-                //message += "\r                          Формирование пакета...";
                 List<byte> Packet = new List<byte>();
                 Packet.Add(Command.KEY);
-                //Packet.Add((byte)(DATA.Count + 4));
                 Packet.AddRange(DATA);
                 Packet.Add(calcCheckSum(DATA.ToArray()));
                 Packet.Add(Command.LOCK);
-                message += "\r                          Пакет на передачу:";
+                message += "\r                          Пакет на передачу:\r                                   [ ";
                 foreach (byte b in Packet)
                 {
-                    message += "\r                                   " + b;
+                    message += b + " | ";
                 }
+                message = message.Substring(0, message.Length - 3);
+                message += " ]";
                 //Выполняем передачу и приём
                 if (!USART_defined)
                 {
@@ -1069,7 +1061,6 @@ namespace Xmega32A4U_testBoard
                 }
                 //Передача
                 USART.Write(Packet.ToArray(), 0, Packet.Count);
-                //trace("         Передача завершена!");
                 CommandStack++;                                 //Увеличиваем счётчик команд (команда ушла)
             }
             public static List<byte> transmit(List<byte> wDATA)
@@ -1077,19 +1068,11 @@ namespace Xmega32A4U_testBoard
                 //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
                 Synchro = true;
                 message = "MC.Service.transmit(...)";
-                //bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
-                //tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
-                //try { USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived); }
-                //catch { MC.Service.trace("MC.Service.transmit(...): Ошибка USART! COM-port не определён"); return dummy; }
                 send(wDATA);
                 List<byte> rDATA = decode(receive(PC_TimeOut));
-                //tracer_enabled = tracer_enabled_before;
-                //USART.ReadExisting(); 
-                //USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
-                trace(message);
+                if (tracer_transmit_enabled) { trace(message); }
                 Synchro = false;
                 return rDATA;
-                //return new List<byte>();
             }
             public static List<byte> retransmit_toTIC(byte[] DATA)
             {
@@ -1099,15 +1082,9 @@ namespace Xmega32A4U_testBoard
                 List<byte> data = new List<byte>();
                 data.Add(Command.TIC.retransmit);
                 data.AddRange(DATA);
-                //bool tracer_enabled_before = tracer_enabled;    //сохраняем параметры трэйсера
-                //tracer_enabled = tracer_transmit_enabled;       //Если надо выключаем трэйс в трансмите
-                //try { USART.DataReceived -= new SerialDataReceivedEventHandler(USART_DataReceived); }
-                //catch { MC.Service.trace("MC.Service.retransmit_toTIC(...): Ошибка USART! COM-port не определён"); return dummy; }
                 send(data);
                 List<byte> rDATA = decode(receive(TIC_TimeOut));
-                //USART.DataReceived += new SerialDataReceivedEventHandler(USART_DataReceived);
-                //tracer_enabled = tracer_enabled_before;
-                //trace(message);
+                if (tracer_transmit_enabled) { trace(message); }
                 Synchro = false;
                 return rDATA;
             }
@@ -1132,7 +1109,6 @@ namespace Xmega32A4U_testBoard
             }
             public static List<byte> transmit(byte COMMAND, List<byte> DATA)
             {
-                //Проверить - не надо ли создавать новый список
                 DATA.Insert(0, COMMAND);
                 return transmit(DATA);
             }
