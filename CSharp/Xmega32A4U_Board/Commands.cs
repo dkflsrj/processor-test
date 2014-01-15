@@ -85,7 +85,6 @@
         #region Flags
         public struct Flags
         {
-            public const byte setFlags = 70;
             public const byte HVE = 71;
             public const byte PRGE = 72;
             public const byte EDCD = 73;

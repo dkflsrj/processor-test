@@ -188,7 +188,7 @@
             this.BTN_INLET_getVoltage = new System.Windows.Forms.Button();
             this.TABpanel_5 = new System.Windows.Forms.TabPage();
             this.GPB_realCOX = new System.Windows.Forms.GroupBox();
-            this.LBL_realCOX_RTC_ElapsedTime = new System.Windows.Forms.Label();
+            this.LBL_realCOX_RTC_OverTime = new System.Windows.Forms.Label();
             this.LBL_realCOX_COC_Result = new System.Windows.Forms.Label();
             this.LBL_realCOX_COB_Result = new System.Windows.Forms.Label();
             this.LBL_realCOX_RTCstate = new System.Windows.Forms.Label();
@@ -1956,7 +1956,7 @@
             // 
             // GPB_realCOX
             // 
-            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_RTC_ElapsedTime);
+            this.GPB_realCOX.Controls.Add(this.LBL_realCOX_RTC_OverTime);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COC_Result);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_COB_Result);
             this.GPB_realCOX.Controls.Add(this.LBL_realCOX_RTCstate);
@@ -1989,14 +1989,14 @@
             this.GPB_realCOX.TabStop = false;
             this.GPB_realCOX.Text = "Счётчики";
             // 
-            // LBL_realCOX_RTC_ElapsedTime
+            // LBL_realCOX_RTC_OverTime
             // 
-            this.LBL_realCOX_RTC_ElapsedTime.AutoSize = true;
-            this.LBL_realCOX_RTC_ElapsedTime.Location = new System.Drawing.Point(79, 234);
-            this.LBL_realCOX_RTC_ElapsedTime.Name = "LBL_realCOX_RTC_ElapsedTime";
-            this.LBL_realCOX_RTC_ElapsedTime.Size = new System.Drawing.Size(13, 13);
-            this.LBL_realCOX_RTC_ElapsedTime.TabIndex = 16;
-            this.LBL_realCOX_RTC_ElapsedTime.Text = "0";
+            this.LBL_realCOX_RTC_OverTime.AutoSize = true;
+            this.LBL_realCOX_RTC_OverTime.Location = new System.Drawing.Point(79, 234);
+            this.LBL_realCOX_RTC_OverTime.Name = "LBL_realCOX_RTC_OverTime";
+            this.LBL_realCOX_RTC_OverTime.Size = new System.Drawing.Size(13, 13);
+            this.LBL_realCOX_RTC_OverTime.TabIndex = 16;
+            this.LBL_realCOX_RTC_OverTime.Text = "0";
             // 
             // LBL_realCOX_COC_Result
             // 
@@ -2048,9 +2048,9 @@
             this.label17.AutoSize = true;
             this.label17.Location = new System.Drawing.Point(6, 234);
             this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(70, 13);
+            this.label17.Size = new System.Drawing.Size(52, 13);
             this.label17.TabIndex = 13;
-            this.label17.Text = "Elapsed time:";
+            this.label17.Text = "Overtime:";
             // 
             // label22
             // 
@@ -2506,7 +2506,7 @@
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.TextBox TXB_realCOX_NumberOfMeasurments;
         private System.Windows.Forms.CheckBox CHB_iHVE;
-        private System.Windows.Forms.Label LBL_realCOX_RTC_ElapsedTime;
+        private System.Windows.Forms.Label LBL_realCOX_RTC_OverTime;
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.GroupBox GRB_TIC_DisplayContrast;
         private System.Windows.Forms.Button BTN_TIC_DisplayContrast_get;
