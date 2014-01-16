@@ -97,6 +97,9 @@ namespace Xmega32A4U_testBoard
         #endregion
         #region---------------------------------------КЛАССЫ-------------------------------------------
         #region Таймер и счётчики
+        /// <summary>
+        /// Счётчики
+        /// </summary>
         public class Counters
         {
             #region Константы
@@ -150,10 +153,17 @@ namespace Xmega32A4U_testBoard
             public static uint COC = 0;
             /// <summary>
             /// Время пересчёта в миллисекундах. (стандартное время: ~92мкс)
-            /// <para>Лишнее время, которое МК не мог завершить счёт в силу внутренних причин</para>
+            /// <para>Лишнее время, которое МК не мог завершить счёт в силу внутренних причин.</para>
             /// </summary>
             public static double OverTime = 0;
             #endregion
+            /// <summary>
+            /// Статус счётчиков. Обновляется после любой команды к счётчикам.
+            /// <para>"notSet" - начальное состояние</para>
+            /// <para>"ready" - готов к работе</para>
+            /// <para>"stopped" - остановлен</para>
+            /// <para>"busy" - считает</para>
+            /// </summary>
             public static string Status = "notSet";
             static string convertStatus(byte Status_byte)
             {
@@ -270,7 +280,7 @@ namespace Xmega32A4U_testBoard
                 return prescaler_long;
             }
             /// <summary>
-            /// Вычисляет и возвращает предделитель RTC (в длинном формате) 
+            /// Вычисляет и возвращает предделитель RTC в длинном формате
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
@@ -299,11 +309,10 @@ namespace Xmega32A4U_testBoard
                 return (Constants.sourceFrequency / calcRTCprescaler_long(MILLISECONDS));
             }
             /// <summary>
-            /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
+            /// Возвращает количество тиков RTC для отсчёта заданного времени
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
-            /// <param name="PRESCALER_long">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
             /// <returns></returns>
             public static ushort calcRTCticks(uint MILLISECONDS)
             {
@@ -318,11 +327,10 @@ namespace Xmega32A4U_testBoard
                 return tiks;
             }
             /// <summary>
-            /// Возвращает количество тиков RTC для отсчёта заданного времени с заданным предделителем 
+            /// Возвращает количество тиков RTC для отсчёта заданного времени
             /// <para>ПРИМЕЧАНИЕ: без участия МК</para>
             /// </summary>
             /// <param name="MeasureTime_ms">Время измерения в миллисекундах от 0 до 2047925</param>
-            /// <param name="PRESCALER_long">Предделитель. Возможные значения: 1,2,8,16,64,256,1024</param>
             /// <returns></returns>
             public static ushort calcRTCticks(string MILLISECONDS)
             {
@@ -436,7 +444,7 @@ namespace Xmega32A4U_testBoard
             /// <summary>
             /// Запрашиваем результаты счёта у МК
             /// <para> Возвращает:</para>
-            /// <para>  true - операция удалась. Результаты записаны в COA, COB и COC.</para>
+            /// <para>  true - операция удалась. Результаты записаны в COA, COB, COC и OverTime.</para>
             /// <para>  false - операция отменена. Вероятно счётчики всё ещё считают.</para>
             /// </summary>
             public static bool receiveResults()
@@ -689,6 +697,7 @@ namespace Xmega32A4U_testBoard
         /// </summary>
         public static class Service
         {
+            //КЛАСС: Класс для сервисных функций, отладки и проча
             static bool Synchro = false;
             /// <summary>
             /// Время ожидания байта от МК (рекомендуется не ниже 1625)
@@ -698,9 +707,20 @@ namespace Xmega32A4U_testBoard
             /// Время ожидания байта от МК, который в свою очередь ждёт байты от TIC'а (рекомендуется не ниже 10000)
             /// </summary>
             public static uint TIC_TimeOut = 25000;              //тайм аут для передачи и приёма для TIC'a
-            //КЛАСС: Класс для сервисных функций, отладки и проча
+            /// <summary>
+            /// Событие: МК сообщает о том, что после включения
+            /// <para>высоких напряжений все SPI устройства настроены</para>
+            /// </summary>
             public static EventCallBack SPI_devices_ready;
+            /// <summary>
+            /// Событие: МК выключил высокое напряжение из-за того, 
+            /// <para>что TIC прислал не корректное сообщение.</para>
+            /// </summary>
             public static EventCallBack CriticalError_HVE_decoder;
+            /// <summary>
+            /// Событие: МК выключил высокое напряжение из-за того,
+            /// <para>что TIC не отвечал более 3 раз.</para>
+            /// </summary>
             public static EventCallBack CriticalError_HVE_TIC_noResponse;
             /// <summary>
             /// Задаёт трейсер для вывода сообщений (отладочное)
@@ -780,7 +800,7 @@ namespace Xmega32A4U_testBoard
             /// МК тображает байт на светодиодах (отладочное, без отклика)
             /// </summary>
             /// <param name="BYTE">Данный байт будет отображён на 8-ми светодиодах</param>
-            public static void showMeByte(byte BYTE)
+            static void showMeByte(byte BYTE)
             {
                 //ФУНКЦИЯ: Возвращает частоту процессора микроконтроллера (не вычисляется)
                 string command = "Service.showMeByte()";
@@ -791,17 +811,13 @@ namespace Xmega32A4U_testBoard
                 wDATA.Add(BYTE);
                 MC.Service.send(wDATA);
             }
+            //ИНТЕРФЕЙСНЫЕ
+            delegate void delegate_trace(string text);
+            static string message = "";
             /// <summary>
             /// Выводит сообщение в указанный Tracer
             /// </summary>
             /// <param name="text">Любой текст</param>
-            public static void traceIt(string text)
-            {
-                trace(text);
-            }
-            //ИНТЕРФЕЙСНЫЕ
-            delegate void delegate_trace(string text);
-            static string message = "";
             public static void trace(string text)
             {
                 //ФУНКЦИЯ: Выводит text новой строкой с датой в RichTextBox и в файл, если эти действия разарешены
@@ -864,20 +880,10 @@ namespace Xmega32A4U_testBoard
             public static void Asynchr_decode(List<byte> DATA)
             {
                 //ФУНКЦИЯ: Декодируем асинхронное сообщение. Длина данных любого асинхронного сообщения 3 байта
-                if (DATA.Count < 3)
+                if (DATA.Count == 0)
                 {
-                    if (DATA.Count == 0)
-                    {
-                        //trace("Скачёк на линии!");
-                        return;
-                    }
-                    message += "\r НЕЧТО ТВОРИТЬСЯ НА ЛИНИИ:";
-                    foreach (byte b in DATA)
-                    {
-                        message += "\r             " + b;
-                    }
-                    trace(message);
-                    return;
+                     //trace("Скачёк на линии!");
+                     return;
                 }
                 switch (DATA[0])
                 {
@@ -887,12 +893,12 @@ namespace Xmega32A4U_testBoard
                             case LAM.RTC_end:
                                 message += "\r LAM:Счётчики закончили счёт!";
                                 trace(message);
-                                Counters.MeasureEnd.Invoke();
+                                if (Counters.MeasureEnd != null) { Counters.MeasureEnd.Invoke(); }
                                 break;
                             case LAM.SPI_conf_done:
-                                message += "\r LAM:Высокое напряжение разрешено, SPI устройства настроены!";
+                                message += "\r LAM:Высокое напряжение включено, SPI устройства настроены!";
                                 trace(message);
-                                SPI_devices_ready.Invoke();
+                                if (SPI_devices_ready != null) { SPI_devices_ready.Invoke(); }
                                 break;
                             default:
                                 message += "\r МК хочет чтобы на него обратили внимание, но не понятно почему! " + DATA[1];
@@ -906,12 +912,12 @@ namespace Xmega32A4U_testBoard
                             case Critical_Error.HVE_error_decode:
                                 message += "\r CRITICAL ERROR! Ошибка декодирования сообщения от TIC'a!";
                                 trace(message);
-                                //CriticalError_HVE_decoder.Invoke();
+                                if (CriticalError_HVE_decoder != null) { CriticalError_HVE_decoder.Invoke(); }
                                 break;
                             case Critical_Error.HVE_error_noResponse:
                                 message += "\r CRITICAL ERROR! TIC не выходит на связь!";
                                 trace(message);
-                                //CriticalError_HVE_TIC_noResponse.Invoke();
+                                if (CriticalError_HVE_TIC_noResponse != null) { CriticalError_HVE_TIC_noResponse.Invoke(); }
                                 break;
                         }
                         break;
@@ -1146,6 +1152,10 @@ namespace Xmega32A4U_testBoard
         #region Flags
         public static class Flags
         {
+            /// <summary>
+            /// Событие: МК принял команду о включении высокого напряжения,
+            /// <para>но TIC запрещает.</para>
+            /// </summary>
             public static EventCallBack PRGE_blocked;
             /// <summary>
             /// Разрешение высокого напряжения от TIC'а. Возвращает "Enabled" или "Blocked"
@@ -1171,7 +1181,8 @@ namespace Xmega32A4U_testBoard
             /// Разрешение оператора на включение высокого напряжения.
             /// <para>Возвращает: "On" - включено\включить, </para>
             /// <para>"Off" - выключено\выключить,  </para>
-            /// <para>"Blocked" - высокое напряжение запрещено TIC'ом</para>
+            /// <para>Если попытаться включить высокое напряжение при запрете по TIC'у,</para>
+            /// <para>возникнет событие EventCallBack PRGE_blocked</para>
             /// </summary>
             public static string PRGE
             {
@@ -1208,7 +1219,7 @@ namespace Xmega32A4U_testBoard
                     }
                     if (MC.Service.transmit(Command.Flags.PRGE, setupByte)[1] == 254)
                     {
-                        PRGE_blocked.Invoke();
+                        if (PRGE_blocked != null) { PRGE_blocked.Invoke(); }
                     }
                 }
             }
@@ -1446,7 +1457,7 @@ namespace Xmega32A4U_testBoard
         #endregion
         #region----------------------------------ВИДИМЫЕ ФУНКЦИИ---------------------------------------
         /// <summary>
-        /// Возвращает List(string) всех возникших ошибок (В РАЗРАБОТКЕ...)
+        /// Возвращает List(string) всех возникших ошибок
         /// </summary>
         public static List<string> getErrorList()
         {
@@ -1456,20 +1467,38 @@ namespace Xmega32A4U_testBoard
             return ErrorList;
         }
         /// <summary>
-        /// Задаёт СОМ-порт для связи ПК с МК
+        /// Задаёт СОМ-порт для связи ПК с МК и конфигурирует его
         /// </summary>
         public static void setUSART(SerialPort COM_PORT)
         {
             //ФУНКЦИЯ: Задаём порт, припомози которого будем общаться с МК
-            MC.Service.trace_attached(Environment.NewLine);
-            MC.Service.trace(".setUSART(" + COM_PORT.PortName + ")");
-            USART = COM_PORT;
-            USART_defined = true;
-            if (!USART.IsOpen)
+            string message = "";
+            if (COM_PORT != null)
             {
-                USART.Open();
+                USART = COM_PORT;
+                message = ".setUSART(" + USART.PortName + ")";
+                //USART = new SerialPort(USART.PortName,128000,Parity.None,8,StopBits.One);
+                USART.BaudRate = 128000;
+                USART.Parity = Parity.None;
+                USART.DataBits = 8;
+                USART.StopBits = StopBits.One;
+                USART.ReadTimeout = 100;
+                USART.WriteTimeout = 100;
+
+                message += "\r                      Установка параметров COM порта: " + USART.PortName;
+                message += "\r                         Бит в секунду: " + USART.BaudRate.ToString();
+                message += "\r                         Чётность: " + USART.Parity.ToString();
+                message += "\r                         Биты данных: " + USART.DataBits.ToString();
+                message += "\r                         Стоповые биты: " + USART.StopBits.ToString();
+                USART_defined = true;
+                if (!USART.IsOpen) { USART.Open(); }
+                USART.DataReceived += new SerialDataReceivedEventHandler(Service.USART_DataReceived);
             }
-            USART.DataReceived += new SerialDataReceivedEventHandler(Service.USART_DataReceived);
+            else
+            {
+                message = ".setUSART( ? ): Ошибка! Такого COM порта нет!";
+            }
+            MC.Service.trace(message);
         }
         #endregion
         #region---------------------------------ВНУТРЕННИЕ ФУНКЦИИ-------------------------------------

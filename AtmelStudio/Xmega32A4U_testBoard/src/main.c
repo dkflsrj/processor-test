@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										148
+#define version										149
 #define birthday									20140116
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -50,10 +50,10 @@
 #define AD5328R_confLbyte							60
 //Стартовые напряжение PSIS EC (тока эмиссии)
 #define AD5328R_startVoltage_Hbyte_PSIS_EC			0
-#define AD5328R_startVoltage_Lbyte_PSIS_EC			82
+#define AD5328R_startVoltage_Lbyte_PSIS_EC			200
 //Стартовые напряжения DAC PSIS IV,F1,F2 (ионизации, фокусные)
-#define AD5328R_startVoltage_Hbyte_PSIS_IV			44
-#define AD5328R_startVoltage_Lbyte_PSIS_IV			205
+#define AD5328R_startVoltage_Hbyte_PSIS_IV			29
+#define AD5328R_startVoltage_Lbyte_PSIS_IV			172
 
 //----------------------------------------ПЕРЕМЕННЫЕ----------------------------------------------
 //	МИКРОКОНТРОЛЛЕР
@@ -423,7 +423,7 @@ static void ISR_TIC_timer(void)
 				//TIC не вышел на связь и в третий раз! Что-то нетак! Принимаем меры!
 				pin_iHVE_high;						//блокируем HVE
 				Flags.iHVE = 1;
-				//Flags.PRGE = 0;
+				Flags.PRGE = 0;
 				sei();
 				transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_noResponse, TIC_MEM_length);
 			}
@@ -436,7 +436,7 @@ static void ISR_TIC_timer(void)
             cli();
             pin_iHVE_high;						//блокируем HVE
             Flags.iHVE = 1;
-            //Flags.PRGE = 0;
+            Flags.PRGE = 0;
 			sei();
             Errors_USART_TIC.HVE_error = 1;		//Отмечаем в журнале
             Errors_USART_TIC.wrongTimerState = 1;
@@ -787,7 +787,7 @@ uint8_t TIC_decode_HVE(void)
                         //Выключаем высокое!
                         pin_iHVE_high;
                         Flags.iHVE = 1;
-                        //Flags.PRGE = 0;
+                        Flags.PRGE = 0;
                     }
                     return 1;
                 }
@@ -877,7 +877,7 @@ uint8_t TIC_decode_HVE(void)
     //Вопервых вырубаем HVE. TIC что-то темнит
     pin_iHVE_high;
     Flags.iHVE = 1;
-    //Flags.PRGE = 0;
+    Flags.PRGE = 0;
     Errors_USART_TIC.HVE_error = 1;
     transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_decode, TIC_MEM_length);
     return 0;
@@ -1113,7 +1113,7 @@ void checkFlag_PRGE(void)
     //ПАКЕТ: <Command><getOrSet>
     //					<0>\<1> - устанавливают
     //					<any_else> - запрашивает
-	/*
+	//*
     switch (PC_MEM[1])
     {
         case 0: //Установка в ноль
@@ -1140,7 +1140,7 @@ void checkFlag_PRGE(void)
     transmit_2bytes(COMMAND_Flags_PRGE, Flags.PRGE);
 	//*/
 	//Взлом системы безопасности
-	//*
+	/*
 		switch (PC_MEM[1])
 		{
 			case 0: //Установка в ноль
@@ -1332,11 +1332,6 @@ int main(void)
     Counters_init;						//Инициируем счётчики импульсов
     USART_PC_init;					//Инициируем USART с компутером
     USART_TIC_init;						//Инициируем USART с насосемъ
-    //USARTD0.CTRLA = 32;
-    //USARTD0.CTRLB = 24;
-    //USARTD0.CTRLC = 3;
-    //USARTD0.BAUDCTRLA = 234;
-    //USARTD0.BAUDCTRLB = 192;
     //Конечная инициализация
     pointer_Flags = &Flags;
     pointer_Errors_USART_PC = &Errors_USART_PC;
@@ -1361,8 +1356,8 @@ int main(void)
     {
         if (MC_Tasks.turnOnHVE)
         {
-            //pin_iHVE_low; //Включаем DC-DC 24-12
-			PORTC.OUTCLR = 8;
+            pin_iHVE_low; //Включаем DC-DC 24-12
+			//PORTC.OUTCLR = 8; ЗАЩИТА
             cpu_delay_ms(2000, 32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
             //Высокое напряжение включено - конфигурируем DACи
             //MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
@@ -1395,19 +1390,19 @@ int main(void)
             spi_deselect_device(&SPIC, &DAC_Detector);
             spi_deselect_device(&SPIC, &DAC_IonSource);
             //ОТКЛЮЧЕНО по электротехническим причинам!
-            /*delay_s(2);
+			//PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на первом канале (Ток Эмиссии)
+			SPI_DATA[0] = AD5328R_startVoltage_Hbyte_PSIS_EC;
+			SPI_DATA[1] = AD5328R_startVoltage_Lbyte_PSIS_EC;
+			spi_select_device(&SPIC,&DAC_IonSource);
+			spi_write_packet(&SPIC, SPI_DATA, 2);
+			spi_deselect_device(&SPIC,&DAC_IonSource);
             //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на втором канале (Ионизации)
-            sdata[0] = AD5328R_startVoltage_Hbyte_PSIS_IV;
-            sdata[1] = AD5328R_startVoltage_Lbyte_PSIS_IV;
+            SPI_DATA[0] = AD5328R_startVoltage_Hbyte_PSIS_IV;
+            SPI_DATA[1] = AD5328R_startVoltage_Lbyte_PSIS_IV;
             spi_select_device(&SPIC,&DAC_IonSource);
-            spi_write_packet(&SPIC, sdata, 2);
+            spi_write_packet(&SPIC, SPI_DATA, 2);
             spi_deselect_device(&SPIC,&DAC_IonSource);
-            //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на первом канале (Ток Эмиссии)
-            sdata[0] = AD5328R_startVoltage_Hbyte_PSIS_EC;
-            sdata[1] = AD5328R_startVoltage_Lbyte_PSIS_EC;
-            spi_select_device(&SPIC,&DAC_IonSource);
-            spi_write_packet(&SPIC, sdata, 2);
-            spi_deselect_device(&SPIC,&DAC_IonSource);
+			/*
             //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на третьем канале (Фокусное 1)
             sdata[0] += 16;//переход на следующий адрес
             //sdata[1] = ;
@@ -1419,7 +1414,8 @@ int main(void)
             //sdata[1] = ;
             spi_select_device(&SPIC,&DAC_IonSource);
             spi_write_packet(&SPIC, sdata, 2);
-            spi_deselect_device(&SPIC,&DAC_IonSource);*/
+            spi_deselect_device(&SPIC,&DAC_IonSource);
+			//*/
             MC_Tasks.turnOnHVE = 0;
 			transmit_2bytes(TOCKEN_LookAtMe,LAM_SPI_conf_done);
         }
