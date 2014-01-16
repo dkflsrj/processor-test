@@ -312,6 +312,7 @@
             // 
             // CMB_COM_Handshake
             // 
+            this.CMB_COM_Handshake.Enabled = false;
             this.CMB_COM_Handshake.FormattingEnabled = true;
             this.CMB_COM_Handshake.Items.AddRange(new object[] {
             "Xon / Xoff",
@@ -325,6 +326,7 @@
             // 
             // CMB_COM_Parity
             // 
+            this.CMB_COM_Parity.Enabled = false;
             this.CMB_COM_Parity.FormattingEnabled = true;
             this.CMB_COM_Parity.Items.AddRange(new object[] {
             "Чёт",
@@ -340,6 +342,7 @@
             // 
             // CMB_COM_BaudRate
             // 
+            this.CMB_COM_BaudRate.Enabled = false;
             this.CMB_COM_BaudRate.FormattingEnabled = true;
             this.CMB_COM_BaudRate.Items.AddRange(new object[] {
             "75",
@@ -368,6 +371,7 @@
             // 
             // CMB_COM_StopBits
             // 
+            this.CMB_COM_StopBits.Enabled = false;
             this.CMB_COM_StopBits.FormattingEnabled = true;
             this.CMB_COM_StopBits.Items.AddRange(new object[] {
             "1",
@@ -382,6 +386,7 @@
             // 
             // CMB_COM_DataBits
             // 
+            this.CMB_COM_DataBits.Enabled = false;
             this.CMB_COM_DataBits.FormattingEnabled = true;
             this.CMB_COM_DataBits.Items.AddRange(new object[] {
             "4",
@@ -452,6 +457,7 @@
             // BTN_COM_setParams
             // 
             this.BTN_COM_setParams.BackColor = System.Drawing.SystemColors.Control;
+            this.BTN_COM_setParams.Enabled = false;
             this.BTN_COM_setParams.Location = new System.Drawing.Point(79, 193);
             this.BTN_COM_setParams.Name = "BTN_COM_setParams";
             this.BTN_COM_setParams.Size = new System.Drawing.Size(121, 35);
@@ -963,6 +969,7 @@
             // 
             // BTN_LEDbyte
             // 
+            this.BTN_LEDbyte.Enabled = false;
             this.BTN_LEDbyte.Location = new System.Drawing.Point(6, 77);
             this.BTN_LEDbyte.Name = "BTN_LEDbyte";
             this.BTN_LEDbyte.Size = new System.Drawing.Size(103, 23);
@@ -973,6 +980,7 @@
             // 
             // TXB_LEDbyte
             // 
+            this.TXB_LEDbyte.Enabled = false;
             this.TXB_LEDbyte.Location = new System.Drawing.Point(115, 79);
             this.TXB_LEDbyte.Name = "TXB_LEDbyte";
             this.TXB_LEDbyte.Size = new System.Drawing.Size(100, 20);

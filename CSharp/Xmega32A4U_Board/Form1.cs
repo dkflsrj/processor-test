@@ -22,7 +22,7 @@ namespace Xmega32A4U_testBoard
         {
             InitializeComponent();
             MC.Service.setTracer(Log);
-            MC.Service.traceIt("Программа инициирована!");
+            MC.Service.trace("Программа инициирована!");
             CMB_COM_BaudRate.Enabled = false;
             CMB_COM_DataBits.Enabled = false;
             CMB_COM_Handshake.Enabled = false;
@@ -33,10 +33,7 @@ namespace Xmega32A4U_testBoard
             if (findCOM())
             {
                 setCOMparams();
-
                 TABpanel.SelectedIndex = 1;
-
-                MC.setUSART(COM_Port);
             }
             CLK_COA.Interval = CLK_COA_intreval;
             CLK_timer.Enabled = false;
@@ -70,70 +67,8 @@ namespace Xmega32A4U_testBoard
         }
         void setCOMparams()
         {
-            Parity l_parity;
-            switch (CMB_COM_Parity.Text)
-            {
-                case "Чёт":
-                    l_parity = Parity.Even;
-                    break;
-                case "Нечёт":
-                    l_parity = Parity.Odd;
-                    break;
-                case "Маркер":
-                    l_parity = Parity.Mark;
-                    break;
-                case "Пробел":
-                    l_parity = Parity.Space;
-                    break;
-                default:
-                    //"Нет"
-                    l_parity = Parity.None;
-                    break;
-            }
-            StopBits l_stopBits;
-            switch (CMB_COM_StopBits.Text)
-            {
-                case "1":
-                    l_stopBits = StopBits.One;
-                    break;
-                case "1.5":
-                    l_stopBits = StopBits.OnePointFive;
-                    break;
-                case "2":
-                    l_stopBits = StopBits.Two;
-                    break;
-                default:
-                    //"Нет"
-                    l_stopBits = StopBits.None;
-                    break;
-            }
-            /*Handshake l_handshake;
-            switch (cBox_COM_Handshake.Text)
-            {
-                case "Xon / Xoff":
-                    l_handshake = Handshake.XOnXOff;
-                    break;
-                case "Request Xon / Xoff":
-                    l_handshake = Handshake.RequestToSendXOnXOff;
-                    break;
-                case "Аппаратное":
-                    l_handshake = Handshake.RequestToSend;
-                    break;
-                default:
-                    //"Нет"
-                    l_handshake = Handshake.None;
-                    break;
-            }*/
-            COM_Port = new SerialPort(cBox_COM.Text, Convert.ToInt32(CMB_COM_BaudRate.Text), l_parity, Convert.ToInt32(CMB_COM_DataBits.Text), l_stopBits);
-            //COM_Port.Handshake = l_handshake;
-            COM_Port.ReadTimeout = 100;
-            COM_Port.WriteTimeout = 100;
+            COM_Port = new SerialPort(cBox_COM.Text);
             MC.setUSART(COM_Port);
-            trace("Установка параметров COM порта: " + COM_Port.PortName);
-            trace("   Бит в секунду: " + COM_Port.BaudRate.ToString());
-            trace("   Чётность: " + COM_Port.Parity.ToString());
-            trace("   Биты данных: " + COM_Port.DataBits.ToString());
-            trace("   Стоповые биты: " + COM_Port.StopBits.ToString());
         }
         bool findCOM()
         {
@@ -149,11 +84,11 @@ namespace Xmega32A4U_testBoard
                 }
                 cBox_COM.Text = Ports[0];
                 //Включаем настройки
-                CMB_COM_BaudRate.Enabled = true;
-                CMB_COM_DataBits.Enabled = true;
-                CMB_COM_Handshake.Enabled = true;
-                CMB_COM_Parity.Enabled = true;
-                CMB_COM_StopBits.Enabled = true;
+                //CMB_COM_BaudRate.Enabled = true;
+                //CMB_COM_DataBits.Enabled = true;
+                //CMB_COM_Handshake.Enabled = true;
+                //CMB_COM_Parity.Enabled = true;
+                //CMB_COM_StopBits.Enabled = true;
                 BTN_COM_setParams.Enabled = true;
                 return true;
             }
@@ -189,7 +124,7 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_LEDbyte_Click(object sender, EventArgs e)
         {
-            MC.Service.showMeByte(Convert.ToByte(TXB_LEDbyte.Text));
+            //MC.Service.showMeByte(Convert.ToByte(TXB_LEDbyte.Text));
         }
         private void BTN_SPI_DAC_send_Click(object sender, EventArgs e)
         {
