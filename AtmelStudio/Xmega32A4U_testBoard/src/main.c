@@ -22,8 +22,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										147
-#define birthday									20140115
+#define version										148
+#define birthday									20140116
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -324,17 +324,17 @@ ISR(RTC_OVF_vect)
     //ПРЕРЫВАНИЕ: Возникает при окончании счёта времени таймером
     //ФУНКЦИЯ: Остановка счётчиков импульсов
     cli();
-    asm(
-        "LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
-        "STS 0x0800, R16		\n\t"//COA: Адрес TCC0.CTRLA = 0x0800 <- Ноль
-        "STS 0x0900, R16		\n\t"//COB: Адрес TCD0.CTRLA = 0x0900 <- Ноль
-        "STS 0x0A00, R16		\n\t"//COC: Адрес TCE0.CTRLA = 0x0A00 <- Ноль
-    );
     while (RTC.STATUS != 0)
     {
         //Ждём пока можно будет обратиться к регистрам RTC
     }
-    RTC.CTRL = RTC_PRESCALER_OFF_gc;
+	asm(
+        "LDI R16, 0x00			\n\t"//Ноль для останова всех счётчиков (запись в источник сигналов)
+        "STS 0x0800, R16		\n\t"//COA: Адрес TCC0.CTRLA = 0x0800 <- Ноль
+        "STS 0x0900, R16		\n\t"//COB: Адрес TCD0.CTRLA = 0x0900 <- Ноль
+        "STS 0x0A00, R16		\n\t"//COC: Адрес TCE0.CTRLA = 0x0A00 <- Ноль
+		"STS 0x0400, R16		\n\t"//RTC: Адрес RTC.CTRL   = 0x0400 <- Ноль
+    );
 	while (RTC.STATUS != 0)
 	{
 		//Ждём пока можно будет обратиться к регистрам RTC
@@ -677,13 +677,12 @@ void COUNTERS_start(void)
             "LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
             "LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
             "LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
-            //"LDS R19, 0x205F	\n\t"//RTC: Адрес RTC_Prescaler  = 0x205F
+            "LDS R19, 0x206D	\n\t"//RTC: Адрес RTC_Prescaler  = 0x206D
             "STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
             "STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
             "STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
-            //"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_Prescaler(@0x205F)
+            "STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_MeasurePrescaler(@0x206D)
         );
-        RTC.CTRL =  PC_MEM[1];
         //отчёт
         transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
         RTC_setStatus_busy;
