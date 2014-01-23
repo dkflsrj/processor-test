@@ -22,8 +22,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										149
-#define birthday									20140116
+#define version										150
+#define birthday									20140123
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -272,6 +272,34 @@ ISR(USARTE0_RXC_vect)
 	TIC_buf = *USART_TIC.DATA;//->3(95нс)
     cli_TIC;
     //Если МК ожидает байты на ретрансмит
+	if((TIC_State == USART_State_receiving) || (TIC_State == USART_State_HVEreceiving))
+	{
+		TIC_timer.CTRLA = TC_Off;					//Выключаем таймер
+		TIC_timer.CNT = 0;							//Обнуляем таймер
+		//Если принятый байт равен
+		//			   <*>				<=>				 <#>  , то обнуляем принятые данные
+		if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
+		TIC_MEM[TIC_MEM_length] = TIC_buf;			//Сохраняем байт
+		TIC_MEM_length++;
+		//			   <\r>
+		if (TIC_buf == 13)
+		{
+			if (TIC_State == USART_State_receiving)
+			{ transmit(TIC_MEM, TIC_MEM_length); }		//Посылаем всё что накопилось на ПК
+			else 
+			{
+				//Если декодировка прошла удачно, то отмечаем в журнале
+				if (TIC_decode_HVE()) { TIC_offlineCount &= 0b00111111; }
+				//При неудачной декодировке HVE уже выключено в декодере
+			}
+			TIC_MEM_length = 0;
+			TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
+			TIC_State = USART_State_ready;
+		}
+		else { TIC_timer.CTRLA = TC_500kHz; }//Инче ждём следующий байт
+	}
+	else { Errors_USART_TIC.Noise = 1; }
+	/*
     switch (TIC_State)
     {
         case USART_State_receiving:	//Мы ожидали байты с TIC на ПК
@@ -317,6 +345,7 @@ ISR(USARTE0_RXC_vect)
             Errors_USART_TIC.Noise = 1;
             break;
     }
+	//*/
     sei_TIC;
 }
 ISR(RTC_OVF_vect)
