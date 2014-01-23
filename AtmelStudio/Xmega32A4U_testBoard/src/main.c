@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										151
+#define version										152
 #define birthday									20140123
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -246,9 +246,9 @@ ISR(USARTD0_RXC_vect)
         PC_timer.CNT = 0;						//Обнуляем счёт счётчика
         PC_MEM[PC_MEM_length] = PC_buf;			//Сохраняем байт
         PC_MEM_length++;						//Увеличиваем счётчик принятых байтов
-        PC_State = USART_State_receiving;		//Предполагаем, что этот байт не затвор
         if (PC_buf == COMMAND_LOCK) {PC_State = USART_State_ending;}	//Если получили затвор, готовимся завершить приём
-    }
+		else { PC_State = USART_State_receiving; }						//Предполагаем, что этот байт не затвор
+	}
     else if (PC_State == USART_State_ready)
     {
         if (PC_buf == COMMAND_KEY)
@@ -261,7 +261,7 @@ ISR(USARTD0_RXC_vect)
         }
         else { Errors_USART_PC.Noise = 1; }		//Что-то твориться на линии
     }
-    else if (PC_State == USART_State_decoding) { Errors_USART_PC.TooFast = 1; } //МК не выполнил предыдущую команду
+    else { Errors_USART_PC.TooFast = 1; } //МК не выполнил предыдущую команду
     sei_PC;
 }
 ISR(USARTE0_RXC_vect)
