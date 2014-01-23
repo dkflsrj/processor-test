@@ -22,7 +22,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										150
+#define version										151
 #define birthday									20140123
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -217,7 +217,7 @@ void decode(void);
 void TIC_retransmit(void);
 void TIC_transmit(void);
 void TIC_request_HVE(void);
-uint8_t TIC_decode_HVE(void);
+void TIC_decode_HVE(void);
 uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol);
 void TIC_set_Gauges(void);
 void TIC_send_TIC_MEM(void);
@@ -286,12 +286,7 @@ ISR(USARTE0_RXC_vect)
 		{
 			if (TIC_State == USART_State_receiving)
 			{ transmit(TIC_MEM, TIC_MEM_length); }		//Посылаем всё что накопилось на ПК
-			else 
-			{
-				//Если декодировка прошла удачно, то отмечаем в журнале
-				if (TIC_decode_HVE()) { TIC_offlineCount &= 0b00111111; }
-				//При неудачной декодировке HVE уже выключено в декодере
-			}
+			else { TIC_decode_HVE(); }					//При неудачной декодировке HVE уже выключено в декодере
 			TIC_MEM_length = 0;
 			TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
 			TIC_State = USART_State_ready;
@@ -781,7 +776,7 @@ void COUNTERS_stop(void)
     }
 }
 //TIC
-uint8_t TIC_decode_HVE(void)
+void TIC_decode_HVE(void)
 {
     //ФУНКЦИЯ: Декодируем ответ тика на запрос HVE {?V91<NUL><\r>}
     //ПОЯСНЕНИЯ: Ответ TIC'а должен быть таким: ? - байт от 48 до 57
@@ -879,7 +874,7 @@ uint8_t TIC_decode_HVE(void)
 				//		Flags.iHVE = 0; 
 				//	} //Разрешаем высокое!
 				//	//if (Pressure <= TIC_HVE_onLevel) { Flags.iHVE = 0; } //Разрешаем высокое!
-				//	return 1;
+				//	return;
 				//}
 				//else if ((Flags.iHVE == 0) && (TIC_MEM[4] == TIC_HVE_offGauge))
 				//{
@@ -894,9 +889,9 @@ uint8_t TIC_decode_HVE(void)
 				//		Flags.iHVE = 1;
 				//		Flags.PRGE = 0;
 				//	}
-				//	return 1;
+				//	return;
 				//}
-				return 1;
+				return;
 			}
 			
 		}
@@ -908,8 +903,9 @@ uint8_t TIC_decode_HVE(void)
     Flags.iHVE = 1;
     Flags.PRGE = 0;
     Errors_USART_TIC.HVE_error = 1;
+	TIC_offlineCount &= 0b00111111;//отмечаем в журнале
     transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_decode, TIC_MEM_length);
-    return 0;
+    return;
 }
 uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
 {
