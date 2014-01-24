@@ -22,8 +22,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										152
-#define birthday									20140123
+#define version										153
+#define birthday									20140124
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -62,13 +62,10 @@ uint32_t MC_birthday = birthday;
 uint8_t  MC_CommandStack = 0;
 uint8_t  MC_Status = 0;
 //		USART PC
-uint8_t PC_timer_TimeOut = 30;							//60 секунд
-uint8_t PC_timer_time = 0;								//Таймер времени приёма и тишины
 uint8_t PC_MEM[100];									//100 байт памяти для приёма данных USART
 uint8_t PC_MEM_length = 0;								//Длина записанного в PC_MEM пакета байтов.
 uint8_t PC_State = 0;									//Состояние модуля USART_PC
 uint8_t PC_buf = 0;										//Буфер приёма. Содержит любой принятый байт (даже шум)
-uint8_t PC_MEM_CheckSum = 0;							//Принятая контрольная сумма (из пакета)
 //		USART TIC
 uint8_t TIC_timer_time = 0;								//Таймер времени приёма и тишины
 uint8_t TIC_MEM[100];									//100 байт памяти для приёма данных от TIC
@@ -111,7 +108,7 @@ struct struct_Errors_USART_PC
     uint8_t LOCKisLost				: 1;
     uint8_t TooShortPacket			: 1;
     uint8_t TooFast					: 1;
-    uint8_t Silence					: 1;
+    uint8_t noError3				: 1;
     uint8_t Noise					: 1;
     uint8_t noError5				: 1;
     uint8_t noError6				: 1;
@@ -471,52 +468,26 @@ static void ISR_TIC_timer(void)
 }
 static void ISR_PC_timer(void)
 {
-    //ПРЕРЫВАНИЕ: Так как предделителя не хватает (32МГц на 1024), то прерывание срабатывает каждые 2 секунды.
-    //Поэтому будем отсчитывать процессором пары секунд. Когда количество пар превысит заданное, можно выставлять
-    //флаг о потере связи с компьютером и выключать высокое напряжение.
-    //Во время приёма байтов таймер служит таймаутом приёма.
+    //ПРЕРЫВАНИЕ: Во время приёма байтов таймер служит таймаутом приёма.
     cli_PC;
     PC_timer.CTRLA = TC_Off;
     PC_timer.CNT = 0;
-    switch (PC_State)
+	PC_State = USART_State_ready;			
+    if (PC_State == USART_State_ending)
     {
-        case USART_State_receiving: //Мы не ожидали завершения передачи! Передача прервана! Время вышло!
-            PC_timer.CTRLA = TC_31kHz;		//Переходим в режим тишины
-            PC_timer.CNT = 0;
-            PC_timer_time = 0;
-            PC_State = USART_State_ready;	//Ждём начала передачи
-            break;
-        case USART_State_ending: //Приём успешно завершён! Можно декодировать. Проверяем длинну команды
-            if (PC_MEM_length > 2)
-            {
-                PC_MEM_length--;				//Отсекаем последний байт (то байт затвора)
-                uint8_t CheckSum = 0;			//Подсчёт контрольной суммы...
-                for (uint8_t i = 0; i < PC_MEM_length; i++) { CheckSum -= PC_MEM[i]; }
-                PC_MEM_length--;				//Отсекаем контрольную сумму
-                if (CheckSum == PC_MEM_CheckSum) { decode();  }
-                else { transmit_3bytes(TOCKEN_ERROR, ERROR_CheckSum, CheckSum); }	//Неверная контрольная сумма!
-            }
-            else { Errors_USART_PC.TooShortPacket = 1; }
-            PC_State = USART_State_ready;		//Приём и декодирование завершено
-            PC_timer.CTRLA = TC_31kHz;			//Переходим в режим тишины
-            PC_timer.CNT = 0;
-            PC_timer_time = 0;
-            break;
-        case USART_State_ready:					//Мы в режиме тишины.
-            if (PC_timer_time >= PC_timer_TimeOut)
-            {
-                //Время тишины вышло, PC не выходит на связь, выключаем PRGE (и iHVE)
-                cli();
-                //gpio_set_pin_high(pin_iHVE);	//Выключаем DC-DC 24-12
-                //Flags.PRGE = 0;				//Выключаем PRGE от лица оператора
-                Errors_USART_PC.Silence = 1;	//Отмечаем тишину в эфире
-                sei();
-            }
-            else { PC_timer_time++; }
-            break;
-        default: //В любом другом случае ничего не делаем (декодирование в самом разгаре например)
-            break;
+        //Приём успешно завершён! Можно декодировать. Проверяем длинну команды
+        if (PC_MEM_length > 2)
+        {
+	        PC_MEM_length--;				//Отсекаем последний байт (то байт затвора)
+	        uint8_t CheckSum = 0;			//Подсчёт контрольной суммы...
+	        for (uint8_t i = 0; i < PC_MEM_length; i++) { CheckSum -= PC_MEM[i]; }
+	        PC_MEM_length--;				//Отсекаем контрольную сумму
+	        if (CheckSum == 0) { decode(); }
+	        else { transmit_3bytes(TOCKEN_ERROR, ERROR_CheckSum, CheckSum); }	//Неверная контрольная сумма!
+        }
+        else { Errors_USART_PC.TooShortPacket = 1; }
     }
+	//В любом другом случае ничего не делаем (декодирование в самом разгаре например)
     sei_PC;
 }
 //-----------------------------------------ФУНКЦИИ------------------------------------------------
@@ -1368,13 +1339,13 @@ int main(void)
     //Таймер PC
     PC_timer.PER = 65535;				//60 сек на 31кГц
     PC_timer.CNT = 0;
-    PC_timer.CTRLA = TC_31kHz;			//Включаем ПК таймер на режим тишины
-    PC_State = USART_State_ready;		//Переводим USART_PC в режим тишины
+    PC_timer.CTRLA = TC_Off;			//Вsключаем ПК таймер
+    PC_State = USART_State_ready;		//Переводим USART_PC в режим ожидания
     //Tаймер TIC
     TIC_timer.PER = 25000;				//200мс на 125кГц
     TIC_timer.CNT = 0;
 	//TIC_timer.CTRLA = TC_125kHz;		//Включаем TIC'овский таймер HVE
-    TIC_State = USART_State_ready;		//Переводим USART_PC в режим готов.
+    TIC_State = USART_State_ready;		//Переводим USART_PC в режим ожидания
     sei();								//Разрешаем прерывания
     //Инициализация завершена
     while (1)
@@ -1441,7 +1412,7 @@ int main(void)
             spi_write_packet(&SPIC, sdata, 2);
             spi_deselect_device(&SPIC,&DAC_IonSource);
 			//*/
-            MC_Tasks.turnOnHVE = 0;
+            MC_Tasks.turnOnHVE = 0;						//Снимаем задачу
 			transmit_2bytes(TOCKEN_LookAtMe,LAM_SPI_conf_done);
         }
 		if((MC_Tasks.retransmit)&&(TIC_State != USART_State_HVEreceiving))
@@ -1451,17 +1422,13 @@ int main(void)
 			TIC_timer.CNT = 0;
 			TIC_State = USART_State_receiving;	//Переходим в режим приёма на ретрансмит
 			for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	//Копируем всё что должны переслать
-			//TIC_MEM_length = PC_MEM_length - 1;
 			for (uint8_t i = 0; i < PC_MEM_length - 1; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
-			//TIC_MEM_length = 0;
-			//usart_putchar(USART_PC,TIC_MEM_length);
-			TIC_timer.CTRLA = TC_500kHz;			//Запускаем таймер на 6мс
+			TIC_timer.CTRLA = TC_500kHz;			//Запускаем таймер в режиме приёма
 			sei_TIC;
-			MC_Tasks.retransmit = 0;
-			PC_timer.CTRLA = TC_31kHz;		//Переходим в режим тишины
-			PC_timer.CNT = 0;
-			PC_timer_time = 0;
-			PC_State = USART_State_ready;	//Ждём начала передачи
+			MC_Tasks.retransmit = 0;				//Снимаем задачу
+			PC_timer.CTRLA = TC_Off;				//Переходим в режим ожидания
+			PC_timer.CNT = 0;						//Сбрасываем таймер
+			PC_State = USART_State_ready;			//Ждём начала передачи
 		}
     }
 }
