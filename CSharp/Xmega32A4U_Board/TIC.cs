@@ -2599,13 +2599,13 @@ namespace Xmega32A4U_testBoard
                         switch (PriorityID)
                         {
                             case CodeLists.Priority.warning:
-                                WarningCall(Alert, AlertID);
+                                WarningCall.Invoke(Alert, AlertID);
                                 break;
                             case CodeLists.Priority.alert_LOW:
-                                Alert_LOW_Call(Alert, AlertID);
+                                Alert_LOW_Call.Invoke(Alert, AlertID);
                                 break;
                             case CodeLists.Priority.alert_HIGH:
-                                Alert_HIGH_Call(Alert, AlertID);
+                                Alert_HIGH_Call.Invoke(Alert, AlertID);
                                 break;
                             default:
                                 break;
