@@ -1087,7 +1087,13 @@ namespace Xmega32A4U_testBoard
                 data.AddRange(DATA);
                 send(data);
                 List<byte> rDATA = decode(receive(TIC_TimeOut));
-                if (tracer_transmit_enabled) { trace(message); }
+                if (tracer_transmit_enabled) 
+                {
+                    string ASCII_string = Encoding.ASCII.GetString(rDATA.ToArray<byte>());
+                    trace(message);
+                    trace("ASCII: <" + ASCII_string + ">");
+
+                }
                 Synchro = false;
                 return rDATA;
             }

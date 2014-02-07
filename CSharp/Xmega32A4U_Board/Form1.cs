@@ -254,27 +254,6 @@ namespace Xmega32A4U_testBoard
         {
            
         }
-        private void CHB_TotalControl_CheckedChanged(object sender, EventArgs e)
-        {
-            if (CHB_TotalControl.Checked)
-            {
-                TIM_TIC_HVE.Enabled = true;
-                CHB_TotalControl.ForeColor = System.Drawing.Color.Green;
-                CHB_TotalControl.Text = "Включен";
-                //CLK_timer.Enabled = true;
-            }
-            else
-            {
-                TIM_TIC_HVE.Enabled = false;
-                //CLK_timer.Enabled = false;
-                CHB_TotalControl.ForeColor = System.Drawing.Color.Red;
-                CHB_TotalControl.Text = "Выключен";
-                //LBL_TotalC_Status.Text = "Неизвестно!";
-                //LBL_TotalC_Status.ForeColor = System.Drawing.Color.Red;
-                //LBL_error.Text = "Неизвестно!";
-                //LBL_error.ForeColor = System.Drawing.Color.Red;
-            }
-        }
         private void TXB_interval_TextChanged(object sender, EventArgs e)
         {
             try
@@ -718,82 +697,47 @@ namespace Xmega32A4U_testBoard
             if (CHB_SPUMP.Checked) { MC.Flags.SPUMP = "On"; } else { MC.Flags.SPUMP = "Off"; }
         }
 
-        double timer1_time = 0;
-        int timer1_interval = 0;
-        private void timer1_Tick(object sender, EventArgs e)
+        private void BTN_TIC_FOR_Update_Click(object sender, EventArgs e)
         {
-            //LBL_realCOX_RTCstate.Text = MC.Counters.пуеStatus;
-            //MC.Service.sendSomething();
-            timer1_time += (double)(timer1_interval) / 1000;
-            LBL_TIC_HVE_ElapsedTime.Text = "Прошедшее время: " + timer1_time + " c";
-            LBL_TIC_HVE_Errors.Text = "Количество ошибок: " + MC.getErrorList().Count;
-            TXB_TIC_DisplayContrast.Text = TIC.Display_contrast;
+            LBL_TIC_FOR_State.Text = TIC.Backing.Pump.state;
+            LBL_TIC_FOR_Speed.Text = TIC.Backing.speed + "%";
+            LBL_TIC_FOR_Power.Text = TIC.Backing.power + "Вт";
+            LBL_TIC_FOR_Setup.Text = TIC.Backing.Pump.setup;
+            LBL_TIC_FOR_Type.Text = TIC.Backing.Pump.type;
         }
 
-        private void CHB_TIC_HVE_CheckedChanged(object sender, EventArgs e)
+        private void BTN_TIC_FOR_ON_Click(object sender, EventArgs e)
         {
-            if (CHB_TIC_HVE.Checked)
-            {
-                CHB_TIC_HVE.Text = "Включено";
-                CHB_TIC_HVE.ForeColor = Color.Green;
-                TXB_TIC_HVE_Period.Enabled = false;
-                TIM_TIC_HVE.Enabled = true;
-                timer1_interval = Convert.ToInt16(TXB_TIC_HVE_Period.Text);
-                TIM_TIC_HVE.Interval = timer1_interval;
-            }
-            else
-            {
-                TIM_TIC_HVE.Enabled = false;
-                CHB_TIC_HVE.Text = "Выключено";
-                CHB_TIC_HVE.ForeColor = Color.Red;
-                TXB_TIC_HVE_Period.Enabled = true;
-            }
+            TIC.Backing.Pump.turn("On");
+            LBL_TIC_FOR_State.Text = TIC.Backing.Pump.state;
         }
 
-        private void BTN_TIC_HVEconf_check_Click(object sender, EventArgs e)
+        private void BTN_TIC_FOR_OFF_Click(object sender, EventArgs e)
         {
-            //string Packet = "?V913\r";
-            //List<byte> answer = MC.Service.retransmit_toTIC(Encoding.ASCII.GetBytes(Packet));
-            //MC.Service.trace("Ответ: " + Encoding.ASCII.GetString(answer.ToArray()));
-            string onGauge = "";
-            string onLevel = "";
-            string offGauge = "";
-            string offLevel = "";
-            TIC.setup_HVE_conditions(ref onGauge, ref onLevel, ref offGauge, ref offLevel);
-            string HVE = MC.Flags.HVE;
-            MC.Service.trace(" HVE: " + HVE + "\r\n onGauge: " + onGauge + "\r\n onLevel: " + onLevel + "\r\n offGauge: " + offGauge + "\r\n offLevel: " + offLevel);
+            TIC.Backing.Pump.turn("Off");
+            LBL_TIC_FOR_State.Text = TIC.Backing.Pump.state;
         }
 
-        private void TIC_Gauge_values_Click(object sender, EventArgs e)
+        private void BTN_TIC_TRB_Update_Click(object sender, EventArgs e)
         {
-            string[] Gauge_values = TIC.Gauge.values;
-            MC.Service.trace("TIC.Gauge.values: ");
-            foreach (string str in Gauge_values)
-            {
-                MC.Service.trace(str);
-            }
+            LBL_TIC_TRB_State.Text = TIC.Turbo.Pump.state;
+            LBL_TIC_TRB_Speed.Text = TIC.Turbo.speed.value + "%";
+            LBL_TIC_TRB_Power.Text = TIC.Turbo.power + "Вт";
+            LBL_TIC_TRB_Delay.Text = TIC.Turbo.Pump.delay + " минут";
+            LBL_TIC_TRB_Type.Text = TIC.Turbo.Pump.type;
         }
 
-        private void TIC_Gauge_SetupSet_Click(object sender, EventArgs e)
+        private void BTN_TIC_TRB_ON_Click(object sender, EventArgs e)
         {
-            TIC.Gauge_1.setup("Gauge_1", "VOLTAGE", "2.000", "4.000", "Off");
-
+            TIC.Turbo.Pump.turn("On");
+            LBL_TIC_FOR_State.Text = TIC.Turbo.Pump.state;
         }
 
-        private void TIC_Gauge_SetupGet_Click(object sender, EventArgs e)
+        private void BTN_TIC_TRB_OFF_Click(object sender, EventArgs e)
         {
-            string Master = "";
-            string Units = "";
-            string on = "";
-            string off = "";
-            string enable = "";
-            TIC.Gauge_1.setup(ref Master, ref Units, ref on, ref off, ref enable);
-            MC.Service.trace(" Master: " + Master + "\r\n Units: " + Units + "\r\n On: " + on + "\r\n Off: " + off + "\r\n Enable: " + enable);
+            TIC.Turbo.Pump.turn("Off");
+            LBL_TIC_FOR_State.Text = TIC.Turbo.Pump.state;
         }
 
-        private void TIC_TestIt_Click(object sender, EventArgs e)
-        {
-
-        }
     }
 }
