@@ -752,12 +752,48 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_TIC_HVEconf_check_Click(object sender, EventArgs e)
         {
-            string Packet = "?V913\r";
-            List<byte> answer = MC.Service.retransmit_toTIC(Encoding.ASCII.GetBytes(Packet));
-            MC.Service.trace("Ответ: " + Encoding.ASCII.GetString(answer.ToArray()));
-            //63,86,57,49,51,13
-            //?V91<NUL><\r>
-            //Ответ: =V913 9.9000e+09;59;0;0;0
+            //string Packet = "?V913\r";
+            //List<byte> answer = MC.Service.retransmit_toTIC(Encoding.ASCII.GetBytes(Packet));
+            //MC.Service.trace("Ответ: " + Encoding.ASCII.GetString(answer.ToArray()));
+            string onGauge = "";
+            string onLevel = "";
+            string offGauge = "";
+            string offLevel = "";
+            TIC.setup_HVE_conditions(ref onGauge, ref onLevel, ref offGauge, ref offLevel);
+            string HVE = MC.Flags.HVE;
+            MC.Service.trace(" HVE: " + HVE + "\r\n onGauge: " + onGauge + "\r\n onLevel: " + onLevel + "\r\n offGauge: " + offGauge + "\r\n offLevel: " + offLevel);
+        }
+
+        private void TIC_Gauge_values_Click(object sender, EventArgs e)
+        {
+            string[] Gauge_values = TIC.Gauge.values;
+            MC.Service.trace("TIC.Gauge.values: ");
+            foreach (string str in Gauge_values)
+            {
+                MC.Service.trace(str);
+            }
+        }
+
+        private void TIC_Gauge_SetupSet_Click(object sender, EventArgs e)
+        {
+            TIC.Gauge_1.setup("Gauge_1", "VOLTAGE", "2.000", "4.000", "Off");
+
+        }
+
+        private void TIC_Gauge_SetupGet_Click(object sender, EventArgs e)
+        {
+            string Master = "";
+            string Units = "";
+            string on = "";
+            string off = "";
+            string enable = "";
+            TIC.Gauge_1.setup(ref Master, ref Units, ref on, ref off, ref enable);
+            MC.Service.trace(" Master: " + Master + "\r\n Units: " + Units + "\r\n On: " + on + "\r\n Off: " + off + "\r\n Enable: " + enable);
+        }
+
+        private void TIC_TestIt_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

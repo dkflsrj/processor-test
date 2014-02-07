@@ -2659,7 +2659,7 @@ namespace Xmega32A4U_testBoard
                 Encoding.ASCII.GetBytes(CodeBase.Addresses.findValue(onGauge))[2], onLevel_1, onLevel_0,
                 Encoding.ASCII.GetBytes(CodeBase.Addresses.findValue(offGauge))[2], offLevel_1, offLevel_0
             };
-            MC.Service.transmit(Command.TIC.set_Gauges,DATA);
+            MC.Service.transmit(Command.TIC.set_Gauges, DATA);
         }
         /// <summary>
         /// Запрашивает у МК данные по опросу датчиков.

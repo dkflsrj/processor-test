@@ -114,6 +114,10 @@
             this.TXB_TIC_DisplayContrast = new System.Windows.Forms.TextBox();
             this.BTN_TIC_DisplayContrast_get = new System.Windows.Forms.Button();
             this.BTN_TIC_DisplayContrast_set = new System.Windows.Forms.Button();
+            this.TIC_Gauge_SetupGet = new System.Windows.Forms.Button();
+            this.TIC_TestIt = new System.Windows.Forms.Button();
+            this.TIC_Gauge_SetupSet = new System.Windows.Forms.Button();
+            this.TIC_Gauge_values = new System.Windows.Forms.Button();
             this.TABpanel_4 = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.BTN_DETECTOR_getDV3voltage = new System.Windows.Forms.Button();
@@ -1004,6 +1008,10 @@
             this.TABpanel_3.Controls.Add(this.groupBox5);
             this.TABpanel_3.Controls.Add(this.groupBox4);
             this.TABpanel_3.Controls.Add(this.GRB_TIC_DisplayContrast);
+            this.TABpanel_3.Controls.Add(this.TIC_Gauge_SetupGet);
+            this.TABpanel_3.Controls.Add(this.TIC_TestIt);
+            this.TABpanel_3.Controls.Add(this.TIC_Gauge_SetupSet);
+            this.TABpanel_3.Controls.Add(this.TIC_Gauge_values);
             this.TABpanel_3.Location = new System.Drawing.Point(4, 22);
             this.TABpanel_3.Name = "TABpanel_3";
             this.TABpanel_3.Size = new System.Drawing.Size(652, 320);
@@ -1194,6 +1202,46 @@
             this.BTN_TIC_DisplayContrast_set.Text = "set";
             this.BTN_TIC_DisplayContrast_set.UseVisualStyleBackColor = true;
             this.BTN_TIC_DisplayContrast_set.Click += new System.EventHandler(this.BTN_TIC_DisplayContrast_set_Click);
+            // 
+            // TIC_Gauge_SetupGet
+            // 
+            this.TIC_Gauge_SetupGet.Location = new System.Drawing.Point(297, 78);
+            this.TIC_Gauge_SetupGet.Name = "TIC_Gauge_SetupGet";
+            this.TIC_Gauge_SetupGet.Size = new System.Drawing.Size(114, 23);
+            this.TIC_Gauge_SetupGet.TabIndex = 0;
+            this.TIC_Gauge_SetupGet.Text = "Gauge_SetupGet";
+            this.TIC_Gauge_SetupGet.UseVisualStyleBackColor = true;
+            this.TIC_Gauge_SetupGet.Click += new System.EventHandler(this.TIC_Gauge_SetupGet_Click);
+            // 
+            // TIC_TestIt
+            // 
+            this.TIC_TestIt.Location = new System.Drawing.Point(428, 20);
+            this.TIC_TestIt.Name = "TIC_TestIt";
+            this.TIC_TestIt.Size = new System.Drawing.Size(75, 23);
+            this.TIC_TestIt.TabIndex = 0;
+            this.TIC_TestIt.Text = "TestIt!";
+            this.TIC_TestIt.UseVisualStyleBackColor = true;
+            this.TIC_TestIt.Click += new System.EventHandler(this.TIC_TestIt_Click);
+            // 
+            // TIC_Gauge_SetupSet
+            // 
+            this.TIC_Gauge_SetupSet.Location = new System.Drawing.Point(297, 49);
+            this.TIC_Gauge_SetupSet.Name = "TIC_Gauge_SetupSet";
+            this.TIC_Gauge_SetupSet.Size = new System.Drawing.Size(114, 23);
+            this.TIC_Gauge_SetupSet.TabIndex = 0;
+            this.TIC_Gauge_SetupSet.Text = "Gauge_SetupSet";
+            this.TIC_Gauge_SetupSet.UseVisualStyleBackColor = true;
+            this.TIC_Gauge_SetupSet.Click += new System.EventHandler(this.TIC_Gauge_SetupSet_Click);
+            // 
+            // TIC_Gauge_values
+            // 
+            this.TIC_Gauge_values.Location = new System.Drawing.Point(297, 20);
+            this.TIC_Gauge_values.Name = "TIC_Gauge_values";
+            this.TIC_Gauge_values.Size = new System.Drawing.Size(114, 23);
+            this.TIC_Gauge_values.TabIndex = 0;
+            this.TIC_Gauge_values.Text = "Gauge_values";
+            this.TIC_Gauge_values.UseVisualStyleBackColor = true;
+            this.TIC_Gauge_values.Click += new System.EventHandler(this.TIC_Gauge_values_Click);
             // 
             // TABpanel_4
             // 
@@ -1439,6 +1487,7 @@
             // CHB_PRGE
             // 
             this.CHB_PRGE.AutoSize = true;
+            this.CHB_PRGE.Enabled = false;
             this.CHB_PRGE.Location = new System.Drawing.Point(74, 42);
             this.CHB_PRGE.Name = "CHB_PRGE";
             this.CHB_PRGE.Size = new System.Drawing.Size(56, 17);
@@ -2533,6 +2582,10 @@
         private System.Windows.Forms.Button BTN_TIC_HVEconf_check;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button TIC_Gauge_values;
+        private System.Windows.Forms.Button TIC_Gauge_SetupSet;
+        private System.Windows.Forms.Button TIC_Gauge_SetupGet;
+        private System.Windows.Forms.Button TIC_TestIt;
     }
 }
 

@@ -22,9 +22,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										154
-#define birthday									20140124
-//Счётчики
+#define version										156
+#define birthday									20140207//Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
 #define RTC_Status_busy								2		//Счётчики ещё считает
@@ -470,8 +469,7 @@ static void ISR_PC_timer(void)
     //ПРЕРЫВАНИЕ: Во время приёма байтов таймер служит таймаутом приёма.
     cli_PC;
     PC_timer.CTRLA = TC_Off;
-    PC_timer.CNT = 0;
-	PC_State = USART_State_ready;			
+    PC_timer.CNT = 0;			
     if (PC_State == USART_State_ending)
     {
         //Приём успешно завершён! Можно декодировать. Проверяем длинну команды
@@ -486,6 +484,7 @@ static void ISR_PC_timer(void)
         }
         else { Errors_USART_PC.TooShortPacket = 1; }
     }
+    PC_State = USART_State_ready;
 	//В любом другом случае ничего не делаем (декодирование в самом разгаре например)
     sei_PC;
 }
@@ -770,9 +769,8 @@ void TIC_decode_HVE(void)
                     //На пине iHVE высокий потенциал - он блокирует работу DC-DC 24-12. Высокого напряжения нет.
                     //Контролируем onLevel (турбик), чтобы включить. Присланное значение должно быть равно или ниже порогового
                     if (Voltage <= TIC_HVE_onLevel) { Flags.iHVE = 0; } //Разрешаем высокое!
-                    TIC_offlineCount &= 0b00111111;//отмечаем в журнале
-                    return;
-                }
+					TIC_offlineCount &= 0b00111111;//отмечаем в журнале
+                    return;                }
                 else if ((Flags.iHVE == 0) && (TIC_MEM[4] == TIC_HVE_offGauge))
                 {
                     //На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть!

@@ -73,7 +73,7 @@
 										EVSYS_SetEventChannelFilter( 4, EVSYS_DIGFILT_3SAMPLES_gc )	
 //Таймера
 #define TC_31kHz						7
-#define TC_125kHz						6			
+#define TC_125kHz						0//6			
 #define TC_500kHz						5
 #define TC_4MHz							4
 #define TC_8MHz							3
