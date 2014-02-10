@@ -96,6 +96,44 @@
             this.TXB_LEDbyte = new System.Windows.Forms.TextBox();
             this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
             this.TABpanel_3 = new System.Windows.Forms.TabPage();
+            this.GPB_Flags = new System.Windows.Forms.GroupBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.BTN_checkFlags = new System.Windows.Forms.Button();
+            this.CHB_iEDCD = new System.Windows.Forms.CheckBox();
+            this.CHB_SEMV3 = new System.Windows.Forms.CheckBox();
+            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
+            this.CHB_PRGE = new System.Windows.Forms.CheckBox();
+            this.CHB_SEMV2 = new System.Windows.Forms.CheckBox();
+            this.CHB_SPUMP = new System.Windows.Forms.CheckBox();
+            this.CHB_SEMV1 = new System.Windows.Forms.CheckBox();
+            this.GPB_TIC_TRB = new System.Windows.Forms.GroupBox();
+            this.BTN_TIC_TRB_OFF = new System.Windows.Forms.Button();
+            this.BTN_TIC_TRB_ON = new System.Windows.Forms.Button();
+            this.BTN_TIC_TRB_Update = new System.Windows.Forms.Button();
+            this.label33 = new System.Windows.Forms.Label();
+            this.label34 = new System.Windows.Forms.Label();
+            this.label35 = new System.Windows.Forms.Label();
+            this.label36 = new System.Windows.Forms.Label();
+            this.LBL_TIC_TRB_Type = new System.Windows.Forms.Label();
+            this.LBL_TIC_TRB_Delay = new System.Windows.Forms.Label();
+            this.LBL_TIC_TRB_Power = new System.Windows.Forms.Label();
+            this.LBL_TIC_TRB_Speed = new System.Windows.Forms.Label();
+            this.LBL_TIC_TRB_State = new System.Windows.Forms.Label();
+            this.label42 = new System.Windows.Forms.Label();
+            this.GPB_TIC_FOR = new System.Windows.Forms.GroupBox();
+            this.BTN_TIC_FOR_OFF = new System.Windows.Forms.Button();
+            this.BTN_TIC_FOR_ON = new System.Windows.Forms.Button();
+            this.BTN_TIC_FOR_Update = new System.Windows.Forms.Button();
+            this.label32 = new System.Windows.Forms.Label();
+            this.label31 = new System.Windows.Forms.Label();
+            this.label26 = new System.Windows.Forms.Label();
+            this.label25 = new System.Windows.Forms.Label();
+            this.LBL_TIC_FOR_Type = new System.Windows.Forms.Label();
+            this.LBL_TIC_FOR_Setup = new System.Windows.Forms.Label();
+            this.LBL_TIC_FOR_Power = new System.Windows.Forms.Label();
+            this.LBL_TIC_FOR_Speed = new System.Windows.Forms.Label();
+            this.LBL_TIC_FOR_State = new System.Windows.Forms.Label();
+            this.label20 = new System.Windows.Forms.Label();
             this.GRB_TIC_DisplayContrast = new System.Windows.Forms.GroupBox();
             this.label19 = new System.Windows.Forms.Label();
             this.TXB_TIC_DisplayContrast = new System.Windows.Forms.TextBox();
@@ -197,44 +235,34 @@
             this.BTN_openLog = new System.Windows.Forms.Button();
             this.CHB_traceLog = new System.Windows.Forms.CheckBox();
             this.CLK_COA = new System.Windows.Forms.Timer(this.components);
-            this.GPB_TIC_FOR = new System.Windows.Forms.GroupBox();
-            this.label20 = new System.Windows.Forms.Label();
-            this.label25 = new System.Windows.Forms.Label();
-            this.label26 = new System.Windows.Forms.Label();
-            this.label31 = new System.Windows.Forms.Label();
-            this.BTN_TIC_FOR_Update = new System.Windows.Forms.Button();
-            this.label32 = new System.Windows.Forms.Label();
-            this.LBL_TIC_FOR_State = new System.Windows.Forms.Label();
-            this.LBL_TIC_FOR_Speed = new System.Windows.Forms.Label();
-            this.LBL_TIC_FOR_Power = new System.Windows.Forms.Label();
-            this.LBL_TIC_FOR_Setup = new System.Windows.Forms.Label();
-            this.LBL_TIC_FOR_Type = new System.Windows.Forms.Label();
-            this.BTN_TIC_FOR_ON = new System.Windows.Forms.Button();
-            this.BTN_TIC_FOR_OFF = new System.Windows.Forms.Button();
-            this.GPB_TIC_TRB = new System.Windows.Forms.GroupBox();
-            this.BTN_TIC_TRB_OFF = new System.Windows.Forms.Button();
-            this.BTN_TIC_TRB_ON = new System.Windows.Forms.Button();
-            this.BTN_TIC_TRB_Update = new System.Windows.Forms.Button();
-            this.label33 = new System.Windows.Forms.Label();
-            this.label34 = new System.Windows.Forms.Label();
-            this.label35 = new System.Windows.Forms.Label();
-            this.label36 = new System.Windows.Forms.Label();
-            this.LBL_TIC_TRB_Type = new System.Windows.Forms.Label();
-            this.LBL_TIC_TRB_Delay = new System.Windows.Forms.Label();
-            this.LBL_TIC_TRB_Power = new System.Windows.Forms.Label();
-            this.LBL_TIC_TRB_Speed = new System.Windows.Forms.Label();
-            this.LBL_TIC_TRB_State = new System.Windows.Forms.Label();
-            this.label42 = new System.Windows.Forms.Label();
-            this.GPB_Flags = new System.Windows.Forms.GroupBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.BTN_checkFlags = new System.Windows.Forms.Button();
-            this.CHB_iEDCD = new System.Windows.Forms.CheckBox();
-            this.CHB_SEMV3 = new System.Windows.Forms.CheckBox();
-            this.CHB_iHVE = new System.Windows.Forms.CheckBox();
-            this.CHB_PRGE = new System.Windows.Forms.CheckBox();
-            this.CHB_SEMV2 = new System.Windows.Forms.CheckBox();
-            this.CHB_SPUMP = new System.Windows.Forms.CheckBox();
-            this.CHB_SEMV1 = new System.Windows.Forms.CheckBox();
+            this.GPB_TIC_Gauge1 = new System.Windows.Forms.GroupBox();
+            this.label37 = new System.Windows.Forms.Label();
+            this.label38 = new System.Windows.Forms.Label();
+            this.label39 = new System.Windows.Forms.Label();
+            this.label40 = new System.Windows.Forms.Label();
+            this.label41 = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge1_type = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge1_gasType = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge1_name = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge1_state = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge1_value = new System.Windows.Forms.Label();
+            this.BTN_TIC_Gauge1_Update = new System.Windows.Forms.Button();
+            this.LBL_TIC_Gauge1_Filter = new System.Windows.Forms.Label();
+            this.label44 = new System.Windows.Forms.Label();
+            this.GPB_TIC_Gauge2 = new System.Windows.Forms.GroupBox();
+            this.label43 = new System.Windows.Forms.Label();
+            this.label45 = new System.Windows.Forms.Label();
+            this.BTN_TIC_Gauge2_Update = new System.Windows.Forms.Button();
+            this.label46 = new System.Windows.Forms.Label();
+            this.label47 = new System.Windows.Forms.Label();
+            this.label48 = new System.Windows.Forms.Label();
+            this.label49 = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge2_value = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge2_Filter = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge2_state = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge2_name = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge2_gasType = new System.Windows.Forms.Label();
+            this.LBL_TIC_Gauge2_type = new System.Windows.Forms.Label();
             this.TABpanel.SuspendLayout();
             this.TABpanel_1.SuspendLayout();
             this.TABpanel_2.SuspendLayout();
@@ -243,6 +271,9 @@
             this.GRB_SPI.SuspendLayout();
             this.GRB_MC.SuspendLayout();
             this.TABpanel_3.SuspendLayout();
+            this.GPB_Flags.SuspendLayout();
+            this.GPB_TIC_TRB.SuspendLayout();
+            this.GPB_TIC_FOR.SuspendLayout();
             this.GRB_TIC_DisplayContrast.SuspendLayout();
             this.TABpanel_4.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -252,9 +283,8 @@
             this.GPB_Heater.SuspendLayout();
             this.TABpanel_5.SuspendLayout();
             this.GPB_realCOX.SuspendLayout();
-            this.GPB_TIC_FOR.SuspendLayout();
-            this.GPB_TIC_TRB.SuspendLayout();
-            this.GPB_Flags.SuspendLayout();
+            this.GPB_TIC_Gauge1.SuspendLayout();
+            this.GPB_TIC_Gauge2.SuspendLayout();
             this.SuspendLayout();
             // 
             // Log
@@ -1014,6 +1044,8 @@
             // TABpanel_3
             // 
             this.TABpanel_3.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel_3.Controls.Add(this.GPB_TIC_Gauge2);
+            this.TABpanel_3.Controls.Add(this.GPB_TIC_Gauge1);
             this.TABpanel_3.Controls.Add(this.GPB_Flags);
             this.TABpanel_3.Controls.Add(this.GPB_TIC_TRB);
             this.TABpanel_3.Controls.Add(this.GPB_TIC_FOR);
@@ -1024,15 +1056,411 @@
             this.TABpanel_3.TabIndex = 2;
             this.TABpanel_3.Text = "TIC";
             // 
+            // GPB_Flags
+            // 
+            this.GPB_Flags.Controls.Add(this.button1);
+            this.GPB_Flags.Controls.Add(this.BTN_checkFlags);
+            this.GPB_Flags.Controls.Add(this.CHB_iEDCD);
+            this.GPB_Flags.Controls.Add(this.CHB_SEMV3);
+            this.GPB_Flags.Controls.Add(this.CHB_iHVE);
+            this.GPB_Flags.Controls.Add(this.CHB_PRGE);
+            this.GPB_Flags.Controls.Add(this.CHB_SEMV2);
+            this.GPB_Flags.Controls.Add(this.CHB_SPUMP);
+            this.GPB_Flags.Controls.Add(this.CHB_SEMV1);
+            this.GPB_Flags.Location = new System.Drawing.Point(507, 121);
+            this.GPB_Flags.Name = "GPB_Flags";
+            this.GPB_Flags.Size = new System.Drawing.Size(142, 196);
+            this.GPB_Flags.TabIndex = 6;
+            this.GPB_Flags.TabStop = false;
+            this.GPB_Flags.Text = "Флаги";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(7, 165);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(130, 23);
+            this.button1.TabIndex = 6;
+            this.button1.Text = "Установить";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // BTN_checkFlags
+            // 
+            this.BTN_checkFlags.Location = new System.Drawing.Point(7, 136);
+            this.BTN_checkFlags.Name = "BTN_checkFlags";
+            this.BTN_checkFlags.Size = new System.Drawing.Size(130, 23);
+            this.BTN_checkFlags.TabIndex = 6;
+            this.BTN_checkFlags.Text = "Проверить";
+            this.BTN_checkFlags.UseVisualStyleBackColor = true;
+            this.BTN_checkFlags.Click += new System.EventHandler(this.BTN_checkFlags_Click);
+            // 
+            // CHB_iEDCD
+            // 
+            this.CHB_iEDCD.AutoSize = true;
+            this.CHB_iEDCD.Location = new System.Drawing.Point(75, 74);
+            this.CHB_iEDCD.Name = "CHB_iEDCD";
+            this.CHB_iEDCD.Size = new System.Drawing.Size(56, 17);
+            this.CHB_iEDCD.TabIndex = 1;
+            this.CHB_iEDCD.Text = "EDCD";
+            this.CHB_iEDCD.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SEMV3
+            // 
+            this.CHB_SEMV3.AutoSize = true;
+            this.CHB_SEMV3.Location = new System.Drawing.Point(75, 47);
+            this.CHB_SEMV3.Name = "CHB_SEMV3";
+            this.CHB_SEMV3.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV3.TabIndex = 1;
+            this.CHB_SEMV3.Text = "SEMV3";
+            this.CHB_SEMV3.UseVisualStyleBackColor = true;
+            // 
+            // CHB_iHVE
+            // 
+            this.CHB_iHVE.AutoSize = true;
+            this.CHB_iHVE.Checked = true;
+            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Indeterminate;
+            this.CHB_iHVE.Enabled = false;
+            this.CHB_iHVE.Location = new System.Drawing.Point(76, 101);
+            this.CHB_iHVE.Name = "CHB_iHVE";
+            this.CHB_iHVE.Size = new System.Drawing.Size(48, 17);
+            this.CHB_iHVE.TabIndex = 1;
+            this.CHB_iHVE.Text = "HVE";
+            this.CHB_iHVE.UseVisualStyleBackColor = true;
+            // 
+            // CHB_PRGE
+            // 
+            this.CHB_PRGE.AutoSize = true;
+            this.CHB_PRGE.Enabled = false;
+            this.CHB_PRGE.Location = new System.Drawing.Point(8, 101);
+            this.CHB_PRGE.Name = "CHB_PRGE";
+            this.CHB_PRGE.Size = new System.Drawing.Size(56, 17);
+            this.CHB_PRGE.TabIndex = 1;
+            this.CHB_PRGE.Text = "PRGE";
+            this.CHB_PRGE.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SEMV2
+            // 
+            this.CHB_SEMV2.AutoSize = true;
+            this.CHB_SEMV2.Location = new System.Drawing.Point(8, 47);
+            this.CHB_SEMV2.Name = "CHB_SEMV2";
+            this.CHB_SEMV2.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV2.TabIndex = 1;
+            this.CHB_SEMV2.Text = "SEMV2";
+            this.CHB_SEMV2.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SPUMP
+            // 
+            this.CHB_SPUMP.AutoSize = true;
+            this.CHB_SPUMP.Location = new System.Drawing.Point(75, 20);
+            this.CHB_SPUMP.Name = "CHB_SPUMP";
+            this.CHB_SPUMP.Size = new System.Drawing.Size(64, 17);
+            this.CHB_SPUMP.TabIndex = 1;
+            this.CHB_SPUMP.Text = "SPUMP";
+            this.CHB_SPUMP.UseVisualStyleBackColor = true;
+            // 
+            // CHB_SEMV1
+            // 
+            this.CHB_SEMV1.AutoSize = true;
+            this.CHB_SEMV1.Location = new System.Drawing.Point(8, 20);
+            this.CHB_SEMV1.Name = "CHB_SEMV1";
+            this.CHB_SEMV1.Size = new System.Drawing.Size(62, 17);
+            this.CHB_SEMV1.TabIndex = 1;
+            this.CHB_SEMV1.Text = "SEMV1";
+            this.CHB_SEMV1.UseVisualStyleBackColor = true;
+            // 
+            // GPB_TIC_TRB
+            // 
+            this.GPB_TIC_TRB.Controls.Add(this.BTN_TIC_TRB_OFF);
+            this.GPB_TIC_TRB.Controls.Add(this.BTN_TIC_TRB_ON);
+            this.GPB_TIC_TRB.Controls.Add(this.BTN_TIC_TRB_Update);
+            this.GPB_TIC_TRB.Controls.Add(this.label33);
+            this.GPB_TIC_TRB.Controls.Add(this.label34);
+            this.GPB_TIC_TRB.Controls.Add(this.label35);
+            this.GPB_TIC_TRB.Controls.Add(this.label36);
+            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_Type);
+            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_Delay);
+            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_Power);
+            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_Speed);
+            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_State);
+            this.GPB_TIC_TRB.Controls.Add(this.label42);
+            this.GPB_TIC_TRB.Location = new System.Drawing.Point(256, 4);
+            this.GPB_TIC_TRB.Name = "GPB_TIC_TRB";
+            this.GPB_TIC_TRB.Size = new System.Drawing.Size(218, 112);
+            this.GPB_TIC_TRB.TabIndex = 1;
+            this.GPB_TIC_TRB.TabStop = false;
+            this.GPB_TIC_TRB.Text = "Турбомолекулярный насос";
+            // 
+            // BTN_TIC_TRB_OFF
+            // 
+            this.BTN_TIC_TRB_OFF.Location = new System.Drawing.Point(177, 83);
+            this.BTN_TIC_TRB_OFF.Name = "BTN_TIC_TRB_OFF";
+            this.BTN_TIC_TRB_OFF.Size = new System.Drawing.Size(36, 23);
+            this.BTN_TIC_TRB_OFF.TabIndex = 2;
+            this.BTN_TIC_TRB_OFF.Text = "OFF";
+            this.BTN_TIC_TRB_OFF.UseVisualStyleBackColor = true;
+            this.BTN_TIC_TRB_OFF.Click += new System.EventHandler(this.BTN_TIC_TRB_OFF_Click);
+            // 
+            // BTN_TIC_TRB_ON
+            // 
+            this.BTN_TIC_TRB_ON.Location = new System.Drawing.Point(135, 83);
+            this.BTN_TIC_TRB_ON.Name = "BTN_TIC_TRB_ON";
+            this.BTN_TIC_TRB_ON.Size = new System.Drawing.Size(36, 23);
+            this.BTN_TIC_TRB_ON.TabIndex = 2;
+            this.BTN_TIC_TRB_ON.Text = "ON";
+            this.BTN_TIC_TRB_ON.UseVisualStyleBackColor = true;
+            this.BTN_TIC_TRB_ON.Click += new System.EventHandler(this.BTN_TIC_TRB_ON_Click);
+            // 
+            // BTN_TIC_TRB_Update
+            // 
+            this.BTN_TIC_TRB_Update.Location = new System.Drawing.Point(6, 83);
+            this.BTN_TIC_TRB_Update.Name = "BTN_TIC_TRB_Update";
+            this.BTN_TIC_TRB_Update.Size = new System.Drawing.Size(123, 23);
+            this.BTN_TIC_TRB_Update.TabIndex = 1;
+            this.BTN_TIC_TRB_Update.Text = "Обновить состояние";
+            this.BTN_TIC_TRB_Update.UseVisualStyleBackColor = true;
+            this.BTN_TIC_TRB_Update.Click += new System.EventHandler(this.BTN_TIC_TRB_Update_Click);
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(3, 68);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(29, 13);
+            this.label33.TabIndex = 0;
+            this.label33.Text = "Тип:";
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Location = new System.Drawing.Point(3, 55);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(61, 13);
+            this.label34.TabIndex = 0;
+            this.label34.Text = "Задержка:";
+            // 
+            // label35
+            // 
+            this.label35.AutoSize = true;
+            this.label35.Location = new System.Drawing.Point(3, 42);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(63, 13);
+            this.label35.TabIndex = 0;
+            this.label35.Text = "Мощность:";
+            // 
+            // label36
+            // 
+            this.label36.AutoSize = true;
+            this.label36.Location = new System.Drawing.Point(3, 29);
+            this.label36.Name = "label36";
+            this.label36.Size = new System.Drawing.Size(58, 13);
+            this.label36.TabIndex = 0;
+            this.label36.Text = "Скорость:";
+            // 
+            // LBL_TIC_TRB_Type
+            // 
+            this.LBL_TIC_TRB_Type.AutoSize = true;
+            this.LBL_TIC_TRB_Type.Location = new System.Drawing.Point(67, 68);
+            this.LBL_TIC_TRB_Type.Name = "LBL_TIC_TRB_Type";
+            this.LBL_TIC_TRB_Type.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_TRB_Type.TabIndex = 0;
+            this.LBL_TIC_TRB_Type.Text = "Неизвестно";
+            // 
+            // LBL_TIC_TRB_Delay
+            // 
+            this.LBL_TIC_TRB_Delay.AutoSize = true;
+            this.LBL_TIC_TRB_Delay.Location = new System.Drawing.Point(67, 55);
+            this.LBL_TIC_TRB_Delay.Name = "LBL_TIC_TRB_Delay";
+            this.LBL_TIC_TRB_Delay.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_TRB_Delay.TabIndex = 0;
+            this.LBL_TIC_TRB_Delay.Text = "Неизвестно";
+            // 
+            // LBL_TIC_TRB_Power
+            // 
+            this.LBL_TIC_TRB_Power.AutoSize = true;
+            this.LBL_TIC_TRB_Power.Location = new System.Drawing.Point(67, 42);
+            this.LBL_TIC_TRB_Power.Name = "LBL_TIC_TRB_Power";
+            this.LBL_TIC_TRB_Power.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_TRB_Power.TabIndex = 0;
+            this.LBL_TIC_TRB_Power.Text = "Неизвестно";
+            // 
+            // LBL_TIC_TRB_Speed
+            // 
+            this.LBL_TIC_TRB_Speed.AutoSize = true;
+            this.LBL_TIC_TRB_Speed.Location = new System.Drawing.Point(67, 29);
+            this.LBL_TIC_TRB_Speed.Name = "LBL_TIC_TRB_Speed";
+            this.LBL_TIC_TRB_Speed.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_TRB_Speed.TabIndex = 0;
+            this.LBL_TIC_TRB_Speed.Text = "Неизвестно";
+            // 
+            // LBL_TIC_TRB_State
+            // 
+            this.LBL_TIC_TRB_State.AutoSize = true;
+            this.LBL_TIC_TRB_State.Location = new System.Drawing.Point(67, 16);
+            this.LBL_TIC_TRB_State.Name = "LBL_TIC_TRB_State";
+            this.LBL_TIC_TRB_State.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_TRB_State.TabIndex = 0;
+            this.LBL_TIC_TRB_State.Text = "Неизвестно";
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(3, 16);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(64, 13);
+            this.label42.TabIndex = 0;
+            this.label42.Text = "Состояние:";
+            // 
+            // GPB_TIC_FOR
+            // 
+            this.GPB_TIC_FOR.Controls.Add(this.BTN_TIC_FOR_OFF);
+            this.GPB_TIC_FOR.Controls.Add(this.BTN_TIC_FOR_ON);
+            this.GPB_TIC_FOR.Controls.Add(this.BTN_TIC_FOR_Update);
+            this.GPB_TIC_FOR.Controls.Add(this.label32);
+            this.GPB_TIC_FOR.Controls.Add(this.label31);
+            this.GPB_TIC_FOR.Controls.Add(this.label26);
+            this.GPB_TIC_FOR.Controls.Add(this.label25);
+            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_Type);
+            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_Setup);
+            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_Power);
+            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_Speed);
+            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_State);
+            this.GPB_TIC_FOR.Controls.Add(this.label20);
+            this.GPB_TIC_FOR.Location = new System.Drawing.Point(5, 3);
+            this.GPB_TIC_FOR.Name = "GPB_TIC_FOR";
+            this.GPB_TIC_FOR.Size = new System.Drawing.Size(219, 112);
+            this.GPB_TIC_FOR.TabIndex = 1;
+            this.GPB_TIC_FOR.TabStop = false;
+            this.GPB_TIC_FOR.Text = "Форвакуумный насос";
+            // 
+            // BTN_TIC_FOR_OFF
+            // 
+            this.BTN_TIC_FOR_OFF.Location = new System.Drawing.Point(177, 83);
+            this.BTN_TIC_FOR_OFF.Name = "BTN_TIC_FOR_OFF";
+            this.BTN_TIC_FOR_OFF.Size = new System.Drawing.Size(36, 23);
+            this.BTN_TIC_FOR_OFF.TabIndex = 2;
+            this.BTN_TIC_FOR_OFF.Text = "OFF";
+            this.BTN_TIC_FOR_OFF.UseVisualStyleBackColor = true;
+            this.BTN_TIC_FOR_OFF.Click += new System.EventHandler(this.BTN_TIC_FOR_OFF_Click);
+            // 
+            // BTN_TIC_FOR_ON
+            // 
+            this.BTN_TIC_FOR_ON.Location = new System.Drawing.Point(135, 83);
+            this.BTN_TIC_FOR_ON.Name = "BTN_TIC_FOR_ON";
+            this.BTN_TIC_FOR_ON.Size = new System.Drawing.Size(36, 23);
+            this.BTN_TIC_FOR_ON.TabIndex = 2;
+            this.BTN_TIC_FOR_ON.Text = "ON";
+            this.BTN_TIC_FOR_ON.UseVisualStyleBackColor = true;
+            this.BTN_TIC_FOR_ON.Click += new System.EventHandler(this.BTN_TIC_FOR_ON_Click);
+            // 
+            // BTN_TIC_FOR_Update
+            // 
+            this.BTN_TIC_FOR_Update.Location = new System.Drawing.Point(6, 83);
+            this.BTN_TIC_FOR_Update.Name = "BTN_TIC_FOR_Update";
+            this.BTN_TIC_FOR_Update.Size = new System.Drawing.Size(123, 23);
+            this.BTN_TIC_FOR_Update.TabIndex = 1;
+            this.BTN_TIC_FOR_Update.Text = "Обновить состояние";
+            this.BTN_TIC_FOR_Update.UseVisualStyleBackColor = true;
+            this.BTN_TIC_FOR_Update.Click += new System.EventHandler(this.BTN_TIC_FOR_Update_Click);
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Location = new System.Drawing.Point(3, 68);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(29, 13);
+            this.label32.TabIndex = 0;
+            this.label32.Text = "Тип:";
+            // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(3, 55);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(65, 13);
+            this.label31.TabIndex = 0;
+            this.label31.Text = "Установка:";
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(3, 42);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(63, 13);
+            this.label26.TabIndex = 0;
+            this.label26.Text = "Мощность:";
+            // 
+            // label25
+            // 
+            this.label25.AutoSize = true;
+            this.label25.Location = new System.Drawing.Point(3, 29);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(58, 13);
+            this.label25.TabIndex = 0;
+            this.label25.Text = "Скорость:";
+            // 
+            // LBL_TIC_FOR_Type
+            // 
+            this.LBL_TIC_FOR_Type.AutoSize = true;
+            this.LBL_TIC_FOR_Type.Location = new System.Drawing.Point(67, 68);
+            this.LBL_TIC_FOR_Type.Name = "LBL_TIC_FOR_Type";
+            this.LBL_TIC_FOR_Type.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_FOR_Type.TabIndex = 0;
+            this.LBL_TIC_FOR_Type.Text = "Неизвестно";
+            // 
+            // LBL_TIC_FOR_Setup
+            // 
+            this.LBL_TIC_FOR_Setup.AutoSize = true;
+            this.LBL_TIC_FOR_Setup.Location = new System.Drawing.Point(67, 55);
+            this.LBL_TIC_FOR_Setup.Name = "LBL_TIC_FOR_Setup";
+            this.LBL_TIC_FOR_Setup.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_FOR_Setup.TabIndex = 0;
+            this.LBL_TIC_FOR_Setup.Text = "Неизвестно";
+            // 
+            // LBL_TIC_FOR_Power
+            // 
+            this.LBL_TIC_FOR_Power.AutoSize = true;
+            this.LBL_TIC_FOR_Power.Location = new System.Drawing.Point(67, 42);
+            this.LBL_TIC_FOR_Power.Name = "LBL_TIC_FOR_Power";
+            this.LBL_TIC_FOR_Power.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_FOR_Power.TabIndex = 0;
+            this.LBL_TIC_FOR_Power.Text = "Неизвестно";
+            // 
+            // LBL_TIC_FOR_Speed
+            // 
+            this.LBL_TIC_FOR_Speed.AutoSize = true;
+            this.LBL_TIC_FOR_Speed.Location = new System.Drawing.Point(67, 29);
+            this.LBL_TIC_FOR_Speed.Name = "LBL_TIC_FOR_Speed";
+            this.LBL_TIC_FOR_Speed.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_FOR_Speed.TabIndex = 0;
+            this.LBL_TIC_FOR_Speed.Text = "Неизвестно";
+            // 
+            // LBL_TIC_FOR_State
+            // 
+            this.LBL_TIC_FOR_State.AutoSize = true;
+            this.LBL_TIC_FOR_State.Location = new System.Drawing.Point(67, 16);
+            this.LBL_TIC_FOR_State.Name = "LBL_TIC_FOR_State";
+            this.LBL_TIC_FOR_State.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_FOR_State.TabIndex = 0;
+            this.LBL_TIC_FOR_State.Text = "Неизвестно";
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(3, 16);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(64, 13);
+            this.label20.TabIndex = 0;
+            this.label20.Text = "Состояние:";
+            // 
             // GRB_TIC_DisplayContrast
             // 
             this.GRB_TIC_DisplayContrast.Controls.Add(this.label19);
             this.GRB_TIC_DisplayContrast.Controls.Add(this.TXB_TIC_DisplayContrast);
             this.GRB_TIC_DisplayContrast.Controls.Add(this.BTN_TIC_DisplayContrast_get);
             this.GRB_TIC_DisplayContrast.Controls.Add(this.BTN_TIC_DisplayContrast_set);
-            this.GRB_TIC_DisplayContrast.Location = new System.Drawing.Point(3, 255);
+            this.GRB_TIC_DisplayContrast.Location = new System.Drawing.Point(507, 4);
             this.GRB_TIC_DisplayContrast.Name = "GRB_TIC_DisplayContrast";
-            this.GRB_TIC_DisplayContrast.Size = new System.Drawing.Size(160, 62);
+            this.GRB_TIC_DisplayContrast.Size = new System.Drawing.Size(142, 67);
             this.GRB_TIC_DisplayContrast.TabIndex = 1;
             this.GRB_TIC_DisplayContrast.TabStop = false;
             this.GRB_TIC_DisplayContrast.Text = "Контрастность дисплея";
@@ -1040,7 +1468,7 @@
             // label19
             // 
             this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(6, 46);
+            this.label19.Location = new System.Drawing.Point(5, 43);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(134, 13);
             this.label19.TabIndex = 2;
@@ -1050,7 +1478,7 @@
             // 
             this.TXB_TIC_DisplayContrast.Location = new System.Drawing.Point(110, 18);
             this.TXB_TIC_DisplayContrast.Name = "TXB_TIC_DisplayContrast";
-            this.TXB_TIC_DisplayContrast.Size = new System.Drawing.Size(44, 20);
+            this.TXB_TIC_DisplayContrast.Size = new System.Drawing.Size(26, 20);
             this.TXB_TIC_DisplayContrast.TabIndex = 1;
             this.TXB_TIC_DisplayContrast.Text = "5";
             this.TXB_TIC_DisplayContrast.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -2047,399 +2475,285 @@
             this.CLK_COA.Interval = 10;
             this.CLK_COA.Tick += new System.EventHandler(this.CLK_COA_Tick);
             // 
-            // GPB_TIC_FOR
-            // 
-            this.GPB_TIC_FOR.Controls.Add(this.BTN_TIC_FOR_OFF);
-            this.GPB_TIC_FOR.Controls.Add(this.BTN_TIC_FOR_ON);
-            this.GPB_TIC_FOR.Controls.Add(this.BTN_TIC_FOR_Update);
-            this.GPB_TIC_FOR.Controls.Add(this.label32);
-            this.GPB_TIC_FOR.Controls.Add(this.label31);
-            this.GPB_TIC_FOR.Controls.Add(this.label26);
-            this.GPB_TIC_FOR.Controls.Add(this.label25);
-            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_Type);
-            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_Setup);
-            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_Power);
-            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_Speed);
-            this.GPB_TIC_FOR.Controls.Add(this.LBL_TIC_FOR_State);
-            this.GPB_TIC_FOR.Controls.Add(this.label20);
-            this.GPB_TIC_FOR.Location = new System.Drawing.Point(3, 3);
-            this.GPB_TIC_FOR.Name = "GPB_TIC_FOR";
-            this.GPB_TIC_FOR.Size = new System.Drawing.Size(220, 112);
-            this.GPB_TIC_FOR.TabIndex = 1;
-            this.GPB_TIC_FOR.TabStop = false;
-            this.GPB_TIC_FOR.Text = "Форвакуумный насос";
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(3, 16);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(64, 13);
-            this.label20.TabIndex = 0;
-            this.label20.Text = "Состояние:";
-            // 
-            // label25
-            // 
-            this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(3, 29);
-            this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(58, 13);
-            this.label25.TabIndex = 0;
-            this.label25.Text = "Скорость:";
-            // 
-            // label26
-            // 
-            this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(3, 42);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(63, 13);
-            this.label26.TabIndex = 0;
-            this.label26.Text = "Мощность:";
-            // 
-            // label31
-            // 
-            this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(3, 55);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(65, 13);
-            this.label31.TabIndex = 0;
-            this.label31.Text = "Установка:";
-            // 
-            // BTN_TIC_FOR_Update
-            // 
-            this.BTN_TIC_FOR_Update.Location = new System.Drawing.Point(6, 83);
-            this.BTN_TIC_FOR_Update.Name = "BTN_TIC_FOR_Update";
-            this.BTN_TIC_FOR_Update.Size = new System.Drawing.Size(123, 23);
-            this.BTN_TIC_FOR_Update.TabIndex = 1;
-            this.BTN_TIC_FOR_Update.Text = "Обновить состояние";
-            this.BTN_TIC_FOR_Update.UseVisualStyleBackColor = true;
-            this.BTN_TIC_FOR_Update.Click += new System.EventHandler(this.BTN_TIC_FOR_Update_Click);
-            // 
-            // label32
-            // 
-            this.label32.AutoSize = true;
-            this.label32.Location = new System.Drawing.Point(3, 68);
-            this.label32.Name = "label32";
-            this.label32.Size = new System.Drawing.Size(29, 13);
-            this.label32.TabIndex = 0;
-            this.label32.Text = "Тип:";
-            // 
-            // LBL_TIC_FOR_State
-            // 
-            this.LBL_TIC_FOR_State.AutoSize = true;
-            this.LBL_TIC_FOR_State.Location = new System.Drawing.Point(67, 16);
-            this.LBL_TIC_FOR_State.Name = "LBL_TIC_FOR_State";
-            this.LBL_TIC_FOR_State.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_FOR_State.TabIndex = 0;
-            this.LBL_TIC_FOR_State.Text = "Неизвестно";
-            // 
-            // LBL_TIC_FOR_Speed
-            // 
-            this.LBL_TIC_FOR_Speed.AutoSize = true;
-            this.LBL_TIC_FOR_Speed.Location = new System.Drawing.Point(67, 29);
-            this.LBL_TIC_FOR_Speed.Name = "LBL_TIC_FOR_Speed";
-            this.LBL_TIC_FOR_Speed.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_FOR_Speed.TabIndex = 0;
-            this.LBL_TIC_FOR_Speed.Text = "Неизвестно";
-            // 
-            // LBL_TIC_FOR_Power
-            // 
-            this.LBL_TIC_FOR_Power.AutoSize = true;
-            this.LBL_TIC_FOR_Power.Location = new System.Drawing.Point(67, 42);
-            this.LBL_TIC_FOR_Power.Name = "LBL_TIC_FOR_Power";
-            this.LBL_TIC_FOR_Power.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_FOR_Power.TabIndex = 0;
-            this.LBL_TIC_FOR_Power.Text = "Неизвестно";
-            // 
-            // LBL_TIC_FOR_Setup
-            // 
-            this.LBL_TIC_FOR_Setup.AutoSize = true;
-            this.LBL_TIC_FOR_Setup.Location = new System.Drawing.Point(67, 55);
-            this.LBL_TIC_FOR_Setup.Name = "LBL_TIC_FOR_Setup";
-            this.LBL_TIC_FOR_Setup.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_FOR_Setup.TabIndex = 0;
-            this.LBL_TIC_FOR_Setup.Text = "Неизвестно";
-            // 
-            // LBL_TIC_FOR_Type
-            // 
-            this.LBL_TIC_FOR_Type.AutoSize = true;
-            this.LBL_TIC_FOR_Type.Location = new System.Drawing.Point(67, 68);
-            this.LBL_TIC_FOR_Type.Name = "LBL_TIC_FOR_Type";
-            this.LBL_TIC_FOR_Type.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_FOR_Type.TabIndex = 0;
-            this.LBL_TIC_FOR_Type.Text = "Неизвестно";
-            // 
-            // BTN_TIC_FOR_ON
-            // 
-            this.BTN_TIC_FOR_ON.Location = new System.Drawing.Point(135, 83);
-            this.BTN_TIC_FOR_ON.Name = "BTN_TIC_FOR_ON";
-            this.BTN_TIC_FOR_ON.Size = new System.Drawing.Size(36, 23);
-            this.BTN_TIC_FOR_ON.TabIndex = 2;
-            this.BTN_TIC_FOR_ON.Text = "ON";
-            this.BTN_TIC_FOR_ON.UseVisualStyleBackColor = true;
-            this.BTN_TIC_FOR_ON.Click += new System.EventHandler(this.BTN_TIC_FOR_ON_Click);
-            // 
-            // BTN_TIC_FOR_OFF
-            // 
-            this.BTN_TIC_FOR_OFF.Location = new System.Drawing.Point(177, 83);
-            this.BTN_TIC_FOR_OFF.Name = "BTN_TIC_FOR_OFF";
-            this.BTN_TIC_FOR_OFF.Size = new System.Drawing.Size(36, 23);
-            this.BTN_TIC_FOR_OFF.TabIndex = 2;
-            this.BTN_TIC_FOR_OFF.Text = "OFF";
-            this.BTN_TIC_FOR_OFF.UseVisualStyleBackColor = true;
-            this.BTN_TIC_FOR_OFF.Click += new System.EventHandler(this.BTN_TIC_FOR_OFF_Click);
-            // 
-            // GPB_TIC_TRB
-            // 
-            this.GPB_TIC_TRB.Controls.Add(this.BTN_TIC_TRB_OFF);
-            this.GPB_TIC_TRB.Controls.Add(this.BTN_TIC_TRB_ON);
-            this.GPB_TIC_TRB.Controls.Add(this.BTN_TIC_TRB_Update);
-            this.GPB_TIC_TRB.Controls.Add(this.label33);
-            this.GPB_TIC_TRB.Controls.Add(this.label34);
-            this.GPB_TIC_TRB.Controls.Add(this.label35);
-            this.GPB_TIC_TRB.Controls.Add(this.label36);
-            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_Type);
-            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_Delay);
-            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_Power);
-            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_Speed);
-            this.GPB_TIC_TRB.Controls.Add(this.LBL_TIC_TRB_State);
-            this.GPB_TIC_TRB.Controls.Add(this.label42);
-            this.GPB_TIC_TRB.Location = new System.Drawing.Point(229, 3);
-            this.GPB_TIC_TRB.Name = "GPB_TIC_TRB";
-            this.GPB_TIC_TRB.Size = new System.Drawing.Size(220, 112);
-            this.GPB_TIC_TRB.TabIndex = 1;
-            this.GPB_TIC_TRB.TabStop = false;
-            this.GPB_TIC_TRB.Text = "Турбомолекулярный насос";
-            // 
-            // BTN_TIC_TRB_OFF
-            // 
-            this.BTN_TIC_TRB_OFF.Location = new System.Drawing.Point(177, 83);
-            this.BTN_TIC_TRB_OFF.Name = "BTN_TIC_TRB_OFF";
-            this.BTN_TIC_TRB_OFF.Size = new System.Drawing.Size(36, 23);
-            this.BTN_TIC_TRB_OFF.TabIndex = 2;
-            this.BTN_TIC_TRB_OFF.Text = "OFF";
-            this.BTN_TIC_TRB_OFF.UseVisualStyleBackColor = true;
-            this.BTN_TIC_TRB_OFF.Click += new System.EventHandler(this.BTN_TIC_TRB_OFF_Click);
-            // 
-            // BTN_TIC_TRB_ON
-            // 
-            this.BTN_TIC_TRB_ON.Location = new System.Drawing.Point(135, 83);
-            this.BTN_TIC_TRB_ON.Name = "BTN_TIC_TRB_ON";
-            this.BTN_TIC_TRB_ON.Size = new System.Drawing.Size(36, 23);
-            this.BTN_TIC_TRB_ON.TabIndex = 2;
-            this.BTN_TIC_TRB_ON.Text = "ON";
-            this.BTN_TIC_TRB_ON.UseVisualStyleBackColor = true;
-            this.BTN_TIC_TRB_ON.Click += new System.EventHandler(this.BTN_TIC_TRB_ON_Click);
-            // 
-            // BTN_TIC_TRB_Update
-            // 
-            this.BTN_TIC_TRB_Update.Location = new System.Drawing.Point(6, 83);
-            this.BTN_TIC_TRB_Update.Name = "BTN_TIC_TRB_Update";
-            this.BTN_TIC_TRB_Update.Size = new System.Drawing.Size(123, 23);
-            this.BTN_TIC_TRB_Update.TabIndex = 1;
-            this.BTN_TIC_TRB_Update.Text = "Обновить состояние";
-            this.BTN_TIC_TRB_Update.UseVisualStyleBackColor = true;
-            this.BTN_TIC_TRB_Update.Click += new System.EventHandler(this.BTN_TIC_TRB_Update_Click);
-            // 
-            // label33
-            // 
-            this.label33.AutoSize = true;
-            this.label33.Location = new System.Drawing.Point(3, 68);
-            this.label33.Name = "label33";
-            this.label33.Size = new System.Drawing.Size(29, 13);
-            this.label33.TabIndex = 0;
-            this.label33.Text = "Тип:";
-            // 
-            // label34
-            // 
-            this.label34.AutoSize = true;
-            this.label34.Location = new System.Drawing.Point(3, 55);
-            this.label34.Name = "label34";
-            this.label34.Size = new System.Drawing.Size(61, 13);
-            this.label34.TabIndex = 0;
-            this.label34.Text = "Задержка:";
-            // 
-            // label35
-            // 
-            this.label35.AutoSize = true;
-            this.label35.Location = new System.Drawing.Point(3, 42);
-            this.label35.Name = "label35";
-            this.label35.Size = new System.Drawing.Size(63, 13);
-            this.label35.TabIndex = 0;
-            this.label35.Text = "Мощность:";
-            // 
-            // label36
-            // 
-            this.label36.AutoSize = true;
-            this.label36.Location = new System.Drawing.Point(3, 29);
-            this.label36.Name = "label36";
-            this.label36.Size = new System.Drawing.Size(58, 13);
-            this.label36.TabIndex = 0;
-            this.label36.Text = "Скорость:";
-            // 
-            // LBL_TIC_TRB_Type
-            // 
-            this.LBL_TIC_TRB_Type.AutoSize = true;
-            this.LBL_TIC_TRB_Type.Location = new System.Drawing.Point(67, 68);
-            this.LBL_TIC_TRB_Type.Name = "LBL_TIC_TRB_Type";
-            this.LBL_TIC_TRB_Type.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_TRB_Type.TabIndex = 0;
-            this.LBL_TIC_TRB_Type.Text = "Неизвестно";
-            // 
-            // LBL_TIC_TRB_Delay
-            // 
-            this.LBL_TIC_TRB_Delay.AutoSize = true;
-            this.LBL_TIC_TRB_Delay.Location = new System.Drawing.Point(67, 55);
-            this.LBL_TIC_TRB_Delay.Name = "LBL_TIC_TRB_Delay";
-            this.LBL_TIC_TRB_Delay.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_TRB_Delay.TabIndex = 0;
-            this.LBL_TIC_TRB_Delay.Text = "Неизвестно";
-            // 
-            // LBL_TIC_TRB_Power
-            // 
-            this.LBL_TIC_TRB_Power.AutoSize = true;
-            this.LBL_TIC_TRB_Power.Location = new System.Drawing.Point(67, 42);
-            this.LBL_TIC_TRB_Power.Name = "LBL_TIC_TRB_Power";
-            this.LBL_TIC_TRB_Power.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_TRB_Power.TabIndex = 0;
-            this.LBL_TIC_TRB_Power.Text = "Неизвестно";
-            // 
-            // LBL_TIC_TRB_Speed
-            // 
-            this.LBL_TIC_TRB_Speed.AutoSize = true;
-            this.LBL_TIC_TRB_Speed.Location = new System.Drawing.Point(67, 29);
-            this.LBL_TIC_TRB_Speed.Name = "LBL_TIC_TRB_Speed";
-            this.LBL_TIC_TRB_Speed.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_TRB_Speed.TabIndex = 0;
-            this.LBL_TIC_TRB_Speed.Text = "Неизвестно";
-            // 
-            // LBL_TIC_TRB_State
-            // 
-            this.LBL_TIC_TRB_State.AutoSize = true;
-            this.LBL_TIC_TRB_State.Location = new System.Drawing.Point(67, 16);
-            this.LBL_TIC_TRB_State.Name = "LBL_TIC_TRB_State";
-            this.LBL_TIC_TRB_State.Size = new System.Drawing.Size(68, 13);
-            this.LBL_TIC_TRB_State.TabIndex = 0;
-            this.LBL_TIC_TRB_State.Text = "Неизвестно";
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(3, 16);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(64, 13);
-            this.label42.TabIndex = 0;
-            this.label42.Text = "Состояние:";
-            // 
-            // GPB_Flags
-            // 
-            this.GPB_Flags.Controls.Add(this.button1);
-            this.GPB_Flags.Controls.Add(this.BTN_checkFlags);
-            this.GPB_Flags.Controls.Add(this.CHB_iEDCD);
-            this.GPB_Flags.Controls.Add(this.CHB_SEMV3);
-            this.GPB_Flags.Controls.Add(this.CHB_iHVE);
-            this.GPB_Flags.Controls.Add(this.CHB_PRGE);
-            this.GPB_Flags.Controls.Add(this.CHB_SEMV2);
-            this.GPB_Flags.Controls.Add(this.CHB_SPUMP);
-            this.GPB_Flags.Controls.Add(this.CHB_SEMV1);
-            this.GPB_Flags.Location = new System.Drawing.Point(246, 241);
-            this.GPB_Flags.Name = "GPB_Flags";
-            this.GPB_Flags.Size = new System.Drawing.Size(403, 73);
-            this.GPB_Flags.TabIndex = 6;
-            this.GPB_Flags.TabStop = false;
-            this.GPB_Flags.Text = "Флаги";
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(267, 42);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(130, 23);
-            this.button1.TabIndex = 6;
-            this.button1.Text = "Установить";
-            this.button1.UseVisualStyleBackColor = true;
-            // 
-            // BTN_checkFlags
-            // 
-            this.BTN_checkFlags.Location = new System.Drawing.Point(268, 13);
-            this.BTN_checkFlags.Name = "BTN_checkFlags";
-            this.BTN_checkFlags.Size = new System.Drawing.Size(130, 23);
-            this.BTN_checkFlags.TabIndex = 6;
-            this.BTN_checkFlags.Text = "Проверить";
-            this.BTN_checkFlags.UseVisualStyleBackColor = true;
-            // 
-            // CHB_iEDCD
-            // 
-            this.CHB_iEDCD.AutoSize = true;
-            this.CHB_iEDCD.Location = new System.Drawing.Point(140, 19);
-            this.CHB_iEDCD.Name = "CHB_iEDCD";
-            this.CHB_iEDCD.Size = new System.Drawing.Size(56, 17);
-            this.CHB_iEDCD.TabIndex = 1;
-            this.CHB_iEDCD.Text = "EDCD";
-            this.CHB_iEDCD.UseVisualStyleBackColor = true;
-            // 
-            // CHB_SEMV3
-            // 
-            this.CHB_SEMV3.AutoSize = true;
-            this.CHB_SEMV3.Location = new System.Drawing.Point(74, 46);
-            this.CHB_SEMV3.Name = "CHB_SEMV3";
-            this.CHB_SEMV3.Size = new System.Drawing.Size(62, 17);
-            this.CHB_SEMV3.TabIndex = 1;
-            this.CHB_SEMV3.Text = "SEMV3";
-            this.CHB_SEMV3.UseVisualStyleBackColor = true;
-            // 
-            // CHB_iHVE
-            // 
-            this.CHB_iHVE.AutoSize = true;
-            this.CHB_iHVE.Checked = true;
-            this.CHB_iHVE.CheckState = System.Windows.Forms.CheckState.Indeterminate;
-            this.CHB_iHVE.Enabled = false;
-            this.CHB_iHVE.Location = new System.Drawing.Point(202, 46);
-            this.CHB_iHVE.Name = "CHB_iHVE";
-            this.CHB_iHVE.Size = new System.Drawing.Size(48, 17);
-            this.CHB_iHVE.TabIndex = 1;
-            this.CHB_iHVE.Text = "HVE";
-            this.CHB_iHVE.UseVisualStyleBackColor = true;
-            // 
-            // CHB_PRGE
-            // 
-            this.CHB_PRGE.AutoSize = true;
-            this.CHB_PRGE.Enabled = false;
-            this.CHB_PRGE.Location = new System.Drawing.Point(202, 19);
-            this.CHB_PRGE.Name = "CHB_PRGE";
-            this.CHB_PRGE.Size = new System.Drawing.Size(56, 17);
-            this.CHB_PRGE.TabIndex = 1;
-            this.CHB_PRGE.Text = "PRGE";
-            this.CHB_PRGE.UseVisualStyleBackColor = true;
-            // 
-            // CHB_SEMV2
-            // 
-            this.CHB_SEMV2.AutoSize = true;
-            this.CHB_SEMV2.Location = new System.Drawing.Point(6, 46);
-            this.CHB_SEMV2.Name = "CHB_SEMV2";
-            this.CHB_SEMV2.Size = new System.Drawing.Size(62, 17);
-            this.CHB_SEMV2.TabIndex = 1;
-            this.CHB_SEMV2.Text = "SEMV2";
-            this.CHB_SEMV2.UseVisualStyleBackColor = true;
-            // 
-            // CHB_SPUMP
-            // 
-            this.CHB_SPUMP.AutoSize = true;
-            this.CHB_SPUMP.Location = new System.Drawing.Point(74, 19);
-            this.CHB_SPUMP.Name = "CHB_SPUMP";
-            this.CHB_SPUMP.Size = new System.Drawing.Size(64, 17);
-            this.CHB_SPUMP.TabIndex = 1;
-            this.CHB_SPUMP.Text = "SPUMP";
-            this.CHB_SPUMP.UseVisualStyleBackColor = true;
-            // 
-            // CHB_SEMV1
-            // 
-            this.CHB_SEMV1.AutoSize = true;
-            this.CHB_SEMV1.Location = new System.Drawing.Point(6, 19);
-            this.CHB_SEMV1.Name = "CHB_SEMV1";
-            this.CHB_SEMV1.Size = new System.Drawing.Size(62, 17);
-            this.CHB_SEMV1.TabIndex = 1;
-            this.CHB_SEMV1.Text = "SEMV1";
-            this.CHB_SEMV1.UseVisualStyleBackColor = true;
+            // GPB_TIC_Gauge1
+            // 
+            this.GPB_TIC_Gauge1.Controls.Add(this.label41);
+            this.GPB_TIC_Gauge1.Controls.Add(this.label40);
+            this.GPB_TIC_Gauge1.Controls.Add(this.BTN_TIC_Gauge1_Update);
+            this.GPB_TIC_Gauge1.Controls.Add(this.label39);
+            this.GPB_TIC_Gauge1.Controls.Add(this.label44);
+            this.GPB_TIC_Gauge1.Controls.Add(this.label37);
+            this.GPB_TIC_Gauge1.Controls.Add(this.label38);
+            this.GPB_TIC_Gauge1.Controls.Add(this.LBL_TIC_Gauge1_value);
+            this.GPB_TIC_Gauge1.Controls.Add(this.LBL_TIC_Gauge1_Filter);
+            this.GPB_TIC_Gauge1.Controls.Add(this.LBL_TIC_Gauge1_state);
+            this.GPB_TIC_Gauge1.Controls.Add(this.LBL_TIC_Gauge1_name);
+            this.GPB_TIC_Gauge1.Controls.Add(this.LBL_TIC_Gauge1_gasType);
+            this.GPB_TIC_Gauge1.Controls.Add(this.LBL_TIC_Gauge1_type);
+            this.GPB_TIC_Gauge1.Location = new System.Drawing.Point(5, 121);
+            this.GPB_TIC_Gauge1.Name = "GPB_TIC_Gauge1";
+            this.GPB_TIC_Gauge1.Size = new System.Drawing.Size(219, 135);
+            this.GPB_TIC_Gauge1.TabIndex = 7;
+            this.GPB_TIC_Gauge1.TabStop = false;
+            this.GPB_TIC_Gauge1.Text = "Датчик 1 (форвакуумный)";
+            // 
+            // label37
+            // 
+            this.label37.AutoSize = true;
+            this.label37.Location = new System.Drawing.Point(6, 55);
+            this.label37.Name = "label37";
+            this.label37.Size = new System.Drawing.Size(32, 13);
+            this.label37.TabIndex = 0;
+            this.label37.Text = "Имя:";
+            // 
+            // label38
+            // 
+            this.label38.AutoSize = true;
+            this.label38.Location = new System.Drawing.Point(6, 16);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(29, 13);
+            this.label38.TabIndex = 0;
+            this.label38.Text = "Тип:";
+            // 
+            // label39
+            // 
+            this.label39.AutoSize = true;
+            this.label39.Location = new System.Drawing.Point(6, 29);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(55, 13);
+            this.label39.TabIndex = 0;
+            this.label39.Text = "Тип газа:";
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(6, 68);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(64, 13);
+            this.label40.TabIndex = 0;
+            this.label40.Text = "Состояние:";
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(6, 81);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(66, 13);
+            this.label41.TabIndex = 0;
+            this.label41.Text = "Показания:";
+            // 
+            // LBL_TIC_Gauge1_type
+            // 
+            this.LBL_TIC_Gauge1_type.AutoSize = true;
+            this.LBL_TIC_Gauge1_type.Location = new System.Drawing.Point(72, 16);
+            this.LBL_TIC_Gauge1_type.Name = "LBL_TIC_Gauge1_type";
+            this.LBL_TIC_Gauge1_type.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge1_type.TabIndex = 0;
+            this.LBL_TIC_Gauge1_type.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge1_gasType
+            // 
+            this.LBL_TIC_Gauge1_gasType.AutoSize = true;
+            this.LBL_TIC_Gauge1_gasType.Location = new System.Drawing.Point(72, 29);
+            this.LBL_TIC_Gauge1_gasType.Name = "LBL_TIC_Gauge1_gasType";
+            this.LBL_TIC_Gauge1_gasType.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge1_gasType.TabIndex = 0;
+            this.LBL_TIC_Gauge1_gasType.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge1_name
+            // 
+            this.LBL_TIC_Gauge1_name.AutoSize = true;
+            this.LBL_TIC_Gauge1_name.Location = new System.Drawing.Point(72, 55);
+            this.LBL_TIC_Gauge1_name.Name = "LBL_TIC_Gauge1_name";
+            this.LBL_TIC_Gauge1_name.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge1_name.TabIndex = 0;
+            this.LBL_TIC_Gauge1_name.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge1_state
+            // 
+            this.LBL_TIC_Gauge1_state.AutoSize = true;
+            this.LBL_TIC_Gauge1_state.Location = new System.Drawing.Point(72, 68);
+            this.LBL_TIC_Gauge1_state.Name = "LBL_TIC_Gauge1_state";
+            this.LBL_TIC_Gauge1_state.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge1_state.TabIndex = 0;
+            this.LBL_TIC_Gauge1_state.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge1_value
+            // 
+            this.LBL_TIC_Gauge1_value.AutoSize = true;
+            this.LBL_TIC_Gauge1_value.Location = new System.Drawing.Point(72, 81);
+            this.LBL_TIC_Gauge1_value.Name = "LBL_TIC_Gauge1_value";
+            this.LBL_TIC_Gauge1_value.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge1_value.TabIndex = 0;
+            this.LBL_TIC_Gauge1_value.Text = "Неизвестно";
+            // 
+            // BTN_TIC_Gauge1_Update
+            // 
+            this.BTN_TIC_Gauge1_Update.Location = new System.Drawing.Point(6, 99);
+            this.BTN_TIC_Gauge1_Update.Name = "BTN_TIC_Gauge1_Update";
+            this.BTN_TIC_Gauge1_Update.Size = new System.Drawing.Size(123, 23);
+            this.BTN_TIC_Gauge1_Update.TabIndex = 1;
+            this.BTN_TIC_Gauge1_Update.Text = "Обновить состояние";
+            this.BTN_TIC_Gauge1_Update.UseVisualStyleBackColor = true;
+            this.BTN_TIC_Gauge1_Update.Click += new System.EventHandler(this.BTN_TIC_Gauge1_Update_Click);
+            // 
+            // LBL_TIC_Gauge1_Filter
+            // 
+            this.LBL_TIC_Gauge1_Filter.AutoSize = true;
+            this.LBL_TIC_Gauge1_Filter.Location = new System.Drawing.Point(72, 42);
+            this.LBL_TIC_Gauge1_Filter.Name = "LBL_TIC_Gauge1_Filter";
+            this.LBL_TIC_Gauge1_Filter.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge1_Filter.TabIndex = 0;
+            this.LBL_TIC_Gauge1_Filter.Text = "Неизвестно";
+            // 
+            // label44
+            // 
+            this.label44.AutoSize = true;
+            this.label44.Location = new System.Drawing.Point(6, 42);
+            this.label44.Name = "label44";
+            this.label44.Size = new System.Drawing.Size(50, 13);
+            this.label44.TabIndex = 0;
+            this.label44.Text = "Фильтр:";
+            // 
+            // GPB_TIC_Gauge2
+            // 
+            this.GPB_TIC_Gauge2.Controls.Add(this.label43);
+            this.GPB_TIC_Gauge2.Controls.Add(this.label45);
+            this.GPB_TIC_Gauge2.Controls.Add(this.BTN_TIC_Gauge2_Update);
+            this.GPB_TIC_Gauge2.Controls.Add(this.label46);
+            this.GPB_TIC_Gauge2.Controls.Add(this.label47);
+            this.GPB_TIC_Gauge2.Controls.Add(this.label48);
+            this.GPB_TIC_Gauge2.Controls.Add(this.label49);
+            this.GPB_TIC_Gauge2.Controls.Add(this.LBL_TIC_Gauge2_value);
+            this.GPB_TIC_Gauge2.Controls.Add(this.LBL_TIC_Gauge2_Filter);
+            this.GPB_TIC_Gauge2.Controls.Add(this.LBL_TIC_Gauge2_state);
+            this.GPB_TIC_Gauge2.Controls.Add(this.LBL_TIC_Gauge2_name);
+            this.GPB_TIC_Gauge2.Controls.Add(this.LBL_TIC_Gauge2_gasType);
+            this.GPB_TIC_Gauge2.Controls.Add(this.LBL_TIC_Gauge2_type);
+            this.GPB_TIC_Gauge2.Location = new System.Drawing.Point(256, 121);
+            this.GPB_TIC_Gauge2.Name = "GPB_TIC_Gauge2";
+            this.GPB_TIC_Gauge2.Size = new System.Drawing.Size(218, 135);
+            this.GPB_TIC_Gauge2.TabIndex = 7;
+            this.GPB_TIC_Gauge2.TabStop = false;
+            this.GPB_TIC_Gauge2.Text = "Датчик 2 (форвакуумный)";
+            // 
+            // label43
+            // 
+            this.label43.AutoSize = true;
+            this.label43.Location = new System.Drawing.Point(6, 81);
+            this.label43.Name = "label43";
+            this.label43.Size = new System.Drawing.Size(66, 13);
+            this.label43.TabIndex = 0;
+            this.label43.Text = "Показания:";
+            // 
+            // label45
+            // 
+            this.label45.AutoSize = true;
+            this.label45.Location = new System.Drawing.Point(6, 68);
+            this.label45.Name = "label45";
+            this.label45.Size = new System.Drawing.Size(64, 13);
+            this.label45.TabIndex = 0;
+            this.label45.Text = "Состояние:";
+            // 
+            // BTN_TIC_Gauge2_Update
+            // 
+            this.BTN_TIC_Gauge2_Update.Location = new System.Drawing.Point(6, 99);
+            this.BTN_TIC_Gauge2_Update.Name = "BTN_TIC_Gauge2_Update";
+            this.BTN_TIC_Gauge2_Update.Size = new System.Drawing.Size(123, 23);
+            this.BTN_TIC_Gauge2_Update.TabIndex = 1;
+            this.BTN_TIC_Gauge2_Update.Text = "Обновить состояние";
+            this.BTN_TIC_Gauge2_Update.UseVisualStyleBackColor = true;
+            this.BTN_TIC_Gauge2_Update.Click += new System.EventHandler(this.BTN_TIC_Gauge2_Update_Click);
+            // 
+            // label46
+            // 
+            this.label46.AutoSize = true;
+            this.label46.Location = new System.Drawing.Point(6, 29);
+            this.label46.Name = "label46";
+            this.label46.Size = new System.Drawing.Size(55, 13);
+            this.label46.TabIndex = 0;
+            this.label46.Text = "Тип газа:";
+            // 
+            // label47
+            // 
+            this.label47.AutoSize = true;
+            this.label47.Location = new System.Drawing.Point(6, 42);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(50, 13);
+            this.label47.TabIndex = 0;
+            this.label47.Text = "Фильтр:";
+            // 
+            // label48
+            // 
+            this.label48.AutoSize = true;
+            this.label48.Location = new System.Drawing.Point(6, 55);
+            this.label48.Name = "label48";
+            this.label48.Size = new System.Drawing.Size(32, 13);
+            this.label48.TabIndex = 0;
+            this.label48.Text = "Имя:";
+            // 
+            // label49
+            // 
+            this.label49.AutoSize = true;
+            this.label49.Location = new System.Drawing.Point(6, 16);
+            this.label49.Name = "label49";
+            this.label49.Size = new System.Drawing.Size(29, 13);
+            this.label49.TabIndex = 0;
+            this.label49.Text = "Тип:";
+            // 
+            // LBL_TIC_Gauge2_value
+            // 
+            this.LBL_TIC_Gauge2_value.AutoSize = true;
+            this.LBL_TIC_Gauge2_value.Location = new System.Drawing.Point(72, 81);
+            this.LBL_TIC_Gauge2_value.Name = "LBL_TIC_Gauge2_value";
+            this.LBL_TIC_Gauge2_value.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge2_value.TabIndex = 0;
+            this.LBL_TIC_Gauge2_value.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge2_Filter
+            // 
+            this.LBL_TIC_Gauge2_Filter.AutoSize = true;
+            this.LBL_TIC_Gauge2_Filter.Location = new System.Drawing.Point(72, 42);
+            this.LBL_TIC_Gauge2_Filter.Name = "LBL_TIC_Gauge2_Filter";
+            this.LBL_TIC_Gauge2_Filter.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge2_Filter.TabIndex = 0;
+            this.LBL_TIC_Gauge2_Filter.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge2_state
+            // 
+            this.LBL_TIC_Gauge2_state.AutoSize = true;
+            this.LBL_TIC_Gauge2_state.Location = new System.Drawing.Point(72, 68);
+            this.LBL_TIC_Gauge2_state.Name = "LBL_TIC_Gauge2_state";
+            this.LBL_TIC_Gauge2_state.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge2_state.TabIndex = 0;
+            this.LBL_TIC_Gauge2_state.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge2_name
+            // 
+            this.LBL_TIC_Gauge2_name.AutoSize = true;
+            this.LBL_TIC_Gauge2_name.Location = new System.Drawing.Point(72, 55);
+            this.LBL_TIC_Gauge2_name.Name = "LBL_TIC_Gauge2_name";
+            this.LBL_TIC_Gauge2_name.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge2_name.TabIndex = 0;
+            this.LBL_TIC_Gauge2_name.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge2_gasType
+            // 
+            this.LBL_TIC_Gauge2_gasType.AutoSize = true;
+            this.LBL_TIC_Gauge2_gasType.Location = new System.Drawing.Point(72, 29);
+            this.LBL_TIC_Gauge2_gasType.Name = "LBL_TIC_Gauge2_gasType";
+            this.LBL_TIC_Gauge2_gasType.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge2_gasType.TabIndex = 0;
+            this.LBL_TIC_Gauge2_gasType.Text = "Неизвестно";
+            // 
+            // LBL_TIC_Gauge2_type
+            // 
+            this.LBL_TIC_Gauge2_type.AutoSize = true;
+            this.LBL_TIC_Gauge2_type.Location = new System.Drawing.Point(72, 16);
+            this.LBL_TIC_Gauge2_type.Name = "LBL_TIC_Gauge2_type";
+            this.LBL_TIC_Gauge2_type.Size = new System.Drawing.Size(68, 13);
+            this.LBL_TIC_Gauge2_type.TabIndex = 0;
+            this.LBL_TIC_Gauge2_type.Text = "Неизвестно";
             // 
             // Form1
             // 
@@ -2468,6 +2782,12 @@
             this.GRB_MC.ResumeLayout(false);
             this.GRB_MC.PerformLayout();
             this.TABpanel_3.ResumeLayout(false);
+            this.GPB_Flags.ResumeLayout(false);
+            this.GPB_Flags.PerformLayout();
+            this.GPB_TIC_TRB.ResumeLayout(false);
+            this.GPB_TIC_TRB.PerformLayout();
+            this.GPB_TIC_FOR.ResumeLayout(false);
+            this.GPB_TIC_FOR.PerformLayout();
             this.GRB_TIC_DisplayContrast.ResumeLayout(false);
             this.GRB_TIC_DisplayContrast.PerformLayout();
             this.TABpanel_4.ResumeLayout(false);
@@ -2484,12 +2804,10 @@
             this.TABpanel_5.ResumeLayout(false);
             this.GPB_realCOX.ResumeLayout(false);
             this.GPB_realCOX.PerformLayout();
-            this.GPB_TIC_FOR.ResumeLayout(false);
-            this.GPB_TIC_FOR.PerformLayout();
-            this.GPB_TIC_TRB.ResumeLayout(false);
-            this.GPB_TIC_TRB.PerformLayout();
-            this.GPB_Flags.ResumeLayout(false);
-            this.GPB_Flags.PerformLayout();
+            this.GPB_TIC_Gauge1.ResumeLayout(false);
+            this.GPB_TIC_Gauge1.PerformLayout();
+            this.GPB_TIC_Gauge2.ResumeLayout(false);
+            this.GPB_TIC_Gauge2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2703,6 +3021,34 @@
         private System.Windows.Forms.CheckBox CHB_SEMV2;
         private System.Windows.Forms.CheckBox CHB_SPUMP;
         private System.Windows.Forms.CheckBox CHB_SEMV1;
+        private System.Windows.Forms.GroupBox GPB_TIC_Gauge1;
+        private System.Windows.Forms.Label label41;
+        private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.Button BTN_TIC_Gauge1_Update;
+        private System.Windows.Forms.Label label39;
+        private System.Windows.Forms.Label label37;
+        private System.Windows.Forms.Label label38;
+        private System.Windows.Forms.Label LBL_TIC_Gauge1_value;
+        private System.Windows.Forms.Label LBL_TIC_Gauge1_state;
+        private System.Windows.Forms.Label LBL_TIC_Gauge1_name;
+        private System.Windows.Forms.Label LBL_TIC_Gauge1_gasType;
+        private System.Windows.Forms.Label LBL_TIC_Gauge1_type;
+        private System.Windows.Forms.Label label44;
+        private System.Windows.Forms.Label LBL_TIC_Gauge1_Filter;
+        private System.Windows.Forms.GroupBox GPB_TIC_Gauge2;
+        private System.Windows.Forms.Label label43;
+        private System.Windows.Forms.Label label45;
+        private System.Windows.Forms.Button BTN_TIC_Gauge2_Update;
+        private System.Windows.Forms.Label label46;
+        private System.Windows.Forms.Label label47;
+        private System.Windows.Forms.Label label48;
+        private System.Windows.Forms.Label label49;
+        private System.Windows.Forms.Label LBL_TIC_Gauge2_value;
+        private System.Windows.Forms.Label LBL_TIC_Gauge2_Filter;
+        private System.Windows.Forms.Label LBL_TIC_Gauge2_state;
+        private System.Windows.Forms.Label LBL_TIC_Gauge2_name;
+        private System.Windows.Forms.Label LBL_TIC_Gauge2_gasType;
+        private System.Windows.Forms.Label LBL_TIC_Gauge2_type;
     }
 }
 

@@ -739,5 +739,32 @@ namespace Xmega32A4U_testBoard
             LBL_TIC_FOR_State.Text = TIC.Turbo.Pump.state;
         }
 
+        private void BTN_TIC_Gauge1_Update_Click(object sender, EventArgs e)
+        {
+            LBL_TIC_Gauge1_type.Text = TIC.Gauge_1.type;
+            string buf_1 = "";
+            string buf_2 = "";
+            TIC.Gauge_1.Gas_type(ref buf_1, ref buf_2);
+            LBL_TIC_Gauge1_gasType.Text = buf_1;
+            LBL_TIC_Gauge1_Filter.Text = buf_2;
+            LBL_TIC_Gauge1_name.Text = TIC.Gauge_1.name;
+            LBL_TIC_Gauge1_value.Text = TIC.Gauge_1.value(ref buf_1, ref buf_2);
+            LBL_TIC_Gauge1_value.Text += " " + buf_1;
+            LBL_TIC_Gauge1_state.Text = buf_2;
+        }
+        private void BTN_TIC_Gauge2_Update_Click(object sender, EventArgs e)
+        {
+            LBL_TIC_Gauge2_type.Text = TIC.Gauge_2.type;
+            string buf_1 = "";
+            string buf_2 = "";
+            TIC.Gauge_2.Gas_type(ref buf_1, ref buf_2);
+            LBL_TIC_Gauge2_gasType.Text = buf_1;
+            LBL_TIC_Gauge2_Filter.Text = buf_2;
+            LBL_TIC_Gauge2_name.Text = TIC.Gauge_2.name;
+            LBL_TIC_Gauge2_value.Text = TIC.Gauge_2.value(ref buf_1, ref buf_2);
+            LBL_TIC_Gauge2_value.Text += " " + buf_1;
+            LBL_TIC_Gauge2_state.Text = buf_2;
+        }
+
     }
 }
