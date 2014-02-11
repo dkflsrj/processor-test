@@ -2643,6 +2643,7 @@ namespace Xmega32A4U_testBoard
         }
         #endregion
         //Видимые функции
+        /*
         /// <summary>
         /// Настраивает МК на опрос датчиков и порогов.
         /// <para>По умолчанию: Включение выского напряжения по датчику "Gauge_1" c нижним порогом 2.000V,</para>
@@ -2699,6 +2700,7 @@ namespace Xmega32A4U_testBoard
             }
             catch { MC.Service.trace("TIC.setup_HVE_conditions.get(): Ошибка данных!"); }
         }
+        //*/
         /// <summary>
         /// Возвращает последнее сообщение, которое прислал TIC на МК (либо опрос HVE, либо ответ на ретрансмит)
         /// </summary>
