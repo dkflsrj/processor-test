@@ -22,8 +22,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										156
-#define birthday									20140207//Счётчики
+#define version										159
+#define birthday									20140210//Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
 #define RTC_Status_busy								2		//Счётчики ещё считает
@@ -71,12 +71,12 @@ uint8_t TIC_MEM[100];									//100 байт памяти для приёма данных от TIC
 uint8_t TIC_MEM_length = 0;								//Длина записанного в TIC_MEM пакета байтов.
 uint8_t TIC_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже шум)
 uint8_t TIC_State = 0;									//Состояние модуля USART_TIC
-uint8_t TIC_HVE_Message[6] = {63, 86, 57, 49, 0, 13};	//char'ы сообщения на запрос давления {?V91<NUL><\r>}
-uint8_t TIC_HVE_onGauge = 51;							//последний char адреса датчика (турбика). По умолчанию: Gauge_1
-uint16_t TIC_HVE_onLevel = 8192;						//четыре тетрады порога напряжения (турбика). По умолчанию: 2.000V
-uint8_t TIC_HVE_offGauge = 52;							//последний char адреса датчика (форнасоса). По умолчанию: Gauge_2
-uint16_t TIC_HVE_offLevel = 26368;						//четыре тетрады порога напряжения (форнасоса). По умолчанию: 6.700V
-uint8_t TIC_offlineCount = 0;							//Количество запросов, которые проигнорировал TIC.+64 - это значит что один раз TIC не ответил. Значение больше 191 является аварийным.
+uint8_t TIC_HVE_Message[6] = {63, 86, 57, 49, 0, 13};	//char'ы сообщения на запрос давления {?V91<NUL><\r>} (1 торр = 133,322368 Па)
+uint8_t TIC_HVE_onGauge = 52;							//последний char адреса датчика (турбика). По умолчанию: Gauge_2
+float TIC_HVE_onLevel = 6.5000E-02;//1.3332E-02;						//четыре тетрады порога напряжения (турбика). По умолчанию: 2.000V (e-4 торр = 0,0133322368 Па -> 1,3332e-02)
+uint8_t TIC_HVE_offGauge = 51;							//последний char адреса датчика (форнасоса). По умолчанию: Gauge_1
+float TIC_HVE_offLevel = 9.3326E+02;					//четыре тетрады порога напряжения (форнасоса). По умолчанию: 6.700V (7 торр = 933,256576 Па -> 9,3326e+02)
+uint8_t TIC_offlineCount = 0;							//Количество запросов, которые проигнорировал. 3 раза и считается аварией.
 //		Измерения
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
 uint16_t RTC_ElapsedTime = 0;
@@ -324,7 +324,7 @@ ISR(USARTE0_RXC_vect)
             if (TIC_buf == 13)
             {
                 //Если декодировка прошла удачно, то отмечаем в журнале
-                if (TIC_decode_HVE()) { TIC_offlineCount &= 0b00111111; }
+                if (TIC_decode_HVE()) { TIC_offlineCount = 0; }
                 //При неудачной декодировке HVE уже выключено в декодере
 				TIC_MEM_length = 0;
 				TIC_timer.CTRLA = TC_125kHz;	//запускаем таймер снова
@@ -437,14 +437,14 @@ static void ISR_TIC_timer(void)
             break;
         case USART_State_HVEreceiving:	//TIC не завершил передачу! Или вообще не вышел на связь!
 			cli();
-			TIC_offlineCount += 64; // 01хххххх = 1; 10хххххх = 2; 11хххххх = 3;
-			if(TIC_offlineCount > 191)
+			TIC_offlineCount += 1;
+			if(TIC_offlineCount > 2)
 			{
 				//TIC не вышел на связь и в третий раз! Что-то нетак! Принимаем меры!
 				pin_iHVE_high;						//блокируем HVE
 				Flags.iHVE = 1;
 				Flags.PRGE = 0;
-				transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_noResponse, TIC_MEM_length);
+				//transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_noResponse, TIC_MEM_length);
 			}
 			sei();
 			Errors_USART_TIC.HVE_TimeOut = 1;		//Отмечаем в журнале
@@ -749,7 +749,7 @@ void TIC_decode_HVE(void)
 {
     //ФУНКЦИЯ: Декодируем ответ тика на запрос HVE {?V91<NUL><\r>}
     //ПОЯСНЕНИЯ: Ответ TIC'а должен быть таким: ? - байт от 48 до 57
-	//*
+    /*
     //Байт:   61 86 57 49  ?    32   ?   46 ?    ?    ?   59 54 54 59 49 59 | 48 59 48 13
     //Символ: =  V  9  1 <NUL> <sp> <D1> . <D2> <D3> <D4> ;  6  6  ;  1  ;  | 0  ;  0 <\r>
     //Номер:  0  1  2  3   4    5    6   7  8    9    10  11 12 13 14 15 16 | 17 18 19 20
@@ -769,7 +769,7 @@ void TIC_decode_HVE(void)
                     //На пине iHVE высокий потенциал - он блокирует работу DC-DC 24-12. Высокого напряжения нет.
                     //Контролируем onLevel (турбик), чтобы включить. Присланное значение должно быть равно или ниже порогового
                     if (Voltage <= TIC_HVE_onLevel) { Flags.iHVE = 0; } //Разрешаем высокое!
-					TIC_offlineCount &= 0b00111111;//отмечаем в журнале
+    				TIC_offlineCount = 0;//отмечаем в журнале
                     return;                }
                 else if ((Flags.iHVE == 0) && (TIC_MEM[4] == TIC_HVE_offGauge))
                 {
@@ -782,99 +782,103 @@ void TIC_decode_HVE(void)
                         Flags.iHVE = 1;
                         Flags.PRGE = 0;
                     }
-                    TIC_offlineCount &= 0b00111111;//отмечаем в журнале
+                    TIC_offlineCount = 0;//отмечаем в журнале
                     return;
                 }
             }
         }
     }
-	//*/
-	//В данный момент TIC не присылает показания в вольтах, поэтому тестово проверим совпадение сообщения давлением
-	/*
-	//Байт:   61 86 57 49  ?    32   ?   46 ?    ?    ?   ?  101 43  ?   ?  59 53 57 59 48 59 48 59 48 13
-	//Символ: =  V  9  1  <G>  <sp> [D]  . [D]  [D]  [D] [D] e   +  [D] [D] ;  5  9  ;  0  ;  0  ;  0 <\r>
-	//Номер:  0  1  2  3   4    5    6   7  8    9   10  11  12  13 14  15  16 17 18 19 20 21 22 23 24 25
-	if (TIC_MEM_length == 26)
-	{
-		if ((TIC_MEM[0] == 61) && (TIC_MEM[1] == 86) && (TIC_MEM[2] == 57) && (TIC_MEM[3] == 49) && 
-			(TIC_MEM[5] == 32) && (TIC_MEM[7] == 46) && (TIC_MEM[12] == 101) && (TIC_MEM[13] == 43) && 
-			(TIC_MEM[16] == 59) && (TIC_MEM[17] == 53)  && (TIC_MEM[18] == 57) && (TIC_MEM[19] == 59) &&
-			(TIC_MEM[20] == 48) && (TIC_MEM[21] == 59) && (TIC_MEM[22] == 48) && (TIC_MEM[23] == 59) && 
-			(TIC_MEM[24] == 48) && (TIC_MEM[25] == 13))
-		{
-			//Декодируем число, которое пришло вместе с сообщением
-			uint8_t Value[8];
-			Value[0] = TIC_decode_ASCII(TIC_MEM[6]);	//Единицы
-			Value[1] = TIC_decode_ASCII(TIC_MEM[8]);	//Десятые
-			Value[2] = TIC_decode_ASCII(TIC_MEM[9]);	//Сотые
-			Value[3] = TIC_decode_ASCII(TIC_MEM[10]);	//Тысячные
-			Value[4] = TIC_decode_ASCII(TIC_MEM[11]);	//Десятитысячные
-			Value[5] = TIC_decode_ASCII(TIC_MEM[14]);	//Десятки степени
-			Value[6] = TIC_decode_ASCII(TIC_MEM[15]);	//Единицы степени
-			switch(TIC_MEM[13])							//Знак степени
+    //*/
+    //Ответ TIC'a  в паскалях
+    //*9,3326e+02 и 1,3332e-02
+    //Байт:   61 86 57 49  ?    32   ?   46 ?    ?    ?   ?  101 43/45   ?   ?  59 53 57 59 | 48 59 48 59 48 13
+    //Символ: =  V  9  1  <G>  <sp> [D]  . [D]  [D]  [D] [D] e   [+/-]  [D] [D] ;  5  9  ;  | 0  ;  0  ;  0 <\r>
+    //Номер:  0  1  2  3   4    5    6   7  8    9   10  11  12   13    14  15  16 17 18 19 | 20 21 22 23 24 25
+    if ((TIC_MEM[0] == 61) && (TIC_MEM[1] == 86) && (TIC_MEM[2] == 57) && (TIC_MEM[3] == 49) && (TIC_MEM[5] == 32) && (TIC_MEM[7] == 46) && (TIC_MEM[12] == 101) && (TIC_MEM[16] == 59) && (TIC_MEM[17] == 53)  && (TIC_MEM[18] == 57) && (TIC_MEM[19] == 59))
+    {
+        //Декодируем число, которое пришло вместе с сообщением
+        uint8_t Value[5];
+        uint8_t Sign;
+        uint8_t Power[2];
+        Value[0] = TIC_decode_ASCII(TIC_MEM[6]);	//Единицы
+        Value[1] = TIC_decode_ASCII(TIC_MEM[8]);	//Десятые
+        Value[2] = TIC_decode_ASCII(TIC_MEM[9]);	//Сотые
+        Value[3] = TIC_decode_ASCII(TIC_MEM[10]);	//Тысячные
+        Value[4] = TIC_decode_ASCII(TIC_MEM[11]);	//Десятитысячные
+        Power[0] = TIC_decode_ASCII(TIC_MEM[14]);	//Десятки степени
+        Power[1] = TIC_decode_ASCII(TIC_MEM[15]);	//Единицы степени
+        switch (TIC_MEM[13])							//Знак степени
+        {
+            case 43: Sign = 1;					//+
+                break;
+            case 45: Sign = 0;					//-
+                break;
+            default: Sign = 255;
+                break;
+        }
+        if ((Value[0] != 255) && (Value[1] != 255) && (Value[2] != 255) && (Value[3] != 255) && (Value[4] != 255) && (Power[1] != 255) && (Power[0] != 255) && (Sign != 255))
+        {
+            //значение корректно! Составляем число с плавающей точкой (диапазон float от 3.14E-38 до 3.14E+38, но лучше меньше, впрочем давление больше или меньше чем 6-тая степень мы не получим)
+			float Pressure = 0;
+			Pressure = Value[0] + Value[1] * 0.1 + Value[2] * 0.01 + Value[3] * 0.001 + Value[4] * 0.0001;
+			uint8_t e = Power[0] * 10 + Power[1];
+			if (Sign == 1)
 			{
-				case 43: Value[7] = 1;					//+
-					break;
-				case 45: Value[7] = 0;					//-
-					break;
-				default: Value[7] = 255;				//Ошибка
-					break;
+				for (int i = 0; i < e; i++)
+				{
+					Pressure = Pressure * 10;
+				}
 			}
-			if ((Value[0] != 255) && (Value[1] != 255) && (Value[2] != 255) && (Value[3] != 255) && 
-			    (Value[4] != 255) && (Value[5] != 255) && (Value[6] != 255) && (Value[7] != 255))
-			{ 
-				//значение корректно! формируем суперзначение четырьмя тетрадами
-				int32_t Pressure = 0;
-				Pressure = Value[5];
-				Pressure = (Pressure << 4) + Value[6];
-				Pressure = (Pressure << 4) + Value[0];
-				Pressure = (Pressure << 4) + Value[1];
-				Pressure = (Pressure << 4) + Value[2];
-				Pressure = (Pressure << 4) + Value[3];
-				Pressure = (Pressure << 4) + Value[4];
-				//Смотрим от какого датчика
-				if (Value[7] == 0) { Pressure = -Pressure; }
-				//if ((Flags.iHVE == 1) && (TIC_MEM[4] == TIC_HVE_onGauge))
-				//{
-				//	//На пине iHVE высокий потенциал - он блокирует работу DC-DC 24-12. Высокого напряжения нет.
-				//	//Контролируем onLevel (турбик), чтобы включить. Присланное значение должно быть равно или ниже порогового
-				//	int32_t valve = 16777216;
-				//	if (Pressure <= valve) 
-				//	{ 
-				//		Flags.iHVE = 0; 
-				//	} //Разрешаем высокое!
-				//	//if (Pressure <= TIC_HVE_onLevel) { Flags.iHVE = 0; } //Разрешаем высокое!
-				//	return;
-				//}
-				//else if ((Flags.iHVE == 0) && (TIC_MEM[4] == TIC_HVE_offGauge))
-				//{
-				//	//На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть!
-				//	//Контролируем offLevel (форик), чтобы выключить. Присланное значение должно быть равно или выше порогового
-				//	int32_t valve = -10048576;
-				//	if (Pressure >= valve)
-				//	//if (Pressure >= TIC_HVE_offLevel)
-				//	{
-				//		//Выключаем высокое!
-				//		pin_iHVE_high;
-				//		Flags.iHVE = 1;
-				//		Flags.PRGE = 0;
-				//	}
-				//	return;
-				//}
-				return;
+			else
+			{
+				for (int i = 0; i < e; i++)
+				{
+					Pressure = Pressure * 0.1;
+				}
 			}
-			
-		}
-	}
-	//*/
+			//HVE разрешено? (метка: 500мкс)
+			if(Flags.iHVE == 1)
+			{
+				//НЕТ! На пине iHVE высокий потенциал - он блокирует работу DC-DC 24-12. Высокого напряжения нет.
+				//Контролируем onLevel (турбик), чтобы включить. Ответ прислал турбик?
+				if(TIC_MEM[4] == TIC_HVE_onGauge)
+				{
+					//Присланное значение должно быть ниже порогового onLevel
+					if (Pressure < TIC_HVE_onLevel)
+					{
+						//Разрешаем высокое!
+						Flags.iHVE = 0;
+					}
+				}
+			}
+			else
+			{
+				//ДА! На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть!
+				//Контролируем offLevel (форик), чтобы выключить.
+				if(TIC_MEM[4] == TIC_HVE_offGauge)
+				{
+					//Присланное значение должно быть равно или выше порогового offLevel
+					if (Pressure > TIC_HVE_offLevel)
+					{
+						//Выключаем высокое!
+						pin_iHVE_high;
+						Flags.iHVE = 1;
+						Flags.PRGE = 0;
+					}
+				}
+			}
+            return;
+        }
+    }
+    //*/
     //Если в декодироваке пошло что-то не так то спускаемся сюда.
     //Вопервых вырубаем HVE. TIC что-то темнит
     pin_iHVE_high;
     Flags.iHVE = 1;
     Flags.PRGE = 0;
     Errors_USART_TIC.HVE_error = 1;
-	TIC_offlineCount &= 0b00111111;//отмечаем в журнале
-    transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_decode, TIC_MEM_length);
+    TIC_offlineCount = 0;//отмечаем в журнале
+    //transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_decode, TIC_MEM_length);
     return;
 }
 uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
@@ -1099,8 +1103,10 @@ void checkFlag_HVE(void)
 {
     //ФУНКЦИЯ: Возвращает всё о HVE
     //ПАКЕТ: <Command><pin_iHVE><Flags.HVE><onGauge><onLevel[1]><onLevel[0]><offGauge><offLevel[1]><offLevel[1]><monitoringEnabled>
-    uint8_t DATA[] = {COMMAND_Flags_HVE, ((PORTC.OUT & 8) >> 3), Flags.iHVE, TIC_HVE_onGauge, (TIC_HVE_onLevel >> 8), TIC_HVE_onLevel, TIC_HVE_offGauge, (TIC_HVE_offLevel >> 8), TIC_HVE_offLevel, TIC_timer.CTRLA };
-    transmit(DATA, 10);
+    //uint8_t DATA[] = {COMMAND_Flags_HVE, ((PORTC.OUT & 8) >> 3), Flags.iHVE, TIC_HVE_onGauge, (TIC_HVE_onLevel >> 8), TIC_HVE_onLevel, TIC_HVE_offGauge, (TIC_HVE_offLevel >> 8), TIC_HVE_offLevel, TIC_timer.CTRLA };
+    //transmit(DATA, 10);
+	uint8_t DATA[] = {COMMAND_Flags_HVE, ((PORTC.OUT & 8) >> 3), Flags.iHVE};
+	transmit(DATA, 3);
 }
 void checkFlag_PRGE(void)
 {
@@ -1351,7 +1357,7 @@ int main(void)
     {
         if (MC_Tasks.turnOnHVE)
         {
-            pin_iHVE_low; //Включаем DC-DC 24-12
+            //pin_iHVE_low; //Включаем DC-DC 24-12 <!>PROTECTED<!>
 			//PORTC.OUTCLR = 8; ЗАЩИТА
             cpu_delay_ms(2000, 32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
             //Высокое напряжение включено - конфигурируем DACи

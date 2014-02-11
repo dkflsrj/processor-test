@@ -1176,8 +1176,7 @@ namespace Xmega32A4U_testBoard
                     List<byte> rDATA = MC.Service.transmit(Command.Flags.HVE);
                     try
                     {
-                        if (rDATA[1] == rDATA[2]) { if (rDATA[1] == 0) { return "Enabled"; } else { return "Blocked"; } }
-                        else { MC.Service.trace(command + ": Внутренняя ошибка! Не совпадение pin_iHVE и Flags.iHVE!"); }
+                        if (rDATA[1] == 0) { return "Enabled"; } else { return "Blocked"; } 
                     }
                     catch { MC.Service.trace(command + ": Ошибка данных!"); }
                     return "?";
