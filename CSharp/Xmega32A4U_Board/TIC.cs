@@ -871,10 +871,21 @@ namespace Xmega32A4U_testBoard
             public static class Pump
             {
                 /// <summary>
-                /// Включает или выключает насос
+                /// Включает турбомолекулярный насос
                 /// </summary>
-                /// <param name="OnOrOff">"On" или "Off" (CodeList.Turn)</param>
-                public static void turn(string OnOrOff) { toTIC_C(CodeLists.Address.Turbo_Pump, CodeBase.Turn.find(OnOrOff)); }
+                public static void turnOn() 
+                {
+                    toTIC_C(CodeLists.Address.Turbo_Pump, "1"); 
+                }
+                /// <summary>
+                /// Выключает турбомолекулярный насос.
+                /// <para>ПРИМЕЧАНИЕ: При этом выключаются высокие напряжения (PRGE = Off)</para>
+                /// </summary>
+                public static void turnOff()
+                {
+                    MC.Flags.PRGE = "Off";
+                    toTIC_C(CodeLists.Address.Turbo_Pump, "0");
+                }
                 /// <summary>
                 /// Возвращает состояние Turbo Pump
                 /// </summary>

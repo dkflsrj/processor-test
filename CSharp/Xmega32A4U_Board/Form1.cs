@@ -729,41 +729,57 @@ namespace Xmega32A4U_testBoard
 
         private void BTN_TIC_TRB_ON_Click(object sender, EventArgs e)
         {
-            TIC.Turbo.Pump.turn("On");
+            TIC.Turbo.Pump.turnOn();
             LBL_TIC_FOR_State.Text = TIC.Turbo.Pump.state;
         }
 
         private void BTN_TIC_TRB_OFF_Click(object sender, EventArgs e)
         {
-            TIC.Turbo.Pump.turn("Off");
+            TIC.Turbo.Pump.turnOff();
             LBL_TIC_FOR_State.Text = TIC.Turbo.Pump.state;
         }
 
         private void BTN_TIC_Gauge1_Update_Click(object sender, EventArgs e)
         {
-            LBL_TIC_Gauge1_type.Text = TIC.Gauge_1.type;
+            //LBL_TIC_Gauge1_type.Text = TIC.Gauge_1.type;
             string buf_1 = "";
             string buf_2 = "";
-            TIC.Gauge_1.Gas_type(ref buf_1, ref buf_2);
-            LBL_TIC_Gauge1_gasType.Text = buf_1;
-            LBL_TIC_Gauge1_Filter.Text = buf_2;
-            LBL_TIC_Gauge1_name.Text = TIC.Gauge_1.name;
+            //TIC.Gauge_1.Gas_type(ref buf_1, ref buf_2);
+            //LBL_TIC_Gauge1_gasType.Text = buf_1;
+            //LBL_TIC_Gauge1_Filter.Text = buf_2;
+            //LBL_TIC_Gauge1_name.Text = TIC.Gauge_1.name;
             LBL_TIC_Gauge1_value.Text = TIC.Gauge_1.value(ref buf_1, ref buf_2);
             LBL_TIC_Gauge1_value.Text += " " + buf_1;
             LBL_TIC_Gauge1_state.Text = buf_2;
         }
         private void BTN_TIC_Gauge2_Update_Click(object sender, EventArgs e)
         {
-            LBL_TIC_Gauge2_type.Text = TIC.Gauge_2.type;
+            //LBL_TIC_Gauge2_type.Text = TIC.Gauge_2.type;
             string buf_1 = "";
             string buf_2 = "";
-            TIC.Gauge_2.Gas_type(ref buf_1, ref buf_2);
-            LBL_TIC_Gauge2_gasType.Text = buf_1;
-            LBL_TIC_Gauge2_Filter.Text = buf_2;
-            LBL_TIC_Gauge2_name.Text = TIC.Gauge_2.name;
+            LBL_TIC_TRB_Speed.Text = TIC.Turbo.speed.value + "%";
+            LBL_TIC_TRB_Power.Text = TIC.Turbo.power + "Вт";
+            //TIC.Gauge_2.Gas_type(ref buf_1, ref buf_2);
+            //LBL_TIC_Gauge2_gasType.Text = buf_1;
+            //LBL_TIC_Gauge2_Filter.Text = buf_2;
+            //LBL_TIC_Gauge2_name.Text = TIC.Gauge_2.name;
             LBL_TIC_Gauge2_value.Text = TIC.Gauge_2.value(ref buf_1, ref buf_2);
             LBL_TIC_Gauge2_value.Text += " " + buf_1;
             LBL_TIC_Gauge2_state.Text = buf_2;
+            LBL_TIC_Gauge1_value.Text = TIC.Gauge_1.value(ref buf_1, ref buf_2);
+            LBL_TIC_Gauge1_value.Text += " " + buf_1;
+            LBL_TIC_Gauge1_state.Text = buf_2;
+            LBL_TIC_FOR_Speed.Text = TIC.Backing.speed + "%";
+            LBL_TIC_FOR_Power.Text = TIC.Backing.power + "Вт";
+            switch (MC.Flags.HVE)
+            {
+                case "Enabled": CHB_iHVE.CheckState = CheckState.Checked;
+                    break;
+                case "Blocked": CHB_iHVE.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_iHVE.CheckState = CheckState.Indeterminate;
+                    break;
+            }
         }
 
     }
