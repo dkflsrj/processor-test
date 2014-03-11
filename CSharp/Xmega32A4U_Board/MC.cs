@@ -49,6 +49,8 @@ namespace Xmega32A4U_testBoard
             //Номера асинхронных сообщений (обрати внимание)
             public const byte RTC_end = 1;      //RTC закончил измерение
             public const byte SPI_conf_done = 2;//После включения HVE все SPI устройства были настроены!
+            public const byte TIC_approve_HVE = 3; //TIC разрешает включение высоких напряжений
+            public const byte TIC_disapprove_HVE = 4; //TIC запрещает включение высоких напряжений
         }
         #endregion
         #region Коды критических ошибок
@@ -708,21 +710,6 @@ namespace Xmega32A4U_testBoard
             /// </summary>
             public static uint TIC_TimeOut = 25000;              //тайм аут для передачи и приёма для TIC'a
             /// <summary>
-            /// Событие: МК сообщает о том, что после включения
-            /// <para>высоких напряжений все SPI устройства настроены</para>
-            /// </summary>
-            public static EventCallBack SPI_devices_ready;
-            /// <summary>
-            /// Событие: МК выключил высокое напряжение из-за того, 
-            /// <para>что TIC прислал не корректное сообщение.</para>
-            /// </summary>
-            public static EventCallBack CriticalError_HVE_decoder;
-            /// <summary>
-            /// Событие: МК выключил высокое напряжение из-за того,
-            /// <para>что TIC не отвечал более 3 раз.</para>
-            /// </summary>
-            public static EventCallBack CriticalError_HVE_TIC_noResponse;
-            /// <summary>
             /// Задаёт трейсер для вывода сообщений (отладочное)
             /// </summary>
             public static void setTracer(RichTextBox TRACER)
@@ -899,6 +886,16 @@ namespace Xmega32A4U_testBoard
                                 message += "\r LAM:Высокое напряжение включено, SPI устройства настроены!";
                                 trace(message);
                                 if (SPI_devices_ready != null) { SPI_devices_ready.Invoke(); }
+                                break;
+                            case LAM.TIC_approve_HVE:
+                                message += "\r LAM:TIC даёт добро на включение высокого напряжения";
+                                trace(message);
+                                if (TIC_approve_HVE != null) { TIC_approve_HVE.Invoke(); }
+                                break;
+                            case LAM.TIC_disapprove_HVE:
+                                message += "\r LAM:TIC запретил высокие напряжения!";
+                                trace(message);
+                                if (TIC_disapprove_HVE != null) { TIC_disapprove_HVE.Invoke(); }
                                 break;
                             default:
                                 message += "\r МК хочет чтобы на него обратили внимание, но не понятно почему! " + DATA[1];
@@ -1176,7 +1173,7 @@ namespace Xmega32A4U_testBoard
                     List<byte> rDATA = MC.Service.transmit(Command.Flags.HVE);
                     try
                     {
-                        if (rDATA[1] == 0) { return "Enabled"; } else { return "Blocked"; } 
+                        if (rDATA[2] == 0) { return "Enabled"; } else { return "Blocked"; } 
                     }
                     catch { MC.Service.trace(command + ": Ошибка данных!"); }
                     return "?";
@@ -1184,6 +1181,9 @@ namespace Xmega32A4U_testBoard
             }
             /// <summary>
             /// Разрешение оператора на включение высокого напряжения.
+            /// <para>ВАЖНО: После включения высоких напряжений микроконтроллер</para>
+            /// <para>пришлёт LAM сигнал через 4 секунды (EventCallBack) SPI_devices_ready.</para>
+            /// <para>До этого момента к микроконтроллер будет игнорировать любые команды компьютера.</para>
             /// <para>Возвращает: "On" - включено\включить, </para>
             /// <para>"Off" - выключено\выключить,  </para>
             /// <para>Если попытаться включить высокое напряжение при запрете по TIC'у,</para>
@@ -1505,6 +1505,31 @@ namespace Xmega32A4U_testBoard
             }
             MC.Service.trace(message);
         }
+        /// <summary>
+        /// Событие: МК сообщает о том, что после включения
+        /// <para>высоких напряжений все SPI устройства настроены</para>
+        /// </summary>
+        public static EventCallBack SPI_devices_ready;
+        /// <summary>
+        /// Событие: МК сообщает о том, что TIC даёт добро на 
+        /// <para>включение высоких напряжений.</para>
+        /// </summary>
+        public static EventCallBack TIC_approve_HVE;
+        /// <summary>
+        /// Событие: МК сообщает о том, что TIC даёт запрещает 
+        /// <para>включение высоких напряжений.</para>
+        /// </summary>
+        public static EventCallBack TIC_disapprove_HVE;
+        /// <summary>
+        /// Событие: МК выключил высокое напряжение из-за того, 
+        /// <para>что TIC прислал не корректное сообщение.</para>
+        /// </summary>
+        public static EventCallBack CriticalError_HVE_decoder;
+        /// <summary>
+        /// Событие: МК выключил высокое напряжение из-за того,
+        /// <para>что TIC не отвечал более 3 раз.</para>
+        /// </summary>
+        public static EventCallBack CriticalError_HVE_TIC_noResponse;
         #endregion
         #region---------------------------------ВНУТРЕННИЕ ФУНКЦИИ-------------------------------------
         //ОТЛАДОЧНЫЕ

@@ -22,8 +22,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										159
-#define birthday									20140210//Счётчики
+#define version										161
+#define birthday									20140305//Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
 #define RTC_Status_busy								2		//Счётчики ещё считает
@@ -40,19 +40,33 @@
 #define AD5643R_confHbyte							56
 #define AD5643R_confMbyte							0
 #define AD5643R_confLbyte							1
-//Стартовые напряжения для DAC AD5643R -> 8131 (половина диапазона)
-#define AD5643R_startVoltage_Hbyte					24		//Адрес
-#define AD5643R_startVoltage_Mbyte					127		//Старший байт напряжения
-#define AD5643R_startVoltage_Lbyte					252		//Младший байт напряжения с 2 пустыми младшими битами
+//Стартовые напряжения для DAC AD5643R MSV Scan (сканирующее) = 2000
+#define AD5643R_startVoltage_Hbyte_MSV_S			25	//Адрес
+#define AD5643R_startVoltage_Mbyte_MSV_S			31	//Старший байт напряжения
+#define AD5643R_startVoltage_Lbyte_MSV_S			64	//Младший байт напряжения с 2 пустыми младшими битами
+//Стартовые напряжения для DAC AD5643R MSV Scan (дополнительное) = 1500
+#define AD5643R_startVoltage_Hbyte_MSV_PS			24
+#define AD5643R_startVoltage_Mbyte_MSV_PS			23
+#define AD5643R_startVoltage_Lbyte_MSV_PS			112
+//Стартовые напряжения для DAC AD5643R MSV Cap (конденсатор) = 500
+#define AD5643R_startVoltage_Hbyte_MSV_C			24
+#define AD5643R_startVoltage_Mbyte_MSV_C			7
+#define AD5643R_startVoltage_Lbyte_MSV_C			208
 //Стартовые конфигурации для DAC AD5328R -> двойной референс
 #define AD5328R_confHbyte							128
 #define AD5328R_confLbyte							60
-//Стартовые напряжение PSIS EC (тока эмиссии)
+//Стартовые напряжение PSIS EC (тока эмиссии) - 2,44мкА
 #define AD5328R_startVoltage_Hbyte_PSIS_EC			0
 #define AD5328R_startVoltage_Lbyte_PSIS_EC			200
-//Стартовые напряжения DAC PSIS IV,F1,F2 (ионизации, фокусные)
-#define AD5328R_startVoltage_Hbyte_PSIS_IV			29
-#define AD5328R_startVoltage_Lbyte_PSIS_IV			172
+//Стартовые напряжения DAC PSIS IV (ионизации) - 3600 - 80В
+#define AD5328R_startVoltage_Hbyte_PSIS_IV			30
+#define AD5328R_startVoltage_Lbyte_PSIS_IV			16
+//Стартовые напряжения DAC PSIS F1 (фокусное 1) - 4000
+#define AD5328R_startVoltage_Hbyte_PSIS_F1			47
+#define AD5328R_startVoltage_Lbyte_PSIS_F1			160
+//Стартовые напряжения DAC PSIS F2 (фокусное 2) - 4000
+#define AD5328R_startVoltage_Hbyte_PSIS_F2			63
+#define AD5328R_startVoltage_Lbyte_PSIS_F2			160
 
 //----------------------------------------ПЕРЕМЕННЫЕ----------------------------------------------
 //	МИКРОКОНТРОЛЛЕР
@@ -73,10 +87,11 @@ uint8_t TIC_buf = 0;									//Буфер приёма. Содержит любой принятый байт (даже 
 uint8_t TIC_State = 0;									//Состояние модуля USART_TIC
 uint8_t TIC_HVE_Message[6] = {63, 86, 57, 49, 0, 13};	//char'ы сообщения на запрос давления {?V91<NUL><\r>} (1 торр = 133,322368 Па)
 uint8_t TIC_HVE_onGauge = 52;							//последний char адреса датчика (турбика). По умолчанию: Gauge_2
-float TIC_HVE_onLevel = 6.5000E-02;//1.3332E-02;						//четыре тетрады порога напряжения (турбика). По умолчанию: 2.000V (e-4 торр = 0,0133322368 Па -> 1,3332e-02)
+float TIC_HVE_onLevel = 1.3332E-02;						//четыре тетрады порога напряжения (турбика). По умолчанию: 2.000V (e-4 торр = 0,0133322368 Па -> 1,3332e-02)
 uint8_t TIC_HVE_offGauge = 51;							//последний char адреса датчика (форнасоса). По умолчанию: Gauge_1
 float TIC_HVE_offLevel = 9.3326E+02;					//четыре тетрады порога напряжения (форнасоса). По умолчанию: 6.700V (7 торр = 933,256576 Па -> 9,3326e+02)
-uint8_t TIC_offlineCount = 0;							//Количество запросов, которые проигнорировал. 3 раза и считается аварией.
+uint8_t TIC_HVE_offlineCount = 0;						//Количество запросов, которые проигнорировал. 3 раза и считается аварией.
+uint8_t TIC_HVE_Error_sent = 0;							//Булка: 0 - ошибка не отправлена компьютеру, 1 - ошибка уже отправлена компьютеру
 //		Измерения
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
 uint16_t RTC_ElapsedTime = 0;
@@ -203,7 +218,6 @@ void transmit_2bytes(uint8_t DATA_1, uint8_t DATA_2);
 void transmit_3bytes(uint8_t DATA_1, uint8_t DATA_2, uint8_t DATA_3);
 void MC_transmit_Birthday(void);
 void MC_transmit_CPUfreq(void);
-void MC_reset(void);
 void COUNTERS_start(void);
 void COUNTERS_sendResults(void);
 void COUNTERS_stop(void);
@@ -211,7 +225,6 @@ bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel, EVSYS_DIGFILT_t filterCoefficient);
 void decode(void);
 void TIC_retransmit(void);
-void TIC_transmit(void);
 void TIC_request_HVE(void);
 void TIC_decode_HVE(void);
 uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol);
@@ -324,7 +337,7 @@ ISR(USARTE0_RXC_vect)
             if (TIC_buf == 13)
             {
                 //Если декодировка прошла удачно, то отмечаем в журнале
-                if (TIC_decode_HVE()) { TIC_offlineCount = 0; }
+                if (TIC_decode_HVE()) { TIC_HVE_offlineCount = 0; }
                 //При неудачной декодировке HVE уже выключено в декодере
 				TIC_MEM_length = 0;
 				TIC_timer.CTRLA = TC_125kHz;	//запускаем таймер снова
@@ -365,11 +378,11 @@ ISR(RTC_OVF_vect)
 		//Ждём пока можно будет обратиться к регистрам RTC
 	}
 	RTC.CNT = 0;
-    sei();
-    //сохраняем результаты
-    COA_Measurment = COA.CNT;
-    COB_Measurment = COB.CNT;
-    COC_Measurment = COC.CNT;
+	sei();
+	//сохраняем результаты
+	COA_Measurment = COA.CNT;
+	COB_Measurment = COB.CNT;
+	COC_Measurment = COC.CNT;
     RTC_setStatus_ready;
     //Отправляем асинхронное сообщение
     transmit_3bytes(TOCKEN_LookAtMe, LAM_RTC_end, RTC_Status);
@@ -437,14 +450,18 @@ static void ISR_TIC_timer(void)
             break;
         case USART_State_HVEreceiving:	//TIC не завершил передачу! Или вообще не вышел на связь!
 			cli();
-			TIC_offlineCount += 1;
-			if(TIC_offlineCount > 2)
+			TIC_HVE_offlineCount += 1;
+			if(TIC_HVE_offlineCount > 2)
 			{
 				//TIC не вышел на связь и в третий раз! Что-то нетак! Принимаем меры!
 				pin_iHVE_high;						//блокируем HVE
 				Flags.iHVE = 1;
 				Flags.PRGE = 0;
-				//transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_noResponse, TIC_MEM_length);
+				if(TIC_HVE_Error_sent == 0)
+				{
+					transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_noResponse, TIC_MEM_length);
+					TIC_HVE_Error_sent = 1;
+				}
 			}
 			sei();
 			Errors_USART_TIC.HVE_TimeOut = 1;		//Отмечаем в журнале
@@ -507,8 +524,6 @@ void decode(void)
         case COMMAND_COUNTERS_sendResults:			COUNTERS_sendResults();
             break;
         case COMMAND_COUNTERS_stop:					COUNTERS_stop();
-            break;
-        case COMMAND_MC_reset:						MC_reset();
             break;
         case COMMAND_TIC_retransmit:				TIC_retransmit();
             break;
@@ -623,15 +638,6 @@ void MC_transmit_Birthday(void)
     uint8_t data[] = {COMMAND_MC_get_Birthday, (uint8_t)MC_birthday, (uint8_t)(MC_birthday >> 8), (uint8_t)(MC_birthday >> 16), (uint8_t)(MC_birthday >> 24)};
     transmit(data, 5);
 }
-void MC_reset(void)
-{
-    //ФУНКЦИЯ: Перезагружаем МК
-    //ВНИМАНИЕ: Нужно уделить особое внимание состоянию системы перед перезагрузкой, навести порядок
-    cpu_irq_disable();
-    uint8_t data[] = {COMMAND_MC_reset};
-    transmit(data, 1);
-    RST.CTRL = 1;
-}
 //COUNTERS
 void COUNTERS_start(void)
 {
@@ -646,6 +652,7 @@ void COUNTERS_start(void)
             //Ждём пока можно будет обратиться к регистрам RTC
         }
         RTC.PER = (PC_MEM[2] << 8) + PC_MEM[3];
+		//RTC.PER = 3277;
         COA_Measurment = 0;
         COB_Measurment = 0;
         COC_Measurment = 0;
@@ -666,15 +673,16 @@ void COUNTERS_start(void)
         {
             //Ждём пока можно будет обратиться к регистрам RTC
         }
+        RTC.CTRL = PC_MEM[1];
         asm(
             "LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
             "LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
             "LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
-            "LDS R19, 0x206D	\n\t"//RTC: Адрес RTC_Prescaler  = 0x206D
+            //"LDS R19, 0x2078	\n\t"//RTC: Адрес RTC_Prescaler  = 0x2078
             "STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
             "STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
             "STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
-            "STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_MeasurePrescaler(@0x206D)
+            //"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_MeasurePrescaler(@0x2078)
         );
         //отчёт
         transmit_2bytes(COMMAND_COUNTERS_start, RTC_Status);
@@ -696,22 +704,22 @@ void COUNTERS_sendResults(void)
     wDATA[1] = RTC_Status;
     if (RTC_Status == RTC_Status_ready)
     {
-        wDATA[2] = (COA_OVF >> 8);
-        wDATA[3] =	COA_OVF;
-        wDATA[4] = (COA_Measurment >> 8);
-        wDATA[5] =	COA_Measurment;
-        wDATA[6] = (COB_OVF >> 8);
-        wDATA[7] =	COB_OVF;
-        wDATA[8] = (COB_Measurment >> 8);
-        wDATA[9] =	COB_Measurment;
-        wDATA[10] = (COC_OVF >> 8);
-        wDATA[11] =	 COC_OVF;
-        wDATA[12] = (COC_Measurment >> 8);
-        wDATA[13] =  COC_Measurment;
-    	wDATA[14] = (RTC_ElapsedTime >> 8);
-    	wDATA[15] = RTC_ElapsedTime;
-    	wDATA[16] = RTC_MeasurePrescaler;
-    }
+	    wDATA[2] = (COA_OVF >> 8);
+	    wDATA[3] = COA_OVF;
+	    wDATA[4] = (COA_Measurment >> 8);
+	    wDATA[5] = COA_Measurment;
+	    wDATA[6] = (COB_OVF >> 8);
+	    wDATA[7] = COB_OVF;
+	    wDATA[8] = (COB_Measurment >> 8);
+	    wDATA[9] = COB_Measurment;
+	    wDATA[10] = (COC_OVF >> 8);
+	    wDATA[11] =	 COC_OVF;
+	    wDATA[12] = (COC_Measurment >> 8);
+	    wDATA[13] =  COC_Measurment;
+	    wDATA[14] = (RTC_ElapsedTime >> 8);
+	    wDATA[15] = RTC_ElapsedTime;
+	    wDATA[16] = RTC_MeasurePrescaler;
+	}
     transmit(wDATA, 17);
 }
 void COUNTERS_stop(void)
@@ -769,7 +777,7 @@ void TIC_decode_HVE(void)
                     //На пине iHVE высокий потенциал - он блокирует работу DC-DC 24-12. Высокого напряжения нет.
                     //Контролируем onLevel (турбик), чтобы включить. Присланное значение должно быть равно или ниже порогового
                     if (Voltage <= TIC_HVE_onLevel) { Flags.iHVE = 0; } //Разрешаем высокое!
-    				TIC_offlineCount = 0;//отмечаем в журнале
+    				TIC_HVE_offlineCount = 0;//отмечаем в журнале
                     return;                }
                 else if ((Flags.iHVE == 0) && (TIC_MEM[4] == TIC_HVE_offGauge))
                 {
@@ -782,7 +790,7 @@ void TIC_decode_HVE(void)
                         Flags.iHVE = 1;
                         Flags.PRGE = 0;
                     }
-                    TIC_offlineCount = 0;//отмечаем в журнале
+                    TIC_HVE_offlineCount = 0;//отмечаем в журнале
                     return;
                 }
             }
@@ -820,7 +828,7 @@ void TIC_decode_HVE(void)
         {
             //значение корректно! Составляем число с плавающей точкой (диапазон float от 3.14E-38 до 3.14E+38, но лучше меньше, впрочем давление больше или меньше чем 6-тая степень мы не получим)
 			float Pressure = 0;
-			Pressure = Value[0] + Value[1] * 0.1 + Value[2] * 0.01 + Value[3] * 0.001 + Value[4] * 0.0001;
+			Pressure = Value[0] + Value[1] * 0.1 + Value[2] * 0.01 + Value[3] * 0.001 + Value[4] * 0.0001;//очень долгая операция
 			uint8_t e = Power[0] * 10 + Power[1];
 			if (Sign == 1)
 			{
@@ -847,8 +855,11 @@ void TIC_decode_HVE(void)
 					if (Pressure < TIC_HVE_onLevel)
 					{
 						//Разрешаем высокое!
-						Flags.iHVE = 0;
+						Flags.iHVE = 0; //Сюда наверное нужно что-то вроде лама - "можно включать"
+						transmit_2bytes(TOCKEN_LookAtMe, LAM_HVE_TIC_approve);
 					}
+					TIC_HVE_Error_sent = 0;	//Всё штатно, будем посылать LAM при ошибке
+					TIC_HVE_offlineCount = 0;//обнуляем счётчик ошибок
 				}
 			}
 			else
@@ -864,7 +875,10 @@ void TIC_decode_HVE(void)
 						pin_iHVE_high;
 						Flags.iHVE = 1;
 						Flags.PRGE = 0;
+						transmit_2bytes(TOCKEN_LookAtMe, LAM_HVE_TIC_disapprove);
 					}
+					TIC_HVE_Error_sent = 0;	//Система работает штатно, будем посылать LAM при ошибке
+					TIC_HVE_offlineCount = 0;//обнуляем счётчик ошибок
 				}
 			}
             return;
@@ -872,14 +886,22 @@ void TIC_decode_HVE(void)
     }
     //*/
     //Если в декодироваке пошло что-то не так то спускаемся сюда.
-    //Вопервых вырубаем HVE. TIC что-то темнит
-    pin_iHVE_high;
-    Flags.iHVE = 1;
-    Flags.PRGE = 0;
+    //Вопервых вырубаем HVE. TIC что-то темнит.
+	TIC_HVE_offlineCount++;
+	if(TIC_HVE_offlineCount > 2)
+	{
+		//TIC мелет чушь и в третий раз! Что-то нетак! Принимаем меры!
+		pin_iHVE_high;						//блокируем HVE
+		Flags.iHVE = 1;
+		Flags.PRGE = 0;
+		if(TIC_HVE_Error_sent == 0)
+		{
+			transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_decode, TIC_MEM_length);
+			TIC_HVE_Error_sent = 1;
+		}
+		TIC_HVE_offlineCount = 0;//обнуляем счётчик ошибок
+	}
     Errors_USART_TIC.HVE_error = 1;
-    TIC_offlineCount = 0;//отмечаем в журнале
-    //transmit_3bytes(TOCKEN_CRITICAL_ERROR, CRITICAL_ERROR_TIC_HVE_error_decode, TIC_MEM_length);
-    return;
 }
 uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
 {
@@ -912,23 +934,6 @@ void TIC_retransmit(void)
     //for (uint8_t i = 0; i < TIC_MEM_length; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
     //TIC_timer.CTRLA = TC_500kHz;			//Запускаем таймер на 6мс
 }
-void TIC_transmit(void)
-{
-    //ФУНКЦИЯ:
-    cli_TIC;
-    usart_putchar(USART_TIC, 33);
-    usart_putchar(USART_TIC, 83);
-    usart_putchar(USART_TIC, 57);
-    usart_putchar(USART_TIC, 50);
-    usart_putchar(USART_TIC, 53);
-    usart_putchar(USART_TIC, 32);
-    usart_putchar(USART_TIC, 49);
-    usart_putchar(USART_TIC, 53);
-    usart_putchar(USART_TIC, 13);
-    sei_TIC;
-    //ждём ответа от TIC
-    //Пересылаем ответ на ПК
-}
 void TIC_request_HVE(void)
 {
     //ФУНКЦИЯ: Запрашиваем у TIC'а давление
@@ -942,12 +947,12 @@ void TIC_set_Gauges(void)
     //ПОЯСНЕНИЯ: <Command><onGauge><onLevel_1><onLevel_0><offGauge><offLevel_1><offLevel_0>
     //Состояние на момент выполнения операции должно быть ready, иначе операция отменяется
     //Возвращает состояние TIC
-    transmit_2bytes(COMMAND_TIC_set_Gauges, TIC_State);
-    while (TIC_State != USART_State_ready) { }	//Ждём
-    TIC_HVE_onGauge = PC_MEM[1];
-    TIC_HVE_onLevel = (PC_MEM[2] << 8) + PC_MEM[3];
-    TIC_HVE_offGauge = PC_MEM[4];
-    TIC_HVE_offLevel = (PC_MEM[5] << 8) + PC_MEM[6];
+    //transmit_2bytes(COMMAND_TIC_set_Gauges, TIC_State);
+    //while (TIC_State != USART_State_ready) { }	//Ждём
+    //TIC_HVE_onGauge = PC_MEM[1];
+    //TIC_HVE_onLevel = (PC_MEM[2] << 8) + PC_MEM[3];
+    //TIC_HVE_offGauge = PC_MEM[4];
+    //TIC_HVE_offLevel = (PC_MEM[5] << 8) + PC_MEM[6];
 }
 void TIC_send_TIC_MEM(void)
 {
@@ -1124,7 +1129,7 @@ void checkFlag_PRGE(void)
         case 1://и если iHVE ноль - TIC даёт добро, на высокое напряжение - установка в единицу
             if (Flags.iHVE == 0)
             {
-                //То выдаль логический ноль на iHVE (низкий потенциал разрешает работу DC-DC 24-12)
+                //То выдать логический ноль на iHVE (низкий потенциал разрешает работу DC-DC 24-12)
                 Flags.PRGE = 1;	//Оператор даёт добро
                 MC_Tasks.turnOnHVE = 1;//начать всяческие настроки DAC'ов после разбора флагов
                 break;
@@ -1331,7 +1336,7 @@ int main(void)
     SPIC.CTRL = 87;						//Инициируем систему SPI
     RTC_init;							//Инициируем счётчик реального времени
     Counters_init;						//Инициируем счётчики импульсов
-    USART_PC_init;					//Инициируем USART с компутером
+    USART_PC_init;						//Инициируем USART с компутером
     USART_TIC_init;						//Инициируем USART с насосемъ
     //Конечная инициализация
     pointer_Flags = &Flags;
@@ -1357,31 +1362,11 @@ int main(void)
     {
         if (MC_Tasks.turnOnHVE)
         {
-            //pin_iHVE_low; //Включаем DC-DC 24-12 <!>PROTECTED<!>
-			//PORTC.OUTCLR = 8; ЗАЩИТА
+			cli_PC;
+            pin_iHVE_low; //Включаем DC-DC 24-12
             cpu_delay_ms(2000, 32000000); //iHVE включает довольно иннерционную цепь, поэтому надо обождать.
             //Высокое напряжение включено - конфигурируем DACи
-            //MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
-            uint8_t SPI_DATA[] = {AD5643R_confHbyte, AD5643R_confMbyte, AD5643R_confLbyte};
-            spi_select_device(&SPIC, &DAC_Condensator);
-            spi_select_device(&SPIC, &DAC_Scaner);
-            spi_write_packet(&SPIC, SPI_DATA, 3);
-            spi_deselect_device(&SPIC, &DAC_Condensator);
-            spi_deselect_device(&SPIC, &DAC_Scaner);
-            //MSV DAC'и AD5643R (Конденсатор и сканер) - стартовое напряжение на первых каналах
-            SPI_DATA[0] = AD5643R_startVoltage_Hbyte;
-            SPI_DATA[1] = AD5643R_startVoltage_Mbyte;
-            SPI_DATA[2] = AD5643R_startVoltage_Lbyte;
-            spi_select_device(&SPIC, &DAC_Scaner);
-            spi_select_device(&SPIC, &DAC_Condensator);
-            spi_write_packet(&SPIC, SPI_DATA, 3);
-            spi_deselect_device(&SPIC, &DAC_Scaner);
-            spi_deselect_device(&SPIC, &DAC_Condensator);
-            //MSV DAC AD5643R (Сканер) - стартовое напряжение на первом канале
-            SPI_DATA[0] = AD5643R_startVoltage_Hbyte + 1;
-            spi_select_device(&SPIC, &DAC_Scaner);
-            spi_write_packet(&SPIC, SPI_DATA, 3);
-            spi_deselect_device(&SPIC, &DAC_Scaner);
+			uint8_t SPI_DATA[] = {0,0,0};
             //DPS + PSIS DAC'и AD5328R (Детектор и Ионный Источник) - двойной референс
             SPI_DATA[0] = AD5328R_confHbyte;
             SPI_DATA[1] = AD5328R_confLbyte;
@@ -1391,18 +1376,60 @@ int main(void)
             spi_deselect_device(&SPIC, &DAC_Detector);
             spi_deselect_device(&SPIC, &DAC_IonSource);
             //ОТКЛЮЧЕНО по электротехническим причинам!
-			//PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на первом канале (Ток Эмиссии)
-			SPI_DATA[0] = AD5328R_startVoltage_Hbyte_PSIS_EC;
-			SPI_DATA[1] = AD5328R_startVoltage_Lbyte_PSIS_EC;
-			spi_select_device(&SPIC,&DAC_IonSource);
-			spi_write_packet(&SPIC, SPI_DATA, 2);
-			spi_deselect_device(&SPIC,&DAC_IonSource);
+            //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на первом канале (Ток Эмиссии)
+            SPI_DATA[0] = AD5328R_startVoltage_Hbyte_PSIS_EC;
+            SPI_DATA[1] = AD5328R_startVoltage_Lbyte_PSIS_EC;
+            spi_select_device(&SPIC,&DAC_IonSource);
+            spi_write_packet(&SPIC, SPI_DATA, 2);
+            spi_deselect_device(&SPIC,&DAC_IonSource);
             //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на втором канале (Ионизации)
             SPI_DATA[0] = AD5328R_startVoltage_Hbyte_PSIS_IV;
             SPI_DATA[1] = AD5328R_startVoltage_Lbyte_PSIS_IV;
             spi_select_device(&SPIC,&DAC_IonSource);
             spi_write_packet(&SPIC, SPI_DATA, 2);
             spi_deselect_device(&SPIC,&DAC_IonSource);
+            //MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
+            SPI_DATA[0] = AD5643R_confHbyte;
+			SPI_DATA[1] = AD5643R_confMbyte;
+            SPI_DATA[2] = AD5643R_confLbyte;
+			spi_select_device(&SPIC, &DAC_Condensator);
+            spi_select_device(&SPIC, &DAC_Scaner);
+            spi_write_packet(&SPIC, SPI_DATA, 3);
+            spi_deselect_device(&SPIC, &DAC_Condensator);
+            spi_deselect_device(&SPIC, &DAC_Scaner);
+            //MSV DAC AD5643R (Конденсатор) - стартовое напряжение на первом канале
+			SPI_DATA[0] = AD5643R_startVoltage_Hbyte_MSV_C;
+			SPI_DATA[1] = AD5643R_startVoltage_Mbyte_MSV_C;
+			SPI_DATA[2] = AD5643R_startVoltage_Lbyte_MSV_C;
+            spi_select_device(&SPIC, &DAC_Condensator);
+            spi_write_packet(&SPIC, SPI_DATA, 3);
+            spi_deselect_device(&SPIC, &DAC_Condensator);
+            //MSV DAC AD5643R (Сканер (сканирующее)) - стартовое напряжение на втором канале
+            SPI_DATA[0] = AD5643R_startVoltage_Hbyte_MSV_S;
+            SPI_DATA[1] = AD5643R_startVoltage_Mbyte_MSV_S;
+            SPI_DATA[2] = AD5643R_startVoltage_Lbyte_MSV_S;
+            spi_select_device(&SPIC, &DAC_Scaner);
+            spi_write_packet(&SPIC, SPI_DATA, 3);
+            spi_deselect_device(&SPIC, &DAC_Scaner);
+			//MSV DAC AD5643R (Сканер (дополнительное)) - стартовое напряжение на первом канале
+			SPI_DATA[0] = AD5643R_startVoltage_Hbyte_MSV_PS;
+			SPI_DATA[1] = AD5643R_startVoltage_Mbyte_MSV_PS;
+			SPI_DATA[2] = AD5643R_startVoltage_Lbyte_MSV_PS;
+			spi_select_device(&SPIC, &DAC_Scaner);
+			spi_write_packet(&SPIC, SPI_DATA, 3);
+			spi_deselect_device(&SPIC, &DAC_Scaner);
+			//PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на втором канале (Фокусное 1)
+			SPI_DATA[0] = AD5328R_startVoltage_Hbyte_PSIS_F1;
+			SPI_DATA[1] = AD5328R_startVoltage_Lbyte_PSIS_F1;
+			spi_select_device(&SPIC,&DAC_IonSource);
+			spi_write_packet(&SPIC, SPI_DATA, 2);
+			spi_deselect_device(&SPIC,&DAC_IonSource);
+			//PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на втором канале (Фокусное 2)
+			SPI_DATA[0] = AD5328R_startVoltage_Hbyte_PSIS_F2;
+			SPI_DATA[1] = AD5328R_startVoltage_Lbyte_PSIS_F2;
+			spi_select_device(&SPIC,&DAC_IonSource);
+			spi_write_packet(&SPIC, SPI_DATA, 2);
+			spi_deselect_device(&SPIC,&DAC_IonSource);
 			/*
             //PSIS DAC AD5328R (Ионный Источник) - стартовое напряжение на третьем канале (Фокусное 1)
             sdata[0] += 16;//переход на следующий адрес
@@ -1418,7 +1445,9 @@ int main(void)
             spi_deselect_device(&SPIC,&DAC_IonSource);
 			//*/
             MC_Tasks.turnOnHVE = 0;						//Снимаем задачу
+            cpu_delay_ms(2000, 32000000);
 			transmit_2bytes(TOCKEN_LookAtMe,LAM_SPI_conf_done);
+			sei_PC;
         }
 		if((MC_Tasks.retransmit)&&(TIC_State != USART_State_HVEreceiving))
 		{
@@ -1438,9 +1467,10 @@ int main(void)
     }
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
-/*
-*
-*/
-/*
-*/
+//Ион = 3600ж - 80В
+//Ф1 =4000ж - 
+//Ф2 = 4000ж
+//Ска - 2000
+//Доп - 2000*3/4
+//Конденсатор - 500
 //-----------------------------------------THE END------------------------------------------------
