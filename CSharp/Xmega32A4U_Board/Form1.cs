@@ -40,6 +40,10 @@ namespace Xmega32A4U_testBoard
 
             MC.Flags.PRGE_blocked += new EventCallBack(PRGE_blocked);
             MC.Counters.MeasureEnd += new EventCallBack(EventHandler);
+            MC.CriticalError_HVE_decoder += new EventCallBack(Event_TIC_HVE_decoder_error);
+            MC.CriticalError_HVE_TIC_noResponse += new EventCallBack(Event_TIC_noResponse);
+            MC.TIC_approve_HVE += new EventCallBack(Event_TIC_approve_HVE);
+            MC.TIC_disapprove_HVE += new EventCallBack(Event_TIC_disapprove_HVE);
         }
         //Функции интерфейса
         delegate void delegate_trace(string text);
@@ -534,12 +538,9 @@ namespace Xmega32A4U_testBoard
         double RTC_min = double.MaxValue;
         double RTC_mid = 0;
         double RTC_max = double.MinValue;
-
         uint COX_buf;
-
         delegate void delegate_void();
         uint Cycles_performed;
-
         public void EventHandler()
         {
             
@@ -696,7 +697,6 @@ namespace Xmega32A4U_testBoard
             if (CHB_SEMV3.Checked) { MC.Flags.SEMV3 = "On"; } else { MC.Flags.SEMV3 = "Off"; }
             if (CHB_SPUMP.Checked) { MC.Flags.SPUMP = "On"; } else { MC.Flags.SPUMP = "Off"; }
         }
-
         private void BTN_TIC_FOR_Update_Click(object sender, EventArgs e)
         {
             LBL_TIC_FOR_State.Text = TIC.Backing.Pump.state;
@@ -705,40 +705,37 @@ namespace Xmega32A4U_testBoard
             LBL_TIC_FOR_Setup.Text = TIC.Backing.Pump.setup;
             LBL_TIC_FOR_Type.Text = TIC.Backing.Pump.type;
         }
-
         private void BTN_TIC_FOR_ON_Click(object sender, EventArgs e)
         {
             TIC.Backing.Pump.turn("On");
             LBL_TIC_FOR_State.Text = TIC.Backing.Pump.state;
         }
-
         private void BTN_TIC_FOR_OFF_Click(object sender, EventArgs e)
         {
             TIC.Backing.Pump.turn("Off");
             LBL_TIC_FOR_State.Text = TIC.Backing.Pump.state;
         }
-
         private void BTN_TIC_TRB_Update_Click(object sender, EventArgs e)
         {
             LBL_TIC_TRB_State.Text = TIC.Turbo.Pump.state;
             LBL_TIC_TRB_Speed.Text = TIC.Turbo.speed.value + "%";
             LBL_TIC_TRB_Power.Text = TIC.Turbo.power + "Вт";
-            LBL_TIC_TRB_Delay.Text = TIC.Turbo.Pump.delay + " минут";
+            //string t1 = "";
+            //string t2 = "";
+            //TIC.EXT75DX.Temperature_readings(ref t1, ref t2);
+            //LBL_TIC_TRB_Temperatures.Text = "D:" + t1 +"c | P:" + t2 + "C";//TIC.Turbo.Pump.delay + " минут";
             LBL_TIC_TRB_Type.Text = TIC.Turbo.Pump.type;
         }
-
         private void BTN_TIC_TRB_ON_Click(object sender, EventArgs e)
         {
             TIC.Turbo.Pump.turnOn();
             LBL_TIC_FOR_State.Text = TIC.Turbo.Pump.state;
         }
-
         private void BTN_TIC_TRB_OFF_Click(object sender, EventArgs e)
         {
             TIC.Turbo.Pump.turnOff();
             LBL_TIC_FOR_State.Text = TIC.Turbo.Pump.state;
         }
-
         private void BTN_TIC_Gauge1_Update_Click(object sender, EventArgs e)
         {
             //LBL_TIC_Gauge1_type.Text = TIC.Gauge_1.type;
@@ -765,10 +762,14 @@ namespace Xmega32A4U_testBoard
             //LBL_TIC_Gauge2_name.Text = TIC.Gauge_2.name;
             LBL_TIC_Gauge2_value.Text = TIC.Gauge_2.value(ref buf_1, ref buf_2);
             LBL_TIC_Gauge2_value.Text += " " + buf_1;
-            LBL_TIC_Gauge2_state.Text = buf_2;
+            //LBL_TIC_Gauge2_state.Text = buf_2;
             LBL_TIC_Gauge1_value.Text = TIC.Gauge_1.value(ref buf_1, ref buf_2);
             LBL_TIC_Gauge1_value.Text += " " + buf_1;
-            LBL_TIC_Gauge1_state.Text = buf_2;
+            //LBL_TIC_Gauge1_state.Text = buf_2;
+            //string t1 = "";
+            //string t2 = "";
+            //TIC.EXT75DX.Temperature_readings(ref t1, ref t2);
+            //LBL_TIC_TRB_Temperatures.Text = "D:" + t1 + "c | P:" + t2 + "C";
             LBL_TIC_FOR_Speed.Text = TIC.Backing.speed + "%";
             LBL_TIC_FOR_Power.Text = TIC.Backing.power + "Вт";
             switch (MC.Flags.HVE)
@@ -781,6 +782,54 @@ namespace Xmega32A4U_testBoard
                     break;
             }
         }
-
+        //-----
+        void Event_TIC_approve_HVE()
+        {
+            MessageBox.Show("TIC сообщает о том, что\r\nможно включить высокое напряжение.","Сообщение от TIC'a",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            if (CHB_iHVE.InvokeRequired)
+            {
+                CHB_iHVE.BeginInvoke(new MethodInvoker(delegate { CHB_iHVE.CheckState = CheckState.Checked; }));
+            }
+            else
+            {
+                CHB_iHVE.CheckState = CheckState.Checked;
+            }
+        }
+        void Event_TIC_disapprove_HVE()
+        {
+            MessageBox.Show("TIC сообщает о том, что\r\nвысокое напряжение заблокировано!", "Сообщение от TIC'a", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            if (CHB_iHVE.InvokeRequired)
+            {
+                CHB_iHVE.BeginInvoke(new MethodInvoker(delegate { CHB_iHVE.CheckState = CheckState.Unchecked; }));
+            }
+            else
+            {
+                CHB_iHVE.CheckState = CheckState.Unchecked;
+            }
+        }
+        void Event_TIC_HVE_decoder_error()
+        {
+            MessageBox.Show("MC сообщает о том, что\r\nему три раза подряд не удалось\r\nрасшифровать сообщение от TIC'а!\r\nВысокое напряжение выключено!", "Сообщение от MC'a", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (CHB_iHVE.InvokeRequired)
+            {
+                CHB_iHVE.BeginInvoke(new MethodInvoker(delegate { CHB_iHVE.CheckState = CheckState.Unchecked; }));
+            }
+            else
+            {
+                CHB_iHVE.CheckState = CheckState.Unchecked;
+            }
+        }
+        void Event_TIC_noResponse()
+        {
+            MessageBox.Show("MC сообщает о том, что\r\nему три раза подряд не удалось\r\nсвязаться с TIC'ом!\r\nВысокое напряжение выключено!", "Сообщение от MC'a", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (CHB_iHVE.InvokeRequired)
+            {
+                CHB_iHVE.BeginInvoke(new MethodInvoker(delegate { CHB_iHVE.CheckState = CheckState.Unchecked; })); 
+            }
+            else
+            {
+                CHB_iHVE.CheckState = CheckState.Unchecked;
+            }
+        }
     }
 }
