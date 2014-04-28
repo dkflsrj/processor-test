@@ -1069,10 +1069,10 @@ namespace Xmega32A4U_testBoard
                 Synchro = true;
                 message = "MC.Service.transmit(...)";
                 send(wDATA);
-                List<byte> rDATA = decode(receive(PC_TimeOut));
+                //List<byte> rDATA = decode(receive(PC_TimeOut));
                 if (tracer_transmit_enabled) { trace(message); }
                 Synchro = false;
-                return rDATA;
+                return dummy;
             }
             public static List<byte> retransmit_toTIC(byte[] DATA)
             {

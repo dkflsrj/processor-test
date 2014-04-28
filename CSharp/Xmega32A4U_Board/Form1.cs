@@ -349,7 +349,9 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_sendSomething_Click(object sender, EventArgs e)
         {
-            MC.Service.sendSomething();
+            //TIC.External_Air_Cooler.setup = TIC.External_Air_Cooler.ListOfSetups.Permanent;
+            TIC.External_Air_Cooler.setup = TIC.External_Air_Cooler.ListOfSetups.Turbo_slaved;
+            trace(TIC.External_Air_Cooler.state);
         }
         private void BTN_TIC_DisplayContrast_set_Click(object sender, EventArgs e)
         {
