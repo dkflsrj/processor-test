@@ -22,7 +22,7 @@
 #define COMMAND_MC_wait								5	//Команда: Перевести МК в ожидание
 #define COMMAND_checkCommandStack					8	//Команда: Вернуть стэк команда (МК ведёт счёт команд с самого запуска)
 
-#define COMMAND_LOCK								13	//Команда: Любая команда заканчивается этой (затвор)
+//#define COMMAND_LOCK								13	//Команда: Любая команда заканчивается этой (затвор)
 
 #define COMMAND_MC_get_Status						20  //Команда: Запросить состояние МК
 //COUNTERS
@@ -38,10 +38,10 @@
 //TIC
 #define COMMAND_TIC_retransmit						50	//Команда: Ретранслировать данные TIC'у
 #define COMMAND_TIC_set_Gauges						51	//Команда: Задать датчики и пороги
-#define COMMAND_TIC_restartMonitoring						52	//Команда: Вкл\Выкл мониторинг TIC'a
+#define COMMAND_TIC_restartMonitoring				52	//Команда: Вкл\Выкл мониторинг TIC'a
 #define COMMAND_TIC_send_TIC_MEM					53	//Команда: Вернуть память TIC_MEM
 
-#define COMMAND_KEY									58	//Команда: Любая команда начинается с этой (ключ)
+//#define COMMAND_KEY								58	//Команда: Любая команда начинается с этой (ключ)
 
 //Команды ADC'ам
 #define COMMAND_PSIS_get_Voltage					60	//Команда: Запросить напряжение у ADC Ионного Источника
@@ -56,42 +56,30 @@
 #define COMMAND_Flags_SEMV2							75
 #define COMMAND_Flags_SEMV3							76
 #define COMMAND_Flags_SPUMP							77
-//-----------------------------------------------LAM'ы-----------------------------------------------
-//ПОЯСНЕНИЯ: Асинхронные сообщения информирующие ПК о чём либо.
-//Метка
-#define TOCKEN_LookAtMe					254
-//Номера асинхронных сообщений (обрати внимание)
-#define LAM_RTC_end						1	//Счётчики закончили счёт
-#define LAM_SPI_conf_done				2	//После включения HVE все SPI устройства были настроены!
-#define LAM_HVE_TIC_approve				3	//После одобрения TIC'ом включения высокого напряжения
-#define LAM_HVE_TIC_disapprove			4	//После запрета TIC'а на включение высого напряжения 
-//-----------------------------------------------ОШИБКИ----------------------------------------------
-//ПОЯСНЕНИЯ: Обычные ошибки, которые не ставят под угрозу работу системы.
-//Метка
-#define TOCKEN_ERROR					255	//Метка ошибки
-//ErrorNums
-#define ERROR_Decoder					1	//Ошибка декодера (нет такой команды).
-#define ERROR_CheckSum					2	//Ошибка контрольной суммы. Несовпадает!
-//-----------------------------------------КРИТИЧЕСКИЕ ОШИБКИ----------------------------------------
-//ПОЯСНЕНИЯ: Критические ошибки, которые ставят под угрозу работу системы.
-//Метка
-#define TOCKEN_CRITICAL_ERROR					252	//Метка критической ошибки
-//ErrorNums
-#define CRITICAL_ERROR_TIC_HVE_error_decode		1	//Ошибка декодировки данных от TIC'а при запросе HVE
-#define CRITICAL_ERROR_TIC_HVE_error_noResponse	2	//Ошибка при запросе HVE, TIC не ответил.
-//------------------------------------------ВНУТРЕННИЕ ОШИБКИ----------------------------------------
-//ПОЯСНЕНИЯ: Внутренние ошибки МК. Нежелательные и запрещённые состояния.
-//Метка
-#define TOCKEN_INTERNAL_ERROR			253	//Метка внутренней ошибки
-//Номера внутренних ошибок
-#define INTERNAL_ERROR_USART_PC			1	//Внутренняя ошибка приёма данных от ПК
-#define INTERNAL_ERROR_SPI				2	//SPI-устройства с таким номером нет!
-#define INTERNAL_ERROR_TIC_State		3	//Неверное состояние TIC таймера!
-//---------------------------------------------ДЕШИФРАТОР--------------------------------------------
+//------------------АСИНХРОННЫЕ СООБЩЕНИЯ---------------------
+//Асинхронные сообщения присылаются в следующем виде: <TOKEN_ASYNCHRO><ID>
+#define TOKEN_ASYNCHRO										0
+//IDs:
+#define ERROR_DLP_wrongCheckSum								1	//Ошибка контрольной суммы. Несовпадает!
+#define ERROR_DLP_wrongCompliments							2	//Ошибка комплиментов
+#define ERROR_DLP_tooShortPacket							3	//Ошибка. Слишком короткий пакет
 
+#define ERROR_DECODER_wrongCommand							10  //Ошибка декодера (нет такой команды).
+
+#define LAM_RTC_end											20	//Счётчики закончили счёт
+#define LAM_SPI_conf_done									21	//После включения HVE все SPI устройства были настроены!
+#define LAM_HVE_TIC_approve									22	//После одобрения TIC'ом включения высокого напряжения
+#define LAM_HVE_TIC_disapprove								23	//После запрета TIC'а на включение высого напряжения 
+
+#define CRITICAL_ERROR_TIC_HVE_error_decode					30	//Ошибка декодировки данных от TIC'а при запросе HVE
+#define CRITICAL_ERROR_TIC_HVE_error_noResponse				31	//Ошибка при запросе HVE, TIC не ответил.
+
+#define INTERNAL_ERROR_USART_PC								40	//Внутренняя ошибка приёма данных от ПК
+#define INTERNAL_ERROR_SPI									41	//SPI-устройства с таким номером нет!
+#define INTERNAL_ERROR_TIC_State							42	//Неверное состояние TIC таймера!
 //----------------------------------------ПРОСТЫЕ КОМАНДЫ-----------------------------------------
-#define MC_transmit_Status			transmit_3bytes(COMMAND_MC_get_Status, *pointer_Errors_USART_TIC, *pointer_Errors_USART_PC)
-#define MC_transmit_Version			transmit_2bytes(COMMAND_MC_get_Version, MC_version)
+#define MC_transmit_Status			transmit_3rytes(COMMAND_MC_get_Status, *pointer_Errors_USART_TIC, *pointer_Errors_USART_PC)
+#define MC_transmit_Version			transmit_2rytes(COMMAND_MC_get_Version, MC_version)
 
 
 //============================================THE END=============================================

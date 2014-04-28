@@ -314,6 +314,9 @@
     <GenerateEepFile>True</GenerateEepFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="src\Radist.h">
+      <SubType>compile</SubType>
+    </Compile>
     <None Include="src\ASF\xmega\drivers\cpu\ccp.h">
       <SubType>compile</SubType>
     </None>

@@ -49,7 +49,7 @@
             this.BTN_COM_setParams = new System.Windows.Forms.Button();
             this.TABpanel_2 = new System.Windows.Forms.TabPage();
             this.BTN_traceErrorList = new System.Windows.Forms.Button();
-            this.BTN_sendSomething = new System.Windows.Forms.Button();
+            this.BTN_Test = new System.Windows.Forms.Button();
             this.GRB_TotalControl = new System.Windows.Forms.GroupBox();
             this.LBL_TotalC_Status = new System.Windows.Forms.Label();
             this.LBL_error = new System.Windows.Forms.Label();
@@ -515,7 +515,7 @@
             // 
             this.TABpanel_2.BackColor = System.Drawing.SystemColors.Control;
             this.TABpanel_2.Controls.Add(this.BTN_traceErrorList);
-            this.TABpanel_2.Controls.Add(this.BTN_sendSomething);
+            this.TABpanel_2.Controls.Add(this.BTN_Test);
             this.TABpanel_2.Controls.Add(this.GRB_TotalControl);
             this.TABpanel_2.Controls.Add(this.GRB_Counter);
             this.TABpanel_2.Controls.Add(this.GRB_SPI);
@@ -537,15 +537,15 @@
             this.BTN_traceErrorList.UseVisualStyleBackColor = true;
             this.BTN_traceErrorList.Click += new System.EventHandler(this.BTN_traceErrorList_Click);
             // 
-            // BTN_sendSomething
+            // BTN_Test
             // 
-            this.BTN_sendSomething.Location = new System.Drawing.Point(6, 144);
-            this.BTN_sendSomething.Name = "BTN_sendSomething";
-            this.BTN_sendSomething.Size = new System.Drawing.Size(95, 23);
-            this.BTN_sendSomething.TabIndex = 15;
-            this.BTN_sendSomething.Text = "Послать что-то";
-            this.BTN_sendSomething.UseVisualStyleBackColor = true;
-            this.BTN_sendSomething.Click += new System.EventHandler(this.BTN_sendSomething_Click);
+            this.BTN_Test.Location = new System.Drawing.Point(6, 144);
+            this.BTN_Test.Name = "BTN_Test";
+            this.BTN_Test.Size = new System.Drawing.Size(95, 23);
+            this.BTN_Test.TabIndex = 15;
+            this.BTN_Test.Text = "Test";
+            this.BTN_Test.UseVisualStyleBackColor = true;
+            this.BTN_Test.Click += new System.EventHandler(this.BTN_sendSomething_Click);
             // 
             // GRB_TotalControl
             // 
@@ -2884,7 +2884,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.CheckBox CHB_Control_COA;
         private System.Windows.Forms.Timer CLK_COA;
-        private System.Windows.Forms.Button BTN_sendSomething;
+        private System.Windows.Forms.Button BTN_Test;
         private System.Windows.Forms.TabPage TABpanel_3;
         private System.Windows.Forms.Button BTN_TIC_DisplayContrast_set;
         private System.Windows.Forms.Button BTN_traceErrorList;
