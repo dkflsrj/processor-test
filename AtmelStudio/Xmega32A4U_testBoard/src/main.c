@@ -23,8 +23,8 @@
 
 //---------------------------------------ќѕ–≈ƒ≈Ћ≈Ќ»я----------------------------------------------
 //ћ 
-#define version										162
-#define birthday									20140428//—чЄтчики
+#define version										163
+#define birthday									20140429//—чЄтчики
 #define RTC_Status_ready							0		//—чЄтчики готов к работе
 #define RTC_Status_stopped							1		//—чЄтчики был принудительно остановлен
 #define RTC_Status_busy								2		//—чЄтчики ещЄ считает
@@ -206,7 +206,6 @@ uint8_t *pointer_MC_Tasks;
 uint8_t *pointer_Errors_USART_PC;
 uint8_t *pointer_Errors_USART_TIC;
 uint8_t *pointer_Flags;
-byte MC_Tasks_retransmit = 0;
 //------------------------------------ќЅЏя¬Ћ≈Ќ»я ‘”Ќ ÷»…------------------------------------------
 void MC_transmit_Birthday(void);
 void MC_transmit_CPUfreq(void);
@@ -232,6 +231,7 @@ void checkFlag_SEMV2(void);
 void checkFlag_SEMV3(void);
 void checkFlag_SPUMP(void);
 void fun(void);
+byte receive(void);
 //-----------------------------------------¬ Ћё„≈Ќ»я----------------------------------------------
 #include <Radist.h>
 //------------------------------------‘”Ќ ÷»» ѕ–≈–џ¬јЌ»я------------------------------------------
@@ -253,7 +253,18 @@ ISR(USARTE0_RXC_vect)
 		TIC_timer.CNT = 0;							//ќбнул€ем таймер
 		//≈сли прин€тый байт равен
 		//			   <*>				<=>				 <#>  , то обнул€ем прин€тые данные
-		if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35)) { TIC_MEM_length = 0; }
+		if ((TIC_buf == 42) || (TIC_buf == 61) || (TIC_buf == 35))
+		{ 
+			if(TIC_State == USART_State_receiving)
+			{
+				TIC_MEM[0] = COMMAND_TIC_retransmit;
+				TIC_MEM_length = 1;
+			}
+			else
+			{
+				TIC_MEM_length = 0;
+			}
+		}
 		TIC_MEM[TIC_MEM_length] = TIC_buf;			//—охран€ем байт
 		TIC_MEM_length++;
 		//			   <\r>
@@ -454,6 +465,10 @@ static void ISR_PC_timer(void)
     PC_timer.CNT = 0;
 }
 //-----------------------------------------‘”Ќ ÷»»------------------------------------------------
+byte receive(void)
+{
+	return *USART_PC.DATA;
+}
 void decode(void)
 {
     //‘”Ќ ÷»я: –асшифровываем команду
@@ -814,7 +829,7 @@ uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol)
 void TIC_retransmit(void)
 {
     //‘”Ќ ÷»я: –етрансмитит команду на TIC, если нет опроса HVE, если опрос HVE есть - ждЄт ответа от TIC'а на опрос, а потом только ретрансимитит.
-	MC_Tasks_retransmit = 1;
+	MC_Tasks.retransmit = 1;
 	//PC_State = USART_State_decoding;
 	//transmit_2bytes(COMMAND_TIC_restartMonitoring, TIC_State);
     //while (TIC_State != USART_State_ready) { }	//∆дЄм
@@ -1293,7 +1308,7 @@ int main(void)
 			transmit_2rytes(TOKEN_ASYNCHRO,LAM_SPI_conf_done);
 			sei_PC;
         }
-		if((MC_Tasks_retransmit)&&(TIC_State != USART_State_HVEreceiving))
+		if((MC_Tasks.retransmit)&&(TIC_State != USART_State_HVEreceiving))
 		{
 			cli_TIC;
 			TIC_timer.CTRLA = TC_Off;
@@ -1304,8 +1319,6 @@ int main(void)
 			TIC_timer.CTRLA = TC_500kHz;			//«апускаем таймер в режиме приЄма
 			sei_TIC;
 			MC_Tasks.retransmit = 0;				//—нимаем задачу
-			PC_timer.CTRLA = TC_Off;				//ѕереходим в режим ожидани€
-			PC_timer.CNT = 0;						//—брасываем таймер
 		}
 		//fun();
     }

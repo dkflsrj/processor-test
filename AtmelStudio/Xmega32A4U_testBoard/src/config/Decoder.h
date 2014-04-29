@@ -38,7 +38,6 @@
 //TIC
 #define COMMAND_TIC_retransmit						50	//Команда: Ретранслировать данные TIC'у
 #define COMMAND_TIC_set_Gauges						51	//Команда: Задать датчики и пороги
-#define COMMAND_TIC_restartMonitoring				52	//Команда: Вкл\Выкл мониторинг TIC'a
 #define COMMAND_TIC_send_TIC_MEM					53	//Команда: Вернуть память TIC_MEM
 
 //#define COMMAND_KEY								58	//Команда: Любая команда начинается с этой (ключ)
@@ -58,25 +57,23 @@
 #define COMMAND_Flags_SPUMP							77
 //------------------АСИНХРОННЫЕ СООБЩЕНИЯ---------------------
 //Асинхронные сообщения присылаются в следующем виде: <TOKEN_ASYNCHRO><ID>
-#define TOKEN_ASYNCHRO										0
+#define TOKEN_ASYNCHRO								0
 //IDs:
-#define ERROR_DLP_wrongCheckSum								1	//Ошибка контрольной суммы. Несовпадает!
-#define ERROR_DLP_wrongCompliments							2	//Ошибка комплиментов
-#define ERROR_DLP_tooShortPacket							3	//Ошибка. Слишком короткий пакет
+#define ERROR_DLP_wrongCheckSum						1	//Ошибка контрольной суммы. Несовпадает!
 
-#define ERROR_DECODER_wrongCommand							10  //Ошибка декодера (нет такой команды).
+#define ERROR_DECODER_wrongCommand					10  //Ошибка декодера (нет такой команды).
 
-#define LAM_RTC_end											20	//Счётчики закончили счёт
-#define LAM_SPI_conf_done									21	//После включения HVE все SPI устройства были настроены!
-#define LAM_HVE_TIC_approve									22	//После одобрения TIC'ом включения высокого напряжения
-#define LAM_HVE_TIC_disapprove								23	//После запрета TIC'а на включение высого напряжения 
+#define LAM_RTC_end									20	//Счётчики закончили счёт
+#define LAM_SPI_conf_done							21	//После включения HVE все SPI устройства были настроены!
+#define LAM_HVE_TIC_approve							22	//После одобрения TIC'ом включения высокого напряжения
+#define LAM_HVE_TIC_disapprove						23	//После запрета TIC'а на включение высого напряжения 
 
-#define CRITICAL_ERROR_TIC_HVE_error_decode					30	//Ошибка декодировки данных от TIC'а при запросе HVE
-#define CRITICAL_ERROR_TIC_HVE_error_noResponse				31	//Ошибка при запросе HVE, TIC не ответил.
+#define CRITICAL_ERROR_TIC_HVE_error_decode			30	//Ошибка декодировки данных от TIC'а при запросе HVE
+#define CRITICAL_ERROR_TIC_HVE_error_noResponse		31	//Ошибка при запросе HVE, TIC не ответил.
 
-#define INTERNAL_ERROR_USART_PC								40	//Внутренняя ошибка приёма данных от ПК
-#define INTERNAL_ERROR_SPI									41	//SPI-устройства с таким номером нет!
-#define INTERNAL_ERROR_TIC_State							42	//Неверное состояние TIC таймера!
+#define INTERNAL_ERROR_USART_PC						40	//Внутренняя ошибка приёма данных от ПК
+#define INTERNAL_ERROR_SPI							41	//SPI-устройства с таким номером нет!
+#define INTERNAL_ERROR_TIC_State					42	//Неверное состояние TIC таймера!
 //----------------------------------------ПРОСТЫЕ КОМАНДЫ-----------------------------------------
 #define MC_transmit_Status			transmit_3rytes(COMMAND_MC_get_Status, *pointer_Errors_USART_TIC, *pointer_Errors_USART_PC)
 #define MC_transmit_Version			transmit_2rytes(COMMAND_MC_get_Version, MC_version)

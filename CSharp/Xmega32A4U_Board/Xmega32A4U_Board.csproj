@@ -59,6 +59,7 @@
     <Compile Include="Pifagor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Radist.cs" />
     <Compile Include="SPI_Devices.cs" />
     <Compile Include="TIC.cs" />
     <Compile Include="MC.cs" />

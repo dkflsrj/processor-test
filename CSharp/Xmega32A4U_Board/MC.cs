@@ -854,6 +854,22 @@ namespace Xmega32A4U_testBoard
                     System.IO.File.AppendAllText("Log.txt", TEXT);
                 }
             }
+            public static string tracer_toString(List<byte> list)
+            {
+                if (list.Count > 0)
+                {
+                    string answer = "";
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        answer += list[i] + " | ";
+                    }
+                    return answer.Substring(0, answer.Length - 3);
+                }
+                else
+                {
+                    return "<пусто>";
+                }
+            }
             //USART
             public static void USART_DataReceived(object sender, EventArgs e)
             {
@@ -1065,34 +1081,44 @@ namespace Xmega32A4U_testBoard
             }
             public static List<byte> transmit(List<byte> wDATA)
             {
-                //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
-                Synchro = true;
-                message = "MC.Service.transmit(...)";
-                send(wDATA);
-                //List<byte> rDATA = decode(receive(PC_TimeOut));
-                if (tracer_transmit_enabled) { trace(message); }
-                Synchro = false;
-                return dummy;
+                ////ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
+                return Radist.send(wDATA);
+                //Synchro = true;
+                //message = "MC.Service.transmit(...)";
+                //send(wDATA);
+                ////List<byte> rDATA = decode(receive(PC_TimeOut));
+                //if (tracer_transmit_enabled) { trace(message); }
+                //Synchro = false;
+                //return dummy;
             }
             public static List<byte> retransmit_toTIC(byte[] DATA)
             {
                 //ФУНКЦИЯ: Формируем пакет, передаём его МК, слушаем ответ, возвращаем ответ.
-                Synchro = true;
-                message = "MC.Service.retransmit_toTIC(...)";
                 List<byte> data = new List<byte>();
                 data.Add(Command.TIC.retransmit);
                 data.AddRange(DATA);
-                send(data);
-                List<byte> rDATA = decode(receive(TIC_TimeOut));
-                if (tracer_transmit_enabled) 
+                List<byte> N = Radist.send(data);
+                if (N.Count > 0)
                 {
-                    string ASCII_string = Encoding.ASCII.GetString(rDATA.ToArray<byte>());
-                    trace(message);
-                    trace("ASCII: <" + ASCII_string + ">");
-
+                    N.RemoveAt(0);
                 }
-                Synchro = false;
-                return rDATA;
+                return N;
+                //Synchro = true;
+                //message = "MC.Service.retransmit_toTIC(...)";
+                //List<byte> data = new List<byte>();
+                //data.Add(Command.TIC.retransmit);
+                //data.AddRange(DATA);
+                //send(data);
+                //List<byte> rDATA = decode(receive(TIC_TimeOut));
+                //if (tracer_transmit_enabled) 
+                //{
+                //    string ASCII_string = Encoding.ASCII.GetString(rDATA.ToArray<byte>());
+                //    trace(message);
+                //    trace("ASCII: <" + ASCII_string + ">");
+                //
+                //}
+                //Synchro = false;
+                //return rDATA;
             }
             public static List<byte> transmit(byte[] wDATA)
             {
@@ -1149,6 +1175,12 @@ namespace Xmega32A4U_testBoard
                 string error = " -" + (ErrorList.Count + 1).ToString() + "- [" + DateTime.Now.ToString("HH:mm:ss") + "] " + TEXT;
                 MC.Service.trace(TEXT);
                 ErrorList.Add(error);
+            }
+            public static void test()
+            {
+                List<byte> data = new List<byte>();
+                data.Add(52);
+                Radist.send(data);
             }
         }
         #endregion
@@ -1495,9 +1527,10 @@ namespace Xmega32A4U_testBoard
                 message += "\r                         Чётность: " + USART.Parity.ToString();
                 message += "\r                         Биты данных: " + USART.DataBits.ToString();
                 message += "\r                         Стоповые биты: " + USART.StopBits.ToString();
+                Radist.initialize(USART.PortName, USART.BaudRate, USART.Parity, USART.DataBits, USART.StopBits);
                 USART_defined = true;
-                if (!USART.IsOpen) { USART.Open(); }
-                USART.DataReceived += new SerialDataReceivedEventHandler(Service.USART_DataReceived);
+                //if (!USART.IsOpen) { USART.Open(); }
+                //USART.DataReceived += new SerialDataReceivedEventHandler(Service.USART_DataReceived);
             }
             else
             {
