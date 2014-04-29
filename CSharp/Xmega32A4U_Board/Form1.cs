@@ -350,8 +350,10 @@ namespace Xmega32A4U_testBoard
         private void BTN_sendSomething_Click(object sender, EventArgs e)
         {
             //TIC.External_Air_Cooler.setup = TIC.External_Air_Cooler.ListOfSetups.Permanent;
-            TIC.External_Air_Cooler.setup = TIC.External_Air_Cooler.ListOfSetups.Turbo_slaved;
-            trace(TIC.External_Air_Cooler.state);
+            //TIC.External_Air_Cooler.setup = TIC.External_Air_Cooler.ListOfSetups.Turbo_slaved;
+            //trace(TIC.External_Air_Cooler.state);
+            //MC.Service.test();
+            string a = MC.Flags.HVE;
         }
         private void BTN_TIC_DisplayContrast_set_Click(object sender, EventArgs e)
         {
@@ -363,10 +365,10 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_traceErrorList_Click(object sender, EventArgs e)
         {
-            foreach (string error in MC.getErrorList().ToArray())
-            {
-                trace(error);
-            }
+            //foreach (string error in MC.getErrorList().ToArray())
+            //{
+            //    trace(error);
+            //}
         }
         //==================================REAL=================================
         //-------------------------------Натекатель------------------------------
