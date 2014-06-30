@@ -112,10 +112,9 @@ namespace Xmega32A4U_testBoard
         private void BTN_COM_getMCversion_Click(object sender, EventArgs e)
         {
             //trace(true, "Запрос информации о прошивке у МК...");
+            MC.Chip.getVersion();
             //trace(true, "   Дата создания: " + 
-            MC.Chip.getBirthday();
             //trace(true, "   Версия: " + 
-            MC.Chip.getVersion().ToString();
         }
         private void BTN_COM_getCPUfreq_Click(object sender, EventArgs e)
         {
@@ -125,6 +124,7 @@ namespace Xmega32A4U_testBoard
         private void BTN_COM_setMCwait_Click(object sender, EventArgs e)
         {
             //MC.setMCwait();
+            MC.Chip.getBirthday();
         }
         private void BTN_LEDbyte_Click(object sender, EventArgs e)
         {
@@ -695,11 +695,11 @@ namespace Xmega32A4U_testBoard
         {
             //MC.setFlags(true, CHB_PRGE.Checked, CHB_iEDCD.Checked, CHB_SEMV1.Checked, CHB_SEMV2.Checked, CHB_SEMV3.Checked, CHB_SPUMP.Checked);
             if (CHB_PRGE.Checked) { MC.Flags.PRGE = "On"; } else { MC.Flags.PRGE = "Off"; }
-            if (CHB_iEDCD.Checked) { MC.Flags.EDCD = "On"; } else { MC.Flags.EDCD = "Off"; }
-            if (CHB_SEMV1.Checked) { MC.Flags.SEMV1 = "On"; } else { MC.Flags.SEMV1 = "Off"; }
-            if (CHB_SEMV2.Checked) { MC.Flags.SEMV2 = "On"; } else { MC.Flags.SEMV2 = "Off"; }
-            if (CHB_SEMV3.Checked) { MC.Flags.SEMV3 = "On"; } else { MC.Flags.SEMV3 = "Off"; }
-            if (CHB_SPUMP.Checked) { MC.Flags.SPUMP = "On"; } else { MC.Flags.SPUMP = "Off"; }
+            //if (CHB_iEDCD.Checked) { MC.Flags.EDCD = "On"; } else { MC.Flags.EDCD = "Off"; }
+            //if (CHB_SEMV1.Checked) { MC.Flags.SEMV1 = "On"; } else { MC.Flags.SEMV1 = "Off"; }
+            //if (CHB_SEMV2.Checked) { MC.Flags.SEMV2 = "On"; } else { MC.Flags.SEMV2 = "Off"; }
+            //if (CHB_SEMV3.Checked) { MC.Flags.SEMV3 = "On"; } else { MC.Flags.SEMV3 = "Off"; }
+            //if (CHB_SPUMP.Checked) { MC.Flags.SPUMP = "On"; } else { MC.Flags.SPUMP = "Off"; }
         }
         private void BTN_TIC_FOR_Update_Click(object sender, EventArgs e)
         {
@@ -722,13 +722,13 @@ namespace Xmega32A4U_testBoard
         private void BTN_TIC_TRB_Update_Click(object sender, EventArgs e)
         {
             LBL_TIC_TRB_State.Text = TIC.Turbo.Pump.state;
-            LBL_TIC_TRB_Speed.Text = TIC.Turbo.speed.value + "%";
-            LBL_TIC_TRB_Power.Text = TIC.Turbo.power + "Вт";
+            //LBL_TIC_TRB_Speed.Text = TIC.Turbo.speed.value + "%";
+            //LBL_TIC_TRB_Power.Text = TIC.Turbo.power + "Вт";
             //string t1 = "";
             //string t2 = "";
             //TIC.EXT75DX.Temperature_readings(ref t1, ref t2);
             //LBL_TIC_TRB_Temperatures.Text = "D:" + t1 +"c | P:" + t2 + "C";//TIC.Turbo.Pump.delay + " минут";
-            LBL_TIC_TRB_Type.Text = TIC.Turbo.Pump.type;
+            //LBL_TIC_TRB_Type.Text = TIC.Turbo.Pump.type;
         }
         private void BTN_TIC_TRB_ON_Click(object sender, EventArgs e)
         {
@@ -833,6 +833,42 @@ namespace Xmega32A4U_testBoard
             else
             {
                 CHB_iHVE.CheckState = CheckState.Unchecked;
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            switch (MC.Flags.HVE)
+            {
+                case "Enabled": CHB_iHVE.CheckState = CheckState.Checked;
+                    break;
+                case "Blocked": CHB_iHVE.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_iHVE.CheckState = CheckState.Indeterminate;
+                    break;
+            }
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            MC.Flags.SEMV1 = "On";
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            MC.Flags.SEMV1 = "Off";
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            switch (MC.Flags.SEMV1)
+            {
+                case "On": CHB_SEMV1.CheckState = CheckState.Checked;
+                    break;
+                case "Off": CHB_SEMV1.CheckState = CheckState.Unchecked;
+                    break;
+                default: CHB_SEMV1.CheckState = CheckState.Indeterminate;
+                    break;
             }
         }
     }

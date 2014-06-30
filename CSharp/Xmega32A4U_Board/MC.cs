@@ -1254,10 +1254,12 @@ namespace Xmega32A4U_testBoard
                     {
                         setupByte = 1;
                     }
-                    if (MC.Service.transmit(Command.Flags.PRGE, setupByte)[1] == 254)
-                    {
-                        if (PRGE_blocked != null) { PRGE_blocked.Invoke(); }
-                    }
+                    //if (
+                        MC.Service.transmit(Command.Flags.PRGE, setupByte);
+                    //    [1] == 254)
+                    //{
+                    //    if (PRGE_blocked != null) { PRGE_blocked.Invoke(); }
+                    //}
                 }
             }
             /// <summary>
