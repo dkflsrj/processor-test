@@ -23,8 +23,15 @@ byte PC_MEM[100];				//Память принятого пакета
 byte PC_MEM_length = 0;			//Длина принятого пакета
 byte PC_receiving = 0;			//Булка: был получен ключ, идёт приём пакета
 byte PC_door = 0;				//Булка: был получен командный символ
+byte transmiting = 0;			//Флаг 1 = "Идёт передача"
+byte Queue[256];				//Массив байтов (очередь) на отправку сообщений
+byte Queue_pointer = 0;			//Указатель на следующий чистый байт в Queue
+byte Queue_lengthes[256];		//Массив длин сообщений в очереди
+byte Queue_lengthes_pointer = 0;//Указатель на следующий чистый байт Queue_lengthes
 //--------------------------------ОПРЕДЕЛЕНИЯ ФУНКЦИЙ----------------------------------
 void receiving(void);
+void usart_putryte(byte BYTE);
+void transmit_next(void);
 void transmit(byte DATA[], byte DATA_length);
 void transmit_2rytes(byte BYTE_1, byte BYTE_2);
 void transmit_3rytes(byte BYTE_1, byte BYTE_2, byte BYTE_3);
@@ -97,30 +104,65 @@ void receiving(void)
 		}
 	}
 }
+void usart_putryte(byte BYTE)
+{
+	switch(BYTE)
+	{
+		case key: usart_putchar(USART_PC, door);
+		usart_putchar(USART_PC, door_key);
+		break;
+		case lock:usart_putchar(USART_PC, door);
+		usart_putchar(USART_PC, door_lock);
+		break;
+		case door:usart_putchar(USART_PC, door);
+		usart_putchar(USART_PC, door_door);
+		break;
+		default: usart_putchar(USART_PC, BYTE);
+		break;
+	}
+}
+void transmit_next(void)
+{
+	transmiting = 1;
+	byte DATA_length = Queue_lengthes[0];
+	byte CS = calcCheckSum(Queue, DATA_length);
+	usart_putchar(USART_PC, key);
+	for(int i = 0; i < DATA_length; i++)
+	{
+		usart_putryte(Queue[i]);
+	}
+	usart_putryte(CS);
+	usart_putchar(USART_PC, lock);
+	//Сдвигаем очередь
+	cli();
+	Queue_pointer -= DATA_length;
+	for (int i = 0; i < Queue_pointer; i++)
+	{
+		Queue[i] = Queue[i + DATA_length];
+	}
+	//Сдвигаем массив длин сообщений
+	Queue_lengthes_pointer--;
+	for (int i = 0; i < Queue_lengthes_pointer; i++)
+	{
+		Queue_lengthes[i] = Queue_lengthes[i + 1];
+	}
+	sei();
+	transmiting = 0;
+}
 void transmit(byte DATA[], byte DATA_length)
 {
 	//ФУНКЦИЯ: Формирует пакет на передачу и отправляет его
-	DATA[DATA_length] = calcCheckSum(DATA, DATA_length);
-	DATA_length++;
-	usart_putchar(USART_PC, key);
-	for(int i = 0; i < DATA_length; i++) 
-	{ 
-		switch(DATA[i])
-		{
-			case key: usart_putchar(USART_PC, door);
-				usart_putchar(USART_PC, door_key);
-				break;
-			case lock:usart_putchar(USART_PC, door);
-				usart_putchar(USART_PC, door_lock);
-				break;
-			case door:usart_putchar(USART_PC, door);
-				usart_putchar(USART_PC, door_door);
-				break;
-			default: usart_putchar(USART_PC, DATA[i]);
-				break;
-		}
+	//Если уже происходит передача (transmiting == 1), то добавляем пакет в очередь и выходим
+	if(DATA_length == 0) { return; }
+	cli();
+	Queue_lengthes[Queue_lengthes_pointer++] = DATA_length;
+	for (int i = 0; i < DATA_length; i++)
+	{
+		Queue[Queue_pointer++] = DATA[i];
 	}
-	usart_putchar(USART_PC, lock);
+	sei();
+	if(transmiting) { return; }
+	while(Queue_lengthes_pointer > 0) { transmit_next(); }
 }
 void transmit_2rytes(byte BYTE_1, byte BYTE_2)
 {

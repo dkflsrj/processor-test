@@ -97,6 +97,10 @@
             this.TXB_LEDbyte = new System.Windows.Forms.TextBox();
             this.BTN_COM_setMCwait = new System.Windows.Forms.Button();
             this.TABpanel_3 = new System.Windows.Forms.TabPage();
+            this.button7 = new System.Windows.Forms.Button();
+            this.button6 = new System.Windows.Forms.Button();
+            this.button5 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.GPB_TIC_Gauge2 = new System.Windows.Forms.GroupBox();
             this.label43 = new System.Windows.Forms.Label();
             this.label45 = new System.Windows.Forms.Label();
@@ -1033,18 +1037,21 @@
             // 
             // BTN_COM_setMCwait
             // 
-            this.BTN_COM_setMCwait.Enabled = false;
             this.BTN_COM_setMCwait.Location = new System.Drawing.Point(6, 48);
             this.BTN_COM_setMCwait.Name = "BTN_COM_setMCwait";
             this.BTN_COM_setMCwait.Size = new System.Drawing.Size(103, 23);
             this.BTN_COM_setMCwait.TabIndex = 7;
-            this.BTN_COM_setMCwait.Text = "Ожидание";
+            this.BTN_COM_setMCwait.Text = "Дата создания";
             this.BTN_COM_setMCwait.UseVisualStyleBackColor = true;
             this.BTN_COM_setMCwait.Click += new System.EventHandler(this.BTN_COM_setMCwait_Click);
             // 
             // TABpanel_3
             // 
             this.TABpanel_3.BackColor = System.Drawing.SystemColors.Control;
+            this.TABpanel_3.Controls.Add(this.button7);
+            this.TABpanel_3.Controls.Add(this.button6);
+            this.TABpanel_3.Controls.Add(this.button5);
+            this.TABpanel_3.Controls.Add(this.button2);
             this.TABpanel_3.Controls.Add(this.GPB_TIC_Gauge2);
             this.TABpanel_3.Controls.Add(this.GPB_TIC_Gauge1);
             this.TABpanel_3.Controls.Add(this.GPB_Flags);
@@ -1056,6 +1063,46 @@
             this.TABpanel_3.Size = new System.Drawing.Size(652, 320);
             this.TABpanel_3.TabIndex = 2;
             this.TABpanel_3.Text = "TIC";
+            // 
+            // button7
+            // 
+            this.button7.Location = new System.Drawing.Point(265, 286);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(75, 23);
+            this.button7.TabIndex = 9;
+            this.button7.Text = "/off SEMV1";
+            this.button7.UseVisualStyleBackColor = true;
+            this.button7.Click += new System.EventHandler(this.button7_Click);
+            // 
+            // button6
+            // 
+            this.button6.Location = new System.Drawing.Point(345, 286);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(75, 23);
+            this.button6.TabIndex = 9;
+            this.button6.Text = "/on SEMV1";
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(426, 286);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(75, 23);
+            this.button5.TabIndex = 9;
+            this.button5.Text = "SEMV1?";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(426, 257);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 8;
+            this.button2.Text = "HVE?";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // GPB_TIC_Gauge2
             // 
@@ -1361,7 +1408,7 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(130, 23);
             this.button1.TabIndex = 6;
-            this.button1.Text = "Установить";
+            this.button1.Text = "Установить PRGE";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -3050,6 +3097,10 @@
         private System.Windows.Forms.Label LBL_TIC_Gauge2_name;
         private System.Windows.Forms.Label LBL_TIC_Gauge2_gasType;
         private System.Windows.Forms.Label LBL_TIC_Gauge2_type;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button7;
+        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button button5;
     }
 }
 

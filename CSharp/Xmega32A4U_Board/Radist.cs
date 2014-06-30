@@ -5,6 +5,7 @@ using System.Text;
 using System.IO.Ports;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Threading;
 
 namespace Xmega32A4U_testBoard
 {
@@ -332,6 +333,7 @@ namespace Xmega32A4U_testBoard
             //ФУНКЦИЯ: Прочесать буфер и если есть байт ключ - начать приём до получения байта затвора.
             //          Если в буфере, всё ещё есть байты принять их в другой массив.
             //Принимаем всё что есть
+            bool traced = false;
             Receiver.Stop();
             while (COM_port.BytesToRead > 0)
             {
@@ -418,7 +420,7 @@ namespace Xmega32A4U_testBoard
                 }
             }
             rPackets.Clear();
-            MC.Service.trace(a);
+            MC.Service.trace("->[" + a.Substring(0, a.Length - 3) + "]");
             a = "";
         }
         static void Asynchro_decode(List<byte> packet)
@@ -439,7 +441,7 @@ namespace Xmega32A4U_testBoard
             }
             else
             {
-                MC.Service.trace("Синхронное сообщение было получено асинхронным образом: [" + MC.Service.tracer_toString(packet) + "]");
+                MC.Service.trace("Синхронное сообщение было получено асинхронным образом:");
             }
         }
         static void Receiver_time_out(object sender, System.Timers.ElapsedEventArgs e)
@@ -502,7 +504,8 @@ namespace Xmega32A4U_testBoard
                 while (Synchro.Enabled) { }
                 if ((!time_is_out)&&(synPacket.Count > 0))
                 {
-                    MC.Service.trace("->[" + MC.Service.tracer_toString(synPacket) + "]");
+                    //string text = "->[" + MC.Service.tracer_toString(synPacket) + "]";
+                    //MC.Service.trace(text);
                     //Tracer.next();
                     synPacket.RemoveAt(0);
                     synPacket.RemoveAt(synPacket.Count - 1);

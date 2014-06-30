@@ -1008,7 +1008,7 @@ static inline int_fast8_t ilog2(uint32_t x)
 #define _MEM_TYPE_MEDFAST_              //!< Fairly fast memory type.
 #define _MEM_TYPE_FAST_                 //!< Fast memory type.
 
-typedef U8                  Byte;       //!< 8-bit unsigned integer.
+typedef U8                  byte;       //!< 8-bit unsigned integer.
 
 #define memcmp_ram2ram      memcmp      //!< Target-specific memcmp of RAM to RAM.
 #define memcmp_code2ram     memcmp      //!< Target-specific memcmp of RAM to NVRAM.

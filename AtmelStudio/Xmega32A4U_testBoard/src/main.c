@@ -23,8 +23,9 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										163
-#define birthday									20140429//Счётчики
+#define version										164
+#define birthday									20140627
+//Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
 #define RTC_Status_busy								2		//Счётчики ещё считает
@@ -230,7 +231,7 @@ void checkFlag_SEMV1(void);
 void checkFlag_SEMV2(void);
 void checkFlag_SEMV3(void);
 void checkFlag_SPUMP(void);
-void fun(void);
+//void fun(void);
 byte receive(void);
 //-----------------------------------------ВКЛЮЧЕНИЯ----------------------------------------------
 #include <Radist.h>
@@ -271,7 +272,9 @@ ISR(USARTE0_RXC_vect)
 		if (TIC_buf == 13)
 		{
 			if (TIC_State == USART_State_receiving)
-			{ transmit(TIC_MEM, TIC_MEM_length); }		//Посылаем всё что накопилось на ПК
+			{ 
+				transmit(TIC_MEM, TIC_MEM_length); 
+			}		//Посылаем всё что накопилось на ПК
 			else { TIC_decode_HVE(); }					//При неудачной декодировке HVE уже выключено в декодере
 			TIC_MEM_length = 0;
 			TIC_timer.CTRLA = TC_125kHz;			//Переходим в режим ожидания
@@ -362,7 +365,7 @@ ISR(RTC_OVF_vect)
 	COC_Measurment = COC.CNT;
     RTC_setStatus_ready;
     //Отправляем асинхронное сообщение
-    transmit_3rytes(TOKEN_ASYNCHRO, LAM_RTC_end, RTC_Status);
+	transmit_3rytes(TOKEN_ASYNCHRO, LAM_RTC_end, RTC_Status);
 }
 static void ISR_COA(void)
 {
@@ -1145,7 +1148,7 @@ void checkFlag_SPUMP(void)
     }
     transmit_2rytes(COMMAND_Flags_SPUMP, (PORTD.OUT & 1));
 }
-
+/*
 void fun(void)
 {
 	byte incoming[10];
@@ -1185,7 +1188,7 @@ void fun(void)
 	}
 	PC_buffer = lock;
 	receiving();
-}
+}*/
 //-------------------------------------НАЧАЛО ПРОГРАММЫ-------------------------------------------
 int main(void)
 {
@@ -1320,7 +1323,6 @@ int main(void)
 			sei_TIC;
 			MC_Tasks.retransmit = 0;				//Снимаем задачу
 		}
-		//fun();
     }
 }
 //-----------------------------------------ЗАМЕТКИ------------------------------------------------
