@@ -12,6 +12,7 @@
 #define cli_PC							PMIC.CTRL &= 253
 #define cli_TIC							PMIC.CTRL &= 254
 //USART PC (USARTD0)
+#define USART_PC_vect					USARTD0_RXC_vect
 #define USART_PC						&USARTD0
 #define USART_PC_BAUDRATE				120811//128000
 #define USART_PC_CHAR_LENGTH			USART_CHSIZE_8BIT_gc
@@ -20,6 +21,7 @@
 #define USART_PC_init					usart_init_rs232(USART_PC, &USART_PC_OPTIONS);					\
 										usart_set_rx_interrupt_level(USART_PC,USART_INT_LVL_MED)
 //USART	TIC (USARTE0)
+#define USART_TIC_vect					USARTE0_RXC_vect
 #define USART_TIC						&USARTE0
 #define USART_TIC_BAUDRATE				9024//9600
 #define USART_TIC_CHAR_LENGTH			USART_CHSIZE_8BIT_gc

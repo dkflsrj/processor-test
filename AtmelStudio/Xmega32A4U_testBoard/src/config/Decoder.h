@@ -37,7 +37,7 @@
 #define COMMAND_PSInl_set_Voltage					44	//Команда: Задать напряжение натекателя
 //TIC
 #define COMMAND_TIC_retransmit						50	//Команда: Ретранслировать данные TIC'у
-#define COMMAND_TIC_set_Gauges						51	//Команда: Задать датчики и пороги
+
 #define COMMAND_TIC_send_TIC_MEM					53	//Команда: Вернуть память TIC_MEM
 
 //#define COMMAND_KEY								58	//Команда: Любая команда начинается с этой (ключ)

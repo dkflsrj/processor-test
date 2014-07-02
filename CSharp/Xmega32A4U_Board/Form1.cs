@@ -703,11 +703,20 @@ namespace Xmega32A4U_testBoard
         }
         private void BTN_TIC_FOR_Update_Click(object sender, EventArgs e)
         {
-            LBL_TIC_FOR_State.Text = TIC.Backing.Pump.state;
-            LBL_TIC_FOR_Speed.Text = TIC.Backing.speed + "%";
-            LBL_TIC_FOR_Power.Text = TIC.Backing.power + "Вт";
-            LBL_TIC_FOR_Setup.Text = TIC.Backing.Pump.setup;
-            LBL_TIC_FOR_Type.Text = TIC.Backing.Pump.type;
+           // LBL_TIC_FOR_State.Text = TIC.Backing.Pump.state;
+           // LBL_TIC_FOR_Speed.Text = TIC.Backing.speed + "%";
+           // LBL_TIC_FOR_Power.Text = TIC.Backing.power + "Вт";
+           // LBL_TIC_FOR_Setup.Text = TIC.Backing.Pump.setup;
+           // LBL_TIC_FOR_Type.Text = TIC.Backing.Pump.type;
+            string T = "";
+            string B = "";
+            string G1 ="";
+            string G2 ="";
+            string G3 ="";
+            string R1 ="";
+            string R2 ="";
+            string R3 ="";
+            TIC.TIC_Status.value(ref T, ref B, ref G1, ref G2, ref G3, ref R1, ref R2, ref R3);
         }
         private void BTN_TIC_FOR_ON_Click(object sender, EventArgs e)
         {

@@ -59,14 +59,8 @@ void receiving(void)
 				PC_receiving = 0;											//Завершаем приём
 				byte received_CheckSum = PC_MEM[--PC_MEM_length];			//Вынимаем контрольную сумму
 				byte calced_CheckSum = calcCheckSum(PC_MEM, PC_MEM_length); //Высчитываем контрольную сумму
-				if(received_CheckSum == calced_CheckSum)
-				{ //Сверяем контрольные суммы
-					decode();
-				}
-				else
-				{
-					transmit_2rytes(TOKEN_ASYNCHRO,ERROR_DLP_wrongCheckSum);
-				}
+				if(received_CheckSum == calced_CheckSum) { decode(); }
+				else { transmit_2rytes(TOKEN_ASYNCHRO,ERROR_DLP_wrongCheckSum); }
 				break;
 			case key: PC_receiving = 0; //Ошибка приёма
 				break;
