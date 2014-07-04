@@ -23,8 +23,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										165
-#define birthday									20140702
+#define version										166
+#define birthday									20140704
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -86,11 +86,16 @@ uint8_t TIC_HVE_Message[6] = {63, 86, 57, 48, 50, 13};	//char'ы сообщения на зап
 uint8_t TIC_HVE_offlineCount = 0;						//Количество запросов, которые проигнорировал. 3 раза и считается аварией.
 uint8_t TIC_HVE_Error_sent = 0;							//Булка: 0 - ошибка не отправлена компьютеру, 1 - ошибка уже отправлена компьютеру
 uint8_t TIC_Online = 0;									//Булка: 0 - нет связи с TIC'ом, 1 - TIC на связи
+byte TIC_Status[30];									//Последнее сообщение статуса от TIC'a 
+byte TIC_Status_length = 0;								//Длинна сообщения статуса
 //		Измерения
+byte RTC_delay = 0;										//Флаг: RTC в задержке
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
 uint16_t RTC_ElapsedTime = 0;
 uint8_t  RTC_MeasurePrescaler = RTC_PRESCALER_OFF_gc;	//Предделитель RTC
 uint16_t RTC_MeasurePeriod = 0;							//Период RTC
+uint8_t  RTC_DelayPrescaler = RTC_PRESCALER_OFF_gc;		//Предделитель RTC
+uint16_t RTC_DelayPeriod = 0;							//Период RTC
 uint16_t COA_Measurment = 0;							//Последнее измерение счётчика COA
 uint16_t COA_OVF = 0;									//Количество переполнений счётчика СОА
 uint16_t COB_Measurment = 0;							//Последнее измерение счётчика COB
@@ -210,6 +215,8 @@ void MC_transmit_CPUfreq(void);
 void COUNTERS_start(void);
 void COUNTERS_sendResults(void);
 void COUNTERS_stop(void);
+void COUNTERS_delayedStart(void);
+uint32_t COUNTERS_msToTicks(byte ms);
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel, EVSYS_DIGFILT_t filterCoefficient);
 void decode(void);
@@ -218,7 +225,9 @@ void TIC_request_Status(void);
 void TIC_decode(void);
 uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol);
 void TIC_send_TIC_MEM(void);
+void TIC_getStatus(void);
 void SPI_send(uint8_t DEVICE_Number);
+void SPI_get_AllVoltages(void);
 void updateFlags(void);
 void checkFlag_HVE(void);
 void checkFlag_PRGE(void);
@@ -292,6 +301,36 @@ ISR(RTC_OVF_vect)
         "STS 0x0A00, R16		\n\t"//COC: Адрес TCE0.CTRLA = 0x0A00 <- Ноль
 		"STS 0x0400, R16		\n\t"//RTC: Адрес RTC.CTRL   = 0x0400 <- Ноль
     );
+	if(RTC_delay)
+	{
+		RTC_delay = 0;
+		while (RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.PER = RTC_MeasurePeriod;
+		while (RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CNT = 0;
+		//начали
+		while (RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CTRL = RTC_MeasurePrescaler;
+		asm(
+		"LDI R16, 0x08		\n\t"//TCC0:Код канала событий 0 = 0x08
+		"LDI R17, 0x0A		\n\t"//TCD0:Код канала событий 2 = 0x0A
+		"LDI R18, 0x0C		\n\t"//TCE0:Код канала событий 4 = 0x0C
+		//"LDS R19, 0x2078	\n\t"//RTC: Адрес RTC_Prescaler  = 0x2078
+		"STS 0x0800, R16 	\n\t"//Адрес TCC0.CTRLA = 0x0800 <- Канал событий 0
+		"STS 0x0900, R17	\n\t"//Адрес TCD0.CTRLA = 0x0900 <- Канал событий 2
+		"STS 0x0A00, R18	\n\t"//Адрес TCE0.CTRLA = 0x0A00 <- Канал событий 4
+		//"STS 0x0400, R19	\n\t"//Адрес RTC.CTRL   = 0x0400 <- Предделитель RTC_MeasurePrescaler(@0x2078)
+		);
+	}
 	while (RTC.STATUS != 0)
 	{
 		//Ждём пока можно будет обратиться к регистрам RTC
@@ -475,6 +514,12 @@ void decode(void)
             break;
         case COMMAND_Flags_SPUMP:					checkFlag_SPUMP();
             break;
+		case COMMAND_SPI_get_AllVoltages:			SPI_get_AllVoltages();
+			break;
+		case COMMAND_TIC_getStatus:					TIC_getStatus();
+			break;
+		case COMMAND_COUNTERS_delayedStart:			COUNTERS_delayedStart();
+			break;
         default: transmit_3rytes(TOKEN_ASYNCHRO, ERROR_DECODER_wrongCommand, PC_MEM[0]);
     }
 }
@@ -604,6 +649,115 @@ void COUNTERS_stop(void)
         transmit_2rytes(COMMAND_COUNTERS_stop, RTC_Status);
     }
 }
+void COUNTERS_delayedStart(void)
+{
+	//ФУНКЦИЯ: Задаёт напряжения:
+	//			- Сканирующее		(DAC_Scaner - 2 канал (25))
+	//			- Дополнительное	(DAC_Scaner - 1 канал (24))
+	//			- Конденсатор		(DAC_Condensator - 1 канал (24))
+	//		   Запускает задержку
+	//		   После задержки производит счёт
+	//Принятый пакет:	<33><SV.1><SV.2><PSV.1><PSV.2><C.1><C.2>
+	//					<delay_ms.1><delay_ms.2>
+	//					<measure_ms.1><measure_ms.2><cs>
+	//
+	//Ответ:	<33><cs>
+	
+	//PC_MEM_length = 11;
+	//PC_MEM[0] = 33;	/* <cm> */		PC_MEM[4] = 4;	/* <PSV.2> */	PC_MEM[8] = 96; /* <D_ms.2> */	
+	//PC_MEM[1] = 56;	/* <SV.1> */	PC_MEM[5] = 65;	/* <C.1> */		PC_MEM[9] = 0; /* <M_ms.1> */	
+	//PC_MEM[2] = 4;	/* <SV.2> */	PC_MEM[6] = 4;	/* <C.2> */		PC_MEM[10] = 50; /* <M_ms.2> */
+	//PC_MEM[3] = 43;	/* <PSV.1> */	PC_MEM[7] = 1;	/* <D_ms.1> */	
+	
+	//0:0
+	//Выставляем настройки для SPI устройств
+	if ((RTC_Status != RTC_Status_busy))
+	{
+		uint8_t spi_data[] = {25, PC_MEM[1], PC_MEM[2]}; //Устанавливаем Сканирующее
+		spi_select_device(&SPIC, &DAC_Scaner);
+		spi_write_packet(&SPIC, spi_data, 3);
+		spi_deselect_device(&SPIC, &DAC_Scaner);
+		spi_data[0] = 24;	//Переключаемся на первый канал
+		spi_data[1] = PC_MEM[3];//Устанавливаем Дополнительное
+		spi_data[2] = PC_MEM[4];
+		spi_select_device(&SPIC, &DAC_Scaner);
+		spi_write_packet(&SPIC, spi_data, 3);
+		spi_deselect_device(&SPIC, &DAC_Scaner);
+		spi_data[1] = PC_MEM[5];//Устанавливаем Конденсатор
+		spi_data[2] = PC_MEM[6];
+		spi_select_device(&SPIC, &DAC_Condensator);
+		spi_write_packet(&SPIC, spi_data, 3);
+		spi_deselect_device(&SPIC, &DAC_Condensator);
+		//12101:378 мс
+		//Вычисляем задержку и время экспозиции
+		uint16_t delay_time = ((uint16_t)PC_MEM[7] << 8) + PC_MEM[8];//Время в микросекундах(от 1 мс до 65535 с)
+		uint32_t dummy = COUNTERS_msToTicks(delay_time);
+		if (dummy == 0) { transmit_2rytes(COMMAND_COUNTERS_delayedStart, 0); return; }
+		RTC_DelayPrescaler = (byte)(dummy >> 16);
+		RTC_DelayPeriod = (uint16_t)dummy;
+		uint16_t measure_time = ((uint16_t)PC_MEM[9] << 8) + PC_MEM[10];
+		dummy = COUNTERS_msToTicks(measure_time);
+		if (dummy == 0) { transmit_2rytes(COMMAND_COUNTERS_delayedStart, 0); return; }
+		RTC_MeasurePrescaler = (byte)(dummy >> 16);
+		RTC_MeasurePeriod = (uint16_t)dummy;
+		//18212:569 мкс
+		//Инициируем задержку
+		RTC_delay = 1;
+		//подготовка
+		while (RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.PER = RTC_DelayPeriod;
+		COA_Measurment = 0;
+		COB_Measurment = 0;
+		COC_Measurment = 0;
+		COA_OVF = 0;
+		COB_OVF = 0;
+		COC_OVF = 0;
+		while (RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CNT = 0;
+		COA.CNT = 0;
+		COB.CNT = 0;
+		COC.CNT = 0;
+		//начали
+		while (RTC.STATUS != 0)
+		{
+			//Ждём пока можно будет обратиться к регистрам RTC
+		}
+		RTC.CTRL = RTC_DelayPrescaler;
+		transmit_2rytes(COMMAND_COUNTERS_delayedStart, 1);
+		RTC_setStatus_busy;
+	}
+	else
+	{
+		//ЗАПРЕЩЕНО! Счётчики считают!
+		transmit_2rytes(COMMAND_COUNTERS_delayedStart, 2);
+	}
+}
+uint32_t COUNTERS_msToTicks(byte ms)
+{
+	//ФУНКЦИЯ: Переводит миллисекунды в тики и предделитель
+	//ВОЗВРАЩАЕТ: <x><prescaler><ticks_1><ticks_2>
+	//0:0
+	uint32_t answer = 0;
+	byte prescaler = 0;
+	float frequency = 0;
+	uint16_t ticks = 0;
+	if		((ms > 0)		&&(ms < 2000))	{ prescaler = 1; frequency = 32.768; }
+	else if ((ms >= 2000)	&&(ms < 4000))	{ prescaler = 2; frequency = 16.384; }
+	else if ((ms >= 4000)	&&(ms < 16000))	{ prescaler = 3; frequency = 4.096; }
+	else if ((ms >= 16000)	&&(ms < 32000))	{ prescaler = 4; frequency = 2.048; }
+	else if ((ms >= 32000)	&&(ms <= 65535)){ prescaler = 5; frequency = 0.512; }
+	else { return 0; }//Неверное значение
+	ticks = ms * frequency;//Исполнение: 2846:88,9 мкс
+	answer = (uint32_t)(((uint32_t)prescaler << 16) + ticks);
+	//2931:91,6 мкс
+	return answer;
+}
 //TIC
 void TIC_decode(void)
 {
@@ -621,9 +775,17 @@ void TIC_decode(void)
     //Байт:   61 86 57 48 50  32  ?  59 ?  59 ?  59 ?  59 ?  59 ?  59 ?  59 ?  59 ?       59 ?        13
     //Символ: =  V  9  0  2  <sp> T  ;  B  ;  G1 ;  G2 ;  G3 ;  R1 ;  R2 ;  R3 ;  AlertID ;  Priority <\r>
     //Номер:  0  1  2  3  4   5   6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22      23 24       25
-    if ((TIC_MEM[0] == 61) && (TIC_MEM[1] == 86) && (TIC_MEM[2] == 57) && (TIC_MEM[3] == 48) && (TIC_MEM[4] == 50) && (TIC_MEM[5] == 32) && (TIC_MEM[TIC_MEM_length - 1] == 13))
+    //0:0
+	if ((TIC_MEM[0] == 61) && (TIC_MEM[1] == 86) && (TIC_MEM[2] == 57) && (TIC_MEM[3] == 48) && (TIC_MEM[4] == 50) && (TIC_MEM[5] == 32) && (TIC_MEM[TIC_MEM_length - 1] == 13))
     {
+		//54:1,69 мкс
 		TIC_Online = 1;			//Обёртка пакета корректная, значит TIC на связи
+		//Копируем сообщение TIC'a в буфер статуса (только статусы)
+		cli();
+		TIC_Status_length = TIC_MEM_length - 7;
+		for (byte i = 0; i < TIC_Status_length; i++) { TIC_Status[i] = TIC_MEM[i+6]; }
+		sei();
+		//820:25,6 мкс
         //Преобразуем ASCII числа в байты
         byte Turbo, R1, R2, R3;	//Интерисующие нас параметры
 		byte semicolon_counter = 0;
@@ -653,6 +815,7 @@ void TIC_decode(void)
 				}
 			}
 		}
+		//1645:51,4 мкс
 		if ((Turbo <= 7) && (R1 <= 4 )&& (R2 <= 4) && (R3 <= 4))
 		{
 			//Все статусы корректны. Идём дальше
@@ -713,7 +876,7 @@ void TIC_decode(void)
 				default: 
 				break;
 			}*/
-			//
+			//1715:53,6 мкс
 			if (Turbo_approval && R2_approval)
 			{
 				//И турбик и реле дают добро на включение высоких напряжений ну и мы тогда дадим добро
@@ -739,6 +902,7 @@ void TIC_decode(void)
 			TIC_HVE_Error_sent = 0;	//Всё штатно, будем посылать LAM при ошибке
 			TIC_HVE_offlineCount = 0;//обнуляем счётчик ошибок
 			return;
+			//8218:257 мкс
 		}
 	}
     //Если в декодироваке пошло что-то не так то спускаемся сюда.
@@ -784,9 +948,9 @@ void TIC_retransmit(void)
 void TIC_request_Status(void)
 {
     //ФУНКЦИЯ: Запрашиваем у TIC'а статус
-	cli();
+	//cli();
     for (uint8_t i = 0; i < 6; i++) { usart_putchar(USART_TIC, TIC_HVE_Message[i]); }	//Отправляем
-	sei();
+	//sei();
 }
 void TIC_send_TIC_MEM(void)
 {
@@ -799,6 +963,11 @@ void TIC_send_TIC_MEM(void)
         data[i + 2] = TIC_MEM[i];
     }
     transmit(data, TIC_MEM_length + 10);
+}
+void TIC_getStatus(void)
+{
+	//ФУНКЦИЯ: Отсылает компьютеру последние актуальные данные о TIC'е
+	transmit(TIC_Status,TIC_Status_length);
 }
 //Прочие
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource)
@@ -926,6 +1095,56 @@ void SPI_send(uint8_t DEVICE_Number)
     //Передём ответ на ПК по USART
     uint8_t aswDATA[] = {PC_MEM[0], SPI_rDATA[0], SPI_rDATA[1]};
     transmit(aswDATA, 3);
+}
+void SPI_get_AllVoltages(void)
+{
+	//ФУНКЦИЯ: Возвращает компьютеру компактный пакет из всех напряжений всех ADC.
+	//СПИСОК ОПРОСА:	PSIS	- PortA.1 - 0x600.2		- Ионный источник (4 канала: тока эмиссии, ионизации, фокусное 1, фокусное 2)
+	//					DPS		- PortA.5 - 0x600.32		- Детектор (3 канала: детектор 1, детектор 2, детектор 3)
+	//					MSV		- PortA.2 - 0x600.4	- Сканирующее (4 канала: сканирующее, дополнительное, конденсатор "+", конденсатор "-")
+	//					PSInl	- PortE.0 - 0x680.1		- Натекатель (2 канала: натекатель, нагреватель)
+	//				------------------------------
+	//					ИТОГО:	-	13 каналов
+	//ПОРЯДОК:  - Собрать все напряжения
+	//			- Отправить компьютеру
+	//ПОЯСНЕНИЕ: Опрос будем производить хитрым образом. Так как по "вине" Юрия Витальевича у нас при любом опросе
+	//			любого АЦП отрабатывают все АЦП, то мы можем "сообщение-пустышку" посылать не пустышку, а запрос следующего канала.
+	//0:0 с
+	byte Channels[5] = {16, 131, 135, 139,  143};	//[0] - Последний байт для АЦП (одинаковый для всех);
+	//												[1...4] - Первый байт для АЦП содержащий адрес канала (соответствует цифре)
+	#define Order_length  14
+	//Порядок опроса каналов (Последний - "пустышка")
+	//								IS_EC						IS_IV						IS_F1						IS_F2	 					D_1	 						D_2	 						D_3	 						C+		 					C-		 					SV		 					PSV	 						Inl	 						Heat	 					DUMMY
+	byte Order[Order_length] =		{1,							2,							3,							4,      					1,      					2,      					3,		 					1,		 					2,		 					3,		 					4,		 					1,		 					2,		 					1					};	
+	uint16_t Port[Order_length] =	{(uint16_t)&PORTA.OUTTGL, (uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTE.OUTTGL,	(uint16_t)&PORTE.OUTTGL,	(uint16_t)&PORTA.OUTTGL	};
+	byte Pin[Order_length] =		{2,			 				2,							2,							2,	     					32,	 						32,	 						32,	 						4,		 					4,		 					4,		 					4,		 					1,	     					1,		 					1					};
+	byte ch = 0;					//указатель канала
+	byte answer[27];
+	answer[0] = COMMAND_SPI_get_AllVoltages;
+	byte a = 1;				//Указатель последнего элемента массива answer
+	//Первая запись, ответ не читаем
+	//409:12,78 мкс
+	for (byte i = 0; i < Order_length; i++)
+	{
+		pin_iRDUN_low;						//Открытие сеанса
+		DWR(Port[ch], Pin[ch]);		//Выбираем на чтение предыдущий АЦП
+		SPIC.DATA = Channels[Order[i]];		//Запись (первый байт)
+		while (!(SPIC.STATUS & 0x80)) { }	//1032:32,25 мкс//Ожидание ответа 
+		pin_iRDUN_high;						//Закрытие сеанса
+		answer[a++] = SPIC.DATA;			//Чтение
+		pin_iRDUN_low;						//Открытие сеанса
+		SPIC.DATA = Channels[0];			//Запись (последний байт)
+		while (!(SPIC.STATUS & 0x80)) { }	//Ожидание ответа
+		pin_iRDUN_high;						//Закрытие сеанса
+		DWR(Port[ch], Pin[ch]);				//Снимаем чтение предыдущего АЦП
+		answer[a++] = SPIC.DATA;			//Чтение
+		ch++;
+		if(i == 0) { a = 1; ch = 0; }		//Обнуление, если это был первый раз, чтобы читать предыдущий
+		//2676:83,63 мкс (один цикл)
+	}
+	//32133:1 мс
+	transmit(answer, 27);					//Отправляем ответ компьютеру				
+	//113819:3,5 мс
 }
 //Флаги
 void updateFlags(void)
@@ -1233,8 +1452,7 @@ int main(void)
     TIC_timer.CNT = 0;
 	TIC_timer.CTRLA = TC_125kHz;		//Включаем TIC'овский таймер контроля статуса
     sei();								//Разрешаем прерывания
-    //Инициализация завершена
-	//TIC_decode();
+    //15627:488 мкс//Инициализация завершена
     while (1)
     {
         if (MC_Tasks.turnOnHVE) { turnOn_HV(); }
@@ -1246,9 +1464,9 @@ int main(void)
 			TIC_timer.CNT = 0;
 			TIC_State = USART_TIC_State_receiving;	//Переходим в режим приёма на ретрансмит
 			for (uint8_t i = 1; i < PC_MEM_length; i++) { TIC_MEM[i - 1] = PC_MEM[i]; }	//Копируем всё что должны переслать
-			cli();
+			//cli();
 			for (uint8_t i = 0; i < PC_MEM_length - 1; i++) { usart_putchar(USART_TIC, TIC_MEM[i]); }	//Отправляем
-			sei();
+			//sei();
 			TIC_timer.CTRLA = TC_500kHz;			//Запускаем таймер в режиме приёма
 			sei_TIC;
 			MC_Tasks.retransmit = 0;				//Снимаем задачу

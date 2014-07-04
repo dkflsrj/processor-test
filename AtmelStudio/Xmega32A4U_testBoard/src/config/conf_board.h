@@ -59,6 +59,18 @@
 #define pin_SPUMP_high		PORTD.OUTSET = 1
 #define pin_SPUMP_low		PORTD.OUTCLR = 1
 
+#define pin_iECIS_high		PORTA.OUTSET = 2		//SPI SS, разрешение чтения Ионного Источ
+#define pin_iECSV_high		PORTA.OUTSET = 4		//SPI SS, разрешение чтения Сканера
+#define pin_iECVD_high		PORTA.OUTSET = 32		//SPI SS, разрешение чтения Детектора
+#define pin_iECINL_high		PORTE.OUTSET = 1		//SPI SS, разрешение чтения, НАТЕКАТЕЛЬ
+#define pin_iRDUN_high		PORTC.OUTSET = 16		//SPI, разрешение на чтение вообще
+#define pin_iECIS_low		PORTA.OUTCLR = 2		//SPI SS, разрешение чтения Ионного Источ
+#define pin_iECSV_low		PORTA.OUTCLR = 4		//SPI SS, разрешение чтения Сканера
+#define pin_iECVD_low		PORTA.OUTCLR = 32		//SPI SS, разрешение чтения Детектора
+#define pin_iECINL_low		PORTE.OUTCLR = 1		//SPI SS, разрешение чтения, НАТЕКАТЕЛЬ
+#define pin_iRDUN_low		PORTC.OUTCLR = 16		//SPI, разрешение на чтение вообще
+
+#define DWR(ADDRESS,BYTE)	*(byte*)(ADDRESS) = BYTE	//Direct WRite. Прямая запись байта в регистр по адресу
 #endif
 
 

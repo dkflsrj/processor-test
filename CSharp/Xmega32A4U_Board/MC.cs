@@ -320,7 +320,7 @@ namespace Xmega32A4U_testBoard
             {
                 //ФУНКЦИЯ: Вычисляет количество тиков в соответствии с временем и предделителем. Возвращает количество тиков
                 ushort tiks;
-                if ((MILLISECONDS < 50) || (calcRTCprescaler(MILLISECONDS) == 0))
+                if ((MILLISECONDS < 1) || (calcRTCprescaler(MILLISECONDS) == 0))
                 {
                     MC.Service.trace("Counters.calcRTCticks(" + MILLISECONDS + ")" + ": Отмена операции! Неверное значение! Ожидалось: 50...2047925 мс. Получено: " + MILLISECONDS);
                     return ushort.MaxValue;
@@ -356,7 +356,7 @@ namespace Xmega32A4U_testBoard
                 string command = "Counters.startMeasure()";
                 MC.Service.trace(command);
                 //Проверка диапазона заданного интервала измерения
-                if ((MILLISECONDS < 50) || (calcRTCprescaler(MILLISECONDS) == 0))
+                if ((MILLISECONDS < 1) || (calcRTCprescaler(MILLISECONDS) == 0))
                 {
                     MC.Service.trace(command + ": Отмена операции! Неверное значение! Ожидалось: 50...2047925 мс. Получено: " + MILLISECONDS);
                     return false;

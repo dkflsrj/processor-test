@@ -29,6 +29,7 @@
 #define COMMAND_COUNTERS_start						30	//Команда: Начать счёт импульсов
 #define COMMAND_COUNTERS_stop						31	//Команда: Остановить счётчик
 #define COMMAND_COUNTERS_sendResults				32	//Команда: Послать результаты счёта
+#define COMMAND_COUNTERS_delayedStart					33  //Команда: Начать счёт с выставлением напряжений и задержкой
 //Команды DAC'ам
 #define COMMAND_PSIS_set_Voltage					40	//Команда: Задать напряжение DAC'у Ионного Источника
 #define COMMAND_DPS_set_Voltage						41	//Команда: Задать напряжение DAC'у Детектора
@@ -37,6 +38,7 @@
 #define COMMAND_PSInl_set_Voltage					44	//Команда: Задать напряжение натекателя
 //TIC
 #define COMMAND_TIC_retransmit						50	//Команда: Ретранслировать данные TIC'у
+#define COMMAND_TIC_getStatus						51	//Команда: Запросить последний полученный МК статус TIC'a
 
 #define COMMAND_TIC_send_TIC_MEM					53	//Команда: Вернуть память TIC_MEM
 
@@ -47,6 +49,7 @@
 #define COMMAND_DPS_get_Voltage						61	//Команда: Запросить напряжение DV1
 #define COMMAND_MSV_get_Voltage						62	//Команда: Запросить напряжение конденсатора ("+" или "-") или сканера (родительское или сканирующее)
 #define COMMAND_PSInl_get_Voltage					63	//Команда: Запросить напряжение натекателя
+#define COMMAND_SPI_get_AllVoltages					64	//Команда: Запросить значение всех напряжений всех ADC
 
 #define COMMAND_Flags_HVE							71
 #define COMMAND_Flags_PRGE							72
