@@ -76,7 +76,7 @@ extern "C" {
 
 //! Default Config Spi Master Dummy Field
 #ifndef CONFIG_SPI_MASTER_DUMMY
-#define CONFIG_SPI_MASTER_DUMMY              0xFF
+#define CONFIG_SPI_MASTER_DUMMY              0x00
 #endif
 //! @}
 

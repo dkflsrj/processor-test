@@ -120,6 +120,7 @@ void transmit_next(void)
 	transmiting = 1;
 	byte DATA_length = Queue_lengthes[0];
 	byte CS = calcCheckSum(Queue, DATA_length);
+	//2245:70,2 мкс - 22 байта
 	usart_putchar(USART_PC, key);
 	for(int i = 0; i < DATA_length; i++)
 	{
@@ -127,6 +128,7 @@ void transmit_next(void)
 	}
 	usart_putryte(CS);
 	usart_putchar(USART_PC, lock);
+	//72675:2,27 мс - 22 байта
 	//Сдвигаем очередь
 	cli();
 	Queue_pointer -= DATA_length;
@@ -142,11 +144,13 @@ void transmit_next(void)
 	}
 	sei();
 	transmiting = 0;
+	//72734:2,27 мс - 0 байт
 }
 void transmit(byte DATA[], byte DATA_length)
 {
 	//ФУНКЦИЯ: Формирует пакет на передачу и отправляет его
 	//Если уже происходит передача (transmiting == 1), то добавляем пакет в очередь и выходим
+	//0:0
 	if(DATA_length == 0) { return; }
 	cli();
 	Queue_lengthes[Queue_lengthes_pointer++] = DATA_length;
@@ -155,6 +159,7 @@ void transmit(byte DATA[], byte DATA_length)
 		Queue[Queue_pointer++] = DATA[i];
 	}
 	sei();
+	//1298:40,6 мкс - 22 байта
 	if(transmiting) { return; }
 	while(Queue_lengthes_pointer > 0) { transmit_next(); }
 }
