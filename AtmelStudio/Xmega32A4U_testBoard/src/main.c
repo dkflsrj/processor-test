@@ -23,7 +23,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										168
+#define version										169
 #define birthday									20140709
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -789,8 +789,9 @@ void TIC_decode(void)
 		TIC_Online = 1;			//Обёртка пакета корректная, значит TIC на связи
 		//Копируем сообщение TIC'a в буфер статуса (только статусы)
 		cli();
-		TIC_Status_length = TIC_MEM_length - 7;
-		for (byte i = 0; i < TIC_Status_length; i++) { TIC_Status[i] = TIC_MEM[i+6]; }
+		TIC_Status[0] = COMMAND_TIC_getStatus;
+		TIC_Status_length = TIC_MEM_length - 6;
+		for (byte i = 0; i < TIC_Status_length; i++) { TIC_Status[i+1] = TIC_MEM[i+6]; }
 		sei();
 		//820:25,6 мкс
         //Преобразуем ASCII числа в байты
