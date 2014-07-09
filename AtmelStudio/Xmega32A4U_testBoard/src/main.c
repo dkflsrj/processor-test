@@ -23,8 +23,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										166
-#define birthday									20140704
+#define version										167
+#define birthday									20140709
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -669,6 +669,13 @@ void COUNTERS_delayedStart(void)
 	//PC_MEM[2] = 4;	/* <SV.2> */	PC_MEM[6] = 4;	/* <C.2> */		PC_MEM[10] = 50; /* <M_ms.2> */
 	//PC_MEM[3] = 43;	/* <PSV.1> */	PC_MEM[7] = 1;	/* <D_ms.1> */	
 	
+	//Сдвигаем биты
+	PC_MEM[1] = (PC_MEM[1] << 2) + (PC_MEM[2] >> 6);
+	PC_MEM[2] = (PC_MEM[2] << 2);
+	PC_MEM[3] = (PC_MEM[3] << 2) + (PC_MEM[4] >> 6);
+	PC_MEM[4] = (PC_MEM[4] << 2);
+	PC_MEM[5] = (PC_MEM[5] << 2) + (PC_MEM[6] >> 6);
+	PC_MEM[6] = (PC_MEM[6] << 2);
 	//0:0
 	//Выставляем настройки для SPI устройств
 	if ((RTC_Status != RTC_Status_busy))
@@ -1119,7 +1126,7 @@ void SPI_get_AllVoltages(void)
 	uint16_t Port[Order_length] =	{(uint16_t)&PORTA.OUTTGL, (uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTE.OUTTGL,	(uint16_t)&PORTE.OUTTGL,	(uint16_t)&PORTA.OUTTGL	};
 	byte Pin[Order_length] =		{2,			 				2,							2,							2,	     					32,	 						32,	 						32,	 						4,		 					4,		 					4,		 					4,		 					1,	     					1,		 					1					};
 	byte ch = 0;					//указатель канала
-	byte answer[27];
+	byte answer[28];
 	answer[0] = COMMAND_SPI_get_AllVoltages;
 	byte a = 1;				//Указатель последнего элемента массива answer
 	//Первая запись, ответ не читаем
@@ -1142,9 +1149,11 @@ void SPI_get_AllVoltages(void)
 		if(i == 0) { a = 1; ch = 0; }		//Обнуление, если это был первый раз, чтобы читать предыдущий
 		//2676:83,63 мкс (один цикл)
 	}
-	//32133:1 мс
-	transmit(answer, 27);					//Отправляем ответ компьютеру				
-	//113819:3,5 мс
+	//Форимируем байт флагов <HVE_port				|		iHVE		|		PRGE		|		iEDCD				|		SEMV1			|		SEMV2				|		SEMV3			|	SPUMP>
+	answer[27] =			((PORTC.OUT & 8) << 4) + (Flags.iHVE << 6) + (Flags.PRGE << 5) + ((PORTA.OUT & 128) >> 3) + ((PORTD.OUT & 2) << 2) + ((PORTD.OUT & 16) >> 2) + ((PORTD.OUT & 32) >> 4) + (PORTD.OUT & 1);
+	//32133:1 мс - неверно
+	transmit(answer, 28);					//Отправляем ответ компьютеру				
+	//113819:3,5 мс - неверно
 }
 //Флаги
 void updateFlags(void)
@@ -1453,6 +1462,7 @@ int main(void)
 	TIC_timer.CTRLA = TC_125kHz;		//Включаем TIC'овский таймер контроля статуса
     sei();								//Разрешаем прерывания
     //15627:488 мкс//Инициализация завершена
+	SPI_get_AllVoltages();
     while (1)
     {
         if (MC_Tasks.turnOnHVE) { turnOn_HV(); }
