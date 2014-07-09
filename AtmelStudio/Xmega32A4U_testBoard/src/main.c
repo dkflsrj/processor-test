@@ -23,7 +23,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										167
+#define version										168
 #define birthday									20140709
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -1462,7 +1462,6 @@ int main(void)
 	TIC_timer.CTRLA = TC_125kHz;		//Включаем TIC'овский таймер контроля статуса
     sei();								//Разрешаем прерывания
     //15627:488 мкс//Инициализация завершена
-	SPI_get_AllVoltages();
     while (1)
     {
         if (MC_Tasks.turnOnHVE) { turnOn_HV(); }
