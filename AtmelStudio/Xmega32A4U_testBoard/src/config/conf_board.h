@@ -71,6 +71,7 @@
 #define pin_iRDUN_low		PORTC.OUTCLR = 16		//SPI, разрешение на чтение вообще
 
 #define DWR(ADDRESS,BYTE)	*(byte*)(ADDRESS) = BYTE	//Direct WRite. Прямая запись байта в регистр по адресу
+//#define pin(PORT,PIN)		
 #endif
 
 
