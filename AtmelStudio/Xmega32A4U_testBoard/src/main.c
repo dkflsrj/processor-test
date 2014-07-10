@@ -23,8 +23,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										169
-#define birthday									20140709
+#define version										170
+#define birthday									20140710
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -88,6 +88,8 @@ uint8_t TIC_HVE_Error_sent = 0;							//Булка: 0 - ошибка не отправлена компьюте
 uint8_t TIC_Online = 0;									//Булка: 0 - нет связи с TIC'ом, 1 - TIC на связи
 byte TIC_Status[30];									//Последнее сообщение статуса от TIC'a 
 byte TIC_Status_length = 0;								//Длинна сообщения статуса
+byte TIC_disprove_jitter = 0;							//Учёт дребезга контактов (МК вырубает высокое)
+#define TIC_disprove_jitter_MAX 1						//Максимальное количество дребезга
 //		Измерения
 byte RTC_delay = 0;										//Флаг: RTC в задержке
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
@@ -899,12 +901,18 @@ void TIC_decode(void)
 			{
 				if(Flags.iHVE == 0)
 				{
-					//На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть! Должно быть...
-					//Выключаем высокое!
-					pin_iHVE_high;
-					Flags.iHVE = 1;
-					Flags.PRGE = 0;
-					transmit_2rytes(TOKEN_ASYNCHRO, LAM_HVE_TIC_disapprove);
+					TIC_disprove_jitter++;
+					if(TIC_disprove_jitter > TIC_disprove_jitter_MAX)
+					{
+						//На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть! Должно быть...
+						//Выключаем высокое!
+						pin_iHVE_high;
+						Flags.iHVE = 1;
+						Flags.PRGE = 0;
+						byte TiR = ((Turbo << 4) & 0xf0) + (R2 & 0x0f); //Пошлём вместе с сигналом состояние турбика и реле 0xTR; T от 0 до 7, R от 0 до 4
+						transmit_3rytes(TOKEN_ASYNCHRO, LAM_HVE_TIC_disapprove, TiR);
+						TIC_disprove_jitter = 0;
+					}
 				}
 			}
 			TIC_HVE_Error_sent = 0;	//Всё штатно, будем посылать LAM при ошибке
@@ -1117,6 +1125,9 @@ void SPI_get_AllVoltages(void)
 	//			- Отправить компьютеру
 	//ПОЯСНЕНИЕ: Опрос будем производить хитрым образом. Так как по "вине" Юрия Витальевича у нас при любом опросе
 	//			любого АЦП отрабатывают все АЦП, то мы можем "сообщение-пустышку" посылать не пустышку, а запрос следующего канала.
+	byte answer[28];
+	answer[0] = COMMAND_SPI_get_AllVoltages;
+	/*Не работает
 	//0:0 с
 	byte Channels[5] = {16, 131, 135, 139,  143};	//[0] - Последний байт для АЦП (одинаковый для всех);
 	//												[1...4] - Первый байт для АЦП содержащий адрес канала (соответствует цифре)
@@ -1127,8 +1138,6 @@ void SPI_get_AllVoltages(void)
 	uint16_t Port[Order_length] =	{(uint16_t)&PORTA.OUTTGL, (uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTA.OUTTGL,	(uint16_t)&PORTE.OUTTGL,	(uint16_t)&PORTE.OUTTGL,	(uint16_t)&PORTA.OUTTGL	};
 	byte Pin[Order_length] =		{2,			 				2,							2,							2,	     					32,	 						32,	 						32,	 						4,		 					4,		 					4,		 					4,		 					1,	     					1,		 					1					};
 	byte ch = 0;					//указатель канала
-	byte answer[28];
-	answer[0] = COMMAND_SPI_get_AllVoltages;
 	byte a = 1;				//Указатель последнего элемента массива answer
 	//Первая запись, ответ не читаем
 	//409:12,78 мкс
@@ -1137,12 +1146,14 @@ void SPI_get_AllVoltages(void)
 		pin_iRDUN_low;						//Открытие сеанса
 		DWR(Port[ch], Pin[ch]);		//Выбираем на чтение предыдущий АЦП
 		SPIC.DATA = Channels[Order[i]];		//Запись (первый байт)
-		while (!(SPIC.STATUS & 0x80)) { }	//1032:32,25 мкс//Ожидание ответа 
+		spi_wait_packet(&SPIC);
+		//while (!(SPIC.STATUS & 0x80)) { }	//1032:32,25 мкс//Ожидание ответа
 		pin_iRDUN_high;						//Закрытие сеанса
 		answer[a++] = SPIC.DATA;			//Чтение
 		pin_iRDUN_low;						//Открытие сеанса
 		SPIC.DATA = Channels[0];			//Запись (последний байт)
-		while (!(SPIC.STATUS & 0x80)) { }	//Ожидание ответа
+		spi_wait_packet(&SPIC);
+		//while (!(SPIC.STATUS & 0x80)) { }	//Ожидание ответа
 		pin_iRDUN_high;						//Закрытие сеанса
 		DWR(Port[ch], Pin[ch]);				//Снимаем чтение предыдущего АЦП
 		answer[a++] = SPIC.DATA;			//Чтение
@@ -1150,6 +1161,178 @@ void SPI_get_AllVoltages(void)
 		if(i == 0) { a = 1; ch = 0; }		//Обнуление, если это был первый раз, чтобы читать предыдущий
 		//2676:83,63 мкс (один цикл)
 	}
+	//*/
+	///*Работает
+	byte SPI_rDATA[2] = {0,0};
+	byte sdata[] = {131, 16}; //IS_EC
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_IonSource);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_IonSource);
+	answer[1] = SPI_rDATA[0];
+	answer[2] = SPI_rDATA[1];
+	//IS_IV
+	sdata[0] = 135;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_IonSource);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_IonSource);
+	answer[3] = SPI_rDATA[0];
+	answer[4] = SPI_rDATA[1];
+	//IS_F1
+	sdata[0] = 139;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_IonSource);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_IonSource);
+	answer[5] = SPI_rDATA[0];
+	answer[6] = SPI_rDATA[1];
+	//IS_F2
+	sdata[0] = 143;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_IonSource);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_IonSource);
+	answer[7] = SPI_rDATA[0];
+	answer[8] = SPI_rDATA[1];
+	//DPS_D1
+	sdata[0] = 131;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_Detector);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_Detector);
+	answer[9] = SPI_rDATA[0];
+	answer[10] = SPI_rDATA[1];
+	//DPS_D2
+	sdata[0] = 135;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_Detector);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_Detector);
+	answer[11] = SPI_rDATA[0];
+	answer[12] = SPI_rDATA[1];
+	//DPS_D3
+	sdata[0] = 139;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_Detector);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_Detector);
+	answer[13] = SPI_rDATA[0];
+	answer[14] = SPI_rDATA[1];
+	//MSV_C+
+	sdata[0] = 131;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_MSV);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_MSV);
+	answer[15] = SPI_rDATA[0];
+	answer[16] = SPI_rDATA[1];
+	//MSV_C-
+	sdata[0] = 135;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_MSV);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_MSV);
+	answer[17] = SPI_rDATA[0];
+	answer[18] = SPI_rDATA[1];
+	//MSV_SV
+	sdata[0] = 139;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_MSV);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_MSV);
+	answer[19] = SPI_rDATA[0];
+	answer[20] = SPI_rDATA[1];
+	//MSV_PSV
+	sdata[0] = 143;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_MSV);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_MSV);
+	answer[21] = SPI_rDATA[0];
+	answer[22] = SPI_rDATA[1];
+	//PSInl_Inl
+	sdata[0] = 131;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_Inlet);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_Inlet);
+	answer[23] = SPI_rDATA[0];
+	answer[24] = SPI_rDATA[1];
+	//PSInl_Heat
+	sdata[0] = 135;
+	gpio_set_pin_low(pin_iRDUN);
+	spi_write_packet(&SPIC, sdata, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	//Читаем два байта
+	spi_deselect_device(&SPIC, &ADC_Inlet);
+	gpio_set_pin_low(pin_iRDUN);
+	spi_read_packet(&SPIC, SPI_rDATA, 2);
+	gpio_set_pin_high(pin_iRDUN);
+	spi_select_device(&SPIC, &ADC_Inlet);
+	answer[25] = SPI_rDATA[0];
+	answer[26] = SPI_rDATA[1];
+	//*/
 	//Форимируем байт флагов <HVE_port				|		iHVE		|		PRGE		|		iEDCD				|		SEMV1			|		SEMV2				|		SEMV3			|	SPUMP>
 	answer[27] =			((PORTC.OUT & 8) << 4) + (Flags.iHVE << 6) + (Flags.PRGE << 5) + ((PORTA.OUT & 128) >> 3) + ((PORTD.OUT & 2) << 2) + ((PORTD.OUT & 16) >> 2) + ((PORTD.OUT & 32) >> 4) + (PORTD.OUT & 1);
 	//32133:1 мс - неверно
@@ -1312,9 +1495,11 @@ void turnOn_HV(void)
     //DPS + PSIS DAC'и AD5328R (Детектор и Ионный Источник) - двойной референс
     SPI_DATA[0] = AD5328R_confHbyte;
     SPI_DATA[1] = AD5328R_confLbyte;
+    spi_select_device(&SPIC, &DAC_Inlet);
     spi_select_device(&SPIC, &DAC_Detector);
     spi_select_device(&SPIC, &DAC_IonSource);
     spi_write_packet(&SPIC, SPI_DATA, 2);
+    spi_deselect_device(&SPIC, &DAC_Inlet);
     spi_deselect_device(&SPIC, &DAC_Detector);
     spi_deselect_device(&SPIC, &DAC_IonSource);
     //ОТКЛЮЧЕНО по электротехническим причинам!
