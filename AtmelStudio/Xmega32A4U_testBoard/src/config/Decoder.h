@@ -29,7 +29,7 @@
 #define COMMAND_COUNTERS_start						30	//Команда: Начать счёт импульсов
 #define COMMAND_COUNTERS_stop						31	//Команда: Остановить счётчик
 #define COMMAND_COUNTERS_sendResults				32	//Команда: Послать результаты счёта
-#define COMMAND_COUNTERS_delayedStart					33  //Команда: Начать счёт с выставлением напряжений и задержкой
+#define COMMAND_COUNTERS_delayedStart				33  //Команда: Начать счёт с выставлением напряжений и задержкой
 //Команды DAC'ам
 #define COMMAND_PSIS_set_Voltage					40	//Команда: Задать напряжение DAC'у Ионного Источника
 #define COMMAND_DPS_set_Voltage						41	//Команда: Задать напряжение DAC'у Детектора
@@ -39,7 +39,7 @@
 //TIC
 #define COMMAND_TIC_retransmit						50	//Команда: Ретранслировать данные TIC'у
 #define COMMAND_TIC_getStatus						51	//Команда: Запросить последний полученный МК статус TIC'a
-
+#define COMMAND_TIC_setJitter						52	//Команда: Устанавливает допустимое количество "дрожания" статуса датчиков
 #define COMMAND_TIC_send_TIC_MEM					53	//Команда: Вернуть память TIC_MEM
 
 //#define COMMAND_KEY								58	//Команда: Любая команда начинается с этой (ключ)
@@ -70,6 +70,7 @@
 #define LAM_SPI_conf_done							21	//После включения HVE все SPI устройства были настроены!
 #define LAM_HVE_TIC_approve							22	//После одобрения TIC'ом включения высокого напряжения
 #define LAM_HVE_TIC_disapprove						23	//После запрета TIC'а на включение высого напряжения 
+#define LAM_HVE_TIC_R1_off							24	//МК выключил вентиль EMV1 т.к. TIC прислал статус R1 не равный 4
 
 #define CRITICAL_ERROR_TIC_HVE_error_decode			30	//Ошибка декодировки данных от TIC'а при запросе HVE
 #define CRITICAL_ERROR_TIC_HVE_error_noResponse		31	//Ошибка при запросе HVE, TIC не ответил.
