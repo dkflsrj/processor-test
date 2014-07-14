@@ -23,8 +23,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										170
-#define birthday									20140710
+#define version										171
+#define birthday									20140714
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -33,11 +33,11 @@
 #define RTC_setStatus_stopped		RTC_Status =	RTC_Status_stopped
 #define RTC_setStatus_busy			RTC_Status =	RTC_Status_busy
 //Состояния USART
-#define	USART_TIC_State_ready							0		//USART ничего не принимает
-#define USART_TIC_State_receiving						1		//USART принимает байты
-#define USART_TIC_State_ending							2		//USART получил байт затвора, ожидается завершение передачи
-#define USART_TIC_State_decoding						3		//USART декодирует команду
-#define USART_TIC_State_receiving_TICstatus				4		//USART (TIC) принимает байты TIC'a на запрос HVE
+#define	USART_TIC_State_ready						0		//USART ничего не принимает
+#define USART_TIC_State_receiving					1		//USART принимает байты
+#define USART_TIC_State_ending						2		//USART получил байт затвора, ожидается завершение передачи
+#define USART_TIC_State_decoding					3		//USART декодирует команду
+#define USART_TIC_State_receiving_TICstatus			4		//USART (TIC) принимает байты TIC'a на запрос HVE
 //Стартовые конфигурации для DAC AD5643R -> двойной референс
 #define AD5643R_confHbyte							56
 #define AD5643R_confMbyte							0
@@ -89,7 +89,9 @@ uint8_t TIC_Online = 0;									//Булка: 0 - нет связи с TIC'ом, 1 - TIC на связ
 byte TIC_Status[30];									//Последнее сообщение статуса от TIC'a 
 byte TIC_Status_length = 0;								//Длинна сообщения статуса
 byte TIC_disprove_jitter = 0;							//Учёт дребезга контактов (МК вырубает высокое)
-#define TIC_disprove_jitter_MAX 1						//Максимальное количество дребезга
+byte TIC_disprove_jitter_MAX = 5;						//Максимальное количество дребезга
+byte TIC_R1_jitter = 0;									//Учёт дребезга контактов (МК вырубает вентиль)
+byte TIC_R1_jitter_MAX = 5;							//Максимальное количество дребезга
 //		Измерения
 byte RTC_delay = 0;										//Флаг: RTC в задержке
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
@@ -218,7 +220,7 @@ void COUNTERS_start(void);
 void COUNTERS_sendResults(void);
 void COUNTERS_stop(void);
 void COUNTERS_delayedStart(void);
-uint32_t COUNTERS_msToTicks(byte ms);
+uint32_t COUNTERS_msToTicks(uint16_t ms);
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource);
 bool EVSYS_SetEventChannelFilter(uint8_t eventChannel, EVSYS_DIGFILT_t filterCoefficient);
 void decode(void);
@@ -228,6 +230,7 @@ void TIC_decode(void);
 uint8_t TIC_decode_ASCII(uint8_t ASCII_symbol);
 void TIC_send_TIC_MEM(void);
 void TIC_getStatus(void);
+void TIC_setJitter(byte Jitter_TIC_disprove, byte Jitter_TIC_R1_off);
 void SPI_send(uint8_t DEVICE_Number);
 void SPI_get_AllVoltages(void);
 void updateFlags(void);
@@ -522,6 +525,8 @@ void decode(void)
 			break;
 		case COMMAND_COUNTERS_delayedStart:			COUNTERS_delayedStart();
 			break;
+		case COMMAND_TIC_setJitter:					TIC_setJitter(PC_MEM[1],PC_MEM[2]);
+			break;
         default: transmit_3rytes(TOKEN_ASYNCHRO, ERROR_DECODER_wrongCommand, PC_MEM[0]);
     }
 }
@@ -747,7 +752,7 @@ void COUNTERS_delayedStart(void)
 		transmit_2rytes(COMMAND_COUNTERS_delayedStart, 2);
 	}
 }
-uint32_t COUNTERS_msToTicks(byte ms)
+uint32_t COUNTERS_msToTicks(uint16_t ms)
 {
 	//ФУНКЦИЯ: Переводит миллисекунды в тики и предделитель
 	//ВОЗВРАЩАЕТ: <x><prescaler><ticks_1><ticks_2>
@@ -857,7 +862,17 @@ void TIC_decode(void)
 			{
 				case 4: pin_SEMV1_high;	//Открываем вентиль "форик <-> турбик"
 					break;
-				default: pin_SEMV1_low;	//Закрываем вентиль "форик <-> турбик"
+				default: 
+					if ((PORTD.OUT & 2) >> 1)
+					{
+						TIC_R1_jitter++;
+						if(TIC_R1_jitter >= TIC_R1_jitter_MAX)
+						{
+							pin_SEMV1_low;	//Закрываем вентиль "форик <-> турбик"
+							transmit_3rytes(TOKEN_ASYNCHRO, LAM_HVE_TIC_R1_off, R1);
+							TIC_R1_jitter = 0;
+						}
+					}
 					break;
 			}
 			switch(R2)
@@ -902,7 +917,7 @@ void TIC_decode(void)
 				if(Flags.iHVE == 0)
 				{
 					TIC_disprove_jitter++;
-					if(TIC_disprove_jitter > TIC_disprove_jitter_MAX)
+					if(TIC_disprove_jitter >= TIC_disprove_jitter_MAX)
 					{
 						//На пине iHVE низкий потенциал - он разрешает работу DC-DC 24-12. Высокое напряжения есть! Должно быть...
 						//Выключаем высокое!
@@ -984,6 +999,16 @@ void TIC_getStatus(void)
 {
 	//ФУНКЦИЯ: Отсылает компьютеру последние актуальные данные о TIC'е
 	transmit(TIC_Status,TIC_Status_length);
+}
+void TIC_setJitter(byte Jitter_TIC_disprove, byte Jitter_TIC_R1_off)
+{
+	//ФУНКЦИЯ: Устанавливает количество допустимых дрожаний
+	TIC_R1_jitter = 0;
+	TIC_disprove_jitter = 0;
+	TIC_R1_jitter_MAX = Jitter_TIC_R1_off;
+	TIC_disprove_jitter_MAX = Jitter_TIC_disprove;
+	byte aswDATA[1] = {COMMAND_TIC_setJitter};
+	transmit(aswDATA, 1);
 }
 //Прочие
 bool EVSYS_SetEventSource(uint8_t eventChannel, EVSYS_CHMUX_t eventSource)
