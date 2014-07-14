@@ -23,7 +23,7 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										171
+#define version										172
 #define birthday									20140714
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
@@ -233,6 +233,7 @@ void TIC_getStatus(void);
 void TIC_setJitter(byte Jitter_TIC_disprove, byte Jitter_TIC_R1_off);
 void SPI_send(uint8_t DEVICE_Number);
 void SPI_get_AllVoltages(void);
+void SPI_confDACs_toDoubleRef(void);
 void updateFlags(void);
 void checkFlag_HVE(void);
 void checkFlag_PRGE(void);
@@ -687,6 +688,7 @@ void COUNTERS_delayedStart(void)
 	//Выставляем настройки для SPI устройств
 	if ((RTC_Status != RTC_Status_busy))
 	{
+		SPI_confDACs_toDoubleRef();		//Настраиваем референс ЦАПов
 		uint8_t spi_data[] = {25, PC_MEM[1], PC_MEM[2]}; //Устанавливаем Сканирующее
 		spi_select_device(&SPIC, &DAC_Scaner);
 		spi_write_packet(&SPIC, spi_data, 3);
@@ -1097,6 +1099,7 @@ void SPI_send(uint8_t DEVICE_Number)
             transmit_3rytes(TOKEN_ASYNCHRO, INTERNAL_ERROR_SPI, DEVICE_Number);
             return;
     }
+	SPI_confDACs_toDoubleRef();					//Вновь настраиваем референс
     uint8_t SPI_rDATA[] = {0, 0};				//Память SPI для приёма данных (два байта)
     //Если устройство DAC AD5643R то посылаем данные по его протоколу, откликаемся и выходим
     if (DAC_is_AD5643R)
@@ -1136,6 +1139,29 @@ void SPI_send(uint8_t DEVICE_Number)
     //Передём ответ на ПК по USART
     uint8_t aswDATA[] = {PC_MEM[0], SPI_rDATA[0], SPI_rDATA[1]};
     transmit(aswDATA, 3);
+}
+void SPI_confDACs_toDoubleRef(void)
+{
+	uint8_t SPI_DATA[] = {0,0,0};
+	//DPS + PSIS DAC'и AD5328R (Детектор и Ионный Источник) - двойной референс
+	SPI_DATA[0] = AD5328R_confHbyte;
+	SPI_DATA[1] = AD5328R_confLbyte;
+	spi_select_device(&SPIC, &DAC_Inlet);
+	spi_select_device(&SPIC, &DAC_Detector);
+	spi_select_device(&SPIC, &DAC_IonSource);
+	spi_write_packet(&SPIC, SPI_DATA, 2);
+	spi_deselect_device(&SPIC, &DAC_Inlet);
+	spi_deselect_device(&SPIC, &DAC_Detector);
+	spi_deselect_device(&SPIC, &DAC_IonSource);
+	//MSV DAC'и AD5643R (Конденсатор и сканер) - двойной референс
+	SPI_DATA[0] = AD5643R_confHbyte;
+	SPI_DATA[1] = AD5643R_confMbyte;
+	SPI_DATA[2] = AD5643R_confLbyte;
+	spi_select_device(&SPIC, &DAC_Condensator);
+	spi_select_device(&SPIC, &DAC_Scaner);
+	spi_write_packet(&SPIC, SPI_DATA, 3);
+	spi_deselect_device(&SPIC, &DAC_Condensator);
+	spi_deselect_device(&SPIC, &DAC_Scaner);
 }
 void SPI_get_AllVoltages(void)
 {
