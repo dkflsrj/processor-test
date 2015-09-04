@@ -41,6 +41,7 @@
 #define COMMAND_TIC_getStatus						51	//Команда: Запросить последний полученный МК статус TIC'a
 #define COMMAND_TIC_setJitter						52	//Команда: Устанавливает допустимое количество "дрожания" статуса датчиков
 #define COMMAND_TIC_send_TIC_MEM					53	//Команда: Вернуть память TIC_MEM
+#define COMMAND_TIC_default_reset					54  //Команда: Сбросить флаг TIC_default
 
 //#define COMMAND_KEY								58	//Команда: Любая команда начинается с этой (ключ)
 

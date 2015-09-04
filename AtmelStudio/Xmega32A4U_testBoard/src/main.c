@@ -23,8 +23,8 @@
 
 //---------------------------------------ОПРЕДЕЛЕНИЯ----------------------------------------------
 //МК
-#define version										174
-#define birthday									20140715
+#define version										175
+#define birthday									20140828//20140623
 //Счётчики
 #define RTC_Status_ready							0		//Счётчики готов к работе
 #define RTC_Status_stopped							1		//Счётчики был принудительно остановлен
@@ -89,9 +89,9 @@ uint8_t TIC_Online = 0;									//Булка: 0 - нет связи с TIC'ом, 1 - TIC на связ
 byte TIC_Status[30];									//Последнее сообщение статуса от TIC'a 
 byte TIC_Status_length = 0;								//Длинна сообщения статуса
 byte TIC_disprove_jitter = 0;							//Учёт дребезга контактов (МК вырубает высокое)
-byte TIC_disprove_jitter_MAX = 5;						//Максимальное количество дребезга
+byte TIC_disprove_jitter_MAX = 2;						//Максимальное количество дребезга
 byte TIC_R1_jitter = 0;									//Учёт дребезга контактов (МК вырубает вентиль)
-byte TIC_R1_jitter_MAX = 5;							//Максимальное количество дребезга
+byte TIC_R1_jitter_MAX = 2;								//Максимальное количество дребезга
 //		Измерения
 byte RTC_delay = 0;										//Флаг: RTC в задержке
 uint8_t  RTC_Status = RTC_Status_ready;					//Состояния счётчика
@@ -141,7 +141,7 @@ struct struct_Errors_USART_TIC
     uint8_t Noise					: 1;
     uint8_t HVE_error			    : 1;
     uint8_t wrongTimerState			: 1;
-    uint8_t noError7				: 1;
+    uint8_t TIC_default				: 1;//флаг того что у TIC'а сбились настройки
 };
 struct struct_Errors_USART_TIC Errors_USART_TIC = {0, 0, 0, 0, 0, 0, 0, 0};
 struct struct_Flags
@@ -528,6 +528,8 @@ void decode(void)
 			break;
 		case COMMAND_TIC_setJitter:					TIC_setJitter(PC_MEM[1],PC_MEM[2]);
 			break;
+		case COMMAND_TIC_default_reset:				Errors_USART_TIC.TIC_default = 0;				
+			break;
         default: transmit_3rytes(TOKEN_ASYNCHRO, ERROR_DECODER_wrongCommand, PC_MEM[0]);
     }
 }
@@ -782,7 +784,7 @@ void TIC_decode(void)
     //TIC_MEM_length = 22;
 	//TIC_MEM[0] = 61;			TIC_MEM[8] = 48;  /*B*/		TIC_MEM[16] = 52; /*R1*/
 	//TIC_MEM[1] = 86;			TIC_MEM[9] = 59;			TIC_MEM[17] = 59;
-	//TIC_MEM[2] = 57;			TIC_MEM[10] = 48; /*G1*/	TIC_MEM[18] = 52; /*R2*/
+	//TIC_MEM[2] = 57;			TIC_MEM[10] = 48; /*G1*/	TIC_MEM[18] = 52;/* R2*/
 	//TIC_MEM[3] = 48;			TIC_MEM[11] = 59;			TIC_MEM[19] = 59;
 	//TIC_MEM[4] = 50;			TIC_MEM[12] = 48; /*G2*/	TIC_MEM[20] = 48; /*R3*/
 	//TIC_MEM[5] = 32;			TIC_MEM[13] = 59;			TIC_MEM[21] = 13;
@@ -863,6 +865,7 @@ void TIC_decode(void)
 			switch(R1)
 			{
 				case 4: pin_SEMV1_high;	//Открываем вентиль "форик <-> турбик"
+						TIC_R1_jitter = 0;
 					break;
 				default: 
 					if ((PORTD.OUT & 2) >> 1)
@@ -913,6 +916,7 @@ void TIC_decode(void)
 					Flags.iHVE = 0;	//Разрешаем высокое!
 					transmit_2rytes(TOKEN_ASYNCHRO, LAM_HVE_TIC_approve); //Твитнем компьютеру
 				}
+				TIC_disprove_jitter = 0;
 			} 
 			else
 			{
@@ -1688,6 +1692,18 @@ int main(void)
     RTC_setStatus_ready;
     Flags.iHVE = 1; //Запрещаем высокое напряжение, до тех пор пока от TIC'а на придёт разрешение
     Flags.PRGE = 0;	//Изночально oператор запрещает высокое напряжение (При запрещении от TIC операторская тоже должна запрещаться!)
+	
+	// Сюда (или чуть дальше) нужно включить проверкку настроек TIC'а по-умолчанию (TIC_default)
+	// Послать команды проверяющие следующие настройки:
+	// 1). Units - torr (первый маркер того, произошёл ли сбой; может быть, стоит проверять только его?)
+	// 2). Relay1 - подключено к Gauge1
+	// 3). Relay2 - подключено к Gauge2
+	// 4). Relay3 - подключено к Gauge1
+	// 5). Trbo - подключён к Gauge1
+	// 6). Состояние всех 4-х setpoint'ов - ENABLED.
+	// 7). Turbo start delay - >=1 min (мало ли понадобится большая задержка, но её отсутствие - это ошибка)
+	// Если хотябы одна из них отклоняется от значения по-умолчанию, выставить флаг Errors_USART_TIC.TIC_default = 1;
+	
     //Таймер PC
     PC_timer.PER = 65535;				//524мс на 125кГц
     PC_timer.CNT = 0;
